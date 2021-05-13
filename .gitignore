@@ -105,3 +105,9 @@ venv.bak/
 
 # others
 others/
+
+# DB data
+pgdata/
+
+# models
+*.pt

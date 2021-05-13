@@ -1,0 +1,28 @@
+FROM pytorch/pytorch:1.8.0-cuda11.1-cudnn8-devel
+
+# RUN pip3 install fastapi uvicorn
+
+RUN apt-get update && \
+    apt-get install sudo 
+
+RUN apt-get install nano && \
+    apt-get install -y git 
+    
+RUN sudo apt-get install -y python3-pip && \
+    sudo pip3 install --pre -U bentoml 
+
+RUN pip3 install opencv-python && \
+    apt-get -y install libgl1-mesa-glx && \
+
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install jupyter && \
+    pip3 install -r ./guides/quick-start/requirements.txt --use-feature=2020-resolver
+
+RUN pip3 install imageio && \
+    pip install typing
+
+COPY ./ /workspace
+
+# RUN python /workspace/generate_bentoml_model.py
+# CMD ["bentoml", "serve", "PytorchModelService:latest"]

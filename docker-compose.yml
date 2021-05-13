@@ -1,0 +1,79 @@
+version: '2'
+services:
+  postgres:
+    image: postgres:11
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=shinuk
+      - POSTGRES_USER=shinuk
+      - POSTGRES_PASSWORD=1q2w3e4r
+
+    ports: 
+      - 5432:5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    networks:
+      our_net:
+          ipv4_address: 172.20.0.6
+  
+  web:
+    image: python_web_web
+    container_name: web
+    ports: 
+      - 8000:8000
+    volumes:
+      - ./:/workspace
+    environment:
+      - POSTGRES_DB=shinuk
+      - POSTGRES_USER=shinuk
+      - POSTGRES_PASSWORD=1q2w3e4r
+    command: uvicorn workspace.backend.main:app --host 0.0.0.0 --port 8000
+    tty: true
+    # depends_on: 
+    #   - postgres
+    networks:
+      our_net:
+          ipv4_address: 172.20.0.5
+    restart: unless-stopped
+
+  serving:
+    image: python_web_serving
+    # build:
+    #   context: ./serving
+    #   dockerfile: Dockerfile.bentoml
+    container_name: serving
+    ports: 
+      - "5000:5000"
+    volumes:
+      - ./serving:/workspace
+    depends_on: 
+      - postgres
+    networks:
+      our_net:
+          ipv4_address: 172.20.0.4
+    runtime: nvidia
+    command: python /workspace/generate_bentoml_model.py
+    tty: true
+
+  # pgadmin:
+  #   container_name: pgadmin_container
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+  #     PGADMIN_CONFIG_SERVER_MODE: 'False'
+  #   volumes:
+  #       - pgadmin:/root/.pgadmin
+  #   ports:
+  #     - "${PGADMIN_PORT:-5050}:80"
+  #   networks:
+  #     - postgres
+  #   restart: unless-stopped
+
+
+networks:
+  our_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

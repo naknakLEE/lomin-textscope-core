@@ -1,0 +1,33 @@
+FROM python:3.7
+
+RUN pip3 install fastapi uvicorn
+
+# EXPOSE 80
+
+# COPY ./app /app
+
+RUN apt-get update && \
+    apt-get install sudo && \
+    apt-get install nano && \
+    apt-get install git
+
+# RUN sudo apt-get -y install postgresql postgresql-contrib
+RUN sudo apt-get -y install postgresql-client
+
+
+RUN sudo pip3 install --pre -U bentoml 
+
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install jupyter && \
+    pip3 install -r ./guides/quick-start/requirements.txt
+
+RUN pip3 install python-jose[cryptography] && \
+    pip3 install passlib[bcrypt] && \
+    pip3 install python-multipart && \
+    pip3 install cryptography==3.3.2
+
+RUN pip3 install psycopg2 && \
+    pip3 install python-dotenv
+
+# CMD ["uvicorn", "workspace.backend.main:app", "--host", "0.0.0.0", "--port", "80"]
