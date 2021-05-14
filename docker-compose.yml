@@ -9,14 +9,14 @@ services:
       - POSTGRES_USER=shinuk
       - POSTGRES_PASSWORD=1q2w3e4r
 
-    ports: 
-      - 5432:5432
+    # ports: 
+    #   - 5432:5432
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     networks:
       our_net:
           ipv4_address: 172.20.0.6
-  
+          
   web:
     image: python_web_web
     container_name: web
@@ -43,8 +43,8 @@ services:
     #   context: ./serving
     #   dockerfile: Dockerfile.bentoml
     container_name: serving
-    ports: 
-      - "5000:5000"
+    # ports: 
+    #   - "5000:5000"
     volumes:
       - ./serving:/workspace
     depends_on: 

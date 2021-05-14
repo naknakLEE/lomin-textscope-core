@@ -51,16 +51,16 @@ class PytorchModelService(BentoService):
 
         return json.dumps({ "data": data })
 
-    def transform_image(self, image_bytes):
-            transform = transforms.Compose([
-                # transforms.Resize((self.img_size, self.img_size)),
-                transforms.ToTensor(),
-                # transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-            ])
-            print(type(image_bytes))
-            byteio = io.BytesIO(image_bytes)
-            image = Image.open(byteio).convert('RGB')
-            return transform(image)
+    # def transform_image(self, image_bytes):
+    #         transform = transforms.Compose([
+    #             # transforms.Resize((self.img_size, self.img_size)),
+    #             transforms.ToTensor(),
+    #             # transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    #         ])
+    #         print(type(image_bytes))
+    #         byteio = io.BytesIO(image_bytes)
+    #         image = Image.open(byteio).convert('RGB')
+    #         return transform(image)
 
 
 
