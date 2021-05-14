@@ -1,11 +1,18 @@
 import psycopg2
 import os
+import cv2
+import requests
+import time
+import httpx
+import asyncio
+import numpy as np
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -30,6 +37,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
 TABLE = os.getenv('TABLE')
 
+SERVING_IP_ADDR = os.getenv('SERVING_IP_ADDR')
+SERVING_IP_PORT = os.getenv('SERVING_IP_PORT')
+
+
 
 postgresConnection = psycopg2.connect(
     host=POSTGRES_IP_ADDR,
@@ -44,24 +55,15 @@ username = 'shinuk'
 cursor.execute(f"SELECT * FROM {TABLE} WHERE username = '{username}'")
 
 row = cursor.fetchone()
-user_information = {
-    "username": row[1],
-    "full_name": row[2],
-    "email": row[3],
-    "hashed_password": row[4],
-    "disabled": row[5],
+fake_information = {
+    "shinuk": {
+        "username": row[1],
+        "full_name": row[2],
+        "email": row[3],
+        "hashed_password": row[4],
+        "disabled": row[5],
+    }
 }
-
-
-# fake_users_db = {
-#     "shinuk": {
-#         "username": "shinuk",
-#         "full_name": "Shinuk Yi",
-#         "email": "shinuk@example.com",
-#         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-#         "disabled": False,
-#     }
-# }
 
 
 class Token(BaseModel):
@@ -111,7 +113,7 @@ def get_user(db, username: str):
             "disabled": row[5],
         }
         # user_dict = db[username]
-        # print("check", type(user_dict), user_dict)
+        print("check", type(user_dict), user_dict)
         return UserInDB(**user_dict)
 
 
@@ -150,7 +152,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = get_user(fake_information, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -164,7 +166,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(fake_information, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -188,21 +190,22 @@ async def read_own_items(current_user: User = Depends(get_current_active_user)):
     return [{"item_id": "SY_item", "owner": current_user.username}]
 
 
+@app.post("/inference") 
+def inference(current_user: User = Depends(get_current_active_user), file: UploadFile = File(...)):
+    test_url = f'http://{SERVING_IP_ADDR}:{SERVING_IP_PORT}/inference'
 
-@app.get("/inference") 
-async def inference(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "SY_item", "owner": "SY"}]
+    image_data = file.file.read()
+    nparr = np.fromstring(image_data, np.uint8)
+    image_data = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    _, img_encoded = cv2.imencode('.jpg', image_data)
+    image_data = img_encoded.tobytes()
+
+    files = { 'file': image_data }
+    response = requests.post(test_url, data=image_data)
+
+    return response.json()
 
 
-
-# @app.get("/inference/{item_id}")
-# def read_root(item_id: str, request: Request):
-#     client_host = request.client.host
-#     return {"client_host": client_host, "item_id": item_id}
-
-# import requests
-# response = requests.post("http://127.0.0.1:5000/predict", json=[[5.1, 3.5, 1.4, 0.2]])
-
-# @app.get("/users/me/items/test") 
-# async def read_own_items():
-#     return [{"item_id": "SY_item", "owner": "SY"}]
+@app.get("/status")
+def check_status():
+    return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
