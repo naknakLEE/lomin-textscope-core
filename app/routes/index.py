@@ -1,69 +1,40 @@
+from datetime import datetime
 
-
-from fastapi import APIRouter
-import psycopg2
-import os
-import requests
-import numpy as np 
-import cv2
-import uvicorn
-
-from datetime import datetime, timedelta
-from typing import Optional
-
-from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile, APIRouter
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
-from starlette.requests import Request
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
+from starlette.responses import Response
 
-from dotenv import load_dotenv
-
-# from logger import init_logging
-# from loguru import logger
-# import logging
-
-
-# init_logging()
-
-router = APIRouter()
-
-
-env_path=os.path.join('/workspace', '.env')
-load_dotenv(env_path)
-
-POSTGRES_IP_ADDR = os.getenv('POSTGRES_IP_ADDR')
-POSTGRES_DB = os.getenv('POSTGRES_DB')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-
-SECRET_KEY = os.getenv('SECRET_KEY')
-ALGORITHM = os.getenv('ALGORITHM')
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
-
-TABLE = os.getenv('TABLE')
-
-SERVING_IP_ADDR = os.getenv('SERVING_IP_ADDR')
-SERVING_IP_PORT = os.getenv('SERVING_IP_PORT')
-
-postgresConnection = psycopg2.connect(
-    host=POSTGRES_IP_ADDR,
-    database=POSTGRES_DB,
-    user=POSTGRES_USER,
-    password=POSTGRES_PASSWORD
-)
+from database.connection import db
+from database.schema import Users, Errors
 
 
 
 router = APIRouter()
 
+
+fake_information = {
+    "username": "shinuk",
+    "full_name": "Shinuk Yi",
+    "email": "shinuk@example.com",
+    "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+}
 
 @router.get("/")
-async def root():
-    return {"message": "Hello World"}
+async def index(session: Session = Depends(db.session)):
+    # user = Users(status='active')
+    # session.add(user)
+    # session.commit()
+
+    # Errors.create(session, auto_commit=True)
+    Users.create(session, auto_commit=True, name="test", **fake_information)
+
+    curren_time = datetime.utcnow()
+    return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
+
+
 
 @router.get("/status")
 def check_status():
-    return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
+    # return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
+    return JSONResponse(status_code=200, content=f"postgresConnection")

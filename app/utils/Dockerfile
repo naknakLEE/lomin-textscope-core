@@ -27,7 +27,8 @@ RUN pip3 install python-jose[cryptography] && \
     pip3 install python-multipart && \
     pip3 install cryptography==3.3.2
 
-RUN pip3 install psycopg2 && \
-    pip3 install python-dotenv
+RUN pip3 install psycopg2-binary && \
+    pip3 install python-dotenv && \
+    pip3 install pydantic[email]
 
 # CMD ["uvicorn", "workspace.backend.main:app", "--host", "0.0.0.0", "--port", "80"]
