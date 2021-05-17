@@ -1,29 +1,25 @@
 import uvicorn
-import os
-import time
 
 from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from os import path, environ
 from dataclasses import asdict, dataclass
-from dotenv import load_dotenv
 
 from routes import auth, index, users, inference
 from database.connection import db
 from middlewares.token_validator import access_control
+from common.const import (
+    POSTGRES_IP_ADDR,
+    POSTGRES_DB,
+    POSTGRES_USER,
+    POSTGRES_PASSWORD,
+)
 
 
-
-
-POSTGRES_IP_ADDR = os.getenv('POSTGRES_IP_ADDR')
-POSTGRES_DB = os.getenv('POSTGRES_DB')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
 base_dir = path.dirname(path.dirname(path.abspath(__file__)))
-env_path=path.join('/workspace', '.env')
 
 @dataclass
 class Config:
@@ -35,7 +31,6 @@ class Config:
     DB_URL: str = environ.get("DB_URL", f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_IP_ADDR}/{POSTGRES_DB}")
 
 
-load_dotenv(env_path)
 
 app = FastAPI()
 db.init_app(app, **asdict(Config()))

@@ -46,7 +46,8 @@ services:
     ports: 
       - "5000:5000"
     volumes:
-      - ./serving:/workspace
+      - ./:/workspace
+      - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
     depends_on: 
       - postgres
     networks:

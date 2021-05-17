@@ -14,7 +14,6 @@ from models import TokenData, User, UserInDB
 
 
 
-
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 
@@ -22,14 +21,14 @@ ALGORITHM = os.getenv('ALGORITHM')
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-fake_information = {
-    "shinuk": {
-        "username": "shinuk",
-        "full_name": "Shinuk Yi",
-        "email": "shinuk@example.com",
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-}
+# FAKE_INFORMATION = {
+#     "shinuk": {
+#         "username": "shinuk",
+#         "full_name": "Shinuk Yi",
+#         "email": "shinuk@example.com",
+#         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+#     }
+# }
 
 
 def verify_password(plain_password, hashed_password):
@@ -101,7 +100,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_information, username=token_data.username)
+    user = get_user(FAKE_INFORMATION, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user

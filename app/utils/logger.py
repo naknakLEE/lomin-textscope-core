@@ -11,17 +11,31 @@ from os import path
 
 from database.schema import Errors
 from database.connection import db
+from common.const import (
+    FILE_MAX_BYTE,
+    BACKUP_COUNT,    
+    LOGGER_LEVEL
+)
 
 
 
-base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
-log_folder_dir = path.join(base_dir, "log")
-os.makedirs(log_folder_dir, exist_ok=True)
-log_file_dir = path.join(log_folder_dir, "log.log")
-fileMaxByte = 1024 * 1024
-fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=fileMaxByte, backupCount=1000)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(fileHandler)
+
+def load_log_file_dir():
+    base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+    log_folder_dir = path.join(base_dir, "logs/fastapi")
+    os.makedirs(log_folder_dir, exist_ok=True)
+    time_format = "%Y/%m/%d %H:%M:%S"
+    datetime_kr=(datetime.utcnow() + timedelta(hours=9)).strftime(time_format),
+    log_file_dir = path.join(log_folder_dir, f"{datetime_kr}.log")
+    return log_file_dir
+
+def set_logger_config():
+    fileHandler = logging.handlers.RotatingFileHandler(load_log_file_dir(), maxBytes=FILE_MAX_BYTE, backupCount=BACKUP_COUNT)
+    logger.setLevel(getattr(logging, LOGGER_LEVEL))
+    logger.addHandler(fileHandler)
+
+
+set_logger_config()
 
 
 async def api_logger(request: Request, response=None, error=None):
@@ -66,7 +80,7 @@ async def api_logger(request: Request, response=None, error=None):
     )
     # if body:
     #     log_dict["body"] = body
-    print('\033[96m' + f"\n{log_dict}" + '\033[0m')
+    # print('\033[96m' + f"\n{log_dict}" + '\033[0m')
     # Errors.create(next(db.session()), auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict))

@@ -10,52 +10,17 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
-from dotenv import load_dotenv
+from common.const import (
+    SECRET_KEY,
+    ALGORITHM,
+    TABLE,
+    FAKE_INFORMATION
+)
 
 
 
 
 router = APIRouter()
-
-
-env_path=os.path.join('/workspace', '.env')
-load_dotenv(env_path)
-
-POSTGRES_IP_ADDR = os.getenv('POSTGRES_IP_ADDR')
-POSTGRES_DB = os.getenv('POSTGRES_DB')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-
-SECRET_KEY = os.getenv('SECRET_KEY')
-ALGORITHM = os.getenv('ALGORITHM')
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
-
-TABLE = os.getenv('TABLE')
-
-SERVING_IP_ADDR = os.getenv('SERVING_IP_ADDR')
-SERVING_IP_PORT = os.getenv('SERVING_IP_PORT')
-
-postgresConnection = psycopg2.connect(
-    host=POSTGRES_IP_ADDR,
-    database=POSTGRES_DB,
-    user=POSTGRES_USER,
-    password=POSTGRES_PASSWORD
-)
-cursor = postgresConnection.cursor()
-
-username = 'shinuk'
-cursor.execute(f"SELECT * FROM {TABLE} WHERE username = '{username}'")
-
-row = cursor.fetchone()
-fake_information = {
-    "shinuk": {
-        "username": row[1],
-        "full_name": row[2],
-        "email": row[3],
-        "hashed_password": row[4],
-        "disabled": row[5],
-    }
-}
 
 
 class Token(BaseModel):
@@ -120,7 +85,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_information, username=token_data.username)
+    user = get_user(FAKE_INFORMATION, username=token_data.username)
     if user is None:
         raise credentials_exception
     return user

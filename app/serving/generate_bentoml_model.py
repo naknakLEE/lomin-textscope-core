@@ -13,7 +13,7 @@ clf.fit(X, y)
 pytorch_model_service = PytorchModelService()
 
 # Pack the newly trained model artifact
-traced_net = torch.jit.load("/workspace/mask_rcnn.pt")
+traced_net = torch.jit.load("/workspace/app/serving/mask_rcnn.pt")
 pytorch_model_service.pack('net', traced_net)
 
 # Save the prediction service to disk for model serving

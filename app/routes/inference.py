@@ -5,19 +5,16 @@ import cv2
 
 from fastapi import Depends, File, UploadFile, APIRouter
 from models import User
-from utils.authorization import (
-    get_current_active_user,
+from utils.authorization import get_current_active_user
+from common.const import (
+    SERVING_IP_ADDR,
+    SERVING_IP_PORT
 )
 
 
+
+
 router = APIRouter()
-
-SECRET_KEY = os.getenv('SECRET_KEY')
-ALGORITHM = os.getenv('ALGORITHM')
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
-
-SERVING_IP_ADDR = os.getenv('SERVING_IP_ADDR')
-SERVING_IP_PORT = os.getenv('SERVING_IP_PORT')
 
 
 @router.post("/inference") 

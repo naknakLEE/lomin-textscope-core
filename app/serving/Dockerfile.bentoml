@@ -21,8 +21,6 @@ RUN git clone http://github.com/bentoml/bentoml && \
 
 RUN pip3 install typing
 
-RUN pip3 install imageio
-
 COPY ./ /workspace
 
 # RUN python /workspace/generate_bentoml_model.py

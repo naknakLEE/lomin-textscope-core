@@ -1,11 +1,11 @@
-import os
-
 from datetime import  timedelta
 
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
+
+import models
 
 from database.schema import Users
 from models import Token, UserToken
@@ -15,27 +15,15 @@ from utils.authorization import (
     verify_password,
     is_email_exist
 )
+from common.const import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    FAKE_INFORMATION
+)
 
-import models
 
-from dotenv import load_dotenv
-
-env_path=os.path.join('/workspace', '.env')
-load_dotenv(env_path)
 
 
 router = APIRouter()
-
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
-
-fake_information = {
-    "shinuk": {
-        "username": "shinuk",
-        "full_name": "Shinuk Yi",
-        "email": "shinuk@example.com",
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-}
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -43,7 +31,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_information, form_data.username, form_data.password)
+    user = authenticate_user(FAKE_INFORMATION, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
