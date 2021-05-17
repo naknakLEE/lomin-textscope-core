@@ -1,18 +1,15 @@
 import psycopg2
 import os
-import cv2
 import requests
-import time
-import httpx
-import asyncio
-import numpy as np
+import numpy as np 
+import cv2
+import uvicorn
 
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile, APIRouter
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -20,11 +17,13 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 
+
+
+router = APIRouter()
+
+
 env_path=os.path.join('/workspace', '.env')
 load_dotenv(env_path)
-
-# print(env_path)
-
 
 POSTGRES_IP_ADDR = os.getenv('POSTGRES_IP_ADDR')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
@@ -40,8 +39,6 @@ TABLE = os.getenv('TABLE')
 SERVING_IP_ADDR = os.getenv('SERVING_IP_ADDR')
 SERVING_IP_PORT = os.getenv('SERVING_IP_PORT')
 
-
-
 postgresConnection = psycopg2.connect(
     host=POSTGRES_IP_ADDR,
     database=POSTGRES_DB,
@@ -49,7 +46,6 @@ postgresConnection = psycopg2.connect(
     password=POSTGRES_PASSWORD
 )
 cursor = postgresConnection.cursor()
-
 
 username = 'shinuk'
 cursor.execute(f"SELECT * FROM {TABLE} WHERE username = '{username}'")
@@ -90,7 +86,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-app = FastAPI()
+app = FastAPI(debug=True)
+
+log_config = uvicorn.config.LOGGING_CONFIG
+log_config["formatters"]["access"]["fmt"] = "%(asctime)s - %(levelname)s - %(message)s"
+log_config["formatters"]["default"]["fmt"] = "%(asctime)s - %(levelname)s - %(message)s"
 
 
 def verify_password(plain_password, hashed_password):
@@ -109,8 +109,8 @@ def get_user(db, username: str):
             "username": row[1],
             "full_name": row[2],
             "email": row[3],
-            "hashed_password": row[4],
-            "disabled": row[5],
+            "disabled": row[4],
+            "hashed_password": row[5],
         }
         # user_dict = db[username]
         print("check", type(user_dict), user_dict)
@@ -164,33 +164,8 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     return current_user
 
 
-@app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_information, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
 
-
-@app.get("/users/me/", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
-
-
-@app.get("/users/me/items/")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "SY_item", "owner": current_user.username}]
-
-
-@app.post("/inference") 
+@router.post("/inference") 
 def inference(current_user: User = Depends(get_current_active_user), file: UploadFile = File(...)):
     test_url = f'http://{SERVING_IP_ADDR}:{SERVING_IP_PORT}/inference'
 
@@ -204,8 +179,3 @@ def inference(current_user: User = Depends(get_current_active_user), file: Uploa
     response = requests.post(test_url, data=image_data)
 
     return response.json()
-
-
-@app.get("/status")
-def check_status():
-    return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")

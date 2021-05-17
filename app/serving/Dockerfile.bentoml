@@ -19,8 +19,9 @@ RUN git clone http://github.com/bentoml/bentoml && \
     pip3 install jupyter && \
     pip3 install -r ./guides/quick-start/requirements.txt --use-feature=2020-resolver
 
-RUN pip3 install imageio && \
-    pip install typing
+RUN pip3 install typing
+
+RUN pip3 install imageio
 
 COPY ./ /workspace
 

@@ -1,5 +1,5 @@
 import torch
-from mask_rcnn import PytorchModelService
+from pytorch_model_service import PytorchModelService
 from sklearn import svm
 from sklearn import datasets
 
