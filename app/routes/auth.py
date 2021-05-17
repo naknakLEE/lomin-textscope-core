@@ -18,7 +18,10 @@ from utils.authorization import (
 
 import models
 
+from dotenv import load_dotenv
 
+env_path=os.path.join('/workspace', '.env')
+load_dotenv(env_path)
 
 
 router = APIRouter()

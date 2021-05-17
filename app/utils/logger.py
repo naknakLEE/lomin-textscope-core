@@ -1,97 +1,76 @@
-"""Configure handlers and formats for application loggers."""
+import json
 import logging
-import sys
-from pprint import pformat
+import traceback
+import os
 
-# if you dont like imports of private modules
-# you can move it to typing.py module
-from loguru import logger
-from loguru._defaults import LOGURU_FORMAT
+from datetime import timedelta, datetime
+from time import time
+from fastapi.requests import Request
+from fastapi.logger import logger
+from os import path
 
-
-class InterceptHandler(logging.Handler):
-    """
-    Default handler from examples in loguru documentaion.
-    See https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging
-    """
-
-    def emit(self, record: logging.LogRecord):
-        # Get corresponding Loguru level if it exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-
-        # Find caller from where originated the logged message
-        frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+from database.schema import Errors
+from database.connection import db
 
 
-def format_record(record: dict) -> str:
-    """
-    Custom format for loguru loggers.
-    Uses pformat for log any data like request/response body during debug.
-    Works with logging if loguru handler it.
 
-    Example:
-    >>> payload = [{"users":[{"name": "Nick", "age": 87, "is_active": True}, {"name": "Alex", "age": 27, "is_active": True}], "count": 2}]
-    >>> logger.bind(payload=).debug("users payload")
-    >>> [   {   'count': 2,
-    >>>         'users': [   {'age': 87, 'is_active': True, 'name': 'Nick'},
-    >>>                      {'age': 27, 'is_active': True, 'name': 'Alex'}]}]
-    """
-
-    format_string = LOGURU_FORMAT
-    if record["extra"].get("payload") is not None:
-        record["extra"]["payload"] = pformat(
-            record["extra"]["payload"], indent=4, compact=True, width=88
-        )
-        format_string += "\n<level>{extra[payload]}</level>"
-
-    format_string += "{exception}\n"
-    return format_string
+base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+log_folder_dir = path.join(base_dir, "log")
+os.makedirs(log_folder_dir, exist_ok=True)
+log_file_dir = path.join(log_folder_dir, "log.log")
+fileMaxByte = 1024 * 1024
+fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=fileMaxByte, backupCount=1000)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(fileHandler)
 
 
-def init_logging():
-    """
-    Replaces logging handlers with a handler for using the custom handler.
+async def api_logger(request: Request, response=None, error=None):
+    time_format = "%Y/%m/%d %H:%M:%S"
+    t = time() - request.state.start
+    status_code = error.status_code if error else response.status_code
+    error_log = None
+    user = request.state.user
+    # body = await request.body()
+    if error:
+        # print('\033[96m' + f"\n{request.state.inspect}" + '\033[0m')
+        if request.state.inspect:
+            frame = request.state.inspect  
+            error_file = frame.f_code.co_filename
+            error_func = frame.f_code.co_name
+            error_line = frame.f_lineno
+        else:
+            error_func = error_file = error_line = "UNKNOWN"
         
-    WARNING!
-    if you call the init_logging in startup event function, 
-    then the first logs before the application start will be in the old format
-
-    >>> app.add_event_handler("startup", init_logging)
-    stdout:
-    INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-    INFO:     Started reloader process [11528] using statreload
-    INFO:     Started server process [6036]
-    INFO:     Waiting for application startup.
-    2020-07-25 02:19:21.357 | INFO     | uvicorn.lifespan.on:startup:34 - Application startup complete.
-    
-    """
-
-    # disable handlers for specific uvicorn loggers
-    # to redirect their output to the default uvicorn logger
-    # works with uvicorn==0.11.6
-    loggers = (
-        logging.getLogger(name)
-        for name in logging.root.manager.loggerDict
-        if name.startswith("uvicorn.")
+        error_log = dict(
+            errorFunc=error_func,
+            location="{} line in {}".format(str(error_line), error_file),
+            raised=str(error.__class__.__name__),
+            msg=str(error.ex),
+        )
+    email = user.email if user and user.email else None
+    user_log = dict(
+        client=request.state.ip,
+        user=user.id if user and user.id else None,
+        email=email
     )
-    for uvicorn_logger in loggers:
-        uvicorn_logger.handlers = []
 
-    # change handler for default uvicorn logger
-    intercept_handler = InterceptHandler()
-    logging.getLogger("uvicorn").handlers = [intercept_handler]
 
-    # set logs output, level and format
-    logger.configure(
-        handlers=[{"sink": sys.stdout, "level": logging.DEBUG, "format": format_record}]
+    log_dict = dict(
+        url=request.url.hostname + request.url.path,
+        method=str(request.method),
+        status_code=status_code,
+        error_detail=error_log,
+        client=str(user_log),
+        processed_time=str(round(t * 1000, 5)) + "ms",
+        datetime_kr=(datetime.utcnow() + timedelta(hours=9)).strftime(time_format),
     )
+    # if body:
+    #     log_dict["body"] = body
+    print('\033[96m' + f"\n{log_dict}" + '\033[0m')
+    # Errors.create(next(db.session()), auto_commit=True, **log_dict)
+    if error and error.status_code >= 500:
+        logger.error(json.dumps(log_dict))
+        logger.error({"traceback": f"{traceback.print_exc()}"})
+    else:
+        logger.info(json.dumps(log_dict))
+        logger.info({"traceback": f"{traceback.print_exc()}"})

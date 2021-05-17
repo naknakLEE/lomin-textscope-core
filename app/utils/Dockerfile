@@ -29,6 +29,7 @@ RUN pip3 install python-jose[cryptography] && \
 
 RUN pip3 install psycopg2-binary && \
     pip3 install python-dotenv && \
-    pip3 install pydantic[email]
+    pip3 install pydantic[email] && \
+    pip3 install PyJWT
 
 # CMD ["uvicorn", "workspace.backend.main:app", "--host", "0.0.0.0", "--port", "80"]
