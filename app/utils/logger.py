@@ -18,19 +18,17 @@ from common.const import (
 )
 
 
-
-
 def load_log_file_dir():
     base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
     log_folder_dir = path.join(base_dir, "logs/fastapi")
     os.makedirs(log_folder_dir, exist_ok=True)
-    time_format = "%Y/%m/%d %H:%M:%S"
-    datetime_kr=(datetime.utcnow() + timedelta(hours=9)).strftime(time_format),
-    log_file_dir = path.join(log_folder_dir, f"{datetime_kr}.log")
+    log_file_dir = path.join(log_folder_dir, f"log.log")
     return log_file_dir
 
+
 def set_logger_config():
-    fileHandler = logging.handlers.RotatingFileHandler(load_log_file_dir(), maxBytes=FILE_MAX_BYTE, backupCount=BACKUP_COUNT)
+    log_file_dir = load_log_file_dir()
+    fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=FILE_MAX_BYTE, backupCount=BACKUP_COUNT)
     logger.setLevel(getattr(logging, LOGGER_LEVEL))
     logger.addHandler(fileHandler)
 
@@ -84,7 +82,36 @@ async def api_logger(request: Request, response=None, error=None):
     # Errors.create(next(db.session()), auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict))
+        # logger.error({"traceback": f"{traceback.format_exc()}"})
         logger.error({"traceback": f"{traceback.print_exc()}"})
     else:
         logger.info(json.dumps(log_dict))
+        # logger.info({"traceback": f"{traceback.format_exc()}"})
         logger.info({"traceback": f"{traceback.print_exc()}"})
+
+
+# https://hwangheek.github.io/2019/python-logging/
+# import logging
+
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG) # 모든 레벨의 로그를 Handler들에게 전달해야함
+
+# formatter = logging.Formatter('%(asctime)s:%(module)s:%(levelname)s:%(message)s', '%Y-%m-%d %H:%M:%S')
+
+# # INFO 레벨 이상의 로그를 콘솔에 출력하는 Handler
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.INFO)
+# console_handler.setFormatter(formatter)
+# logger.addHandler(console_handler)
+
+# # DEBUG 레벨 이상의 로그를 `debug.log`에 출력하는 Handler
+# file_debug_handler = logging.FileHandler('debug.log')
+# file_debug_handler.setLevel(logging.DEBUG)
+# file_debug_handler.setFormatter(formatter)
+# logger.addHandler(file_debug_handler)
+
+# # ERROR 레벨 이상의 로그를 `error.log`에 출력하는 Handler
+# file_error_handler = logging.FileHandler('error.log')
+# file_error_handler.setLevel(logging.ERROR)
+# file_error_handler.setFormatter(formatter)
+# logger.addHandler(file_error_handler)

@@ -9,6 +9,7 @@ class  StatusCode:
     HTTP_404 = 404
     HTTP_405 = 405
 
+
 class APIException(Exception):
     status_code: int
     code: str

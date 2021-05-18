@@ -8,7 +8,6 @@ from common.const import (
 )
 
 
-
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
 
@@ -21,9 +20,11 @@ class Config:
     TEST_MODE: bool = False
     DB_URL: str = environ.get("DB_URL", f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_IP_ADDR}/{POSTGRES_DB}")
 
+
 @dataclass
 class LocalConfig(Config):
     ...
+
 
 @dataclass
 class ProdConfig(Config):

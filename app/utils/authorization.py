@@ -9,26 +9,15 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from database.schema import Users
-from models import TokenData, User, UserInDB
-
-
+from models import TokenData, User, UserInDB, Token
+from common.const import FAKE_INFORMATION
 
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-# FAKE_INFORMATION = {
-#     "shinuk": {
-#         "username": "shinuk",
-#         "full_name": "Shinuk Yi",
-#         "email": "shinuk@example.com",
-#         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-#     }
-# }
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def verify_password(plain_password, hashed_password):
@@ -86,7 +75,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+# async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

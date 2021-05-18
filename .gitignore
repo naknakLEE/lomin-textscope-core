@@ -105,6 +105,8 @@ venv.bak/
 
 # others
 others/
+memo.*
+memo.txt
 
 # DB data
 pgdata/

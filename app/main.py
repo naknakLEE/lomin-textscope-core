@@ -1,6 +1,7 @@
 import uvicorn
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from fastapi.security import APIKeyHeader
 from starlette.middleware.base import BaseHTTPMiddleware
 from os import path, environ
 from dataclasses import asdict, dataclass
@@ -16,10 +17,9 @@ from common.const import (
 )
 
 
-
-
-# API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
+API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
 base_dir = path.dirname(path.dirname(path.abspath(__file__)))
+
 
 @dataclass
 class Config:
@@ -35,7 +35,7 @@ class Config:
 app = FastAPI()
 db.init_app(app, **asdict(Config()))
 
-app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
+# app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
 
 app.include_router(index.router)
 app.include_router(inference.router, tags=["inference"])

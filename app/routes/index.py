@@ -8,23 +8,25 @@ from starlette.responses import Response
 from inspect import currentframe as frame
 
 from database.connection import db
-from database.schema import Users, Errors
+from database.schema import Users, Errors, Usage
 from common.const import FAKE_INFORMATION
-
-
 
 
 router = APIRouter()
 
 
 @router.get("/")
-async def index():
+async def index(session: Session = Depends(db.session)):
     # user = Users(status='active')
     # session.add(user)
     # session.commit()
 
     # Errors.create(next(db.session()), auto_commit=True)
     # Users.create(session, auto_commit=True, name="test", **FAKE_INFORMATION)
+    # Usage.metadata.create_all(db._engine)
+    print("\n\n\n\n")
+    print(Usage.get(email="user@example.com"))
+    print("\n\n\n\n")
 
     curren_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")

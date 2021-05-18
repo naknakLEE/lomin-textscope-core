@@ -2,6 +2,7 @@ from typing import Optional
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
 
+
 class UserRegister(BaseModel):
     email: EmailStr = None
     password: str = None

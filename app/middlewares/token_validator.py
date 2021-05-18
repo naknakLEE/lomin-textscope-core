@@ -4,12 +4,10 @@ import os
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from datetime import datetime
 
 from errors.exceptions import APIException
-from utils.date_utils import D
 from utils.logger import api_logger
-
-
 
 
 EXCEPT_PATH_LIST = ["/", "/openapi.json"]
@@ -20,7 +18,7 @@ ALGORITHM = os.getenv('ALGORITHM')
 
 
 async def access_control(request: Request, call_next):
-    request.state.req_time = D.datetime()
+    request.state.req_time = datetime.utcnow()
     request.state.start = time.time()
     request.state.inspect = None
     request.state.user = None
