@@ -1,3 +1,11 @@
+...
+bento_server:
+    microbatch:
+        workers: 4
+
 # nano /opt/conda/lib/python3.8/site-packages/bentoml/utils/log.py
 # after if file_logging_enabled: line
 # add base_log_directory="/workspace/logs/bentoml/"
+
+# https://github.com/bentoml/BentoML/blob/7bb9a7b55efc2f96d97cf0f7955ba9580599f0db/bentoml/configuration/default_bentoml.cfg#L40
+# https://github.com/bentoml/BentoML/blob/936bc3d4a39f748f66f820fa428e0ba7528b6a77/bentoml/service/inference_api.py#L266-L279

@@ -1,7 +1,7 @@
-import os
+# import os
 import requests
-import numpy as np 
-import cv2
+# import numpy as np 
+# import cv2
 
 from fastapi import Depends, File, UploadFile, APIRouter
 from sqlalchemy.orm import Session

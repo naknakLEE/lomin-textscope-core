@@ -7,6 +7,8 @@ from bentoml.adapters import ImageInput
 from bentoml.frameworks.pytorch import PytorchModelArtifact
 
 
+# multiple model inference
+# https://docs.bentoml.org/en/latest/concepts.html#packaging-model-artifacts
 @env(infer_pip_packages=True)
 @env(pip_packages=['torchvision'])
 @artifacts([PytorchModelArtifact('net')])

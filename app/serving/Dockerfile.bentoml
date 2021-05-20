@@ -12,7 +12,7 @@ RUN sudo apt-get install -y python3-pip && \
     sudo pip3 install --pre -U bentoml 
 
 RUN pip3 install opencv-python && \
-    apt-get -y install libgl1-mesa-glx && \
+    apt-get -y install libgl1-mesa-glx
 
 RUN git clone http://github.com/bentoml/bentoml && \
     cd bentoml && \
@@ -21,7 +21,9 @@ RUN git clone http://github.com/bentoml/bentoml && \
 
 RUN pip3 install typing
 
-COPY ./ /workspace
+RUN pip3 install imageio
+
+# COPY ./ /workspace
 
 # RUN python /workspace/generate_bentoml_model.py
 # CMD ["bentoml", "serve", "PytorchModelService:latest"]

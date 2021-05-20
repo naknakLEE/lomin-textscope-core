@@ -8,7 +8,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
     ports: 
       - 5432:5432
     volumes:
@@ -18,16 +17,16 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
   
   web:
-    image: python_web
+    image: wook3024/fastapi_backend:0.1.0
     container_name: web
     ports: 
       - 8000:8000
     volumes:
       - ./:/workspace
     # environment:
-    #   - POSTGRES_DB=shinuk
-    #   - POSTGRES_USER=shinuk
-    #   - POSTGRES_PASSWORD=1q2w3e4r
+    #   - POSTGRES_DB=${POSTGRES_DB}
+    #   - POSTGRES_USER=${POSTGRES_USER}
+    #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     # command: uvicorn workspace.backend.main:app --host 0.0.0.0 --port 8000
     tty: true
     depends_on: 
@@ -38,7 +37,7 @@ services:
     restart: unless-stopped
 
   serving:
-    image: python_web_serving
+    image: wook3024/bentoml_serving:0.1.0
     # build:
     #   context: ./serving
     #   dockerfile: Dockerfile.bentoml
