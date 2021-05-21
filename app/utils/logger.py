@@ -3,19 +3,24 @@ import logging
 import traceback
 import os
 
-from datetime import timedelta, datetime
 from time import time
 from fastapi.requests import Request
 from fastapi.logger import logger
 from os import path
 
-from database.schema import Errors
-from database.connection import db
+from database.schema import Logs
 from common.const import (
     FILE_MAX_BYTE,
     BACKUP_COUNT,    
     LOGGER_LEVEL
 )
+
+
+# class MyHandler(logging.Handler):
+#     def emit(self, record, session: Session = Depends(db.session)):
+#         print('\033[96m' + f"\n{record.__dict__}" + '\033[0m')
+#         logger.info(json.dumps(record.__dict__))
+#         Logs.create(next(db.session()), auto_commit=True, **record.__dict__)
 
 
 def load_log_file_dir():
@@ -36,9 +41,8 @@ def set_logger_config():
 set_logger_config()
 
 
-async def api_logger(request: Request, response=None, error=None):
-    time_format = "%Y/%m/%d %H:%M:%S"
-    t = time() - request.state.start
+async def api_logger(request: Request=None, response=None, error=None):
+    processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
     user = request.state.user
@@ -58,8 +62,10 @@ async def api_logger(request: Request, response=None, error=None):
             location="{} line in {}".format(str(error_line), error_file),
             raised=str(error.__class__.__name__),
             msg=str(error.ex),
+            traceback=traceback.format_exc()
         )
     email = user.email if user and user.email else None
+    log_detail = response.__dict__ if response else None
     user_log = dict(
         client=request.state.ip,
         user=user.id if user and user.id else None,
@@ -71,22 +77,22 @@ async def api_logger(request: Request, response=None, error=None):
         url=request.url.hostname + request.url.path,
         method=str(request.method),
         status_code=status_code,
-        error_detail=error_log,
+        log_detail=str(log_detail),
+        error_detail=json.dumps(error_log),
         client=str(user_log),
-        processed_time=str(round(t * 1000, 5)) + "ms",
-        datetime_kr=(datetime.utcnow() + timedelta(hours=9)).strftime(time_format),
+        request_timestamp=str(request.state.start),
+        response_timestamp=str(time()),
+        processed_time=str(processed_time),
     )
     # if body:
     #     log_dict["body"] = body
     # print('\033[96m' + f"\n{log_dict}" + '\033[0m')
-    # Errors.create(next(db.session()), auto_commit=True, **log_dict)
+    Logs.create(request.state.db, auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict))
-        # logger.error({"traceback": f"{traceback.format_exc()}"})
         logger.error({"traceback": f"{traceback.print_exc()}"})
     else:
         logger.info(json.dumps(log_dict))
-        # logger.info({"traceback": f"{traceback.format_exc()}"})
         logger.info({"traceback": f"{traceback.print_exc()}"})
 
 
@@ -115,3 +121,22 @@ async def api_logger(request: Request, response=None, error=None):
 # file_error_handler.setLevel(logging.ERROR)
 # file_error_handler.setFormatter(formatter)
 # logger.addHandler(file_error_handler)
+
+
+# response body 응답 추가
+# class async_iterator_wrapper:
+#     def __init__(self, obj):
+#         self._it = iter(obj)
+#     def __aiter__(self):
+#         return self
+#     async def __anext__(self):
+#         try:
+#             value = next(self._it)
+#         except StopIteration:
+#             raise StopAsyncIteration
+#         return value
+
+# resp_body = [section async for section in response.__dict__['body_iterator']]
+# # Repairing FastAPI response
+# response.__setattr__('body_iterator', async_iterator_wrapper(resp_body))
+# print('\033[96m' + f"\n{resp_body}" + '\033[0m')

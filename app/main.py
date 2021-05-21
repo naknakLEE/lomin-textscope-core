@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import timedelta, datetime
 
 from routes import auth, index, users, inference
+from utils import logger
 from database.connection import db
 from common.config import Config
 from utils.logger import api_logger
@@ -32,6 +33,7 @@ base_dir = path.dirname(path.dirname(path.abspath(__file__)))
 app = FastAPI()
 db.init_app(app, **asdict(Config()))
 
+
 # app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -40,6 +42,7 @@ async def add_process_time_header(request: Request, call_next):
         request.state.start = time.time()
         request.state.inspect = None
         request.state.user = None
+        request.state.db = db._session()
         ip = request.headers["x-forwarded-for"]  if "x-forwarded-for" in request.headers.keys() else request.client.host
         request.state.ip = ip.split(",")[0] if "," in ip else ip
         response = await call_next(request)
@@ -49,6 +52,8 @@ async def add_process_time_header(request: Request, call_next):
         error_dict = dict(status=error.status_code, msg=error.msg, detail=error.detail, code=error.code)
         response = JSONResponse(status_code=error.status_code, content=error_dict)
         await api_logger(request=request, error=error)
+    finally:
+        request.state.db.close()
     return response
 
 
