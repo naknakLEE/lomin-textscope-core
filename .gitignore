@@ -108,6 +108,7 @@ others/
 .idea/
 memo.*
 memo.txt
+lovit_copy
 
 # DB data
 pgdata/

@@ -12,7 +12,7 @@ from bentoml.frameworks.pytorch import PytorchModelArtifact
 @env(infer_pip_packages=True)
 @env(pip_packages=['torchvision'])
 @artifacts([PytorchModelArtifact('net')])
-class PytorchModelService(BentoService):
+class MultiModelService(BentoService):
     """
     A minimum prediction service exposing a Scikit-learn model
     """

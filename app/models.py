@@ -10,7 +10,7 @@ class UserRegister(BaseModel):
 class UserToken(BaseModel):
     id: int
     hashed_password: str = None
-    email: str = None
+    email: EmailStr = None
     name: str = None
     
     class Config:
@@ -28,7 +28,7 @@ class TokenData(BaseModel):
 
 class User(BaseModel):
     username: str
-    email: Optional[str] = None
+    email: EmailStr = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
 
