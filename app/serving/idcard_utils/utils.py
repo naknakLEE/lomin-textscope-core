@@ -15,12 +15,14 @@ from serving.idcard_utils.catalogs import ELabelCatalog, EDocumentCatalog
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
 
-
 characters = ELabelCatalog.get(("num","eng_cap","eng_low","kor_2350","symbols"), decipher=cfgs.DECIPHER)
 converter = build_converter(characters, True)
 mask_generator = CharacterMaskGenerator(converter)
 mask_generator.class_mask_map.update(EDocumentCatalog.ID_CARD)
 
+boundary_score_threshold = float(cfgs.ID_BOUNDARY_SCORE_TH)
+kv_score_threshold = float(cfgs.ID_KV_SCORE_TH)
+kv_box_expansion = float(cfgs.ID_BOX_EXPANSION)
 target_width = int(cfgs.ID_TRANSFORM_TARGET_WIDTH)
 target_height = int(cfgs.ID_TRANSFORM_TARGET_HEIGHT)
 min_size = int(cfgs.ID_IMG_MIN_SIZE)
@@ -378,7 +380,7 @@ def order_points(quad):
     return quad[np.argsort(atan_angle)]
 
 
-def _get_fixed_batch(batch_size, *inputs):
+def get_fixed_batch(batch_size, *inputs):
     batch_inputs = []     
     for i in inputs:
         if len(i) < batch_size:
@@ -390,7 +392,7 @@ def _get_fixed_batch(batch_size, *inputs):
     return batch_inputs
 
 
-def _load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dict()):       
+def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dict()):       
     resources = service_cfg['resources']
     for resource in resources:
         _type = resource['type']
@@ -531,7 +533,8 @@ def deidentify_img(img_arr, kv_boxes, kv_classes, savepath):
     logger.info(f"Deidentify time: \t{(time.time()-start_t) * 1000:.2f}ms")
     return 0
 
-def _filter_class(kv_boxes, kv_scores, kv_classes, id_type):
+
+def filter_class(kv_boxes, kv_scores, kv_classes, id_type):
     # remove redundant boxes by checking classes in id_type
     valid_classes = valid_type[id_type] if id_type in valid_type else None
     inval_flags = np.zeros(kv_scores.shape, dtype=np.bool)
@@ -540,7 +543,8 @@ def _filter_class(kv_boxes, kv_scores, kv_classes, id_type):
             inval_flags[i] = True
     return kv_boxes[~inval_flags], kv_scores[~inval_flags], kv_classes[~inval_flags]
 
-def _get_class_masks(kv_classes):
+
+def get_class_masks(kv_classes):
     class_masks = None
     for kv_class in kv_classes:
         mask = mask_generator(kv_class)
@@ -548,7 +552,8 @@ def _get_class_masks(kv_classes):
         class_masks = np.concatenate([class_masks, mask]) if class_masks is not None else mask
     return class_masks
 
-def _get_fixed_batch(batch_size, *inputs):
+
+def get_fixed_batch(batch_size, *inputs):
     start_t = time.time()
     batch_inputs = []     
     for i in inputs:
@@ -560,14 +565,16 @@ def _get_fixed_batch(batch_size, *inputs):
 
     return batch_inputs
 
-def _to_wide(img_arr):
+
+def to_wide(img_arr):
     height, width = img_arr.shape[:2]
     img_aspect_ratio = width / height
     if img_aspect_ratio < 1:
         return cv2.rotate(img_arr, cv2.ROTATE_90_COUNTERCLOCKWISE) 
     return img_arr
 
-def _expand_size(img_arr):
+
+def expand_size(img_arr):
     height, width = img_arr.shape[:2]
     height_ratio = min_size / height
     width_ratio = min_size / width
@@ -577,7 +584,8 @@ def _expand_size(img_arr):
     target_size = (int(width*expand_ratio), int(height*expand_ratio))
     return cv2.resize(img_arr, target_size)
 
-def _add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
+
+def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
     if id_type == 'DLC':
         min_ln_count = 4
         if 'dlc_license_region' in kv_classes:
@@ -674,10 +682,171 @@ def _add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
     return kv_boxes, kv_scores, kv_classes
 
 
-def _rectify_img(img_arr, H, angle_label, is_portrait=False):
+def rectify_img(img_arr, H, angle_label, is_portrait=False):
     if angle_label in [2, 4] or is_portrait:
         target_size = (target_height, target_width)
     else:
         target_size = (target_width, target_height)
     img_arr = cv2.warpPerspective(img_arr, H, target_size)
     return img_arr
+
+
+def if_use_keypoint(valid_keypoints, current_size, original_size):
+    boundary_quad = valid_keypoints[0,:,:2]
+    boundary_quad = revert_size(boundary_quad, current_size, original_size).astype(np.int32)
+    length_top_edge = np.linalg.norm(boundary_quad[0]-boundary_quad[1])
+    length_right_edge = np.linalg.norm(boundary_quad[1]-boundary_quad[2])
+    angle_label = check_angle_label(boundary_quad)
+
+    boundary_quad[:,0] = np.clip(boundary_quad[:,0], 0, original_size[0])
+    boundary_quad[:,1] = np.clip(boundary_quad[:,1], 0, original_size[1])
+
+    if length_top_edge < length_right_edge:
+        target_quad = np.array([
+            [0, 0],
+            [target_height, 0],
+            [target_height, target_width],
+            [0, target_width]
+        ])
+        is_portrait = True
+    else:
+        target_quad = np.array([
+            [0, 0],
+            [target_width, 0],
+            [target_width, target_height],
+            [0, target_height]
+        ])
+    boundary_quad[:,0]-=boundary_quad[:,0].min()
+    boundary_quad[:,1]-=boundary_quad[:,1].min()
+    H, mask = cv2.findHomography(boundary_quad, target_quad, method=0)
+    return H, mask
+
+
+def if_use_mask(valid_mask, argmax_score, boundary_box, angle_label):
+    boundary_mask = valid_mask[argmax_score]
+    boundary_quad = mask_to_quad(
+        boundary_mask, 
+        boundary_box,
+        mask_threshold=cfgs.ID_BOUNDARY_MASK_THRESH,
+        force_rect=cfgs.ID_BOUNDARY_MASK_FORCE_RECT
+    )
+    boundary_quad = order_points(boundary_quad)
+
+    if angle_label in [2, 4]:
+        target_quad = np.array([
+            [0, 0],
+            [target_height - 1, 0],
+            [target_height - 1, target_width - 1],
+            [0, target_width - 1]
+        ])
+    else:
+        target_quad = np.array([
+            [0, 0],
+            [target_width - 1, 0],
+            [target_width - 1, target_height - 1],
+            [0, target_height - 1]
+        ])
+    src_points = boundary_quad.copy()
+    src_points[:, 0] += boundary_box[0]
+    src_points[:, 1] += boundary_box[1]
+    H, _ = cv2.findHomography(src_points, target_quad, method=0)
+    return H
+
+
+def boundary_postprocess(scores, boxes, labels, use_mask, use_keypoint, masks, keypoints, extra_info, original_size):
+    valid_mask = None
+    valid_keypoints = None
+    valid_indicies = scores > boundary_score_threshold
+    valid_scores = scores[valid_indicies]
+    valid_boxes = boxes[valid_indicies]
+    valid_labels = labels[valid_indicies]
+    if use_mask:
+        valid_mask = masks[valid_indicies]
+    if use_keypoint:
+        valid_keypoints = keypoints[valid_indicies]
+    if len(valid_boxes) < 1:
+        return None, None, None, None, False
+    current_size = (extra_info['size_after_resize_before_pad'][1], extra_info['size_after_resize_before_pad'][0])
+    valid_boxes = revert_size(valid_boxes, current_size, original_size).astype(np.int32)
+    argmax_score = np.argmax(valid_scores)
+    boundary_box = valid_boxes[argmax_score]
+    boundary_score = valid_scores[argmax_score]
+    angle_label = valid_labels[argmax_score]
+    
+    boundary_box[0::2] = np.clip(boundary_box[0::2], 0, original_size[0] - 1)
+    boundary_box[1::2] = np.clip(boundary_box[1::2], 0, original_size[1] - 1)
+
+    return valid_mask, valid_keypoints, current_size, argmax_score, boundary_box, boundary_score, angle_label
+
+
+def kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_size):
+    valid_indicies = scores > kv_score_threshold
+    valid_scores = scores[valid_indicies]
+    valid_boxes = boxes[valid_indicies]
+    valid_labels = labels[valid_indicies]
+    if len(valid_boxes) < 1:
+        return None, None, None
+    ind = np.lexsort((valid_boxes[:,1], valid_boxes[:, 0]))
+    valid_boxes = valid_boxes[ind]
+    valid_scores = valid_scores[ind]
+    valid_labels = valid_labels[ind]
+    current_size = (extra_info['size_after_resize_before_pad'][1], extra_info['size_after_resize_before_pad'][0])
+    valid_boxes = revert_size(valid_boxes, current_size, original_size).astype(np.int32)
+    lookup_table = infer_sess_map['kv_model']['config']['label_classes']
+    kv_classes = lookup_table[valid_labels]
+
+    return valid_scores, valid_boxes, kv_classes
+
+
+def update_valid_kv_boxes(valid_boxes, original_size):
+    valid_boxes_w = valid_boxes[:,2] - valid_boxes[:,0]
+    valid_boxes_h = valid_boxes[:,3] - valid_boxes[:,1]
+    valid_boxes_ar = valid_boxes_w/valid_boxes_h
+    w_expand  = valid_boxes_w*kv_box_expansion
+    h_expand  = valid_boxes_h*kv_box_expansion
+    _expand = np.minimum(w_expand, h_expand).astype(np.int32)
+    # _expand = (np.minimum(w_expand, h_expand)*np.abs(np.log(valid_boxes_ar))).astype(np.int32)
+    valid_boxes[:, 0] -= _expand
+    valid_boxes[:, 1] -= _expand
+    valid_boxes[:, 2] += _expand
+    valid_boxes[:, 3] += _expand
+    valid_boxes[:, 0::2] = np.clip(valid_boxes[:, 0::2], 0, original_size[0])
+    valid_boxes[:, 1::2] = np.clip(valid_boxes[:, 1::2], 0, original_size[1])
+
+    return valid_boxes
+
+
+def convert_recognition_to_text(rec_preds):
+    texts = converter.decode(rec_preds, [rec_preds.shape[0]]*len(rec_preds))
+    texts = [_t[:_t.find('[s]')] for _t in texts]
+    return texts
+
+
+def roate_image(boundary_angle, id_image_arr):
+    if boundary_angle == 1:
+        pass
+    elif boundary_angle == 2:
+        id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_90_CLOCKWISE)
+    elif boundary_angle == 3:
+        id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_180)
+    elif boundary_angle == 4:
+        id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    elif boundary_angle == 5:
+        id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_90_CLOCKWISE)
+    elif boundary_angle == 6:
+        id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_180)
+    elif boundary_angle == 7:
+        id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    
+    return id_image_arr
+
+
+def kv_postprocess_with_edge(kv_boxes, kv_scores, kv_classes):
+    edges_length = kv_boxes[:,2:] - kv_boxes[:,:2]
+    short_edges = (edges_length <= 5).any(axis=1)
+
+    kv_boxes = kv_boxes[~short_edges]
+    kv_scores = kv_scores[~short_edges]
+    kv_classes = kv_classes[~short_edges]
+
+    return kv_boxes, kv_scores, kv_classes
