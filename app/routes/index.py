@@ -9,9 +9,11 @@ from inspect import currentframe as frame
 
 from database.connection import db
 from database.schema import Users, Errors, Usage, Logs
-from common.const import FAKE_INFORMATION
+from common.const import get_settings
 
 
+
+settings = get_settings()
 router = APIRouter()
 
 

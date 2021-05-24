@@ -14,25 +14,24 @@ from utils.authorization import (
     verify_password,
     is_email_exist
 )
-from common.const import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    FAKE_INFORMATION
-)
+from common.const import get_settings
 
 
+
+settings = get_settings()
 router = APIRouter()
 
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(FAKE_INFORMATION, form_data.username, form_data.password)
+    user = authenticate_user(settings.FAKE_INFORMATION, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )

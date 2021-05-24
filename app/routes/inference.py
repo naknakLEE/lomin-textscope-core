@@ -10,19 +10,17 @@ from models import User
 from database.schema import Usage
 from database.connection import db
 from utils.authorization import get_current_active_user
-from common.const import (
-    SERVING_IP_ADDR,
-    SERVING_IP_PORT
-)
+from common.const import get_settings
 
 
+settings = get_settings()
 router = APIRouter()
 
 
 @router.post("/inference") 
 # def inference(file: UploadFile = File(...)):
 def inference(session: Session = Depends(db.session), current_user: User = Depends(get_current_active_user), file: UploadFile = File(...)):
-    test_url = f'http://{SERVING_IP_ADDR}:{SERVING_IP_PORT}/inference'
+    test_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference'
 
     image_data = file.file.read()
     # nparr = np.fromstring(image_data, np.uint8)

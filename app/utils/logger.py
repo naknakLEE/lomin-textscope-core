@@ -9,11 +9,10 @@ from fastapi.logger import logger
 from os import path
 
 from database.schema import Logs
-from common.const import (
-    FILE_MAX_BYTE,
-    BACKUP_COUNT,    
-    LOGGER_LEVEL
-)
+from common.const import get_settings
+
+
+settings = get_settings()
 
 
 # class MyHandler(logging.Handler):
@@ -33,8 +32,8 @@ def load_log_file_dir():
 
 def set_logger_config():
     log_file_dir = load_log_file_dir()
-    fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=FILE_MAX_BYTE, backupCount=BACKUP_COUNT)
-    logger.setLevel(getattr(logging, LOGGER_LEVEL))
+    fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=settings.FILE_MAX_BYTE, backupCount=settings.BACKUP_COUNT)
+    logger.setLevel(getattr(logging, settings.LOGGER_LEVEL))
     logger.addHandler(fileHandler)
 
 

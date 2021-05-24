@@ -1,27 +1,17 @@
 import uvicorn
 import time
 
-from fastapi import FastAPI, Depends, Request
-from fastapi.security import APIKeyHeader
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-from os import path, environ
-from dataclasses import asdict, dataclass
-from datetime import timedelta, datetime
+from os import path
+from dataclasses import asdict
+from datetime import datetime
 
 from routes import auth, index, users, inference
-from utils import logger
 from database.connection import db
 from common.config import Config
 from utils.logger import api_logger
-from common.const import (
-    POSTGRES_IP_ADDR,
-    POSTGRES_DB,
-    POSTGRES_USER,
-    POSTGRES_PASSWORD,
-)
 from utils.token_validator import (
-    url_pattern_check, 
     exception_handler
 )
 
