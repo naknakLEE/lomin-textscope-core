@@ -39,9 +39,9 @@ class SQLAlchemy:
     def get_db(self):
         if self._session is None:
             raise Exception("must be called 'init_app'")
-        db_session = None
+        # db_session = None
+        db_session = self._session()
         try:
-            db_session = self._session()
             yield db_session
         finally:
             db_session.close()

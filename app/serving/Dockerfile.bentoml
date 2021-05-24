@@ -23,6 +23,14 @@ RUN pip3 install typing
 
 RUN pip3 install imageio
 
+RUN pip3 install onnx && \
+    pip3 install onnxruntime && \
+    pip3 install imutils && \
+    pip3 install service_streamer && \
+    pip3 install scikit-image && \
+    pip3 install loguru
+
+
 # COPY ./ /workspace
 
 # RUN python /workspace/generate_bentoml_model.py

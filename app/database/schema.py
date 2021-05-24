@@ -4,6 +4,7 @@ from sqlalchemy import (
     String,
     DateTime,
     func, 
+    JSON,
     ForeignKey,
 )
 from sqlalchemy.orm import Session, relationships
@@ -83,6 +84,19 @@ class Errors(Base, BaseMixin):
     client = Column(String(length=2000), nullable=True)
     processed_time = Column(String(length=255), nullable=True)
     datetime_kr = Column(String(length=255), nullable=True)
+
+
+class Logs(Base, BaseMixin):
+    __tablename__ = "logs"
+    url = Column(String(length=2000), nullable=True)
+    method = Column(String(length=255), nullable=True)
+    status_code = Column(String(length=255), nullable=True)
+    log_detail = Column(String(length=2000), nullable=True)
+    error_detail = Column(JSON, nullable=True)
+    client = Column(String(length=2000), nullable=True)
+    request_timestamp = Column(String(length=255), nullable=True)
+    response_timestamp = Column(String(length=255), nullable=True)
+    processed_time = Column(String(length=255), nullable=True)
 
 
 class Usage(Base, BaseMixin):

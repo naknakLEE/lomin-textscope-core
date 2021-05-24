@@ -8,7 +8,7 @@ from starlette.responses import Response
 from inspect import currentframe as frame
 
 from database.connection import db
-from database.schema import Users, Errors, Usage
+from database.schema import Users, Errors, Usage, Logs
 from common.const import FAKE_INFORMATION
 
 
@@ -21,12 +21,13 @@ async def index(session: Session = Depends(db.session)):
     # session.add(user)
     # session.commit()
 
+    print("\n\n\n\n\n\n", session)
     # Errors.create(next(db.session()), auto_commit=True)
     # Users.create(session, auto_commit=True, name="test", **FAKE_INFORMATION)
+    # Logs.create(session, auto_commit=True)
     # Usage.metadata.create_all(db._engine)
-    print("\n\n\n\n")
-    print(Usage.get(email="user@example.com"))
-    print("\n\n\n\n")
+    # Logs.metadata.create_all(db._engine)
+    # print(Usage.get(email="user@example.com"))
 
     curren_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
