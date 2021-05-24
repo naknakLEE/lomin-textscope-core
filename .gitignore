@@ -109,6 +109,8 @@ others/
 memo.*
 memo.txt
 lovit_copy
+outputs
+inputs
 
 # DB data
 pgdata/

@@ -1,9 +1,9 @@
 import os
 import sys
 from loguru import logger
-from serving.idcard_utils.structure import Config
+from common.const import get_settings
 
-cfgs = Config()
+cfgs = get_settings()
 
 # class LogFilter:
 #     def __init__(self, level):
@@ -23,8 +23,6 @@ log_dir_path = cfgs.LOG_DIR_PATH
 
 # log_filter = LogFilter(log_level)
 
-cfgs.update_config_env_vars()
-cfgs.set_dependent_config()
 
 os.makedirs(log_dir_path, exist_ok=True)
 log_path = os.path.join(log_dir_path, "server.log")

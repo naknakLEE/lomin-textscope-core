@@ -10,8 +10,8 @@ import time
 from service_streamer import ThreadedStreamer
 from collections import defaultdict
 from shapely.geometry import Polygon
-from serving.idcard_utils.envs import logger,cfgs
-from serving.idcard_utils.catalogs import ELabelCatalog, EDocumentCatalog
+from serving.envs import logger,cfgs
+from serving.catalogs import ELabelCatalog, EDocumentCatalog
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
 

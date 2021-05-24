@@ -12,7 +12,8 @@ from bentoml.frameworks.onnx import OnnxModelArtifact
 from datetime import datetime
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
-from serving.idcard_utils.utils import (
+from serving.envs import cfgs
+from serving.utils import (
     load_json,
     save_debug_img,
     deidentify_img,
@@ -34,19 +35,19 @@ from serving.idcard_utils.utils import (
     get_cropped_images, 
     load_models
 )
-from serving.idcard_utils.envs import cfgs, logger
-from serving.idcard_utils.errors import InferenceError
+from serving.envs import cfgs, logger
+from errors.exceptions import InferenceError
 
 
 
 infer_sess_map = dict()
-service_cfg = load_json("/workspace/app/serving/idcard_utils/textscope_id.json")["idcard"]
+service_cfg = load_json(cfgs.SERVICE_CFG_PATH)['idcard']
 load_models(infer_sess_map, service_cfg)
 
 save_output_img = True
 id_type = None
-savepath = "/workspace/app/outputs/idcard/test.png"
-
+savepath = cfgs.SAVEPATH
+print(savepath)
 
 
 @env(pip_packages=['torchvision'])

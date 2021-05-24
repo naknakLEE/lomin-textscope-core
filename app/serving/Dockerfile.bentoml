@@ -30,7 +30,7 @@ RUN pip3 install onnx && \
     pip3 install scikit-image && \
     pip3 install loguru
 
-
+RUN pip3 install pydantic[dotenv]
 # COPY ./ /workspace
 
 # RUN python /workspace/generate_bentoml_model.py
