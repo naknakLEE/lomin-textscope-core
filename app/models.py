@@ -7,12 +7,13 @@ class UserRegister(BaseModel):
     email: EmailStr = None
     password: str = None
 
+
 class UserToken(BaseModel):
     id: int
     hashed_password: str = None
     email: EmailStr = None
     name: str = None
-    
+
     class Config:
         orm_mode = True
 

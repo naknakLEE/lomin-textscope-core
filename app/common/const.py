@@ -33,11 +33,10 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FILE_MAX_BYTE: int = 1024*1024
+    FILE_MAX_BYTE: int = 1024 * 1024
     BACKUP_COUNT: int = 100000000
 
     LOGGER_LEVEL: str = "DEBUG"
-
 
     # BASE CONFIG
     DEVELOP: bool = True
@@ -94,11 +93,10 @@ class Settings(BaseSettings):
 
     ID_CROP_FIND: bool
     ID_CROP_FIND_NUM: int
-    ID_CROP_FIND_RATIO: float # 1/sqrt(2)
+    ID_CROP_FIND_RATIO: float  # 1/sqrt(2)
 
     ID_ROTATE_FIND: bool
     ID_ROTATE_ANGLE: List[int]
-
 
     DEIDENTIFY_JSON: bool
 
@@ -106,11 +104,10 @@ class Settings(BaseSettings):
 
     DECIPHER: bool
 
-
-    class Config: 
+    class Config:
         env_file = "/workspace/.env"
 
-    
+
 @lru_cache()
 def get_settings():
     return Settings()

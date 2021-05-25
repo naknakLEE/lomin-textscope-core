@@ -1,5 +1,4 @@
 import os
-import sys
 from loguru import logger
 from common.const import get_settings
 
@@ -8,11 +7,11 @@ cfgs = get_settings()
 # class LogFilter:
 #     def __init__(self, level):
 #         self.level = level
-    
+
 #     def __call__(self, record):
 #         levelno = logger.level(self.level).no
 #         return record['level'].no >= levelno
-    
+
 
 # # https://github.com/Delgan/loguru
 log_dir_path = cfgs.LOG_DIR_PATH

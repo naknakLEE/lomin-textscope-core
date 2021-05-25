@@ -11,7 +11,7 @@ class SQLAlchemy:
         self._session = None
         if app is not None:
             self.init_app(app=app, **kwargs)
-    
+
     def init_app(self, app: FastAPI, **kwargs):
         database_url = kwargs.get("DB_URL")
         pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
@@ -29,13 +29,13 @@ class SQLAlchemy:
         def startup():
             self._engine.connect()
             logging.info("DB connected.")
-        
+
         @app.on_event("shutdown")
         def shutdown():
             self._session.close_all()
             self._engine.dispose()
             logging.info("DB disconnected")
-        
+
     def get_db(self):
         if self._session is None:
             raise Exception("must be called 'init_app'")

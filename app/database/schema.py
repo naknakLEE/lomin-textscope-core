@@ -3,7 +3,7 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
-    func, 
+    func,
     JSON,
     ForeignKey,
 )
@@ -46,7 +46,7 @@ class BaseMixin:
             session.commit()
         return obj
 
-    # @classmethod 
+    # @classmethod
     # def create_request_quantity(cls, session: Session, auto_commit=False, **kwargs):
     #     obj = cls()
     #     user = session.query(obj).filter(obj.name == kwargs.get("email")).first()
@@ -61,7 +61,7 @@ class BaseMixin:
     #         session.commit()
     #     return obj
 
-    @classmethod 
+    @classmethod
     def test(cls, session: Session, auto_commit=False, **kwargs):
         ...
 

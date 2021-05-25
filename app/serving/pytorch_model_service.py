@@ -24,10 +24,8 @@ class MultiModelService(BentoService):
         how HTTP requests or CSV files are converted to a pandas Dataframe object as the
         inference API function input
         """
-        
-        results = self.artifacts.net(torch.as_tensor(imgs).permute(0,3,1,2)[0])
-        result_shape = []
+        results = self.artifacts.net(torch.as_tensor(imgs).permute(0, 3, 1, 2)[0])
         for result in results:
             print(result.shape)
-        return [{ "pred_boxes": results[0], "pred_classes": results[1], "pred_masks": results[2], "scores": results[3], "size": results[4] }]
+        return [{"pred_boxes": results[0], "pred_classes": results[1], "pred_masks": results[2], "scores": results[3], "size": results[4]}]
         # return [{ "pred_boxes": results[0]["unknown_obj"], "pred_classes": results[1]["unknown_obj"], "pred_masks": results[2]["unknown_obj"], "scores": results[3]["unknown_obj"], "size": results[4]["unknown_obj"] }]

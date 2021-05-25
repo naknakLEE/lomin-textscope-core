@@ -26,7 +26,7 @@ def load_log_file_dir():
     base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
     log_folder_dir = path.join(base_dir, "logs/fastapi")
     os.makedirs(log_folder_dir, exist_ok=True)
-    log_file_dir = path.join(log_folder_dir, f"log.log")
+    log_file_dir = path.join(log_folder_dir, "log.log")
     return log_file_dir
 
 
@@ -40,7 +40,7 @@ def set_logger_config():
 set_logger_config()
 
 
-async def api_logger(request: Request=None, response=None, error=None):
+async def api_logger(request: Request = None, response=None, error=None):
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
@@ -49,13 +49,13 @@ async def api_logger(request: Request=None, response=None, error=None):
     if error:
         # print('\033[96m' + f"\n{request.state.inspect}" + '\033[0m')
         if request.state.inspect:
-            frame = request.state.inspect  
+            frame = request.state.inspect
             error_file = frame.f_code.co_filename
             error_func = frame.f_code.co_name
             error_line = frame.f_lineno
         else:
             error_func = error_file = error_line = "UNKNOWN"
-        
+
         error_log = dict(
             errorFunc=error_func,
             location="{} line in {}".format(str(error_line), error_file),
@@ -70,7 +70,6 @@ async def api_logger(request: Request=None, response=None, error=None):
         user=user.id if user and user.id else None,
         email=email
     )
-
 
     log_dict = dict(
         url=request.url.hostname + request.url.path,

@@ -2,7 +2,6 @@ from re import L
 # from main import app
 
 
-
 # class UnicornException(Exception):
 #     def __init__(self, name: str):
 #         self.name = name
@@ -16,7 +15,7 @@ from re import L
 #     )
 
 
-class  StatusCode:
+class StatusCode:
     HTTP_500 = 500
     HTTP_400 = 400
     HTTP_401 = 401
@@ -32,7 +31,7 @@ class APIException(Exception):
     detail: str
     ex: Exception
 
-    def __init__ (
+    def __init__(
         self,
         *,
         status_code: int = StatusCode.HTTP_500,
@@ -47,7 +46,6 @@ class APIException(Exception):
         self.detail = detail
         self.ex = ex
         super().__init__(ex)
-
 
 
 class InferenceError(Exception):

@@ -3,16 +3,17 @@ import time
 import os
 import imutils
 import sys
-sys.path.append("/workspace/app")
 
+from datetime import datetime
 from bentoml import env, artifacts, api, BentoService
 from bentoml.adapters import ImageInput
 from bentoml.frameworks.onnx import OnnxModelArtifact
 
-from datetime import datetime
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
-from serving.envs import cfgs
+sys.path.append("/workspace/app")
+from serving.envs import cfgs, logger
+from errors.exceptions import InferenceError
 from serving.utils import (
     load_json,
     save_debug_img,
@@ -32,12 +33,9 @@ from serving.utils import (
     convert_recognition_to_text,
     roate_image,
     kv_postprocess_with_edge,
-    get_cropped_images, 
+    get_cropped_images,
     load_models
 )
-from serving.envs import cfgs, logger
-from errors.exceptions import InferenceError
-
 
 
 infer_sess_map = dict()
@@ -97,26 +95,26 @@ class MultiModelService(BentoService):
                 erosion_x = int(width * (1 - cfgs.ID_CROP_FIND_RATIO)) // 2
                 erosion_y = int(height * (1 - cfgs.ID_CROP_FIND_RATIO)) // 2
                 logger.debug(f"Erode and find: erosion_x={erosion_x}, erosion_y={erosion_y} / width={width}, height={height}")
-                img_arr = img_arr[erosion_y:height-erosion_y, erosion_x:width-erosion_x, :]
+                img_arr = img_arr[erosion_y:height - erosion_y, erosion_x:width - erosion_x, :]
                 boundary_box, boundary_score, boundary_angle, H, is_portrait = self._boundary_infer(img_arr)
                 if boundary_box is not None:
                     break
 
         if boundary_box is None:
             logger.debug("Unable to find id card (3)")
-                
+
         if boundary_box is None:
             use_full_img = True
         else:
-            short_width = boundary_box[2]-boundary_box[0] < img_arr.shape[1]*0.1
-            short_height = boundary_box[3]-boundary_box[1] < img_arr.shape[0]*0.1
+            short_width = boundary_box[2] - boundary_box[0] < img_arr.shape[1] * 0.1
+            short_height = boundary_box[3] - boundary_box[1] < img_arr.shape[0] * 0.1
             if short_width or short_height:
                 use_full_img = True
 
         if use_full_img:
             id_image_arr = img_arr.copy()
         else:
-            id_image_arr = img_arr[boundary_box[1]:boundary_box[3],boundary_box[0]:boundary_box[2],:]
+            id_image_arr = img_arr[boundary_box[1]:boundary_box[3], boundary_box[0]:boundary_box[2], :]
 
         if H is not None and cfgs.ID_USE_TRANSFORM_BOUNDARY and not use_full_img:
             id_image_arr = rectify_img(img_arr, H, boundary_angle, is_portrait)
@@ -149,7 +147,7 @@ class MultiModelService(BentoService):
         cropped_images = get_cropped_images(id_image_arr, kv_boxes)
         if save_output_img and savepath is not None:
             deidentify_img(id_image_arr, kv_boxes, kv_classes, savepath)
-        
+
         if cfgs.SAVE_ID_DEBUG_INFO and cfgs.ID_DEBUG_INFO_PATH is not None:
             info_save_dir = os.path.join(cfgs.ID_DEBUG_INFO_PATH, time.strftime('%Y%m%d'))
             os.makedirs(info_save_dir, exist_ok=True)
@@ -158,7 +156,7 @@ class MultiModelService(BentoService):
 
         class_masks = get_class_masks(kv_classes)
         texts = self._rec_infer(cropped_images, class_masks)
-        
+
         # TO DEBUG OUTPUT OF INFERENCE
         if save_output_img and savepath is not None and cfgs.DEVELOP and cfgs.ID_DRAW_BBOX_IMG:
             save_debug_img(id_image_arr, kv_boxes, kv_classes, texts, savepath)
@@ -170,9 +168,8 @@ class MultiModelService(BentoService):
         time_elapsed = tic_response - tic_request
         response_log["time_textscope_response"] = time_response
         response_log["time_textscope_total"] = f"{time_elapsed:.3f} seconds"
-        
+
         return [{"response_log": response_log, "texts": texts}]
-    
 
     def _boundary_infer(self, img_arr):
         start_t = time.time()
@@ -193,24 +190,23 @@ class MultiModelService(BentoService):
 
         if use_mask:
             try:
-                boxes, labels, scores, masks = self.artifacts.boundary_detection.run(output_names,inputs)
+                boxes, labels, scores, masks = self.artifacts.boundary_detection.run(output_names, inputs)
             except Fail:
                 boxes, labels, scores, masks = None, None, None, None
             except Exception as e:
                 raise
         elif use_keypoint:
             try:
-                boxes, labels, scores, keypoints = self.artifacts.boundary_detection.run(output_names,inputs)
+                boxes, labels, scores, keypoints = self.artifacts.boundary_detection.run(output_names, inputs)
             except Exception as e:
                 boxes, labels, scores, keypoints = None, None, None, None
         else:
-            boxes, labels, scores = self.artifacts.boundary_detection.run(output_names,inputs)
+            boxes, labels, scores = self.artifacts.boundary_detection.run(output_names, inputs)
         if boxes is None:
             return None, None, None, None, False
 
-        (valid_mask, valid_keypoints, current_size, argmax_score, \
-            boundary_box, boundary_score, angle_label) = \
-                boundary_postprocess(scores, boxes, labels, use_mask, use_keypoint, masks, keypoints, extra_info, original_size)
+        (valid_mask, valid_keypoints, current_size, argmax_score, boundary_box, boundary_score, angle_label) = \
+            boundary_postprocess(scores, boxes, labels, use_mask, use_keypoint, masks, keypoints, extra_info, original_size)
 
         if use_mask and cfgs.ID_USE_BOUNDARY_MASK_TRANSFORM:
             H = if_use_mask(valid_mask, argmax_score, boundary_box, angle_label)
@@ -218,9 +214,8 @@ class MultiModelService(BentoService):
             H, mask = if_use_keypoint(valid_keypoints, current_size, original_size)
 
         logger.info(f"Bound inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
-        
-        return boundary_box,  boundary_score, angle_label, H, is_portrait
-    
+
+        return boundary_box, boundary_score, angle_label, H, is_portrait
 
     def _kv_infer(self, img_arr):
         start_t = time.time()
@@ -234,14 +229,13 @@ class MultiModelService(BentoService):
 
         output_names = infer_sess_map['kv_model']['output_names']
         boxes, labels, scores = self.artifacts.kv_detection.run(output_names, inputs)
-        
+
         valid_scores, valid_boxes, kv_classes = kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_size)
         logger.info(f"KV inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
 
         valid_boxes = update_valid_kv_boxes(valid_boxes, original_size)
 
         return valid_boxes, valid_scores, kv_classes
-
 
     def _rec_infer(self, cropped_images, class_masks):
         start_t = time.time()
@@ -261,7 +255,7 @@ class MultiModelService(BentoService):
         fixed_batch_size = infer_sess_map['recognition_model']['batch_size']
         for i in range(0, len(cropped_images), fixed_batch_size):
             if (i + fixed_batch_size) < len(cropped_images):
-                end = i +  fixed_batch_size
+                end = i + fixed_batch_size
             else:
                 end = len(cropped_images)
             _cropped_images = cropped_images[i:end]

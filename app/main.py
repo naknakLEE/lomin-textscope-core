@@ -16,8 +16,7 @@ from utils.token_validator import exception_handler
 from common.const import get_settings
 
 
-
-# API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
+# API_KEY_HEADER = APIKeyHeader(name="Authorization",auto_error=False)
 base_dir = path.dirname(path.dirname(path.abspath(__file__)))
 
 
@@ -29,15 +28,17 @@ settings = get_settings()
 # app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
 if settings.PROFILING is not None:
     app.add_middleware(PyInstrumentProfilerMiddleware)
+
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
-    try: 
+    try:
         request.state.req_time = datetime.utcnow()
         request.state.start = time.time()
         request.state.inspect = None
         request.state.user = None
         request.state.db = db._session()
-        ip = request.headers["x-forwarded-for"]  if "x-forwarded-for" in request.headers.keys() else request.client.host
+        ip = request.headers["x-forwarded-for"] if "x-forwarded-for" in request.headers.keys() else request.client.host
         request.state.ip = ip.split(",")[0] if "," in ip else ip
         response = await call_next(request)
         await api_logger(request=request, response=response)
@@ -50,18 +51,11 @@ async def add_process_time_header(request: Request, call_next):
         request.state.db.close()
     return response
 
-
-
 app.include_router(index.router)
 app.include_router(inference.router, tags=["inference"])
 app.include_router(users.router, tags=["Users"], prefix="/users")
 app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
 
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
-   
 
 # async def create_app():
 #     await load_dotenv(env_path)
@@ -78,3 +72,7 @@ if __name__ == "__main__":
 
 
 # app = create_app()
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
