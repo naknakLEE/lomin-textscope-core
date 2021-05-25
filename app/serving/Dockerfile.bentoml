@@ -7,7 +7,7 @@ RUN apt-get update && \
 
 RUN apt-get install nano && \
     apt-get install -y git 
-    
+
 RUN sudo apt-get install -y python3-pip && \
     sudo pip3 install --pre -U bentoml 
 

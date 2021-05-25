@@ -1,5 +1,7 @@
-version: '2'
+version: '2.3'
+
 services:
+
   postgres:
     image: postgres:11
     container_name: postgres
@@ -17,17 +19,15 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
   
   web:
-    image: wook3024/fastapi_backend:0.1.0
+    image: docker.lomin.ai/ts-server:0.0.1
     container_name: web
     ports: 
       - 8000:8000
     volumes:
       - ./:/workspace
-    # environment:
-    #   - POSTGRES_DB=${POSTGRES_DB}
-    #   - POSTGRES_USER=${POSTGRES_USER}
-    #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    # command: uvicorn workspace.backend.main:app --host 0.0.0.0 --port 8000
+    build:
+      context: ./app/utils
+      dockerfile: Dockerfile
     tty: true
     depends_on: 
       - postgres
@@ -37,10 +37,10 @@ services:
     restart: unless-stopped
 
   serving:
-    image: wook3024/bentoml_serving:0.2.0
-    # build:
-    #   context: ./serving
-    #   dockerfile: Dockerfile.bentoml
+    image: docker.lomin.ai/ts-model:0.0.1
+    build:
+      context: ./app/serving
+      dockerfile: Dockerfile.bentoml
     container_name: serving
     ports: 
       - "5000:5000"
