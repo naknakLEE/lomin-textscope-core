@@ -6,14 +6,15 @@ from fastapi.responses import JSONResponse
 from os import path
 from dataclasses import asdict
 from datetime import datetime
+from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 
 from routes import auth, index, users, inference
 from database.connection import db
 from common.config import Config
 from utils.logger import api_logger
-from utils.token_validator import (
-    exception_handler
-)
+from utils.token_validator import exception_handler
+from common.const import get_settings
+
 
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization", auto_error=False)
@@ -22,9 +23,12 @@ base_dir = path.dirname(path.dirname(path.abspath(__file__)))
 
 app = FastAPI()
 db.init_app(app, **asdict(Config()))
+settings = get_settings()
 
 
 # app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
+if settings.PROFILING is not None:
+    app.add_middleware(PyInstrumentProfilerMiddleware)
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     try: 

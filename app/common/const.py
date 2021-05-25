@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     SERVICE_CFG_PATH: str
 
     # OTHERS
+    PROFILING: str
+
     SAVE_INPUT_IMAGE: bool
     INPUT_SAVE_PATH: str
     SAVEPATH: str
@@ -97,7 +99,6 @@ class Settings(BaseSettings):
     ID_ROTATE_FIND: bool
     ID_ROTATE_ANGLE: List[int]
 
-    PROFILE: bool
 
     DEIDENTIFY_JSON: bool
 

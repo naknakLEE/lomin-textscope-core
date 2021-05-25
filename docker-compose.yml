@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   serving:
-    image: wook3024/bentoml_serving:0.1.0
+    image: wook3024/bentoml_serving:0.2.0
     # build:
     #   context: ./serving
     #   dockerfile: Dockerfile.bentoml
