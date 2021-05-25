@@ -17,17 +17,16 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
   
   web:
-    image: wook3024/fastapi_backend:0.1.0
+    # image: wook3024/fastapi_backend:0.1.0
+    build:
+      context: ./
+      dockerfile: Dockerfile.fastapi
     container_name: web
     ports: 
       - 8000:8000
     volumes:
       - ./:/workspace
-    # environment:
-    #   - POSTGRES_DB=${POSTGRES_DB}
-    #   - POSTGRES_USER=${POSTGRES_USER}
-    #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    # command: uvicorn workspace.backend.main:app --host 0.0.0.0 --port 8000
+    command: python /workspace/app/main.py
     tty: true
     depends_on: 
       - postgres
@@ -37,24 +36,24 @@ services:
     restart: unless-stopped
 
   serving:
-    image: wook3024/bentoml_serving:0.2.0
-    # build:
-    #   context: ./serving
-    #   dockerfile: Dockerfile.bentoml
+    # image: wook3024/bentoml_serving:0.2.0
+    build:
+      context: ./
+      dockerfile: Dockerfile.bentoml
     container_name: serving
     ports: 
-      - "5000:5000"
+      - 5000:5000
     volumes:
       - ./:/workspace
       # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    tty: true
     depends_on: 
       - postgres
     networks:
       our_net:
           ipv4_address: ${SERVING_IP_ADDR}
     runtime: nvidia
-    # command: python /workspace/generate_bentoml_model.py
-    tty: true
+    command: bentoml serve MultiModelService:latest
 
   # pgadmin:
   #   container_name: pgadmin_container

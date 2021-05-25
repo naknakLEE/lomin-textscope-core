@@ -605,40 +605,40 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
             return kv_boxes, kv_scores, kv_classes
         ln_centers = np.stack([ln_boxes[:, 2]+ln_boxes[:, 0], ln_boxes[:, 3]+ln_boxes[:, 1]], axis=1)/2
         
-        ln_ar = (ln_boxes[:,2] - ln_boxes[:,0])/(ln_boxes[:,3] - ln_boxes[:,1]) # w/h
+        ln_ar = (ln_boxes[:,2] - ln_boxes[:,0])/(ln_boxes[:, 3] - ln_boxes[:, 1])  # w/h
         long_ln_index = ln_ar.argmax()
         long_ln_ar = ln_ar[long_ln_index]
         if long_ln_ar <= 2:
-            return kv_boxes, kv_scores, kv_classes 
+            return kv_boxes, kv_scores, kv_classes
         ln_distances = np.delete(ln_centers - ln_centers[long_ln_index], long_ln_index, 0)
-        unit_distance = np.abs(ln_distances).mean(axis=0)/2
+        unit_distance = np.abs(ln_distances).mean(axis=0) / 2
 
         new_box_class = 'dlc_license_num'
         new_box_score = 0.5
-        if long_ln_index == 1: # Missing first licenes_num
+        if long_ln_index == 1:  # Missing first licenes_num
             new_box = ln_boxes[0].astype(np.float)
-            new_box[:2] -= unit_distance*1.1
-            new_box[2:] -= unit_distance*1.1
-            target_index = ln_indicies[0]-1
-        elif long_ln_index == 2: # Missing last licenes_num:
+            new_box[:2] -= unit_distance * 1.1
+            new_box[2:] -= unit_distance * 1.1
+            target_index = ln_indicies[0] - 1
+        elif long_ln_index == 2:  # Missing last licenes_num:
             new_box = ln_boxes[1].astype(np.float)
-            new_box[:2] += unit_distance*3.1
-            new_box[2:] += unit_distance*3.1
-            target_index = ln_indicies[-1]+1
+            new_box[:2] += unit_distance * 3.1
+            new_box[2:] += unit_distance * 3.1
+            target_index = ln_indicies[-1] + 1
         new_box = np.expand_dims(new_box, axis=0).astype(np.int)
         new_box_score = np.expand_dims(new_box_score, axis=0)
         new_box_class = np.expand_dims(new_box_class, axis=0)
         kv_boxes = np.concatenate([kv_boxes[:target_index], new_box, kv_boxes[target_index:]])
         kv_scores = np.concatenate([kv_scores[:target_index], new_box_score, kv_scores[target_index:]])
         kv_classes = np.concatenate([kv_classes[:target_index], new_box_class, kv_classes[target_index:]])
-        
-        if long_ln_index == 1 and ln_box_count == 2: # Missing first and last licenes_num
+
+        if long_ln_index == 1 and ln_box_count == 2:  # Missing first and last licenes_num
             new_box_class = 'dlc_license_num'
             new_box_score = 0.5
             new_box = ln_boxes[0].astype(np.float)
-            new_box[:2] += unit_distance*4.1
-            new_box[2:] += unit_distance*4.1
-            target_index = ln_indicies[-1]+2
+            new_box[:2] += unit_distance * 4.1
+            new_box[2:] += unit_distance * 4.1
+            target_index = ln_indicies[-1] + 2
             new_box = np.expand_dims(new_box, axis=0).astype(np.int)
             new_box_score = np.expand_dims(new_box_score, axis=0)
             new_box_class = np.expand_dims(new_box_class, axis=0)
@@ -646,30 +646,30 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
             kv_scores = np.concatenate([kv_scores[:target_index], new_box_score, kv_scores[target_index:]])
             kv_classes = np.concatenate([kv_classes[:target_index], new_box_class, kv_classes[target_index:]])
     elif id_type == 'RRC':
-        name_flag = kv_classes=='name'
-        id_flag = kv_classes=='id'
+        name_flag = kv_classes == 'name'
+        id_flag = kv_classes == 'id'
         name_boxes = kv_boxes[name_flag]
         id_boxes = kv_boxes[id_flag]
 
         if len(name_boxes) == 0 or len(id_boxes) != 1:
             return kv_boxes, kv_scores, kv_classes
         id_index = np.where(id_flag)[0]
-        name_x_end = name_boxes[:,2].mean()
-        id_x_center = id_boxes[:,0::2].mean()
+        name_x_end = name_boxes[:, 2].mean()
+        id_x_center = id_boxes[:, 0::2].mean()
         min_y = id_boxes[0][1]
         max_y = id_boxes[0][3]
-        
+
         if id_x_center <= name_x_end:
-            id_unit_length = abs((id_boxes[0][0] - id_boxes[0][2])/6)
-            min_x = id_boxes[0][2]+id_unit_length
-            max_x = min_x+id_unit_length*7
+            id_unit_length = abs((id_boxes[0][0] - id_boxes[0][2]) / 6)
+            min_x = id_boxes[0][2] + id_unit_length
+            max_x = min_x + id_unit_length * 7
             target_index = id_index[0] + 1
         else:
-            id_unit_length = abs((id_boxes[0][0] - id_boxes[0][2])/7)
-            max_x = id_boxes[0][0]-id_unit_length
-            min_x = max_x-id_unit_length*6
+            id_unit_length = abs((id_boxes[0][0] - id_boxes[0][2]) / 7)
+            max_x = id_boxes[0][0] - id_unit_length
+            min_x = max_x - id_unit_length * 6
             target_index = max(id_index[0] - 1, 0)
-        
+
         new_box_class = 'id'
         new_box_score = 0.5
         new_box = np.array([min_x, min_y, max_x, max_y])
@@ -692,14 +692,14 @@ def rectify_img(img_arr, H, angle_label, is_portrait=False):
 
 
 def if_use_keypoint(valid_keypoints, current_size, original_size):
-    boundary_quad = valid_keypoints[0,:,:2]
+    boundary_quad = valid_keypoints[0, :, :2]
     boundary_quad = revert_size(boundary_quad, current_size, original_size).astype(np.int32)
-    length_top_edge = np.linalg.norm(boundary_quad[0]-boundary_quad[1])
-    length_right_edge = np.linalg.norm(boundary_quad[1]-boundary_quad[2])
+    length_top_edge = np.linalg.norm(boundary_quad[0] - boundary_quad[1])
+    length_right_edge = np.linalg.norm(boundary_quad[1] - boundary_quad[2])
     angle_label = check_angle_label(boundary_quad)
 
-    boundary_quad[:,0] = np.clip(boundary_quad[:,0], 0, original_size[0])
-    boundary_quad[:,1] = np.clip(boundary_quad[:,1], 0, original_size[1])
+    boundary_quad[:, 0] = np.clip(boundary_quad[:, 0], 0, original_size[0])
+    boundary_quad[:, 1] = np.clip(boundary_quad[:, 1], 0, original_size[1])
 
     if length_top_edge < length_right_edge:
         target_quad = np.array([
@@ -716,8 +716,8 @@ def if_use_keypoint(valid_keypoints, current_size, original_size):
             [target_width, target_height],
             [0, target_height]
         ])
-    boundary_quad[:,0]-=boundary_quad[:,0].min()
-    boundary_quad[:,1]-=boundary_quad[:,1].min()
+    boundary_quad[:, 0] -= boundary_quad[:, 0].min()
+    boundary_quad[:, 1] -= boundary_quad[:, 1].min()
     H, mask = cv2.findHomography(boundary_quad, target_quad, method=0)
     return H, mask
 
@@ -725,7 +725,7 @@ def if_use_keypoint(valid_keypoints, current_size, original_size):
 def if_use_mask(valid_mask, argmax_score, boundary_box, angle_label):
     boundary_mask = valid_mask[argmax_score]
     boundary_quad = mask_to_quad(
-        boundary_mask, 
+        boundary_mask,
         boundary_box,
         mask_threshold=cfgs.ID_BOUNDARY_MASK_THRESH,
         force_rect=cfgs.ID_BOUNDARY_MASK_FORCE_RECT
@@ -772,7 +772,7 @@ def boundary_postprocess(scores, boxes, labels, use_mask, use_keypoint, masks, k
     boundary_box = valid_boxes[argmax_score]
     boundary_score = valid_scores[argmax_score]
     angle_label = valid_labels[argmax_score]
-    
+
     boundary_box[0::2] = np.clip(boundary_box[0::2], 0, original_size[0] - 1)
     boundary_box[1::2] = np.clip(boundary_box[1::2], 0, original_size[1] - 1)
 
@@ -786,7 +786,7 @@ def kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_s
     valid_labels = labels[valid_indicies]
     if len(valid_boxes) < 1:
         return None, None, None
-    ind = np.lexsort((valid_boxes[:,1], valid_boxes[:, 0]))
+    ind = np.lexsort((valid_boxes[:, 1], valid_boxes[:, 0]))
     valid_boxes = valid_boxes[ind]
     valid_scores = valid_scores[ind]
     valid_labels = valid_labels[ind]
@@ -799,11 +799,11 @@ def kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_s
 
 
 def update_valid_kv_boxes(valid_boxes, original_size):
-    valid_boxes_w = valid_boxes[:,2] - valid_boxes[:,0]
-    valid_boxes_h = valid_boxes[:,3] - valid_boxes[:,1]
-    valid_boxes_ar = valid_boxes_w/valid_boxes_h
-    w_expand  = valid_boxes_w*kv_box_expansion
-    h_expand  = valid_boxes_h*kv_box_expansion
+    valid_boxes_w = valid_boxes[:, 2] - valid_boxes[:, 0]
+    valid_boxes_h = valid_boxes[:, 3] - valid_boxes[:, 1]
+    valid_boxes_ar = valid_boxes_w / valid_boxes_h
+    w_expand = valid_boxes_w * kv_box_expansion
+    h_expand = valid_boxes_h * kv_box_expansion
     _expand = np.minimum(w_expand, h_expand).astype(np.int32)
     # _expand = (np.minimum(w_expand, h_expand)*np.abs(np.log(valid_boxes_ar))).astype(np.int32)
     valid_boxes[:, 0] -= _expand
@@ -817,7 +817,7 @@ def update_valid_kv_boxes(valid_boxes, original_size):
 
 
 def convert_recognition_to_text(rec_preds):
-    texts = converter.decode(rec_preds, [rec_preds.shape[0]]*len(rec_preds))
+    texts = converter.decode(rec_preds, [rec_preds.shape[0]] * len(rec_preds))
     texts = [_t[:_t.find('[s]')] for _t in texts]
     return texts
 
@@ -837,12 +837,12 @@ def roate_image(boundary_angle, id_image_arr):
         id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_180)
     elif boundary_angle == 7:
         id_image_arr = cv2.rotate(id_image_arr, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    
+
     return id_image_arr
 
 
 def kv_postprocess_with_edge(kv_boxes, kv_scores, kv_classes):
-    edges_length = kv_boxes[:,2:] - kv_boxes[:,:2]
+    edges_length = kv_boxes[:, 2:] - kv_boxes[:, :2]
     short_edges = (edges_length <= 5).any(axis=1)
 
     kv_boxes = kv_boxes[~short_edges]

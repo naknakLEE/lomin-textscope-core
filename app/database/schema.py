@@ -9,6 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, relationships
 from database.connection import Base, db
+from common.const import get_settings
 
 
 class BaseMixin:
@@ -104,3 +105,16 @@ class Usage(Base, BaseMixin):
     # choose email or id ??
     email = Column(String(length=255), nullable=True)
     status_code = Column(Integer, nullable=True)
+
+
+def create_db_table():
+    try:
+        settings = get_settings()
+        session = next(db.session())
+        Usage.metadata.create_all(db._engine)
+        Errors.metadata.create_all(db._engine)
+        Logs.metadata.create_all(db._engine)
+        Users.metadata.create_all(db._engine)
+        Users.create(session, auto_commit=True, name="test", **settings.FAKE_INFORMATION)
+    finally:
+        session.close()

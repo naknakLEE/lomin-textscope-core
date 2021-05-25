@@ -10,6 +10,7 @@ settings = get_settings()
 if settings.PROFILING is not None:
     img = np.expand_dims(cv2.imread("/workspace/others/000000000000000IMG_4831.jpg"), axis=0)
     multi_model_service.inference(img)
+    
 if settings.PROFILING == 'cProfile':
     import cProfile
     import pstats

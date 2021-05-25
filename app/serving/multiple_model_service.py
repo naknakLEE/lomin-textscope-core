@@ -38,16 +38,6 @@ from serving.utils import (
 )
 
 
-infer_sess_map = dict()
-service_cfg = load_json(cfgs.SERVICE_CFG_PATH)['idcard']
-load_models(infer_sess_map, service_cfg)
-
-save_output_img = True
-id_type = None
-savepath = cfgs.SAVEPATH
-print(savepath)
-
-
 @env(pip_packages=['torchvision'])
 @env(infer_pip_packages=True)
 @artifacts([
@@ -56,6 +46,16 @@ print(savepath)
     OnnxModelArtifact('recognition'),
 ])
 class MultiModelService(BentoService):
+    def __init__(self):
+        super().__init__()
+        self.infer_sess_map = dict()
+        self.service_cfg = load_json(cfgs.SERVICE_CFG_PATH)['idcard']
+        load_models(self.infer_sess_map, self.service_cfg)
+
+        self.save_output_img = True
+        self.id_type = None
+        self.savepath = cfgs.SAVEPATH
+
     @api(input=ImageInput(), batch=True)
     def inference(self, imgs):
         """
@@ -133,33 +133,33 @@ class MultiModelService(BentoService):
                 'message': 'Unable to extract information from id card'
             }, 500)
         if cfgs.ID_FORCE_TYPE:
-            kv_boxes, kv_scores, kv_classes = filter_class(kv_boxes, kv_scores, kv_classes, id_type)
+            kv_boxes, kv_scores, kv_classes = filter_class(kv_boxes, kv_scores, kv_classes, self.id_type)
 
         kv_boxes, kv_scores, kv_classes = kv_postprocess_with_edge(kv_boxes, kv_scores, kv_classes)
 
         id_height, id_width = id_image_arr.shape[:2]
         if cfgs.ID_ADD_BACKUP_BOXES:
             inputs = (
-                kv_boxes, kv_scores, kv_classes, id_type, (id_width, id_height)
+                kv_boxes, kv_scores, kv_classes, self.id_type, (id_width, id_height)
             )
             kv_boxes, kv_scores, kv_classes = add_backup_boxes(*inputs)
 
         cropped_images = get_cropped_images(id_image_arr, kv_boxes)
-        if save_output_img and savepath is not None:
-            deidentify_img(id_image_arr, kv_boxes, kv_classes, savepath)
+        if self.save_output_img and self.savepath is not None:
+            deidentify_img(id_image_arr, kv_boxes, kv_classes, self.savepath)
 
         if cfgs.SAVE_ID_DEBUG_INFO and cfgs.ID_DEBUG_INFO_PATH is not None:
             info_save_dir = os.path.join(cfgs.ID_DEBUG_INFO_PATH, time.strftime('%Y%m%d'))
             os.makedirs(info_save_dir, exist_ok=True)
-            info_save_path = os.path.join(info_save_dir, os.path.basename(savepath))
+            info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
             deidentify_img(id_image_arr, kv_boxes, kv_classes, info_save_path)
 
         class_masks = get_class_masks(kv_classes)
         texts = self._rec_infer(cropped_images, class_masks)
 
         # TO DEBUG OUTPUT OF INFERENCE
-        if save_output_img and savepath is not None and cfgs.DEVELOP and cfgs.ID_DRAW_BBOX_IMG:
-            save_debug_img(id_image_arr, kv_boxes, kv_classes, texts, savepath)
+        if self.save_output_img and self.savepath is not None and cfgs.DEVELOP and cfgs.ID_DRAW_BBOX_IMG:
+            save_debug_img(id_image_arr, kv_boxes, kv_classes, texts, self.savepath)
 
         logger.info(f"Total inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
 
@@ -175,13 +175,13 @@ class MultiModelService(BentoService):
         start_t = time.time()
         original_size = (img_arr.shape[1], img_arr.shape[0])
         extra_info = dict()
-        for _proc in infer_sess_map['boundary_model']['preprocess']:
+        for _proc in self.infer_sess_map['boundary_model']['preprocess']:
             img_arr, extra_info = _proc(img_arr, extra_info=extra_info)
 
         inputs = {
             'images': np.expand_dims(img_arr.astype(np.float32), axis=0)
         }
-        output_names = infer_sess_map['boundary_model']['output_names']
+        output_names = self.infer_sess_map['boundary_model']['output_names']
         use_mask = 'mask' in output_names
         use_keypoint = 'keypoints' in output_names
         masks = None
@@ -221,16 +221,16 @@ class MultiModelService(BentoService):
         start_t = time.time()
         original_size = (img_arr.shape[1], img_arr.shape[0])
         extra_info = dict()
-        for _proc in infer_sess_map['kv_model']['preprocess']:
+        for _proc in self.infer_sess_map['kv_model']['preprocess']:
             img_arr, extra_info = _proc(img_arr, extra_info=extra_info)
         inputs = {
             'images': np.expand_dims(img_arr.astype(np.float32), axis=0)
         }
 
-        output_names = infer_sess_map['kv_model']['output_names']
+        output_names = self.infer_sess_map['kv_model']['output_names']
         boxes, labels, scores = self.artifacts.kv_detection.run(output_names, inputs)
 
-        valid_scores, valid_boxes, kv_classes = kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_size)
+        valid_scores, valid_boxes, kv_classes = kv_postprocess(scores, boxes, labels, extra_info, self.infer_sess_map, original_size)
         logger.info(f"KV inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
 
         valid_boxes = update_valid_kv_boxes(valid_boxes, original_size)
@@ -243,7 +243,7 @@ class MultiModelService(BentoService):
         info_list = list()
         for i in range(len(cropped_images)):
             extra_info = dict()
-            for _proc in infer_sess_map['recognition_model']['preprocess']:
+            for _proc in self.infer_sess_map['recognition_model']['preprocess']:
                 cropped_images[i], extra_info = _proc(cropped_images[i], extra_info=extra_info)
             info_list.append(extra_info)
 
@@ -252,7 +252,7 @@ class MultiModelService(BentoService):
 
         output_names = [_.name for _ in rec_sess.get_outputs()]
         rec_preds = []
-        fixed_batch_size = infer_sess_map['recognition_model']['batch_size']
+        fixed_batch_size = self.infer_sess_map['recognition_model']['batch_size']
         for i in range(0, len(cropped_images), fixed_batch_size):
             if (i + fixed_batch_size) < len(cropped_images):
                 end = i + fixed_batch_size

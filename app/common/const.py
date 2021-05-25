@@ -59,50 +59,50 @@ class Settings(BaseSettings):
     # OTHERS
     PROFILING: str
 
-    SAVE_INPUT_IMAGE: bool
-    INPUT_SAVE_PATH: str
-    SAVEPATH: str
+    SAVE_INPUT_IMAGE: Optional[bool]
+    INPUT_SAVE_PATH: Optional[str]
+    SAVEPATH: Optional[str]
 
-    SAVE_ID_DEBUG_INFO: bool
-    ID_DEBUG_INFO_PATH: str
+    SAVE_ID_DEBUG_INFO: Optional[bool]
+    ID_DEBUG_INFO_PATH: Optional[str]
 
-    SAVE_UID: int
-    SAVE_GID: int
-    DE_ID_SAVE_PATH: str
-    DE_ID_LIMIT_SIZE: bool
-    DE_ID_MAX_SIZE: int
+    SAVE_UID: Optional[int]
+    SAVE_GID: Optional[int]
+    DE_ID_SAVE_PATH: Optional[str]
+    DE_ID_LIMIT_SIZE: Optional[bool]
+    DE_ID_MAX_SIZE: Optional[int]
 
-    ID_IMG_MIN_SIZE: int
-    ID_BOUNDARY_SCORE_TH: float
-    ID_BOUNDARY_CROP_EXPANSION: int
+    ID_IMG_MIN_SIZE: Optional[int]
+    ID_BOUNDARY_SCORE_TH: Optional[float]
+    ID_BOUNDARY_CROP_EXPANSION: Optional[int]
 
-    ID_USE_BOUNDARY_MASK_TRANSFORM: bool
-    ID_BOUNDARY_MASK_FORCE_RECT: bool
-    ID_BOUNDARY_MASK_THRESH: float
-    ID_USE_TRANSFORM_BOUNDARY: bool
-    ID_TRANSFORM_TARGET_WIDTH: int
-    ID_TRANSFORM_TARGET_HEIGHT: int
+    ID_USE_BOUNDARY_MASK_TRANSFORM: Optional[bool]
+    ID_BOUNDARY_MASK_FORCE_RECT: Optional[bool]
+    ID_BOUNDARY_MASK_THRESH: Optional[float]
+    ID_USE_TRANSFORM_BOUNDARY: Optional[bool]
+    ID_TRANSFORM_TARGET_WIDTH: Optional[int]
+    ID_TRANSFORM_TARGET_HEIGHT: Optional[int]
 
-    ID_KV_SCORE_TH: float
-    ID_BOX_EXPANSION: float
-    ID_DLC_REMOVE_REGION_CODE: bool
-    ID_ADD_BACKUP_BOXES: bool
-    ID_DRAW_BBOX_IMG: bool
-    ID_DE_NAME: bool
-    ID_FORCE_TYPE: bool
+    ID_KV_SCORE_TH: Optional[float]
+    ID_BOX_EXPANSION: Optional[float]
+    ID_DLC_REMOVE_REGION_CODE: Optional[bool]
+    ID_ADD_BACKUP_BOXES: Optional[bool]
+    ID_DRAW_BBOX_IMG: Optional[bool]
+    ID_DE_NAME: Optional[bool]
+    ID_FORCE_TYPE: Optional[bool]
 
-    ID_CROP_FIND: bool
-    ID_CROP_FIND_NUM: int
-    ID_CROP_FIND_RATIO: float  # 1/sqrt(2)
+    ID_CROP_FIND: Optional[bool]
+    ID_CROP_FIND_NUM: Optional[int]
+    ID_CROP_FIND_RATIO: Optional[float]  # 1/sqrt(2)
 
-    ID_ROTATE_FIND: bool
-    ID_ROTATE_ANGLE: List[int]
+    ID_ROTATE_FIND: Optional[bool]
+    ID_ROTATE_ANGLE: Optional[List[int]]
 
-    DEIDENTIFY_JSON: bool
+    DEIDENTIFY_JSON: Optional[bool]
 
-    RESPONSE_LOG: bool
+    RESPONSE_LOG: Optional[bool]
 
-    DECIPHER: bool
+    DECIPHER: Optional[bool]
 
     class Config:
         env_file = "/workspace/.env"
