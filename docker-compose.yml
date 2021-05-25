@@ -19,7 +19,7 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
   
   web:
-    image: docker.lomin.ai/ts-server:0.0.1
+    image: docker.lomin.ai/ts-web:0.0.1
     container_name: web
     ports: 
       - 8000:8000
@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   serving:
-    image: docker.lomin.ai/ts-model:0.0.1
+    image: docker.lomin.ai/ts-serving:0.0.1
     build:
       context: ./app/serving
       dockerfile: Dockerfile.bentoml
