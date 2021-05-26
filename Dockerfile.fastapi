@@ -15,7 +15,7 @@ RUN apt-get update && \
 RUN sudo apt-get -y install postgresql-client
 
 
-RUN sudo pip3 install --pre -U bentoml 
+RUN pip3 install --pre -U bentoml 
 
 RUN git clone http://github.com/bentoml/bentoml && \
     cd bentoml && \
