@@ -5,22 +5,22 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
-    POSTGRES_IP_ADDR: str
-    WEB_IP_ADDR: str
-    SERVING_IP_ADDR: str
+    POSTGRES_IP_ADDR: str = "182.20.0.6"
+    WEB_IP_ADDR: str = "182.20.0.5"
+    SERVING_IP_ADDR: str = "182.20.0.4"
 
     # POSTGRESQL CONFIG
-    POSTGRES_DB: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str = "user"
+    POSTGRES_USER: str = "user"
+    POSTGRES_PASSWORD: str = "1q2w3e4r"
 
     # AUTHORIZATION SETTING
     SECRET_KEY: str
     ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
     # SERVING CONFIG
-    SERVING_IP_PORT: int
+    SERVING_IP_PORT: int = 5000
 
     # MiDDLEWARE CONFIG
     EXCEPT_PATH_LIST: List[str] = ["/", "/openapi.json"]
@@ -40,69 +40,70 @@ class Settings(BaseSettings):
 
     # BASE CONFIG
     DEVELOP: bool = True
-    BASE_PATH: str
+    BASE_PATH: str = "/workspace/app"
 
     # LOGGER CONFIG
-    LOG_DIR_PATH: str
-    LOG_ROTATION: str
-    LOG_RETENTION: str
-    LOG_LEVEL: str
+    LOG_DIR_PATH: str = "logs/log"
+    LOG_ROTATION: str = "1MB"
+    LOG_RETENTION: str = "30 days"
+    LOG_LEVEL: str = "DEBUG"
 
     # OUTPUT_IMG_CONFIG
-    OUTPUT_IMG_SAVE: bool
-    OUTPUT_IMG_DIR: str
-    OUTPUT_DEBUG: str
+    OUTPUT_IMG_SAVE: bool = True
+    OUTPUT_IMG_DIR: str = "outputs/image"
+    OUTPUT_DEBUG: str = "outputs/debug"
 
     # SERVICE CONFIG
-    SERVICE_CFG_PATH: str
+    SERVICE_CFG_PATH: str = "/workspace/assets/textscope_id.json"
 
     # OTHERS
-    PROFILING: str
+    PROFILING: str = "cProfile"
 
-    SAVE_INPUT_IMAGE: Optional[bool]
-    INPUT_SAVE_PATH: Optional[str]
-    SAVEPATH: Optional[str]
+    SAVE_INPUT_IMAGE: bool = False
+    INPUT_SAVE_PATH: str = "inputs/image"
+    SAVEPATH: str = "/workspace/outputs/idcard/test.png"
 
-    SAVE_ID_DEBUG_INFO: Optional[bool]
-    ID_DEBUG_INFO_PATH: Optional[str]
+    SAVE_ID_DEBUG_INFO: bool = False
+    ID_DEBUG_INFO_PATH: str = "/tmp/textscope/debug"
 
-    SAVE_UID: Optional[int]
-    SAVE_GID: Optional[int]
-    DE_ID_SAVE_PATH: Optional[str]
-    DE_ID_LIMIT_SIZE: Optional[bool]
-    DE_ID_MAX_SIZE: Optional[int]
+    # MODEL CONFIG
+    SAVE_UID: int = 1000
+    SAVE_GID: int = 1000
+    DE_ID_SAVE_PATH: str = "inputs/image"
+    DE_ID_LIMIT_SIZE: bool = True
+    DE_ID_MAX_SIZE: int = 640
 
-    ID_IMG_MIN_SIZE: Optional[int]
-    ID_BOUNDARY_SCORE_TH: Optional[float]
-    ID_BOUNDARY_CROP_EXPANSION: Optional[int]
+    ID_IMG_MIN_SIZE: int
+    ID_BOUNDARY_SCORE_TH: float
+    ID_BOUNDARY_CROP_EXPANSION: int
 
-    ID_USE_BOUNDARY_MASK_TRANSFORM: Optional[bool]
-    ID_BOUNDARY_MASK_FORCE_RECT: Optional[bool]
-    ID_BOUNDARY_MASK_THRESH: Optional[float]
-    ID_USE_TRANSFORM_BOUNDARY: Optional[bool]
-    ID_TRANSFORM_TARGET_WIDTH: Optional[int]
-    ID_TRANSFORM_TARGET_HEIGHT: Optional[int]
+    ID_USE_BOUNDARY_MASK_TRANSFORM: bool
+    ID_BOUNDARY_MASK_FORCE_RECT: bool
+    ID_BOUNDARY_MASK_THRESH: float
+    ID_USE_TRANSFORM_BOUNDARY: bool
+    ID_TRANSFORM_TARGET_WIDTH: int
+    ID_TRANSFORM_TARGET_HEIGHT: int
 
-    ID_KV_SCORE_TH: Optional[float]
-    ID_BOX_EXPANSION: Optional[float]
-    ID_DLC_REMOVE_REGION_CODE: Optional[bool]
-    ID_ADD_BACKUP_BOXES: Optional[bool]
-    ID_DRAW_BBOX_IMG: Optional[bool]
-    ID_DE_NAME: Optional[bool]
-    ID_FORCE_TYPE: Optional[bool]
+    ID_KV_SCORE_TH: float
+    ID_BOX_EXPANSION: float
+    ID_DLC_REMOVE_REGION_CODE: bool
+    ID_ADD_BACKUP_BOXES: bool
+    ID_DRAW_BBOX_IMG: bool
+    ID_DE_NAME: bool
+    ID_FORCE_TYPE: bool
 
-    ID_CROP_FIND: Optional[bool]
-    ID_CROP_FIND_NUM: Optional[int]
-    ID_CROP_FIND_RATIO: Optional[float]  # 1/sqrt(2)
+    ID_CROP_FIND: bool
+    ID_CROP_FIND_NUM: int
+    ID_CROP_FIND_RATIO: float  # 1/sqrt(2)
 
-    ID_ROTATE_FIND: Optional[bool]
-    ID_ROTATE_ANGLE: Optional[List[int]]
+    ID_ROTATE_FIND: bool
+    ID_ROTATE_ANGLE: List[int]
 
-    DEIDENTIFY_JSON: Optional[bool]
+    DEIDENTIFY_JSON: bool = True
 
-    RESPONSE_LOG: Optional[bool]
+    RESPONSE_LOG: bool = True
 
-    DECIPHER: Optional[bool]
+    DECIPHER: bool = False
 
     class Config:
         env_file = "/workspace/.env"

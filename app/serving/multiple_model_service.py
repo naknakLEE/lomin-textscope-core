@@ -13,7 +13,7 @@ from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
 sys.path.append("/workspace/app")
 from serving.envs import cfgs, logger
-from errors.exceptions import InferenceError
+from errors.exceptions import InferenceException
 from serving.utils import (
     load_json,
     save_debug_img,
@@ -124,14 +124,14 @@ class MultiModelService(BentoService):
         kv_boxes, kv_scores, kv_classes = self._kv_infer(id_image_arr)
 
         if kv_boxes is None:
-            # 이 부분은 왜 있는건가? raise 실행되는게 아닌가?
+            # 이 부분은 왜 있는건가? raise 실행되나?
             id_image_arr = roate_image(boundary_angle, id_image_arr)
 
             logger.info("Unable to detect kv_boxes")
-            raise InferenceError({
-                'code': 'T5001',
-                'message': 'Unable to extract information from id card'
-            }, 500)
+            raise InferenceException({
+                'code': 'T4001',
+                'message': 'Invalid image file',
+            }, 400)
         if cfgs.ID_FORCE_TYPE:
             kv_boxes, kv_scores, kv_classes = filter_class(kv_boxes, kv_scores, kv_classes, self.id_type)
 

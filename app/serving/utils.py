@@ -13,6 +13,7 @@ from shapely.geometry import Polygon
 from serving.envs import logger,cfgs
 from serving.catalogs import ELabelCatalog, EDocumentCatalog
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
+from errors.exceptions import InferenceException
 
 
 characters = ELabelCatalog.get(("num","eng_cap","eng_low","kor_2350","symbols"), decipher=cfgs.DECIPHER)
@@ -799,19 +800,25 @@ def kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_s
 
 
 def update_valid_kv_boxes(valid_boxes, original_size):
-    valid_boxes_w = valid_boxes[:, 2] - valid_boxes[:, 0]
-    valid_boxes_h = valid_boxes[:, 3] - valid_boxes[:, 1]
-    valid_boxes_ar = valid_boxes_w / valid_boxes_h
-    w_expand = valid_boxes_w * kv_box_expansion
-    h_expand = valid_boxes_h * kv_box_expansion
-    _expand = np.minimum(w_expand, h_expand).astype(np.int32)
-    # _expand = (np.minimum(w_expand, h_expand)*np.abs(np.log(valid_boxes_ar))).astype(np.int32)
-    valid_boxes[:, 0] -= _expand
-    valid_boxes[:, 1] -= _expand
-    valid_boxes[:, 2] += _expand
-    valid_boxes[:, 3] += _expand
-    valid_boxes[:, 0::2] = np.clip(valid_boxes[:, 0::2], 0, original_size[0])
-    valid_boxes[:, 1::2] = np.clip(valid_boxes[:, 1::2], 0, original_size[1])
+    try:
+        valid_boxes_w = valid_boxes[:, 2] - valid_boxes[:, 0]
+        valid_boxes_h = valid_boxes[:, 3] - valid_boxes[:, 1]
+        valid_boxes_ar = valid_boxes_w / valid_boxes_h
+        w_expand = valid_boxes_w * kv_box_expansion
+        h_expand = valid_boxes_h * kv_box_expansion
+        _expand = np.minimum(w_expand, h_expand).astype(np.int32)
+        # _expand = (np.minimum(w_expand, h_expand)*np.abs(np.log(valid_boxes_ar))).astype(np.int32)
+        valid_boxes[:, 0] -= _expand
+        valid_boxes[:, 1] -= _expand
+        valid_boxes[:, 2] += _expand
+        valid_boxes[:, 3] += _expand
+        valid_boxes[:, 0::2] = np.clip(valid_boxes[:, 0::2], 0, original_size[0])
+        valid_boxes[:, 1::2] = np.clip(valid_boxes[:, 1::2], 0, original_size[1])
+    except Exception:
+        raise InferenceException({
+                'code': 'T4001',
+                'message': 'Invalid image file',
+            }, 400)
 
     return valid_boxes
 

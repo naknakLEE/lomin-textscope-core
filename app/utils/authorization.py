@@ -3,12 +3,13 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
 from database.schema import Users
 from models import TokenData, User, UserInDB, Token
 from common.const import get_settings
+from errors import exceptions as ex
 
 
 settings = get_settings()
@@ -73,22 +74,19 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 # async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def get_current_user(token: str):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            raise ex.InvalidCredentiolException(username)
         token_data = TokenData(username=username)
+    except ExpiredSignatureError:
+        raise ex.JWTExpiredExetpion()
     except JWTError:
-        raise credentials_exception
+        raise ex.JWTException(JWTError)
     user = get_user(settings.FAKE_INFORMATION, username=token_data.username)
     if user is None:
-        raise credentials_exception
+        raise ex.NotFoundUserException(username)
     return user
 
 

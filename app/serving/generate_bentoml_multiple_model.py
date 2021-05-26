@@ -17,3 +17,4 @@ multi_model_service.pack('recognition', recognition_model)
 
 # Save the prediction service to disk for model serving
 saved_path = multi_model_service.save()
+print(saved_path)

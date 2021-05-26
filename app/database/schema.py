@@ -47,21 +47,6 @@ class BaseMixin:
             session.commit()
         return obj
 
-    # @classmethod
-    # def create_request_quantity(cls, session: Session, auto_commit=False, **kwargs):
-    #     obj = cls()
-    #     user = session.query(obj).filter(obj.name == kwargs.get("email")).first()
-    #     user.inference_request_quantity += 1
-    #     for col in obj.all_columns():
-    #         col_name = col.name
-    #         if col_name in kwargs:
-    #             setattr(obj, col_name, kwargs.get(col_name))
-    #     session.add(obj)
-    #     session.flush()
-    #     if auto_commit:
-    #         session.commit()
-    #     return obj
-
     @classmethod
     def test(cls, session: Session, auto_commit=False, **kwargs):
         ...

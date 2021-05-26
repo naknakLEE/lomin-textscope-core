@@ -12,9 +12,10 @@ from routes import auth, index, users, inference
 from database.connection import db
 from common.config import Config
 from utils.logger import api_logger
-from utils.token_validator import exception_handler
+# from utils.token_validator import exception_handler
 from common.const import get_settings
 from database.schema import create_db_table
+from errors.exceptions import exception_handler
 
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization",auto_error=False)

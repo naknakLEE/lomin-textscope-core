@@ -14,9 +14,10 @@ RUN sudo apt-get install -y python3-pip && \
 RUN pip3 install opencv-python && \
     apt-get -y install libgl1-mesa-glx
 
-RUN git clone http://github.com/bentoml/bentoml && \
-    cd bentoml && \
-    pip3 install jupyter && \
+RUN git clone http://github.com/bentoml/bentoml
+
+WORKDIR /workspace/bentoml
+RUN pip3 install jupyter && \
     pip3 install -r ./guides/quick-start/requirements.txt --use-feature=2020-resolver
 
 RUN pip3 install typing
@@ -32,11 +33,21 @@ RUN pip3 install onnx && \
 
 RUN pip3 install pydantic[dotenv]
 
-COPY ./ /workspace
+COPY ./lovit /workspace/lovit
+COPY ./app/serving/generate_bentoml_multiple_model.py /workspace/generate_bentoml_multiple_model.py
 
-RUN cd lovit && python setup.py install
+WORKDIR /workspace/lovit
+RUN python setup.py install
 
-RUN python /workspace/app/serving/generate_bentoml_multiple_model.py
+RUN python /workspace/generate_bentoml_multiple_model.py
 
-# RUN python /workspace/generate_bentoml_model.py
+WORKDIR /bin
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && chmod 755 jq
+
+RUN pip3 install uvicorn && \ 
+    pip3 install fastapi && \ 
+    pip3 install fastapi_profiler && \ 
+    pip3 install pydantic[email]
+    
+
 # CMD ["bentoml", "serve", "PytorchModelService:latest"]
