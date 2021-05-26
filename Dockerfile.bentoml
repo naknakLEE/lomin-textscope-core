@@ -7,9 +7,9 @@ RUN apt-get update && \
 
 RUN apt-get install nano && \
     apt-get install -y git 
-    
-RUN sudo apt-get install -y python3-pip && \
-    sudo pip3 install --pre -U bentoml 
+
+RUN apt-get install -y python3-pip && \
+    pip3 install --pre -U bentoml 
 
 RUN pip3 install opencv-python && \
     apt-get -y install libgl1-mesa-glx

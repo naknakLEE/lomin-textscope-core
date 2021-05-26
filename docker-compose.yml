@@ -1,5 +1,7 @@
-version: '2'
+version: '2.3'
+
 services:
+
   postgres:
     image: postgres:11
     container_name: postgres
@@ -17,7 +19,7 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
   
   web:
-    # image: wook3024/fastapi_backend:0.1.0
+    image: docker.lomin.ai/ts-web:0.0.1
     build:
       context: ./
       dockerfile: Dockerfile.fastapi
@@ -36,7 +38,7 @@ services:
     restart: unless-stopped
 
   serving:
-    # image: wook3024/bentoml_serving:0.2.0
+    image: docker.lomin.ai/ts-serving:0.0.1
     build:
       context: ./
       dockerfile: Dockerfile.bentoml
