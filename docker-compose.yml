@@ -20,14 +20,15 @@ services:
   
   web:
     image: docker.lomin.ai/ts-web:0.0.1
+    build:
+      context: ./
+      dockerfile: Dockerfile.fastapi
     container_name: web
     ports: 
       - 8000:8000
     volumes:
       - ./:/workspace
-    build:
-      context: ./app/utils
-      dockerfile: Dockerfile
+    command: python /workspace/app/main.py
     tty: true
     depends_on: 
       - postgres
@@ -39,22 +40,22 @@ services:
   serving:
     image: docker.lomin.ai/ts-serving:0.0.1
     build:
-      context: ./app/serving
+      context: ./
       dockerfile: Dockerfile.bentoml
     container_name: serving
     ports: 
-      - "5000:5000"
+      - 5000:5000
     volumes:
       - ./:/workspace
       # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    tty: true
     depends_on: 
       - postgres
     networks:
       our_net:
           ipv4_address: ${SERVING_IP_ADDR}
     runtime: nvidia
-    # command: python /workspace/generate_bentoml_model.py
-    tty: true
+    command: bentoml serve MultiModelService:latest
 
   # pgadmin:
   #   container_name: pgadmin_container

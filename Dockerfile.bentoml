@@ -31,7 +31,12 @@ RUN pip3 install onnx && \
     pip3 install loguru
 
 RUN pip3 install pydantic[dotenv]
-# COPY ./ /workspace
+
+COPY ./ /workspace
+
+RUN cd lovit && python setup.py install
+
+RUN python /workspace/app/serving/generate_bentoml_multiple_model.py
 
 # RUN python /workspace/generate_bentoml_model.py
 # CMD ["bentoml", "serve", "PytorchModelService:latest"]

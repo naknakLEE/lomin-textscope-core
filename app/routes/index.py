@@ -12,6 +12,7 @@ from database.schema import Users, Errors, Usage, Logs
 from common.const import get_settings
 
 
+
 settings = get_settings()
 router = APIRouter()
 
@@ -22,7 +23,6 @@ async def index(session: Session = Depends(db.session)):
     # session.add(user)
     # session.commit()
 
-    print("\n\n\n\n\n\n", session)
     # Errors.create(next(db.session()), auto_commit=True)
     # Users.create(session, auto_commit=True, name="test", **FAKE_INFORMATION)
     # Logs.create(session, auto_commit=True)

@@ -32,4 +32,7 @@ RUN pip3 install psycopg2-binary && \
     pip3 install pydantic[email] && \
     pip3 install PyJWT
 
+RUN pip3 install fastapi_profiler
+
+
 # CMD ["uvicorn", "workspace.backend.main:app", "--host", "0.0.0.0", "--port", "80"]

@@ -14,6 +14,7 @@ from common.config import Config
 from utils.logger import api_logger
 from utils.token_validator import exception_handler
 from common.const import get_settings
+from database.schema import create_db_table
 
 
 # API_KEY_HEADER = APIKeyHeader(name="Authorization",auto_error=False)
@@ -23,11 +24,12 @@ base_dir = path.dirname(path.dirname(path.abspath(__file__)))
 app = FastAPI()
 db.init_app(app, **asdict(Config()))
 settings = get_settings()
+create_db_table()
 
 
 # app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
-if settings.PROFILING is not None:
-    app.add_middleware(PyInstrumentProfilerMiddleware)
+# if settings.PROFILING is not None:
+#     app.add_middleware(PyInstrumentProfilerMiddleware)
 
 
 @app.middleware("http")
