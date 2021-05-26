@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, relationships
 from database.connection import Base, db
-from common.const import get_settings
+from app.common.const import get_settings
 
 
 class BaseMixin:
@@ -54,6 +54,7 @@ class BaseMixin:
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True} 
     username = Column(String(length=128), nullable=True)
     email = Column(String(length=255), nullable=True)
     hashed_password = Column(String(length=2000), nullable=True)
@@ -63,6 +64,7 @@ class Users(Base, BaseMixin):
 
 class Errors(Base, BaseMixin):
     __tablename__ = "errors"
+    __table_args__ = {'extend_existing': True} 
     url = Column(String(length=2000), nullable=True)
     method = Column(String(length=255), nullable=True)
     status_code = Column(String(length=255), nullable=True)
@@ -74,6 +76,7 @@ class Errors(Base, BaseMixin):
 
 class Logs(Base, BaseMixin):
     __tablename__ = "logs"
+    __table_args__ = {'extend_existing': True} 
     url = Column(String(length=2000), nullable=True)
     method = Column(String(length=255), nullable=True)
     status_code = Column(String(length=255), nullable=True)
@@ -87,19 +90,21 @@ class Logs(Base, BaseMixin):
 
 class Usage(Base, BaseMixin):
     __tablename__ = "usage"
+    __table_args__ = {'extend_existing': True} 
     # choose email or id ??
     email = Column(String(length=255), nullable=True)
     status_code = Column(Integer, nullable=True)
 
 
 def create_db_table():
+    # db.metadata.reflect(engine=db._engine)
     try:
-        settings = get_settings()
-        session = next(db.session())
         Usage.metadata.create_all(db._engine)
         Errors.metadata.create_all(db._engine)
         Logs.metadata.create_all(db._engine)
         Users.metadata.create_all(db._engine)
+        settings = get_settings()
+        session = next(db.session())
         Users.create(session, auto_commit=True, name="test", **settings.FAKE_INFORMATION)
     finally:
         session.close()

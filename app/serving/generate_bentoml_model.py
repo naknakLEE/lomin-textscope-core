@@ -1,7 +1,10 @@
 import torch
 import numpy as np
 import cv2
-from pytorch_model_service import PytorchModelService
+import sys
+
+sys.path.append("/workspace")
+from app.serving.pytorch_model_service import PytorchModelService
 
 
 

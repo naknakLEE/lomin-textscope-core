@@ -7,13 +7,14 @@ import sys
 import onnxruntime as rt
 import time
 
-from service_streamer import ThreadedStreamer
 from collections import defaultdict
+from service_streamer import ThreadedStreamer
 from shapely.geometry import Polygon
-from serving.envs import logger,cfgs
-from serving.catalogs import ELabelCatalog, EDocumentCatalog
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
-from errors.exceptions import InferenceException
+
+from app.serving.envs import logger,cfgs
+from app.serving.catalogs import ELabelCatalog, EDocumentCatalog
+from app.errors.exceptions import InferenceException
 
 
 characters = ELabelCatalog.get(("num","eng_cap","eng_low","kor_2350","symbols"), decipher=cfgs.DECIPHER)

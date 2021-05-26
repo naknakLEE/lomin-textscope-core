@@ -6,7 +6,8 @@ RUN apt-get update && \
     apt-get install sudo 
 
 RUN apt-get install nano && \
-    apt-get install -y git 
+    apt-get install -y git  && \
+    apt-get install wget
 
 RUN apt-get install -y python3-pip && \
     pip3 install --pre -U bentoml 
@@ -33,14 +34,6 @@ RUN pip3 install onnx && \
 
 RUN pip3 install pydantic[dotenv]
 
-COPY ./lovit /workspace/lovit
-COPY ./app/serving/generate_bentoml_multiple_model.py /workspace/generate_bentoml_multiple_model.py
-
-WORKDIR /workspace/lovit
-RUN python setup.py install
-
-RUN python /workspace/generate_bentoml_multiple_model.py
-
 WORKDIR /bin
 RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && chmod 755 jq
 
@@ -48,6 +41,13 @@ RUN pip3 install uvicorn && \
     pip3 install fastapi && \ 
     pip3 install fastapi_profiler && \ 
     pip3 install pydantic[email]
+
+COPY ./ /workspace
+
+WORKDIR /workspace/lovit
+RUN python setup.py install
     
+WORKDIR /workspace/app/serving
+RUN python generate_bentoml_multiple_model.py
 
 # CMD ["bentoml", "serve", "PytorchModelService:latest"]

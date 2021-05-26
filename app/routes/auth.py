@@ -4,13 +4,13 @@ from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from models import Token
-from utils.authorization import (
+from app.models import Token
+from app.utils.authorization import (
     authenticate_user,
     create_access_token,
 )
-from common.const import get_settings
-from errors import exceptions as ex 
+from app.common.const import get_settings
+from app.errors import exceptions as ex 
 
 
 settings = get_settings()

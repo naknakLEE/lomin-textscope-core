@@ -1,7 +1,9 @@
 import torch
 import onnx
+import sys
 
-from multiple_model_service import MultiModelService
+sys.path.append("/workspace")
+from app.serving.multiple_model_service import MultiModelService
 
 
 # Create a iris classifier service instance

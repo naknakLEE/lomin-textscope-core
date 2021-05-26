@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from os import path, environ
-from common.const import get_settings
+from app.common.const import get_settings
 
 
 settings = get_settings()

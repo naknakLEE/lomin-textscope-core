@@ -1,6 +1,7 @@
 import os
 from loguru import logger
-from common.const import get_settings
+
+from app.common.const import get_settings
 
 cfgs = get_settings()
 

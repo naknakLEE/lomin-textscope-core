@@ -5,9 +5,9 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
-    POSTGRES_IP_ADDR: str = "182.20.0.6"
-    WEB_IP_ADDR: str = "182.20.0.5"
-    SERVING_IP_ADDR: str = "182.20.0.4"
+    POSTGRES_IP_ADDR: str
+    WEB_IP_ADDR: str
+    SERVING_IP_ADDR: str
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str = "user"

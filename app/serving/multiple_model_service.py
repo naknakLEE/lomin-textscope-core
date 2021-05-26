@@ -11,10 +11,10 @@ from bentoml.frameworks.onnx import OnnxModelArtifact
 
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
-sys.path.append("/workspace/app")
-from serving.envs import cfgs, logger
-from errors.exceptions import InferenceException
-from serving.utils import (
+sys.path.append("/workspace")
+from app.serving.envs import cfgs, logger
+from app.errors.exceptions import InferenceException
+from app.serving.utils import (
     load_json,
     save_debug_img,
     deidentify_img,

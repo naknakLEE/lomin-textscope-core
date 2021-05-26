@@ -1,5 +1,6 @@
 import uvicorn
 import time
+import sys
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -8,6 +9,7 @@ from dataclasses import asdict
 from datetime import datetime
 from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 
+sys.path.append("/workspace")
 from routes import auth, index, users, inference
 from database.connection import db
 from common.config import Config

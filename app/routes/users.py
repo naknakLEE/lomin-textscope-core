@@ -1,12 +1,10 @@
 
 from fastapi import Depends, APIRouter
 
-from utils.authorization import (
+from app.utils.authorization import (
     get_current_active_user
 )
-from models import (
-    User,
-)
+from app.models import User
 
 
 router = APIRouter()
