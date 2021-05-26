@@ -1,0 +1,3 @@
+[submodule "lovit"]
+	path = lovit
+	url = git@ssh.dev.azure.com:v3/textscope/Textscope/lovit
