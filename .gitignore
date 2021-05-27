@@ -109,10 +109,12 @@ others/
 .idea/
 memo.*
 memo.txt
-lovit_copy
+lovit
 outputs
 inputs
 tmp
+storage
+workspace
 
 # DB data
 pgdata/
@@ -125,3 +127,5 @@ pgdata/
 # CPytnon
 app.*
 Nuitka
+*.bin
+*.build
