@@ -177,51 +177,17 @@ def load_bento_service_class(bundle_path):
     config = load_saved_bundle_config(bundle_path)
     metadata = config["metadata"]
 
-    # # Find and load target module containing BentoService class from given path
-    # module_file_path = _find_module_file(
-    #     bundle_path, metadata["service_name"], metadata["module_file"]
-    # )
-
     # Prepend bundle_path to sys.path for loading extra python dependencies
     sys.path.insert(0, bundle_path)
     sys.path.insert(0, os.path.join(bundle_path, metadata["service_name"]))
     # Include zipimport modules
-    zipimport_dir = os.path.join(bundle_path, metadata["service_name"], ZIPIMPORT_DIR)
-    if os.path.exists(zipimport_dir):
-        for p in os.listdir(zipimport_dir):
-            logger.debug('adding %s to sys.path', p)
-            sys.path.insert(0, os.path.join(zipimport_dir, p))
-
-    module_name = metadata["module_name"]
-    # if module_name in sys.modules:
-    #     logger.warning(
-    #         "Module `%s` already loaded, using existing imported module.", module_name
-    #     )
-    #     module = sys.modules[module_name]
-    # elif sys.version_info >= (3, 5):
-    #     import importlib.util
-
-    #     spec = importlib.util.spec_from_file_location(module_name, module_file_path)
-    #     module = importlib.util.module_from_spec(spec)
-    #     spec.loader.exec_module(module)
-    # elif sys.version_info >= (3, 3):
-    #     from importlib.machinery import SourceFileLoader
-
-    #     # pylint:disable=deprecated-method
-    #     module = SourceFileLoader(module_name, module_file_path).load_module(
-    #         module_name
-    #     )
-    #     # pylint:enable=deprecated-method
-    # else:
-    #     raise BentoMLException("BentoML requires Python 3.4 and above")
-
+    
     # Remove bundle_path from sys.path to avoid import naming conflicts
+    sys.path.append(bundle_path)
+    from MultiModelService.app.serving.multiple_model_service import MultiModelService
     sys.path.remove(bundle_path)
 
-    from app.serving.multiple_model_service import MultiModelService
     model_service_class = MultiModelService
-    # model_service_class = module.__getattribute__(metadata["service_name"])
-    print('\033[96m' + f"\n\n\n{model_service_class}\n" + '\033[0m')
     # Set _bento_service_bundle_path, where BentoService will load its artifacts
     model_service_class._bento_service_bundle_path = bundle_path
     # Set cls._version, service instance can access it via svc.version
@@ -237,8 +203,6 @@ def load_bento_service_class(bundle_path):
             bundle_path, "requirements.txt"
         )
 
-    print('\033[96m' + f"{metadata}\n" + '\033[0m')
-    print('\033[96m' + f"{model_service_class.__dict__}" + '\033[0m')
     return model_service_class
 
 
