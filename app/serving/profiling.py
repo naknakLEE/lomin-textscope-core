@@ -1,14 +1,12 @@
 import numpy as np
 import cv2
-import sys
 
-sys.path.append("/workspace")
 from app.common.const import get_settings
 from app.serving.generate_bentoml_multiple_model import multi_model_service
 
 settings = get_settings()
 if settings.PROFILING is not None:
-    img = np.expand_dims(cv2.imread("/workspace/others/000000000000000IMG_4831.jpg"), axis=0)
+    img = np.expand_dims(cv2.imread("/workspace/others/assets/000000000000000IMG_4831.jpg"), axis=0)
     multi_model_service.inference(img)
     
 if settings.PROFILING == 'cProfile':

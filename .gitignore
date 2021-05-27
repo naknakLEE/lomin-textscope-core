@@ -112,12 +112,16 @@ memo.txt
 lovit_copy
 outputs
 inputs
+tmp
 
 # DB data
 pgdata/
-
 
 # models
 *.pt
 *.pth
 *.onnx
+
+# CPytnon
+app.*
+Nuitka

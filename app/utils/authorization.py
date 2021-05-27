@@ -6,10 +6,10 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
-from database.schema import Users
-from models import TokenData, User, UserInDB, Token
-from common.const import get_settings
-from errors import exceptions as ex
+from app.database.schema import Users
+from app.models import TokenData, User, UserInDB, Token
+from app.common.const import get_settings
+from app.errors import exceptions as ex
 
 
 settings = get_settings()

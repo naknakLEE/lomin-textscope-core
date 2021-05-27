@@ -8,7 +8,8 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.orm import Session, relationships
-from database.connection import Base, db
+
+from app.database.connection import Base, db
 from app.common.const import get_settings
 
 
@@ -97,14 +98,13 @@ class Usage(Base, BaseMixin):
 
 
 def create_db_table():
-    # db.metadata.reflect(engine=db._engine)
     try:
+        settings = get_settings()
+        session = next(db.session())
         Usage.metadata.create_all(db._engine)
         Errors.metadata.create_all(db._engine)
         Logs.metadata.create_all(db._engine)
         Users.metadata.create_all(db._engine)
-        settings = get_settings()
-        session = next(db.session())
         Users.create(session, auto_commit=True, name="test", **settings.FAKE_INFORMATION)
     finally:
         session.close()

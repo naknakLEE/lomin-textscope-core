@@ -8,8 +8,8 @@ from fastapi.requests import Request
 from fastapi.logger import logger
 from os import path
 
-from database.schema import Logs
-from common.const import get_settings
+from app.database.schema import Logs
+from app.common.const import get_settings
 
 
 settings = get_settings()
@@ -24,6 +24,8 @@ settings = get_settings()
 
 def load_log_file_dir():
     base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+    print("\n\n\n\n\n", base_dir)
+    base_dir = "/"
     log_folder_dir = path.join(base_dir, "logs/fastapi")
     os.makedirs(log_folder_dir, exist_ok=True)
     log_file_dir = path.join(log_folder_dir, "log.log")
@@ -85,7 +87,7 @@ async def api_logger(request: Request = None, response=None, error=None):
     # if body:
     #     log_dict["body"] = body
     # print('\033[96m' + f"\n{log_dict}" + '\033[0m')
-    Logs.create(request.state.db, auto_commit=True, **log_dict)
+    # Logs.create(request.state.db, auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict))
         logger.error({"traceback": f"{traceback.print_exc()}"})

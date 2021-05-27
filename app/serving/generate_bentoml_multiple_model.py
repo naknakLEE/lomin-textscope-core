@@ -1,8 +1,5 @@
-import torch
 import onnx
-import sys
 
-sys.path.append("/workspace")
 from app.serving.multiple_model_service import MultiModelService
 
 

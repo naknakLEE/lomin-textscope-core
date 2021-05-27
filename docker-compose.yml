@@ -35,7 +35,7 @@ services:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
     restart: unless-stopped
-    command: python /workspace/app/main.py
+    # command: python /workspace/app/main.py
 
   serving:
     image: docker.lomin.ai/ts-serving:0.0.1
@@ -55,7 +55,7 @@ services:
       our_net:
           ipv4_address: ${SERVING_IP_ADDR}
     runtime: nvidia
-    command: bentoml serve MultiModelService:latest
+    # command: bentoml serve MultiModelService:latest
 
   # pgadmin:
   #   container_name: pgadmin_container
