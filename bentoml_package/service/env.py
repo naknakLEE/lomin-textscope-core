@@ -244,7 +244,8 @@ class BentoServiceEnv(object):
         # str must be a valid pip requirement specifier
         # https://pip.pypa.io/en/stable/reference/pip_install/#requirement-specifiers
         package_req = Requirement(pip_package)
-        self._add_pip_package_requirement(package_req)
+        logger.info(f"List of required packages: {package_req}")
+        # self._add_pip_package_requirement(package_req)
 
     def _add_pip_package_requirement(self, pkg_req: Requirement):
         if pkg_req.name in self._pip_packages:

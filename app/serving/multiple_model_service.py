@@ -36,8 +36,8 @@ from app.serving.utils import (
 )
 
 
-@env(pip_packages=['torchvision'])
-@env(infer_pip_packages=True)
+# @env(pip_packages=['torchvision'])
+# @env(infer_pip_packages=True)
 @artifacts([
     OnnxModelArtifact('boundary_detection'),
     OnnxModelArtifact('kv_detection'),
