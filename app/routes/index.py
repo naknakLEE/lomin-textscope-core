@@ -19,17 +19,6 @@ router = APIRouter()
 
 @router.get("/")
 async def index(session: Session = Depends(db.session)):
-    # user = Users(status='active')
-    # session.add(user)
-    # session.commit()
-
-    # Errors.create(next(db.session()), auto_commit=True)
-    # Users.create(session, auto_commit=True, name="test", **FAKE_INFORMATION)
-    # Logs.create(session, auto_commit=True)
-    # Usage.metadata.create_all(db._engine)
-    # Logs.metadata.create_all(db._engine)
-    # print(Usage.get(email="user@example.com"))
-
     curren_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
 

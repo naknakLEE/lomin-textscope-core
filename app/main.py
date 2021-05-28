@@ -33,9 +33,9 @@ create_db_table()
 
 
 # app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch=access_control)
-if settings.PROFILING == "pyinstrument":
+if settings.PROFILING_TOOL == "pyinstrument":
     app.add_middleware(PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True)
-elif settings.PROFILING == "cProfile":
+elif settings.PROFILING_TOOL == "cProfile":
     app.add_middleware(CProfileMiddleware, enable=True, server_app = app, print_each_request = True, filename='/tmp/output.pstats', strip_dirs = False, sort_by='cumulative')
 else:
     pass

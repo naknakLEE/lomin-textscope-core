@@ -1,7 +1,9 @@
 import json
-import logging
 import traceback
 import os
+import logging
+from logging.handlers import QueueHandler
+print(logging.handlers)
 
 from time import time
 from fastapi.requests import Request
@@ -24,8 +26,7 @@ settings = get_settings()
 
 def load_log_file_dir():
     base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
-    print("\n\n\n\n\n", base_dir)
-    base_dir = "/"
+    base_dir = "/workspace"
     log_folder_dir = path.join(base_dir, "logs/fastapi")
     os.makedirs(log_folder_dir, exist_ok=True)
     log_file_dir = path.join(log_folder_dir, "log.log")

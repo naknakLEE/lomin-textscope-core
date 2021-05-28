@@ -57,7 +57,8 @@ class Settings(BaseSettings):
     SERVICE_CFG_PATH: str = "/workspace/assets/textscope_id.json"
 
     # OTHERS
-    PROFILING: str = "cProfile"
+    PROFILING_TOOL: str = "cProfile"
+    PYINSTRUMENT_RENDERER: str = "html"
 
     SAVE_INPUT_IMAGE: bool = False
     INPUT_SAVE_PATH: str = "inputs/image"

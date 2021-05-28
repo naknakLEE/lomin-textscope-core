@@ -11,6 +11,7 @@ class StatusCode:
     HTTP_403 = 403
     HTTP_404 = 404
     HTTP_405 = 405
+    HTTP_416 = 416
 
 
 class APIException(Exception):
@@ -38,20 +39,14 @@ class APIException(Exception):
 
 
 class InferenceException(APIException):
-    def __init__(self, ex: Exception = None):
+    def __init__(self, code: str = None, message: str = None, ex: Exception = None):
         super().__init__(
-            status_code=500,
-            code="T5001",
-            msg=f"Unable to extract information from id card",
-            detail="",
+            status_code=StatusCode.HTTP_416,
+            code=f"{code}",
+            msg=f"{message}",
+            detail=None,
             ex=ex,
         )
-
-
-class InferenceException(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
 
 
 class NotFoundUserEx(APIException):
@@ -61,17 +56,6 @@ class NotFoundUserEx(APIException):
             msg=f"Incorrect username or password",
             detail=f"Not Found User ID : {user_id}",
             code=f"{StatusCode.HTTP_400}",
-            ex=ex,
-        )
-
-
-class InferenceException(APIException):
-    def __init__(self, code: str = None, message: str = None, ex: Exception = None):
-        super().__init__(
-            status_code=StatusCode.HTTP_400,
-            msg=f"{message}",
-            detail=None,
-            code=f"{code}",
             ex=ex,
         )
 
@@ -109,6 +93,18 @@ class JWTExpiredExetpion(APIException):
         )
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 # class UnicornException(Exception):
 #     def __init__(self, name: str):
 #         self.name = name
@@ -120,3 +116,9 @@ class JWTExpiredExetpion(APIException):
 #         status_code=418,
 #         content={"message": f"Oops! {exc.name} did something. There goes a rainbows..."},
 #     )
+
+
+# class InferenceException(Exception):
+#     def __init__(self, error, status_code):
+#         self.error = error
+#         self.status_code = status_code

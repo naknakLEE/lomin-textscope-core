@@ -18,7 +18,7 @@ class PytorchModelService(BentoService):
     A minimum prediction service exposing a Scikit-learn model
     """
 
-    @api(input=ImageInput(), mb_max_latency=1, mb_max_batch_size=1, batch=True)
+    @api(input=ImageInput(), batch=False)
     def inference(self, imgs):
         """
         An inference API named `predict` with Dataframe input adapter, which codifies
@@ -26,7 +26,6 @@ class PytorchModelService(BentoService):
         inference API function input
         """
         img = torch.as_tensor(imgs).float().permute(2, 0, 1)
-        # img = [{'image': img}]
         # img = torch.as_tensor(np.expand_dims(imgs, axis=0)).permute(0, 3, 1, 2).float().to(torch.device("cuda"))
         results = self.artifacts.net(img)
         # pred_boxes = results[0]
