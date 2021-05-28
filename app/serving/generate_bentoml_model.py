@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import cv2
 
-from app.serving.pytorch_model_service import PytorchModelService
+from pytorch_model_service import PytorchModelService
 
 
 
@@ -10,7 +10,7 @@ from app.serving.pytorch_model_service import PytorchModelService
 pytorch_model_service = PytorchModelService()
 
 # Pack the newly trained model artifact
-traced_net = torch.jit.load("/workspace/assets/models/resnet-18.pt").to(torch.device("cuda"))
+traced_net = torch.jit.load("/workspace/assets/models/mask_rcnn.pt")
 # traced_net = torch.jit.load("/workspace/assets/models/mask_rcnn.pt").to(torch.device("cuda"))
 pytorch_model_service.pack('net', traced_net)
 
