@@ -30,12 +30,13 @@ RUN pip3 install psycopg2-binary && \
     pip3 install PyJWT
 
 RUN pip3 install fastapi_profiler && \
-    pip3 install fastapi-cprofile
+    pip3 install fastapi-cprofile && \
+    pip3 install prometheusrock
 
 RUN apt-get install -y psmisc
 
 WORKDIR /
-RUN git https://github.com/Nuitka/Nuitka.git && \
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python setup.py install
 

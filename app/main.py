@@ -1,14 +1,17 @@
 import uvicorn
 import time
+import sys
 
+from os import path
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from os import path
 from dataclasses import asdict
 from datetime import datetime
 from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 from fastapi_cprofile.profiler import CProfileMiddleware
+from prometheusrock import PrometheusMiddleware, metrics_route
 
+sys.path.append("/workspace")
 from app.routes import auth, index, users, inference
 from app.database.connection import db
 from app.common.config import Config
@@ -17,9 +20,6 @@ from app.common.const import get_settings
 from app.database.schema import create_db_table
 from app.errors.exceptions import exception_handler
 # from app.utils.token_validator import exception_handler
-# import sys
-# sys.path.append("/workspace")
-
 
 base_dir = path.dirname(path.dirname(path.abspath(__file__)))
 
@@ -37,6 +37,9 @@ elif settings.PROFILING_TOOL == "cProfile":
     app.add_middleware(CProfileMiddleware, enable=True, server_app=app, print_each_request=True, filename='/tmp/output.pstats', strip_dirs=False, sort_by='cumulative')
 else:
     pass
+
+app.add_middleware(PrometheusMiddleware)
+app.add_route("/metrics", metrics_route)
 
 
 @app.middleware("http")

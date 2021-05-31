@@ -2,6 +2,7 @@ import numpy as np
 import time
 import os
 import imutils
+import sys
 
 from datetime import datetime
 from bentoml import env, artifacts, api, BentoService
@@ -9,6 +10,7 @@ from bentoml.adapters import ImageInput
 from bentoml.frameworks.onnx import OnnxModelArtifact
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
+sys.path.append("/workspace")
 from app.serving.envs import cfgs, logger
 from app.errors.exceptions import InferenceException
 from app.serving.utils import (

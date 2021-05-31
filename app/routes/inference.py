@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.models import User
 from app.database.schema import Usage
 from app.database.connection import db
-from app.utils.authorization import get_current_active_user
+from app.utils.auth import get_current_active_user
 from app.common.const import get_settings
 
 
