@@ -5,8 +5,7 @@ import cv2
 from pytorch_model_service import PytorchModelService
 
 
-
-# Create a iris classifier service instance
+# Create a pytorch model service instance
 pytorch_model_service = PytorchModelService()
 
 # Pack the newly trained model artifact

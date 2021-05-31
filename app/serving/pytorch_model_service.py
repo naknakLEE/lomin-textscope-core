@@ -37,4 +37,3 @@ class PytorchModelService(BentoService):
         #     print(result.shape)
         return [results]
         # return [{"pred_boxes": results[0], "pred_classes": results[1], "pred_masks": results[2], "scores": results[3], "size": results[4]}]
-        # return [{ "pred_boxes": results[0]["unknown_obj"], "pred_classes": results[1]["unknown_obj"], "pred_masks": results[2]["unknown_obj"], "scores": results[3]["unknown_obj"], "size": results[4]["unknown_obj"] }]

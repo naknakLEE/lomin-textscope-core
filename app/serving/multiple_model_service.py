@@ -7,7 +7,6 @@ from datetime import datetime
 from bentoml import env, artifacts, api, BentoService
 from bentoml.adapters import ImageInput
 from bentoml.frameworks.onnx import OnnxModelArtifact
-
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
 from app.serving.envs import cfgs, logger
@@ -36,8 +35,8 @@ from app.serving.utils import (
 )
 
 
-# @env(pip_packages=['torchvision'])
-# @env(infer_pip_packages=True)
+@env(pip_packages=['torchvision'])
+@env(infer_pip_packages=True)
 @artifacts([
     OnnxModelArtifact('boundary_detection'),
     OnnxModelArtifact('kv_detection'),

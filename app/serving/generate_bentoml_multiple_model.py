@@ -5,7 +5,7 @@ sys.path.append("/workspace")
 from app.serving.multiple_model_service import MultiModelService
 
 
-# Create a iris classifier service instance
+# Create a pytorch model service instance
 multi_model_service = MultiModelService()
 
 # Pack the newly trained model artifact

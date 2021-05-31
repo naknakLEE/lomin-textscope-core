@@ -40,7 +40,7 @@ def set_logger_config():
     logger.addHandler(fileHandler)
 
 
-set_logger_config()
+# set_logger_config()
 
 
 async def api_logger(request: Request = None, response=None, error=None):
