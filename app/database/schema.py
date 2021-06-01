@@ -1,3 +1,6 @@
+import json
+from typing import Any, Dict, Union
+
 from sqlalchemy import (
     Column,
     Integer,
@@ -8,9 +11,18 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.orm import Session, relationships
+from fastapi.encoders import jsonable_encoder
+from passlib.context import CryptContext
 
 from app.database.connection import Base, db
 from app.common.const import get_settings
+from app.models import UserUpdate, User
+
+
+# 왜 app.utils.auth에서 import 안되는가?
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 
 class BaseMixin:
@@ -35,8 +47,55 @@ class BaseMixin:
         #     raise Exception("Only one row is supposed to be returned, but got more than one.")
         return query.first()
 
+
+    @classmethod
+    def get_multi(cls, session: Session, skip: int = 0, limit: int = 100):
+        session = next(db.session())
+        query = session.query(cls).offset(skip).limit(limit).all()
+        return query
+
+
+    @classmethod
+    def get_by_email(cls, session: Session, *, email: str):
+        session = next(db.session())
+        query = session.query(cls).filter(cls.email == email)
+        return query.first()
+
+
+    @classmethod
+    def remove(cls, session: Session, email: str):
+        obj = session.query(cls).filter(cls.email==email).delete()
+        session.flush()
+        session.commit()
+        return obj
+
+
+    @classmethod
+    def update(
+        cls, session: Session, *, db_obj: User, obj_in: UserUpdate
+    ):
+        is_exist = cls.get_by_email(session, email=obj_in.email)
+        if is_exist:
+            return "This user already exist"
+        current_user_email = db_obj.email
+        obj_data = jsonable_encoder(db_obj)
+        for field in obj_data:
+            value = getattr(obj_in, field)
+            if value is not None:
+                setattr(db_obj, field, value)
+        user = session.query(cls).filter(cls.email == current_user_email)
+        user.update(db_obj)
+        session.flush()
+        session.commit()
+        return db_obj
+
+
     @classmethod
     def create(cls, session: Session, auto_commit=False, **kwargs):
+        is_exist = cls.get_by_email(session, email=kwargs["email"])
+        if is_exist:
+            return "This user already exist"
+        
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
@@ -47,10 +106,6 @@ class BaseMixin:
         if auto_commit:
             session.commit()
         return obj
-
-    @classmethod
-    def test(cls, session: Session, auto_commit=False, **kwargs):
-        ...
 
 
 class Users(Base, BaseMixin):
