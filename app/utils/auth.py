@@ -3,8 +3,10 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.param_functions import Form
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
+from pydantic.networks import EmailStr
 
 from app.database.schema import Users
 from app.models import TokenData, User, UserInDB, Token
@@ -25,10 +27,10 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(db, username: str):
-    is_exist = is_username_exist(username)
+def get_user(email: EmailStr):
+    is_exist = is_email_exist(email)
     if is_exist:
-        user = Users.get(username=username)
+        user = Users.get(email=email)
         user_dict = {
             "username": user.username,
             "full_name": user.full_name,
@@ -45,15 +47,15 @@ def is_username_exist(username: str):
     return False
 
 
-def is_email_exist(email: str):
+def is_email_exist(email: EmailStr):
     get_email = Users.get(email=email)
     if get_email:
         return True
     return False
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(email: EmailStr, password: str):
+    user = get_user(email)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -84,7 +86,8 @@ async def get_current_user(token: str):
         raise ex.JWTExpiredExetpion()
     except JWTError:
         raise ex.JWTException(JWTError)
-    user = get_user(settings.FAKE_INFORMATION, username=token_data.username)
+    print('\033[96m' + f"token data: {token_data}" + '\033[0m')
+    user = get_user(email=token_data.username)
     if user is None:
         raise ex.NotFoundUserException(username)
     return user
@@ -94,3 +97,21 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+class OAuth2PasswordRequestForm:
+    def __init__(
+        self,
+        grant_type: str = Form(None, regex="password"),
+        email: EmailStr = Form(...),
+        password: str = Form(...),
+        scope: str = Form(""),
+        client_id: Optional[str] = Form(None),
+        client_secret: Optional[str] = Form(None),
+    ):
+        self.grant_type = grant_type
+        self.email = email
+        self.password = password
+        self.scopes = scope.split()
+        self.client_id = client_id
+        self.client_secret = client_secret
