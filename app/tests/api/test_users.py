@@ -9,7 +9,7 @@ from app.tests.utils.utils import random_email, random_lower_string
 
 
 settings = get_settings()
-fake_info = settings.FAKE_INFORMATION2
+fake_info = settings.FAKE_USER_INFORMATION
 
 
 def test_get_users_normal_user_me(

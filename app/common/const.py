@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     EXCEPT_PATH_LIST: List[str] = ["/", "/openapi.json"]
     EXCEPT_PATH_REGEX: str = "^(/docs|/redoc|/api/auth)"
 
-    FAKE_INFORMATION: dict = {
+    FAKE_SUPERUSER_INFORMATION: dict = {
         "username": "user",
         "full_name": "user",
         "email": "user@example.com",
@@ -35,10 +35,18 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_INFORMATION2: dict = {
+    FAKE_USER_INFORMATION: dict = {
         "username": "garam",
         "full_name": "garam",
         "email": "garam@example.com",
+        "password": "123456",
+        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+    }
+
+    FAKE_USER_INFORMATION2: dict = {
+        "username": "tongo",
+        "full_name": "tongo",
+        "email": "tongo@example.com",
         "password": "123456",
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }

@@ -26,7 +26,7 @@ app = FastAPI()
 db.init_app(app, **asdict(Config()))
 
 settings = get_settings()
-fake_user_info = settings.FAKE_INFORMATION2
+fake_user_info = settings.FAKE_USER_INFORMATION
 create_db_table()
 
 

@@ -17,33 +17,11 @@ from app.models import User, UserUpdate
 settings = get_settings()
 router = APIRouter()
 
-FAKE_INFORMATION1: dict = {
-        "username": "kali",
-        "full_name": "kali",
-        "email": "kali@example.com",
-    }
-
-FAKE_INFORMATION2: dict = {
-        "username": "tongo",
-        "full_name": "tongo",
-        "email": "tongo@example.com",
-        "password": "123456",
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
-FAKE_INFORMATION3: dict = {
-        "username": "garam",
-        "full_name": "garam",
-        "email": "garam@example.com",
-        "password": "123456",
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
 
 @router.get("/")
 async def index(session: Session = Depends(db.session)):
     Users.remove(session, "tongo@example.com")
-    Users.create(session, auto_commit=True, **FAKE_INFORMATION2)
+    Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
     Users.remove(session, "gule@example.com")
 
     # user = Users.get_by_email(session, email="user@example.com")
@@ -53,15 +31,12 @@ async def index(session: Session = Depends(db.session)):
     # users = Users.get_multi(session, skip=0, limit=10)
     # for user in users:
     #     print('\033[96m' + f"{user.__dict__}" + '\033[0m')
-    current_user = User(**FAKE_INFORMATION2)
-    user_in = UserUpdate(**FAKE_INFORMATION3)
+    current_user = User(**settings.FAKE_USER_INFORMATION)
+    user_in = UserUpdate(**settings.FAKE_USER_INFORMATION2)
     user = Users.update(session, db_obj=current_user, obj_in=user_in)
     # print('\033[96m' + f"{user.__dict__}" + '\033[0m')
 
     # print('\033[96m' + f"{user}" + '\033[0m')
-
-
-
 
     curren_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
@@ -72,7 +47,7 @@ async def test(request: Request):
     print("state.user", request.state.user)
     # await index()
     # Errors.create(next(db.session()), auto_commit=True)
-    # Users.create(session, auto_commit=True, name="test", **FAKE_INFORMATION)
+    # Users.create(session, auto_commit=True, name="test", **FAKE_USER_NFORMATION)
     try:
         a = 1/0
     except Exception as e:
@@ -85,4 +60,5 @@ async def test(request: Request):
 @router.get("/status")
 def check_status():
     # return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
-    return JSONResponse(status_code=200, content=f"postgresConnection")
+    curren_time = datetime.utcnow()
+    return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")

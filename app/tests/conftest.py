@@ -1,9 +1,6 @@
 from typing import Dict
 
-import asyncio
 import os
-from os import path
-from typing import List
 import sys
 
 import pytest
@@ -11,18 +8,15 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 sys.path.append("/workspace")
-from app.database.schema import Users
 from app.main import create_app
 from app.database.connection import Base, db
-from app.models import UserToken
-from app.routes.auth import create_access_token
 from app.tests.utils.user import authentication_token_from_email
 from app.tests.utils.utils import get_superuser_token_headers
 from app.common.const import get_settings
 
 
 settings = get_settings()
-fake_user_info = settings.FAKE_INFORMATION2
+fake_user_info = settings.FAKE_USER_INFORMATION
 
 
 @pytest.fixture(scope="session")
@@ -42,9 +36,9 @@ def app():
 
 @pytest.fixture(scope="session")
 def client(app):
-    # Users.metadata.create_all(db()._engine)
     Base.metadata.create_all(db._engine)
     return TestClient(app=app)
+
 
 @pytest.fixture(scope="module")
 def superuser_token(client: TestClient) -> Dict[str, str]:
@@ -68,6 +62,7 @@ def normal_user_token(client: TestClient, get_db: Session) -> Dict[str, str]:
 #         except_tables=[]
 #     )
 #     sess.rollback()
+
 
 # @pytest.fixture(scope="function")
 # def login(session):

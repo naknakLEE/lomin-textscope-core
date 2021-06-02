@@ -161,7 +161,7 @@ def create_db_table():
         Errors.metadata.create_all(db._engine)
         Logs.metadata.create_all(db._engine)
         Users.metadata.create_all(db._engine)
-        Users.create(session, auto_commit=True, **settings.FAKE_INFORMATION)
-        Users.create(session, auto_commit=True, **settings.FAKE_INFORMATION2)
+        Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
+        Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
     finally:
         session.close()

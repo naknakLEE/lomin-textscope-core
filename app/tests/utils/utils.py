@@ -9,7 +9,7 @@ from app.common.const import get_settings
 
 
 settings = get_settings()
-fake_super_user_info = settings.FAKE_INFORMATION
+fake_super_user_info = settings.FAKE_SUPERUSER_INFORMATION
 
 
 def random_lower_string() -> str:

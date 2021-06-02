@@ -12,22 +12,6 @@ from app.utils.auth import get_password_hash
 
 settings = get_settings()
 
-FAKE_INFORMATION2: dict = {
-        "username": "tongo",
-        "full_name": "tongo",
-        "email": "tongo@example.com",
-        "password": "123456",
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
-FAKE_INFORMATION3: dict = {
-        "username": "garam",
-        "full_name": "garam",
-        "email": "garam@example.com",
-        "password": "123456",
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
 
 def user_authentication(
     *, client: TestClient, email: str, password: str
