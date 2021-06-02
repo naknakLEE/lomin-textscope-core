@@ -22,7 +22,7 @@ from app.common.const import get_settings
 
 
 settings = get_settings()
-fake_user_info = settings.FAKE_INFORMATION
+fake_user_info = settings.FAKE_INFORMATION2
 
 
 @pytest.fixture(scope="session")
@@ -52,7 +52,7 @@ def superuser_token(client: TestClient) -> Dict[str, str]:
 
 
 @pytest.fixture(scope="module")
-def normal_user_token_headers(client: TestClient, get_db: Session) -> Dict[str, str]:
+def normal_user_token(client: TestClient, get_db: Session) -> Dict[str, str]:
     return authentication_token_from_email(
         client=client, email=fake_user_info["email"], db=get_db
     )
