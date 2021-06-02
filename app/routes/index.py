@@ -10,15 +10,59 @@ from inspect import currentframe as frame
 from app.database.connection import db
 from app.database.schema import Users, Errors, Usage, Logs
 from app.common.const import get_settings
+from app.models import User, UserUpdate
 
 
 
 settings = get_settings()
 router = APIRouter()
 
+FAKE_INFORMATION1: dict = {
+        "username": "kali",
+        "full_name": "kali",
+        "email": "kali@example.com",
+    }
+
+FAKE_INFORMATION2: dict = {
+        "username": "tongo",
+        "full_name": "tongo",
+        "email": "tongo@example.com",
+        "password": "123456",
+        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+    }
+
+FAKE_INFORMATION3: dict = {
+        "username": "garam",
+        "full_name": "garam",
+        "email": "garam@example.com",
+        "password": "123456",
+        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+    }
+
 
 @router.get("/")
 async def index(session: Session = Depends(db.session)):
+    Users.remove(session, "tongo@example.com")
+    Users.create(session, auto_commit=True, **FAKE_INFORMATION2)
+    Users.remove(session, "gule@example.com")
+
+    # user = Users.get_by_email(session, email="user@example.com")
+    # print('\033[96m' + f"\n{user.__dict__}" + '\033[0m')
+    # print("")
+
+    # users = Users.get_multi(session, skip=0, limit=10)
+    # for user in users:
+    #     print('\033[96m' + f"{user.__dict__}" + '\033[0m')
+    current_user = User(**FAKE_INFORMATION2)
+    user_in = UserUpdate(**FAKE_INFORMATION3)
+    user = Users.update(session, db_obj=current_user, obj_in=user_in)
+    # print('\033[96m' + f"{user.__dict__}" + '\033[0m')
+
+    # print('\033[96m' + f"{user}" + '\033[0m')
+
+
+
+
     curren_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
 

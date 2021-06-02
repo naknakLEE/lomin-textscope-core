@@ -1,4 +1,5 @@
 import json
+from logging import disable
 from typing import Any, Dict, Union
 
 from sqlalchemy import (
@@ -8,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     func,
     JSON,
+    Boolean,
     ForeignKey,
 )
 from sqlalchemy.orm import Session, relationships
@@ -17,12 +19,6 @@ from passlib.context import CryptContext
 from app.database.connection import Base, db
 from app.common.const import get_settings
 from app.models import UserUpdate, User
-
-
-# 왜 app.utils.auth에서 import 안되는가?
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-def get_password_hash(password):
-    return pwd_context.hash(password)
 
 
 class BaseMixin:
@@ -56,7 +52,7 @@ class BaseMixin:
 
 
     @classmethod
-    def get_by_email(cls, session: Session, *, email: str):
+    def get_by_email(cls, session: Session, email: str):
         session = next(db.session())
         query = session.query(cls).filter(cls.email == email)
         return query.first()
@@ -80,9 +76,9 @@ class BaseMixin:
         current_user_email = db_obj.email
         obj_data = jsonable_encoder(db_obj)
         for field in obj_data:
-            value = getattr(obj_in, field)
-            if value is not None:
-                setattr(db_obj, field, value)
+            field_value = getattr(obj_in, field)
+            if field_value is not None:
+                setattr(db_obj, field, field_value)
         user = session.query(cls).filter(cls.email == current_user_email)
         user.update(db_obj)
         session.flush()
@@ -91,7 +87,7 @@ class BaseMixin:
 
 
     @classmethod
-    def create(cls, session: Session, auto_commit=False, **kwargs):
+    def create(cls, session: Session, auto_commit=True, **kwargs):
         is_exist = cls.get_by_email(session, email=kwargs["email"])
         if is_exist:
             return "This user already exist"
@@ -101,11 +97,13 @@ class BaseMixin:
             col_name = col.name
             if col_name in kwargs:
                 setattr(obj, col_name, kwargs.get(col_name))
+        user = User(email=obj.email)
         session.add(obj)
         session.flush()
         if auto_commit:
             session.commit()
-        return obj
+        # session.refresh(obj)
+        return user
 
 
 class Users(Base, BaseMixin):
@@ -115,6 +113,9 @@ class Users(Base, BaseMixin):
     email = Column(String(length=255), nullable=True)
     hashed_password = Column(String(length=2000), nullable=True)
     full_name = Column(String(length=128), nullable=True)
+    disabled = Column(Boolean, nullable=True)
+    is_active = Column(Boolean, nullable=True)
+    is_superuser = Column(Boolean, nullable=False, default=False)
     updated_at = Column(DateTime, nullable=False, default=func.current_timestamp(), onupdate=func.current_timestamp())
 
 
@@ -160,6 +161,7 @@ def create_db_table():
         Errors.metadata.create_all(db._engine)
         Logs.metadata.create_all(db._engine)
         Users.metadata.create_all(db._engine)
-        Users.create(session, auto_commit=True, name="test", **settings.FAKE_INFORMATION)
+        Users.create(session, auto_commit=True, **settings.FAKE_INFORMATION)
+        Users.create(session, auto_commit=True, **settings.FAKE_INFORMATION2)
     finally:
         session.close()

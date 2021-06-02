@@ -1,16 +1,22 @@
 import torch
 import numpy as np
 import cv2
+import sys
 
-from pytorch_model_service import PytorchModelService
+sys.path.append("/workspace")
+from app.serving.pytorch_model_service import PytorchModelService
+from app.common.const import get_settings
+
+
+settings = get_settings()
 
 
 # Create a pytorch model service instance
 pytorch_model_service = PytorchModelService()
 
 # Pack the newly trained model artifact
-traced_net = torch.jit.load("/workspace/assets/models/mask_rcnn.pt")
-# traced_net = torch.jit.load("/workspace/assets/models/mask_rcnn.pt").to(torch.device("cuda"))
+traced_net = torch.jit.load(f"{settings}/assets/models/mask_rcnn.pt")
+# traced_net = torch.jit.load(f"{settings}/assets/models/mask_rcnn.pt").to(torch.device("cuda"))
 pytorch_model_service.pack('net', traced_net)
 
 # Save the prediction service to disk for model serving

@@ -132,3 +132,8 @@ app.*
 Nuitka
 *.bin
 *.build
+
+# data
+*.jpg
+*.jpeg
+*.png

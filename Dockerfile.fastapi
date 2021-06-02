@@ -30,7 +30,8 @@ RUN pip3 install psycopg2-binary && \
     pip3 install PyJWT
 
 RUN pip3 install fastapi_profiler && \
-    pip3 install fastapi-cprofile && \
+    pip3 install fastapi-cprofile && \ 
+    pip3 install pyinstrument_flame && \
     pip3 install prometheusrock
 
 RUN apt-get install -y psmisc

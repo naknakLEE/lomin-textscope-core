@@ -28,11 +28,16 @@ class TokenData(BaseModel):
 
 
 class User(BaseModel):
-    username: str
-    email: EmailStr = None
+    username: Optional[str]
+    email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
+    is_superuser: Optional[bool] = None
 
 
 class UserInDB(User):
     hashed_password: str
+
+
+class UserUpdate(User):
+    hashed_password: Optional[str] = None

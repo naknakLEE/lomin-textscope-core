@@ -18,8 +18,9 @@ class Config:
 
 
 @dataclass
-class LocalConfig(Config):
-    ...
+class TestConfig(Config):
+    # DB_URL: str = environ.get("DB_URL", f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_ADDR}/test")
+    TEST_MODE: bool = True
 
 
 @dataclass
@@ -28,5 +29,5 @@ class ProdConfig(Config):
 
 
 def config():
-    config = dict(production=ProdConfig(), local=LocalConfig())
+    config = dict(production=ProdConfig(), test=TestConfig())
     return config.get(environ.get("API_ENV", "local"))

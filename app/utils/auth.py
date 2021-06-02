@@ -35,6 +35,7 @@ def get_user(email: EmailStr):
             "username": user.username,
             "full_name": user.full_name,
             "email": user.email,
+            "is_superuser": user.is_superuser,
             "hashed_password": user.hashed_password,
         }
         return UserInDB(**user_dict)
@@ -86,7 +87,6 @@ async def get_current_user(token: str):
         raise ex.JWTExpiredExetpion()
     except JWTError:
         raise ex.JWTException(JWTError)
-    print('\033[96m' + f"token data: {token_data}" + '\033[0m')
     user = get_user(email=token_data.username)
     if user is None:
         raise ex.NotFoundUserException(username)

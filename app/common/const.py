@@ -30,6 +30,16 @@ class Settings(BaseSettings):
         "username": "user",
         "full_name": "user",
         "email": "user@example.com",
+        "password": "123456",
+        "is_superuser": True,
+        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+    }
+
+    FAKE_INFORMATION2: dict = {
+        "username": "garam",
+        "full_name": "garam",
+        "email": "garam@example.com",
+        "password": "123456",
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
@@ -40,7 +50,7 @@ class Settings(BaseSettings):
 
     # BASE CONFIG
     DEVELOP: bool = True
-    BASE_PATH: str = "/workspace/app"
+    BASE_PATH: str = "/workspace"
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = "logs/log"

@@ -26,7 +26,7 @@ settings = get_settings()
 
 def load_log_file_dir():
     base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
-    base_dir = "/workspace"
+    base_dir = settings.BASE_PATH
     log_folder_dir = path.join(base_dir, "logs/fastapi")
     os.makedirs(log_folder_dir, exist_ok=True)
     log_file_dir = path.join(log_folder_dir, "log.log")
