@@ -1,10 +1,9 @@
-# import os
+from datetime import datetime
 import requests
-# import numpy as np
-# import cv2
 
-from fastapi import Depends, File, UploadFile, APIRouter
+from fastapi import Depends, File, UploadFile, APIRouter, HTTPException, Response
 from sqlalchemy.orm import Session
+from pydantic.networks import EmailStr
 
 from app.models import User
 from app.database.schema import Usage
@@ -17,7 +16,7 @@ settings = get_settings()
 router = APIRouter()
 
 
-@router.post("/inference")
+@router.post("")
 async def inference(session: Session = Depends(db.session), current_user: User = Depends(get_current_active_user), file: UploadFile = File(...)):
     test_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference'
 
@@ -29,4 +28,57 @@ async def inference(session: Session = Depends(db.session), current_user: User =
     return response.json()
 
 
+@router.get("/usage")
+def read_usage(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=400, detail="Theuse doesn't have enough privileges"
+        )
+    usages = Usage.get_multi(session, skip=skip, limit=limit)
+    return usages
 
+
+@router.get("/usage/{user_email}")
+def read_usage_by_email(
+    user_email: EmailStr,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=400, detail="Theuse doesn't have enough privileges"
+        )
+    usages = Usage.get_by_email(session, email=user_email)
+    return usages
+
+
+@router.get("/count")
+def count_usage(
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=400, detail="Theuse doesn't have enough privileges"
+        )
+    usages = Usage.get_multi_usages(session)
+    return usages
+
+
+@router.get("/count/{user_email}")
+def count_usage_by_email(
+    user_email: EmailStr,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=400, detail="Theuse doesn't have enough privileges"
+        )
+    usages = Usage.get_multi_usages(session, email=user_email)
+    return len(usages)

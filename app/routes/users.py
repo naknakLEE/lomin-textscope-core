@@ -88,7 +88,7 @@ async def read_own_items(current_user: User = Depends(get_current_active_user)):
 
 
 @router.get("/{user_email}")
-def read_user_by_id(
+def read_user_by_email(
     user_email: EmailStr,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(db.session),

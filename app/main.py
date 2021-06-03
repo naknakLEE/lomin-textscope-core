@@ -36,7 +36,7 @@ def create_app():
     app.add_route("/metrics", metrics_route)
 
     app.include_router(index.router)
-    app.include_router(inference.router, tags=["inference"])
+    app.include_router(inference.router, tags=["inference"], prefix="/inference")
     app.include_router(users.router, tags=["Users"], prefix="/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
     return app

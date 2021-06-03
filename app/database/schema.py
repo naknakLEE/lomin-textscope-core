@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session, relationships
 from fastapi.encoders import jsonable_encoder
 from passlib.context import CryptContext
+from pydantic.networks import EmailStr
 
 from app.database.connection import Base, db
 from app.common.const import get_settings
@@ -46,20 +47,27 @@ class BaseMixin:
 
     @classmethod
     def get_multi(cls, session: Session, skip: int = 0, limit: int = 100):
-        session = next(db.session())
-        query = session.query(cls).offset(skip).limit(limit).all()
-        return query
+        query = session.query(cls).offset(skip).limit(limit)
+        return query.all()
 
 
     @classmethod
-    def get_by_email(cls, session: Session, email: str):
-        session = next(db.session())
+    def get_multi_usages(cls, session: Session, email: EmailStr = None):
+        if email is not None:
+            query = session.query(cls).filter(cls.email == email)
+        else:
+            query = session.query(cls.email, func.count(cls.email)).group_by(cls.email)
+        return query.all()
+
+
+    @classmethod
+    def get_by_email(cls, session: Session, email: EmailStr):
         query = session.query(cls).filter(cls.email == email)
         return query.first()
 
 
     @classmethod
-    def remove(cls, session: Session, email: str):
+    def remove(cls, session: Session, email: EmailStr):
         obj = session.query(cls).filter(cls.email==email).delete()
         session.flush()
         session.commit()
