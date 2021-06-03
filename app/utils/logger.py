@@ -7,7 +7,8 @@ print(logging.handlers)
 
 from time import time
 from fastapi.requests import Request
-from fastapi.logger import logger
+# from fastapi.logger import logger
+from loguru import logger
 from os import path
 
 from app.database.schema import Logs
@@ -27,7 +28,7 @@ settings = get_settings()
 def load_log_file_dir():
     base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
     base_dir = settings.BASE_PATH
-    log_folder_dir = path.join(base_dir, "logs/fastapi")
+    log_folder_dir = path.join(base_dir, "/workspace/log/fastapi")
     os.makedirs(log_folder_dir, exist_ok=True)
     log_file_dir = path.join(log_folder_dir, "log.log")
     return log_file_dir
@@ -35,9 +36,10 @@ def load_log_file_dir():
 
 def set_logger_config():
     log_file_dir = load_log_file_dir()
-    fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=settings.FILE_MAX_BYTE, backupCount=settings.BACKUP_COUNT)
-    logger.setLevel(getattr(logging, settings.LOGGER_LEVEL))
-    logger.addHandler(fileHandler)
+    logger.add(log_file_dir, rotation="1 MB")
+    # fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=settings.FILE_MAX_BYTE, backupCount=settings.BACKUP_COUNT)
+    # logger.setLevel(getattr(logging, settings.LOGGER_LEVEL))
+    # logger.addHandler(fileHandler)
 
 
 set_logger_config()
@@ -64,10 +66,10 @@ async def api_logger(request: Request = None, response=None, error=None):
             location="{} line in {}".format(str(error_line), error_file),
             raised=str(error.__class__.__name__),
             msg=str(error.ex),
-            traceback=traceback.format_exc()
+            # traceback=traceback.format_exc()
         )
     email = user.email if user and user.email else None
-    log_detail = response.__dict__ if response else None
+    # log_detail = response.__dict__ if response else None
     user_log = dict(
         client=request.state.ip,
         user=user.id if user and user.id else None,
@@ -78,9 +80,9 @@ async def api_logger(request: Request = None, response=None, error=None):
         url=request.url.hostname + request.url.path,
         method=str(request.method),
         status_code=status_code,
-        log_detail=str(log_detail),
-        error_detail=json.dumps(error_log),
-        client=str(user_log),
+        # log_detail=str(log_detail),
+        error_detail=error_log,
+        client=user_log,
         request_timestamp=str(request.state.start),
         response_timestamp=str(time()),
         processed_time=str(processed_time),
@@ -88,13 +90,16 @@ async def api_logger(request: Request = None, response=None, error=None):
     # if body:
     #     log_dict["body"] = body
     # print('\033[96m' + f"\n{log_dict}" + '\033[0m')
-    # Logs.create(request.state.db, auto_commit=True, **log_dict)
+    # request.state.db.add(Logs(**log_dict))
+    # request.state.db.flush()
+    # request.state.db.commit()
+    # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
-        logger.error(json.dumps(log_dict))
-        logger.error({"traceback": f"{traceback.print_exc()}"})
+        logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
+        logger.error(traceback.format_exc())
     else:
-        logger.info(json.dumps(log_dict))
-        logger.info({"traceback": f"{traceback.print_exc()}"})
+        logger.info(json.dumps(log_dict, indent=4, sort_keys=True))
+        logger.info(traceback.format_exc())
 
 
 # https://hwangheek.github.io/2019/python-logging/

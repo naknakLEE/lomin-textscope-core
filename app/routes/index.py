@@ -20,20 +20,20 @@ router = APIRouter()
 
 @router.get("/")
 async def index(session: Session = Depends(db.session)):
-    Users.remove(session, "tongo@example.com")
+    # Users.remove(session, "tongo@example.com")
     Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
-    Users.remove(session, "gule@example.com")
+    # Users.remove(session, "gule@example.com")
 
-    # user = Users.get_by_email(session, email="user@example.com")
-    # print('\033[96m' + f"\n{user.__dict__}" + '\033[0m')
-    # print("")
+    # # user = Users.get_by_email(session, email="user@example.com")
+    # # print('\033[96m' + f"\n{user.__dict__}" + '\033[0m')
+    # # print("")
 
-    # users = Users.get_multi(session, skip=0, limit=10)
-    # for user in users:
-    #     print('\033[96m' + f"{user.__dict__}" + '\033[0m')
-    current_user = User(**settings.FAKE_USER_INFORMATION)
-    user_in = UserUpdate(**settings.FAKE_USER_INFORMATION2)
-    user = Users.update(session, db_obj=current_user, obj_in=user_in)
+    # # users = Users.get_multi(session, skip=0, limit=10)
+    # # for user in users:
+    # #     print('\033[96m' + f"{user.__dict__}" + '\033[0m')
+    # current_user = User(**settings.FAKE_USER_INFORMATION)
+    # user_in = UserUpdate(**settings.FAKE_USER_INFORMATION2)
+    # user = Users.update(session, db_obj=current_user, obj_in=user_in)
     # print('\033[96m' + f"{user.__dict__}" + '\033[0m')
 
     # print('\033[96m' + f"{user}" + '\033[0m')

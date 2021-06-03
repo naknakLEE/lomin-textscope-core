@@ -5,7 +5,7 @@
             {
                 "type": "onnx_model",
                 "name": "boundary_model",
-                "model_path": "/workspace/assets/id_boundary/1/kb_201031_skkang_001_id_outline_keypoint_convert_0140000_b1.onnx",
+                "model_path": "/workspace/assets/id_boundary/1/kb_201027_skkang_002_id_outline_mask_0195000_b1.onnx",
                 "preprocess": [
                     {
                         "type": "resize",

@@ -6,7 +6,6 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from datetime import datetime
 
-
 sys.path.append("/workspace")
 from app.database.connection import db
 from app.utils.logger import api_logger

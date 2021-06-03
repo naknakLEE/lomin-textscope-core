@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.common.const import get_settings
 from app.models import User, UserUpdate
 from app.database.schema import Users
-from app.tests.utils.utils import random_email, random_lower_string
+from tests.utils.utils import random_email, random_lower_string
 from app.utils.auth import get_password_hash
 
 

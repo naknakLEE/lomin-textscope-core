@@ -45,3 +45,5 @@ WORKDIR /workspace
 
 RUN pip3 install opencv-python && \
     apt-get -y install libgl1-mesa-glx
+
+RUN pip3 install loguru

@@ -15,7 +15,7 @@ settings = get_settings()
 pytorch_model_service = PytorchModelService()
 
 # Pack the newly trained model artifact
-traced_net = torch.jit.load(f"{settings}/assets/models/mask_rcnn.pt")
+traced_net = torch.jit.load(f"{settings.BASE_PATH}/assets/models/mask_rcnn.pt")
 # traced_net = torch.jit.load(f"{settings}/assets/models/mask_rcnn.pt").to(torch.device("cuda"))
 pytorch_model_service.pack('net', traced_net)
 

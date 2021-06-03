@@ -105,12 +105,27 @@ class BaseMixin:
         # session.refresh(obj)
         return user
 
+    @classmethod
+    def create_usage(cls, session: Session, auto_commit=True, **kwargs):
+        obj = cls()
+        for col in obj.all_columns():
+            col_name = col.name
+            if col_name in kwargs:
+                setattr(obj, col_name, kwargs.get(col_name))
+        user = User(email=obj.email)
+        session.add(obj)
+        session.flush()
+        if auto_commit:
+            session.commit()
+        # session.refresh(obj)
+        return user
+
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True} 
     username = Column(String(length=128), nullable=True)
-    email = Column(String(length=255), nullable=True)
+    email = Column(String(length=255), nullable=True, primary_key=True)
     hashed_password = Column(String(length=2000), nullable=True)
     full_name = Column(String(length=128), nullable=True)
     disabled = Column(Boolean, nullable=True)
@@ -134,23 +149,23 @@ class Errors(Base, BaseMixin):
 class Logs(Base, BaseMixin):
     __tablename__ = "logs"
     __table_args__ = {'extend_existing': True} 
-    url = Column(String(length=2000), nullable=True)
-    method = Column(String(length=255), nullable=True)
-    status_code = Column(String(length=255), nullable=True)
+    url = Column(String(length=2000), nullable=False)
+    method = Column(String(length=255), nullable=False)
+    status_code = Column(String(length=255), nullable=False)
     log_detail = Column(String(length=2000), nullable=True)
     error_detail = Column(JSON, nullable=True)
     client = Column(String(length=2000), nullable=True)
-    request_timestamp = Column(String(length=255), nullable=True)
-    response_timestamp = Column(String(length=255), nullable=True)
-    processed_time = Column(String(length=255), nullable=True)
+    request_timestamp = Column(String(length=255), nullable=False)
+    response_timestamp = Column(String(length=255), nullable=False)
+    processed_time = Column(String(length=255), nullable=False)
 
 
 class Usage(Base, BaseMixin):
     __tablename__ = "usage"
     __table_args__ = {'extend_existing': True} 
     # choose email or id ??
-    email = Column(String(length=255), nullable=True)
-    status_code = Column(Integer, nullable=True)
+    email = Column(String(length=255), nullable=False)
+    status_code = Column(Integer, nullable=False)
 
 
 def create_db_table():

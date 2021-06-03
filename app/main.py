@@ -21,7 +21,7 @@ def create_app():
     db.init_app(app, **asdict(Config()))
 
     settings = get_settings()
-    create_db_table()
+    # create_db_table()
 
 
     if settings.PROFILING_TOOL == "pyinstrument":
@@ -30,9 +30,9 @@ def create_app():
         app.add_middleware(CProfileMiddleware, enable=True, server_app=app, print_each_request=True, filename='/tmp/output.pstats', strip_dirs=False, sort_by='cumulative')
     else:
         pass
-
     app.add_middleware(AddLoggingMiddleware)
     app.add_middleware(PrometheusMiddleware)
+
     app.add_route("/metrics", metrics_route)
 
     app.include_router(index.router)

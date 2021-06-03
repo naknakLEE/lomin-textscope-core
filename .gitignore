@@ -118,6 +118,11 @@ inputs
 tmp
 storage
 workspace
+Textscope-old/
+Textscope-old
+temp
+temp/
+
 
 # DB data
 pgdata/

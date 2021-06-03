@@ -16,13 +16,14 @@ class SQLAlchemy:
     def init_app(self, app: FastAPI, **kwargs):
         database_url = kwargs.get("DB_URL")
         pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
-        echo = kwargs.setdefault("DB_ECHO", True)
+        echo = kwargs.setdefault("DB_ECHO", False)
 
         self._engine = create_engine(
             database_url,
             echo=echo,
             pool_recycle=pool_recycle,
             pool_pre_ping=True,
+            pool_size=30
         )
         self._session = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
 

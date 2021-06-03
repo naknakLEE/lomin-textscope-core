@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 sys.path.append("/workspace")
 from app.main import create_app
 from app.database.connection import Base, db
-from app.tests.utils.user import authentication_token_from_email
-from app.tests.utils.utils import get_superuser_token_headers
+from tests.utils.user import authentication_token_from_email
+from tests.utils.utils import get_superuser_token_headers
 from app.common.const import get_settings
 
 

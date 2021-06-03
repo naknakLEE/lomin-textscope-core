@@ -3,6 +3,7 @@ import time
 import os
 import imutils
 import sys
+import cv2
 
 from datetime import datetime
 from bentoml import env, artifacts, api, BentoService
@@ -69,6 +70,10 @@ class MultiModelService(BentoService):
         time_request = datetime.now().strftime('%Y.%m.%d. %H:%M:%S.%f')
         response_log.update({"time_textscope_request": time_request})
 
+
+        # image_dir = '/workspace/others/assets/000000000000000IMG_4831.jpg'
+        # img = cv2.imread(image_dir)
+        # img_arr = expand_size(to_wide(img))
         img_arr = expand_size(to_wide(imgs[0]))
         use_full_img = False
 
@@ -168,6 +173,10 @@ class MultiModelService(BentoService):
         response_log["time_textscope_response"] = time_response
         response_log["time_textscope_total"] = f"{time_elapsed:.3f} seconds"
 
+        logger.debug(f"kv_boxes: {kv_boxes}")
+        logger.debug(f"kv_scores: {kv_scores}")
+        logger.debug(f"kv_classes: {kv_classes}")
+
         return [{"response_log": response_log, "texts": texts}]
 
     def _boundary_infer(self, img_arr):
@@ -184,6 +193,7 @@ class MultiModelService(BentoService):
         use_mask = 'mask' in output_names
         use_keypoint = 'keypoints' in output_names
         masks = None
+        keypoints = None
         H = None
         is_portrait = False
 
