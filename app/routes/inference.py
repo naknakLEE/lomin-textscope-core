@@ -66,7 +66,7 @@ def count_usage(
         raise HTTPException(
             status_code=400, detail="Theuse doesn't have enough privileges"
         )
-    usages = Usage.get_multi_usages(session)
+    usages = Usage.get_usage(session)
     return usages
 
 
@@ -80,5 +80,12 @@ def count_usage_by_email(
         raise HTTPException(
             status_code=400, detail="Theuse doesn't have enough privileges"
         )
-    usages = Usage.get_multi_usages(session, email=user_email)
-    return len(usages)
+    usages = Usage.get_usage(session, email=user_email)
+
+    successed_count = len(usages["success_response"])
+    failed_count = len(usages["failed_response"])
+    return { 
+        "total_count": successed_count + failed_count,
+        "success_count":successed_count, 
+        "fail_count": failed_count,
+    }

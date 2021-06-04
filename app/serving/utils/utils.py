@@ -12,8 +12,8 @@ from service_streamer import ThreadedStreamer
 from shapely.geometry import Polygon
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
-from app.serving.envs import logger,cfgs
-from app.serving.catalogs import ELabelCatalog, EDocumentCatalog
+from app.serving.utils.envs import logger,cfgs
+from app.serving.utils.catalogs import ELabelCatalog, EDocumentCatalog
 from app.errors.exceptions import InferenceException
 
 

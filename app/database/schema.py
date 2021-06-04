@@ -11,6 +11,8 @@ from sqlalchemy import (
     JSON,
     Boolean,
     ForeignKey,
+    and_,
+    or_
 )
 from sqlalchemy.orm import Session, relationships
 from fastapi.encoders import jsonable_encoder
@@ -52,12 +54,20 @@ class BaseMixin:
 
 
     @classmethod
-    def get_multi_usages(cls, session: Session, email: EmailStr = None):
+    def get_usage(cls, session: Session, email: EmailStr = None):
         if email is not None:
-            query = session.query(cls).filter(cls.email == email)
+            query = session.query(cls.status_code, cls.created_at).filter(cls.email == email)
+            success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
+            failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
         else:
             query = session.query(cls.email, func.count(cls.email)).group_by(cls.email)
-        return query.all()
+            success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
+            failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
+        return { 
+            # "total_response": query.all(),
+            "success_response": success_response.all(), 
+            "failed_response": failed_response.all(),
+        }
 
 
     @classmethod
