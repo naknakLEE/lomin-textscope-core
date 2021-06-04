@@ -11,6 +11,7 @@ from dataclasses import asdict
 from datetime import datetime
 from pyinstrument import Profiler
 from pyinstrument_flame import FlameGraphRenderer
+from starlette.middleware.base import RequestResponseEndpoint
 
 sys.path.append("/workspace")
 from app.routes import auth, index, users, inference
@@ -31,7 +32,10 @@ create_db_table()
 
 
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
+async def add_process_time_header(
+    request: Request, 
+    call_next: RequestResponseEndpoint
+) -> None:
     try:
         request.state.req_time = datetime.utcnow()
         request.state.start = time.time()
@@ -67,7 +71,7 @@ img = cv2.imread(image_dir)
 _, img_encoded = cv2.imencode('.jpg', img)
 
 
-def test_main():
+def test_main() -> None:
     login_data = {
         "username": fake_user_info["username"],
         "password": fake_user_info["password"],

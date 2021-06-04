@@ -29,7 +29,7 @@ class APIException(Exception):
         msg: str = None,
         detail: str = None,
         ex: Exception = None,
-    ):
+    ) -> None:
         self.status_code = status_code
         self.code = code
         self.msg = msg
@@ -39,7 +39,12 @@ class APIException(Exception):
 
 
 class InferenceException(APIException):
-    def __init__(self, code: str = None, message: str = None, ex: Exception = None):
+    def __init__(
+        self, 
+        code: str = None, 
+        message: str = None, 
+        ex: Exception = None
+        ) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_416,
             code=f"{code}",
@@ -50,7 +55,7 @@ class InferenceException(APIException):
 
 
 class NotFoundUserException(APIException):
-    def __init__(self, email: int = None, ex: Exception = None):
+    def __init__(self, email: int = None, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_404,
             msg=f"Incorrect email or password",
@@ -61,7 +66,7 @@ class NotFoundUserException(APIException):
 
 
 class PrivielgeException(APIException):
-    def __init__(self, email: int = None, ex: Exception = None):
+    def __init__(self, email: int = None, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"The user doesn't have enough privileges",
@@ -72,7 +77,7 @@ class PrivielgeException(APIException):
 
 
 class AlreadyExistException(APIException):
-    def __init__(self, email: int = None, ex: Exception = None):
+    def __init__(self, email: int = None, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"The user with this email already exists in the system.",
@@ -83,7 +88,7 @@ class AlreadyExistException(APIException):
 
 
 class JWTNotFoundUserException(APIException):
-    def __init__(self, email: str = None, ex: Exception = None):
+    def __init__(self, email: str = None, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
             msg=f"Could not valemailate credentials",
@@ -94,7 +99,7 @@ class JWTNotFoundUserException(APIException):
 
 
 class JWTExpiredExetpion(APIException):
-    def __init__(self, email: str = None, ex: Exception = None):
+    def __init__(self, email: str = None, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"Session has expired and logged out",
@@ -105,7 +110,7 @@ class JWTExpiredExetpion(APIException):
 
 
 class JWTException(APIException):
-    def __init__(self, JWTError: str = None, ex: Exception = None):
+    def __init__(self, JWTError: str = None, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
             msg=f"Could not valemailate credentials",
@@ -129,6 +134,6 @@ class JWTException(APIException):
 
 
 # class InferenceException(Exception):
-#     def __init__(self, error, status_code):
+#     def __init__(self, error, status_code) -> None:
 #         self.error = error
 #         self.status_code = status_code

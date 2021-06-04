@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from jose.utils import int_arr_to_long
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
 
@@ -37,6 +38,9 @@ class User(BaseModel):
     is_active: Optional[bool] = None
     is_superuser: bool = False
 
+    class  Config:
+        orm_mode = True
+
 
 class UserInDB(User):
     hashed_password: str
@@ -47,3 +51,17 @@ class UserUpdate(User):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
+
+class Usage(BaseModel):
+    created_at: datetime
+    status_code: int
+    id: Optional[int] = None
+    email: EmailStr
+
+    class Config:
+        orm_mode = True
+
+class UsageCount(BaseModel):
+    total_count: int
+    success_count: int
+    failed_count: int

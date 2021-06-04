@@ -1,7 +1,7 @@
 import json
-from logging import disable
-from typing import Any, Dict, Union
 
+from logging import disable
+from typing import Any, Dict, Union, Optional, List, TypeVar
 from sqlalchemy import (
     Column,
     Integer,
@@ -24,18 +24,19 @@ from app.common.const import get_settings
 from app.models import UserUpdate, User
 
 
+ModelType = TypeVar("ModelType", bound=Base)
+
+
 class BaseMixin:
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
 
-    def all_columns(self):
+    def all_columns(self) -> List:
         return [c for c in self.__table__.columns if c.primary_key is False and c.name != "created_at"]
 
-    def __hash__(self):
-        hash(self.id)
 
     @classmethod
-    def get(cls, session: Session = None, **kwargs):
+    def get(cls, session: Session = None, **kwargs) -> Optional[ModelType]:
         sess = next(db.session()) if not session else session
 
         query = sess.query(cls)
@@ -51,19 +52,27 @@ class BaseMixin:
 
 
     @classmethod
-    def get_multi(cls, session: Session, skip: int = 0, limit: int = 100):
+    def get_multi(
+        cls, 
+        session: Session, 
+        skip: int = 0, 
+        limit: int = 100
+    ) -> Optional[ModelType]:
         query = session.query(cls).offset(skip).limit(limit)
         return query.all()
 
 
     @classmethod
-    def get_by_email(cls, session: Session, email: EmailStr):
+    def get_by_email(cls, 
+        session: Session, 
+        email: EmailStr
+) -> Optional[ModelType]:
         query = session.query(cls).filter(cls.email == email)
         return query.first()
 
 
     @classmethod
-    def remove(cls, session: Session, email: EmailStr):
+    def remove(cls, session: Session, email: EmailStr) -> ModelType:
         obj = session.query(cls).filter(cls.email==email).delete()
         session.flush()
         session.commit()
@@ -72,8 +81,12 @@ class BaseMixin:
 
     @classmethod
     def update(
-        cls, session: Session, *, db_obj: User, obj_in: UserUpdate
-    ):
+        cls, 
+        session: Session, 
+        *, 
+        db_obj: User, 
+        obj_in: UserUpdate
+    ) -> ModelType:
         is_exist = cls.get_by_email(session, email=obj_in.email)
         if is_exist:
             return "This user already exist"
@@ -90,7 +103,12 @@ class BaseMixin:
 
 
     @classmethod
-    def create(cls, session: Session, auto_commit=True, **kwargs):
+    def create(
+        cls, 
+        session: Session, 
+        auto_commit=True, 
+        **kwargs
+    ) -> Optional[ModelType]:
         is_exist = cls.get_by_email(session, email=kwargs["email"])
         if is_exist:
             return "This user already exist"
@@ -109,7 +127,11 @@ class BaseMixin:
         return user
 
     @classmethod
-    def create_usage(cls, session: Session, auto_commit=True, **kwargs):
+    def create_usage(cls, 
+        session: Session, 
+        auto_commit=True, 
+        **kwargs
+    ) -> ModelType:
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
@@ -158,7 +180,7 @@ class Usage(Base, BaseMixin):
     status_code = Column(Integer, nullable=False)
 
     @classmethod
-    def get_usage(cls, session: Session, email: EmailStr = None):
+    def get_usage(cls, session: Session, email: EmailStr = None) -> Optional[ModelType]:
         if email is not None:
             query = session.query(cls.status_code, cls.created_at).filter(cls.email == email)
         else:
@@ -173,7 +195,7 @@ class Usage(Base, BaseMixin):
         }
 
 
-def create_db_table():
+def create_db_table() -> None:
     try:
         settings = get_settings()
         session = next(db.session())

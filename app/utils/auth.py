@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Any
 import time
 
 from fastapi import Depends, HTTPException, status, Security
@@ -24,15 +24,15 @@ security = HTTPBearer()
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password, hashed_password) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password) -> str:
     return pwd_context.hash(password)
 
 
-def get_user(email: EmailStr, session: Session):
+def get_user(email: EmailStr, session: Session) -> UserInDB:
     user = is_email_exist(email, session)
     if user:
         user_dict = {
@@ -45,21 +45,25 @@ def get_user(email: EmailStr, session: Session):
         return UserInDB(**user_dict)
 
 
-def is_username_exist(username: str, session: Session):
+def is_username_exist(username: str, session: Session) -> Any:
     user = Users.get(session=session, username=username)
     if user:
         return user
     return False
 
 
-def is_email_exist(email: EmailStr, session: Session):
+def is_email_exist(email: EmailStr, session: Session) -> Any:
     user = Users.get(session=session,email=email)
     if user:
         return user
     return False
 
 
-def authenticate_user(email: EmailStr, password: str, session: Session):
+def authenticate_user(
+    email: EmailStr, 
+    password: str, 
+    session: Session
+) -> Any:
     user = get_user(email, session)
     if not user:
         return False
@@ -69,7 +73,10 @@ def authenticate_user(email: EmailStr, password: str, session: Session):
     return user
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(
+    data: dict, 
+    expires_delta: Optional[timedelta] = None
+) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -81,12 +88,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 # async def get_current_user(token: str = Depends(oauth2_scheme)):
-async def get_current_user(token: HTTPAuthorizationCredentials = Security(security), session = Depends(db.session)):
+async def get_current_user(
+    token: HTTPAuthorizationCredentials = Security(security), 
+    session = Depends(db.session)
+) -> Any:
     try:
-        start = time.time()
         payload = jwt.decode(token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email: str = payload.get("sub")
-        print('\033[96m' + f"\n{time.time() - start}" + '\033[0m')
         if email is None:
             raise ex.InvalidCredentiolException(email)
         token_data = TokenData(email=email)
@@ -100,7 +108,9 @@ async def get_current_user(token: HTTPAuthorizationCredentials = Security(securi
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user)
+) -> User:
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user

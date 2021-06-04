@@ -13,10 +13,10 @@ from app.database.connection import db
 from app.common.config import Config
 from app.common.const import get_settings
 from app.database.schema import create_db_table
-from app.middlewares.logging import AddLoggingMiddleware
+from app.middlewares.logging import LoggingMiddleware
 
 
-def create_app():
+def create_app() -> FastAPI:
     app = FastAPI()
     db.init_app(app, **asdict(Config()))
 
@@ -30,7 +30,7 @@ def create_app():
         app.add_middleware(CProfileMiddleware, enable=True, server_app=app, print_each_request=True, filename='/tmp/output.pstats', strip_dirs=False, sort_by='cumulative')
     else:
         pass
-    app.add_middleware(AddLoggingMiddleware)
+    app.add_middleware(LoggingMiddleware)
     app.add_middleware(PrometheusMiddleware)
 
     app.add_route("/metrics", metrics_route)

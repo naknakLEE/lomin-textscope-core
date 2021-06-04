@@ -1,5 +1,5 @@
+from typing import Dict
 from datetime import timedelta
-
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -24,7 +24,7 @@ router = APIRouter()
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(db.session),
-):
+) -> Dict:
     user = authenticate_user(form_data.email, form_data.password, session)
     if not user:
         raise ex.NotFoundUserException(email=form_data.email)

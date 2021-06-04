@@ -18,13 +18,13 @@ from app.errors import exceptions as ex
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", response_model=User)
 def read_users(
     session: Session = Depends(db.session),
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(get_current_active_user),
-):
+) -> Any:
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
     users = Users.get_multi(session, skip=skip, limit=limit)
@@ -36,7 +36,7 @@ def create_user(
     session: Session = Depends(db.session),
     user: Dict = {},
     current_user: User = Depends(get_current_active_user)
-):
+) -> Any:
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
     is_exist = Users.get(session, email=user["email"])
@@ -48,7 +48,9 @@ def create_user(
 
 
 @router.get("/me", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+async def read_users_me(
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
     return current_user
 
 
@@ -60,7 +62,7 @@ def update_user_me(
     username: str = None,
     password: str = None,
     current_user: User = Depends(get_current_active_user)
-):
+) -> Any:
     current_user_data = jsonable_encoder(current_user)
     user_in = UserUpdate(**current_user_data)
     if password is not None:
@@ -72,8 +74,7 @@ def update_user_me(
     if email is not None:
         user_in.email = email
     updated_user = Users.update(session, db_obj=current_user, obj_in=user_in)
-    user = User(**updated_user)
-    return user
+    return updated_user
 
 
 @router.get("/{user_email}", response_model=User)
@@ -81,15 +82,12 @@ def read_user_by_email(
     user_email: EmailStr,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(db.session),
-):
+) -> Any:
     user = Users.get(session, email=user_email)
     if user == current_user:
         return user
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    print("\n\n\n", user.__dict__)
-    del user.disabled
-    user = User(**user.__dict__)
     return user
 
 
@@ -100,7 +98,7 @@ def update_user(
     user_email: EmailStr,
     user_in: UserUpdate,
     current_user: User = Depends(get_current_active_user),
-):
+) -> Any:
     user = Users.get(session, email=user_email)
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)

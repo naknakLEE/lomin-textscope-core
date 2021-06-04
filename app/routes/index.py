@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def index(session: Session = Depends(db.session)):
+async def index(session: Session = Depends(db.session)) -> Response:
     # Users.remove(session, "tongo@example.com")
     Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
     # Users.remove(session, "gule@example.com")
@@ -43,7 +43,7 @@ async def index(session: Session = Depends(db.session)):
 
 
 @router.get("/test")
-async def test(request: Request):
+async def test(request: Request) -> Response:
     print("state.user", request.state.user)
     # await index()
     # Errors.create(next(db.session()), auto_commit=True)
@@ -58,7 +58,7 @@ async def test(request: Request):
 
 
 @router.get("/status")
-def check_status():
+def check_status() -> Response:
     # return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
     curren_time = datetime.utcnow()
     return Response(f"Textscope API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")

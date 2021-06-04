@@ -1,3 +1,4 @@
+from typing import Any
 from dataclasses import dataclass
 from os import path, environ
 from app.common.const import get_settings
@@ -28,6 +29,6 @@ class ProdConfig(Config):
     ...
 
 
-def config():
+def config() -> Any:
     config = dict(production=ProdConfig(), test=TestConfig())
     return config.get(environ.get("API_ENV", "local"))

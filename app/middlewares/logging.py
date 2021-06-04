@@ -17,8 +17,12 @@ from app.common.const import get_settings
 
 settings = get_settings()
 
-class AddLoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(
+        self, 
+        request: Request, 
+        call_next: RequestResponseEndpoint
+    ) -> Response:
         try:
             request.state.req_time = datetime.utcnow()
             request.state.start = time.time()
@@ -31,7 +35,7 @@ class AddLoggingMiddleware(BaseHTTPMiddleware):
             request.state.ip = ip.split(",")[0] if "," in ip else ip
             if "authorization" in headers.keys():
                 token = headers.get("Authorization")
-                payload = jwt.decode(token.split(" ")[1], settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+                payload = jwt.decode(token.replace("Bearer ",""), settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
                 request.state.email = payload.get("sub")
             response = await call_next(request)
             await api_logger(request=request, response=response)

@@ -7,12 +7,13 @@ print(logging.handlers)
 
 from os import path
 from time import time
+from typing import Optional
 from fastapi.requests import Request
 from jose import jwt
 # from fastapi.logger import logger
 from loguru import logger
 
-from app.database.schema import Logs
+from app.database.schema import Logs, Usage
 from app.common.const import get_settings
 
 
@@ -46,7 +47,11 @@ def set_logger_config():
 set_logger_config()
 
 
-async def api_logger(request: Request = None, response=None, error=None):
+async def api_logger(
+    request: Request = None, 
+    response=None, 
+    error=None
+) -> None:
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
@@ -94,7 +99,7 @@ async def api_logger(request: Request = None, response=None, error=None):
     # request.state.db.flush()
     # request.state.db.commit()
     # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
-    # Usage.create_usage(session, auto_commit=True, email=current_user.email, status_code=response.status_code)
+    Usage.create_usage(request.state.db, auto_commit=True, email=email, status_code=status_code)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.error(traceback.format_exc())
