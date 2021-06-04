@@ -12,9 +12,8 @@ from bentoml.frameworks.onnx import OnnxModelArtifact
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
 sys.path.append("/workspace")
-from app.serving.utils.envs import cfgs, logger
 from app.errors.exceptions import InferenceException
-from app.serving.utils import (
+from app.serving.utils.utils import (
     load_json,
     save_debug_img,
     deidentify_img,
@@ -36,6 +35,7 @@ from app.serving.utils import (
     get_cropped_images,
     load_models
 )
+from app.serving.utils.envs import cfgs, logger
 
 
 @env(pip_packages=['torchvision'])

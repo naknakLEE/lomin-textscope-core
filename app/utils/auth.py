@@ -29,8 +29,8 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(email: EmailStr):
-    user = is_email_exist(email)
+def get_user(email: EmailStr, session: Session):
+    user = is_email_exist(email, session)
     if user:
         user_dict = {
             "username": user.username,
@@ -42,22 +42,22 @@ def get_user(email: EmailStr):
         return UserInDB(**user_dict)
 
 
-def is_username_exist(username: str):
-    user = Users.get(username=username)
+def is_username_exist(username: str, session: Session):
+    user = Users.get(session=session, username=username)
     if user:
         return user
     return False
 
 
-def is_email_exist(email: EmailStr):
-    user = Users.get(email=email)
+def is_email_exist(email: EmailStr, session: Session):
+    user = Users.get(session=session,email=email)
     if user:
         return user
     return False
 
 
-def authenticate_user(email: EmailStr, password: str):
-    user = get_user(email)
+def authenticate_user(email: EmailStr, password: str, session: Session):
+    user = get_user(email, session)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -78,7 +78,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 # async def get_current_user(token: str = Depends(oauth2_scheme)):
-async def get_current_user(token: str):
+async def get_current_user(token: str, session = Depends(db.session)):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username: str = payload.get("sub")
@@ -89,7 +89,7 @@ async def get_current_user(token: str):
         raise ex.JWTExpiredExetpion()
     except JWTError:
         raise ex.JWTException(JWTError)
-    user = get_user(email=token_data.username)
+    user = get_user(email=token_data.username, session=session)
     if user is None:
         raise ex.JWTNotFoundUserException(username)
     return user
