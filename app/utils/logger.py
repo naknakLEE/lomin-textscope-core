@@ -5,11 +5,12 @@ import logging
 from logging.handlers import QueueHandler
 print(logging.handlers)
 
+from os import path
 from time import time
 from fastapi.requests import Request
+from jose import jwt
 # from fastapi.logger import logger
 from loguru import logger
-from os import path
 
 from app.database.schema import Logs
 from app.common.const import get_settings
@@ -49,7 +50,7 @@ async def api_logger(request: Request = None, response=None, error=None):
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
-    user = request.state.user
+    email = request.state.email
     # body = await request.body()
     if error:
         # print('\033[96m' + f"\n{request.state.inspect}" + '\033[0m')
@@ -68,11 +69,10 @@ async def api_logger(request: Request = None, response=None, error=None):
             msg=str(error.ex),
             # traceback=traceback.format_exc()
         )
-    email = user.email if user and user.email else None
     # log_detail = response.__dict__ if response else None
     user_log = dict(
+        # user=user.id if user and user.id else None,
         client=request.state.ip,
-        user=user.id if user and user.id else None,
         email=email
     )
 
@@ -94,6 +94,7 @@ async def api_logger(request: Request = None, response=None, error=None):
     # request.state.db.flush()
     # request.state.db.commit()
     # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
+    # Usage.create_usage(session, auto_commit=True, email=current_user.email, status_code=response.status_code)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.error(traceback.format_exc())

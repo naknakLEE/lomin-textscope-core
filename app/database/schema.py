@@ -86,7 +86,7 @@ class BaseMixin:
                 setattr(user, field, field_value)
         session.flush()
         session.commit()
-        return db_obj
+        return user
 
 
     @classmethod
@@ -128,25 +128,13 @@ class Users(Base, BaseMixin):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True} 
     username = Column(String(length=128), nullable=True)
-    email = Column(String(length=255), nullable=True, primary_key=True)
+    email = Column(String(length=255), nullable=False, primary_key=True)
     hashed_password = Column(String(length=2000), nullable=True)
     full_name = Column(String(length=128), nullable=True)
-    disabled = Column(Boolean, nullable=True)
-    is_active = Column(Boolean, nullable=True)
+    disabled = Column(Boolean, nullable=True, default=False)
+    is_active = Column(Boolean, nullable=True, default=False)
     is_superuser = Column(Boolean, nullable=False, default=False)
     updated_at = Column(DateTime, nullable=False, default=func.current_timestamp(), onupdate=func.current_timestamp())
-
-
-class Errors(Base, BaseMixin):
-    __tablename__ = "errors"
-    __table_args__ = {'extend_existing': True} 
-    url = Column(String(length=2000), nullable=True)
-    method = Column(String(length=255), nullable=True)
-    status_code = Column(String(length=255), nullable=True)
-    error_detail = Column(String(length=2000), nullable=True)
-    client = Column(String(length=2000), nullable=True)
-    processed_time = Column(String(length=255), nullable=True)
-    datetime_kr = Column(String(length=255), nullable=True)
 
 
 class Logs(Base, BaseMixin):
@@ -189,10 +177,7 @@ def create_db_table():
     try:
         settings = get_settings()
         session = next(db.session())
-        Usage.metadata.create_all(db._engine)
-        Errors.metadata.create_all(db._engine)
-        Logs.metadata.create_all(db._engine)
-        Users.metadata.create_all(db._engine)
+        Base.metadata.create_all(db._engine)
         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
     finally:

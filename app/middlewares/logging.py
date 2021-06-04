@@ -5,12 +5,17 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from datetime import datetime
+from jose import jwt
 
 sys.path.append("/workspace")
 from app.database.connection import db
 from app.utils.logger import api_logger
 from app.errors.exceptions import exception_handler
+from app.common.const import get_settings
 
+
+
+settings = get_settings()
 
 class AddLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -19,9 +24,15 @@ class AddLoggingMiddleware(BaseHTTPMiddleware):
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
+            request.state.email = None
             request.state.db = db._session()
-            ip = request.headers["x-forwarded-for"] if "x-forwarded-for" in request.headers.keys() else request.client.host
+            headers = request.headers
+            ip = headers["x-forwarded-for"] if "x-forwarded-for" in request.headers.keys() else request.client.host
             request.state.ip = ip.split(",")[0] if "," in ip else ip
+            if "authorization" in headers.keys():
+                token = headers.get("Authorization")
+                payload = jwt.decode(token.split(" ")[1], settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+                request.state.email = payload.get("sub")
             response = await call_next(request)
             await api_logger(request=request, response=response)
         except Exception as e:

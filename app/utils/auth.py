@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import time
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.param_functions import Form
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 from pydantic.networks import EmailStr
@@ -18,6 +20,7 @@ from app.database.connection import db
 
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -78,20 +81,22 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 # async def get_current_user(token: str = Depends(oauth2_scheme)):
-async def get_current_user(token: str, session = Depends(db.session)):
+async def get_current_user(token: HTTPAuthorizationCredentials = Security(security), session = Depends(db.session)):
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise ex.InvalidCredentiolException(username)
-        token_data = TokenData(username=username)
+        start = time.time()
+        payload = jwt.decode(token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        print('\033[96m' + f"\n{time.time() - start}" + '\033[0m')
+        if email is None:
+            raise ex.InvalidCredentiolException(email)
+        token_data = TokenData(email=email)
     except ExpiredSignatureError:
         raise ex.JWTExpiredExetpion()
     except JWTError:
         raise ex.JWTException(JWTError)
-    user = get_user(email=token_data.username, session=session)
+    user = get_user(email=token_data.email, session=session)
     if user is None:
-        raise ex.JWTNotFoundUserException(username)
+        raise ex.JWTNotFoundUserException(email)
     return user
 
 

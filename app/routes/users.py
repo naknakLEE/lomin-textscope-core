@@ -76,7 +76,7 @@ def update_user_me(
     return user
 
 
-@router.get("/{user_email}")
+@router.get("/{user_email}", response_model=User)
 def read_user_by_email(
     user_email: EmailStr,
     current_user: User = Depends(get_current_active_user),
@@ -87,10 +87,13 @@ def read_user_by_email(
         return user
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
+    print("\n\n\n", user.__dict__)
+    del user.disabled
+    user = User(**user.__dict__)
     return user
 
 
-@router.put("/{user_email}")
+@router.put("/{user_email}", response_model=User)
 def update_user(
     *,
     session: Session = Depends(db.session),

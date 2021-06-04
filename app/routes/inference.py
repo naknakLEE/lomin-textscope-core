@@ -24,8 +24,6 @@ async def inference(session: Session = Depends(db.session), current_user: User =
     image_data = await file.read()
     response = requests.post(test_url, data=image_data)
 
-    Usage.create_usage(session, auto_commit=True, email=current_user.email, status_code=response.status_code)
-
     return response.json()
 
 

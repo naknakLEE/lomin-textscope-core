@@ -8,7 +8,7 @@ from starlette.responses import Response
 from inspect import currentframe as frame
 
 from app.database.connection import db
-from app.database.schema import Users, Errors, Usage, Logs
+from app.database.schema import Users, Usage, Logs
 from app.common.const import get_settings
 from app.models import User, UserUpdate
 
@@ -61,4 +61,4 @@ async def test(request: Request):
 def check_status():
     # return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
     curren_time = datetime.utcnow()
-    return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
+    return Response(f"Textscope API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
