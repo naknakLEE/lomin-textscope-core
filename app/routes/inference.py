@@ -10,6 +10,7 @@ from app.database.schema import Usage
 from app.database.connection import db
 from app.utils.auth import get_current_active_user
 from app.common.const import get_settings
+from app.errors import exceptions as ex
 
 
 settings = get_settings()
@@ -36,9 +37,7 @@ def read_usage(
     session: Session = Depends(db.session),
 ):
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="Theuse doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     usages = Usage.get_multi(session, skip=skip, limit=limit)
     return usages
 
@@ -50,9 +49,7 @@ def read_usage_by_email(
     session: Session = Depends(db.session),
 ):
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="Theuse doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     usages = Usage.get_by_email(session, email=user_email)
     return usages
 
@@ -63,9 +60,7 @@ def count_usage(
     session: Session = Depends(db.session),
 ):
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="Theuse doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     usages = Usage.get_usage(session)
     return usages
 
@@ -77,9 +72,7 @@ def count_usage_by_email(
     session: Session = Depends(db.session),
 ):
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="Theuse doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     usages = Usage.get_usage(session, email=user_email)
 
     successed_count = len(usages["success_response"])

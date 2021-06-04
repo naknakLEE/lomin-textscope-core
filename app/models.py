@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
@@ -41,3 +42,8 @@ class UserInDB(User):
 
 class UserUpdate(User):
     hashed_password: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    id: Optional[int] = None
+    is_active: Optional[bool] = None
+

@@ -35,13 +35,16 @@ class BaseMixin:
         hash(self.id)
 
     @classmethod
-    def get(cls, **kwargs):
-        session = next(db.session())
-        query = session.query(cls)
+    def get(cls, session: Session = None, **kwargs):
+        sess = next(db.session()) if not session else session
+
+        query = sess.query(cls)
         for key, val in kwargs.items():
             col = getattr(cls, key)
             query = query.filter(col == val)
 
+        if sess is None:
+            sess.close()
         # if query.count() > 1:
         #     raise Exception("Only one row is supposed to be returned, but got more than one.")
         return query.first()
@@ -51,23 +54,6 @@ class BaseMixin:
     def get_multi(cls, session: Session, skip: int = 0, limit: int = 100):
         query = session.query(cls).offset(skip).limit(limit)
         return query.all()
-
-
-    @classmethod
-    def get_usage(cls, session: Session, email: EmailStr = None):
-        if email is not None:
-            query = session.query(cls.status_code, cls.created_at).filter(cls.email == email)
-            success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
-            failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
-        else:
-            query = session.query(cls.email, func.count(cls.email)).group_by(cls.email)
-            success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
-            failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
-        return { 
-            # "total_response": query.all(),
-            "success_response": success_response.all(), 
-            "failed_response": failed_response.all(),
-        }
 
 
     @classmethod
@@ -93,12 +79,11 @@ class BaseMixin:
             return "This user already exist"
         current_user_email = db_obj.email
         obj_data = jsonable_encoder(db_obj)
+        user = session.query(cls).filter(cls.email == current_user_email).first()
         for field in obj_data:
             field_value = getattr(obj_in, field)
             if field_value is not None:
-                setattr(db_obj, field, field_value)
-        user = session.query(cls).filter(cls.email == current_user_email)
-        user.update(db_obj)
+                setattr(user, field, field_value)
         session.flush()
         session.commit()
         return db_obj
@@ -181,9 +166,23 @@ class Logs(Base, BaseMixin):
 class Usage(Base, BaseMixin):
     __tablename__ = "usage"
     __table_args__ = {'extend_existing': True} 
-    # choose email or id ??
     email = Column(String(length=255), nullable=False)
     status_code = Column(Integer, nullable=False)
+
+    @classmethod
+    def get_usage(cls, session: Session, email: EmailStr = None):
+        if email is not None:
+            query = session.query(cls.status_code, cls.created_at).filter(cls.email == email)
+        else:
+            query = session.query(cls.email, func.count(cls.email)).group_by(cls.email)
+            
+        success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
+        failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
+        return { 
+            # "total_response": query.all(),
+            "success_response": success_response.all(), 
+            "failed_response": failed_response.all(),
+        }
 
 
 def create_db_table():

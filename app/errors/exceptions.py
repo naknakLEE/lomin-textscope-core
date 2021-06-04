@@ -49,23 +49,56 @@ class InferenceException(APIException):
         )
 
 
-class NotFoundUserEx(APIException):
-    def __init__(self, user_id: int = None, ex: Exception = None):
+class NotFoundUserException(APIException):
+    def __init__(self, email: int = None, ex: Exception = None):
         super().__init__(
             status_code=StatusCode.HTTP_404,
-            msg=f"Incorrect username or password",
-            detail=f"Not Found User ID : {user_id}",
-            code=f"{StatusCode.HTTP_400}",
+            msg=f"Incorrect email or password",
+            detail=f"Not Found User email: {email}",
+            code=f"{'1'.zfill(4)}",
             ex=ex,
         )
 
 
-class NotFoundUserException(APIException):
-    def __init__(self, username: str = None, ex: Exception = None):
+class PrivielgeException(APIException):
+    def __init__(self, email: int = None, ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"The user doesn't have enough privileges",
+            detail=f"{email} doesn't have enough privileges",
+            code=f"{'1'.zfill(4)}",
+            ex=ex,
+        )
+
+
+class AlreadyExistException(APIException):
+    def __init__(self, email: int = None, ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"The user with this email already exists in the system.",
+            detail=f"{email} already exists in the system",
+            code=f"{'1'.zfill(4)}",
+            ex=ex,
+        )
+
+
+class JWTNotFoundUserException(APIException):
+    def __init__(self, email: str = None, ex: Exception = None):
         super().__init__(
             status_code=StatusCode.HTTP_401,
-            msg=f"Could not validate credentials",
-            detail=f"Not Found User: {username}",
+            msg=f"Could not valemailate credentials",
+            detail=f"Not Found User email: {email}",
+            code=f"{'1'.zfill(4)}",
+            ex=ex,
+        )
+
+
+class JWTExpiredExetpion(APIException):
+    def __init__(self, email: str = None, ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"Session has expired and logged out",
+            detail="Token Expired",
             code=f"{'1'.zfill(4)}",
             ex=ex,
         )
@@ -75,21 +108,10 @@ class JWTException(APIException):
     def __init__(self, JWTError: str = None, ex: Exception = None):
         super().__init__(
             status_code=StatusCode.HTTP_401,
-            msg=f"Could not validate credentials",
+            msg=f"Could not valemailate credentials",
             detail="JWTError",
             code=f"{'1'.zfill(4)}",
             ex=JWTError,
-        )
-
-
-class JWTExpiredExetpion(APIException):
-    def __init__(self, username: str = None, ex: Exception = None):
-        super().__init__(
-            status_code=StatusCode.HTTP_400,
-            msg=f"Session has expired and logged out",
-            detail="Token Expired",
-            code=f"{'1'.zfill(4)}",
-            ex=ex,
         )
 
 
@@ -102,7 +124,7 @@ class JWTExpiredExetpion(APIException):
 # async def uvicorn_exception_handler(request: Request, exc: UnicornException):
 #     return JSONResponse(
 #         status_code=418,
-#         content={"message": f"Oops! {exc.name} did something. There goes a rainbows..."},
+#         content={"message": f"Oops! {exc.name} demail something. There goes a rainbows..."},
 #     )
 
 

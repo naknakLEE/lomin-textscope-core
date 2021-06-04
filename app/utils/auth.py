@@ -7,11 +7,13 @@ from fastapi.param_functions import Form
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 from pydantic.networks import EmailStr
+from sqlalchemy.orm import Session
 
 from app.database.schema import Users
 from app.models import TokenData, User, UserInDB, Token
 from app.common.const import get_settings
 from app.errors import exceptions as ex
+from app.database.connection import db
 
 
 settings = get_settings()
@@ -28,9 +30,8 @@ def get_password_hash(password):
 
 
 def get_user(email: EmailStr):
-    is_exist = is_email_exist(email)
-    if is_exist:
-        user = Users.get(email=email)
+    user = is_email_exist(email)
+    if user:
         user_dict = {
             "username": user.username,
             "full_name": user.full_name,
@@ -42,16 +43,16 @@ def get_user(email: EmailStr):
 
 
 def is_username_exist(username: str):
-    get_username = Users.get(username=username)
-    if get_username:
-        return True
+    user = Users.get(username=username)
+    if user:
+        return user
     return False
 
 
 def is_email_exist(email: EmailStr):
-    get_email = Users.get(email=email)
-    if get_email:
-        return True
+    user = Users.get(email=email)
+    if user:
+        return user
     return False
 
 
@@ -60,6 +61,7 @@ def authenticate_user(email: EmailStr, password: str):
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
+        print("\n\n\n check", user)
         return False
     return user
 
@@ -89,7 +91,7 @@ async def get_current_user(token: str):
         raise ex.JWTException(JWTError)
     user = get_user(email=token_data.username)
     if user is None:
-        raise ex.NotFoundUserException(username)
+        raise ex.JWTNotFoundUserException(username)
     return user
 
 

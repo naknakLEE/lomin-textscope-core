@@ -12,6 +12,7 @@ from app.models import User
 from app.database.connection import db
 from app.database.schema import Users, UserUpdate
 from app.utils.auth import get_password_hash
+from app.errors import exceptions as ex 
 
 
 router = APIRouter()
@@ -25,9 +26,7 @@ def read_users(
     current_user: User = Depends(get_current_active_user),
 ):
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     users = Users.get_multi(session, skip=skip, limit=limit)
     return users
 
@@ -39,18 +38,18 @@ def create_user(
     current_user: User = Depends(get_current_active_user)
 ):
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
-        )
-    is_exist = Users.get(email=user["email"])
+        raise ex.PrivielgeException(current_user.email)
+    is_exist = Users.get(session, email=user["email"])
     if is_exist:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this username already exists in the system.",
-        )
+        raise ex.AlreadyExistException(current_user.email)
     user["hashed_password"] = get_password_hash(user["password"])
     created_user = Users.create(session, auto_commit=True, **user)
     return created_user
+
+
+@router.get("/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
 
 
 @router.put("/me", response_model=User)
@@ -77,30 +76,17 @@ def update_user_me(
     return user
 
 
-@router.get("/me", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
-
-
-@router.get("/me/items")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "SY_item", "owner": current_user.username}]
-
-
 @router.get("/{user_email}")
 def read_user_by_email(
     user_email: EmailStr,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ):
-    print('\033[96m' + f"read_user_by_id: {current_user}" + '\033[0m')
-    user = Users.get_by_email(session, email=user_email)
+    user = Users.get(session, email=user_email)
     if user == current_user:
         return user
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     return user
 
 
@@ -112,15 +98,10 @@ def update_user(
     user_in: UserUpdate,
     current_user: User = Depends(get_current_active_user),
 ):
-    user = User.get_by_email(session, email=user_email)
+    user = Users.get(session, email=user_email)
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="Theuser doesn't have enough privileges"
-        )
+        raise ex.PrivielgeException(current_user.email)
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system",
-        )
+        raise ex.AlreadyExistException(current_user.email)
     user = Users.update(session, db_obj=user, obj_in=user_in)
     return user

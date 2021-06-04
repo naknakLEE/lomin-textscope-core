@@ -22,7 +22,7 @@ router = APIRouter()
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.email, form_data.password)
     if not user:
-        raise ex.NotFoundUserEx(user_id=form_data.email)
+        raise ex.NotFoundUserException(email=form_data.email)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
@@ -37,7 +37,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 #         return JSONResponse(status_code=400, content=dict(msg="Email and PW must be provided'"))
 #     if not is_exist:
 #         return JSONResponse(status_code=400, content=dict(msg="NO_MATCH_USER"))
-#     user = Users.get(email=user_info.email)
+#     user = Users.get(session, email=user_info.email)
 #     is_verified = verify_password(user_info.password, user.hashed_password)
 #     if not is_verified:
 #         return JSONResponse(status_code=400, content=dict(msg="NO_MATCH_USER OR PW?"))
