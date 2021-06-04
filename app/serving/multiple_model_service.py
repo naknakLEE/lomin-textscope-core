@@ -13,6 +13,7 @@ from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
 sys.path.append("/workspace")
 from app.errors.exceptions import InferenceException
+from app.serving.utils.envs import settings, logger
 from app.serving.utils.utils import (
     load_json,
     save_debug_img,
@@ -35,7 +36,6 @@ from app.serving.utils.utils import (
     get_cropped_images,
     load_models
 )
-from app.serving.utils.envs import cfgs, logger
 
 
 @env(pip_packages=['torchvision'])
@@ -49,12 +49,12 @@ class MultiModelService(BentoService):
     def __init__(self):
         super().__init__()
         self.infer_sess_map = dict()
-        self.service_cfg = load_json(cfgs.SERVICE_CFG_PATH)['idcard']
+        self.service_cfg = load_json(settings.SERVICE_CFG_PATH)['idcard']
         load_models(self.infer_sess_map, self.service_cfg)
 
         self.save_output_img = True
         self.id_type = None
-        self.savepath = cfgs.SAVEPATH
+        self.savepath = settings.SAVEPATH
 
     @api(input=ImageInput(), batch=True)
     def inference(self, imgs):
@@ -82,8 +82,8 @@ class MultiModelService(BentoService):
         if boundary_box is None:
             logger.debug("Unable to find id card")
 
-        if boundary_box is None and cfgs.ID_ROTATE_FIND:
-            for rotate_angle in cfgs.ID_ROTATE_ANGLE:
+        if boundary_box is None and settings.ID_ROTATE_FIND:
+            for rotate_angle in settings.ID_ROTATE_ANGLE:
                 logger.debug(f"Rotate and find: {rotate_angle}")
                 img_arr = imutils.rotate_bound(img_arr, int(rotate_angle))
                 boundary_box, boundary_score, boundary_angle, H, is_portrait = self._boundary_infer(img_arr)
@@ -93,11 +93,11 @@ class MultiModelService(BentoService):
         if boundary_box is None:
             logger.debug("Unable to find id card (2)")
 
-        if boundary_box is None and cfgs.ID_CROP_FIND:
-            for i in range(cfgs.ID_CROP_FIND_NUM):
+        if boundary_box is None and settings.ID_CROP_FIND:
+            for i in range(settings.ID_CROP_FIND_NUM):
                 height, width = img_arr.shape[:2]
-                erosion_x = int(width * (1 - cfgs.ID_CROP_FIND_RATIO)) // 2
-                erosion_y = int(height * (1 - cfgs.ID_CROP_FIND_RATIO)) // 2
+                erosion_x = int(width * (1 - settings.ID_CROP_FIND_RATIO)) // 2
+                erosion_y = int(height * (1 - settings.ID_CROP_FIND_RATIO)) // 2
                 logger.debug(f"Erode and find: erosion_x={erosion_x}, erosion_y={erosion_y} / width={width}, height={height}")
                 img_arr = img_arr[erosion_y:height - erosion_y, erosion_x:width - erosion_x, :]
                 boundary_box, boundary_score, boundary_angle, H, is_portrait = self._boundary_infer(img_arr)
@@ -120,7 +120,7 @@ class MultiModelService(BentoService):
         else:
             id_image_arr = img_arr[boundary_box[1]:boundary_box[3], boundary_box[0]:boundary_box[2], :]
 
-        if H is not None and cfgs.ID_USE_TRANSFORM_BOUNDARY and not use_full_img:
+        if H is not None and settings.ID_USE_TRANSFORM_BOUNDARY and not use_full_img:
             id_image_arr = rectify_img(img_arr, H, boundary_angle, is_portrait)
 
         id_image_arr = roate_image(boundary_angle, id_image_arr)
@@ -136,13 +136,13 @@ class MultiModelService(BentoService):
                 'code': 'T4001',
                 'message': 'Invalid image file',
             }, 400)
-        if cfgs.ID_FORCE_TYPE:
+        if settings.ID_FORCE_TYPE:
             kv_boxes, kv_scores, kv_classes = filter_class(kv_boxes, kv_scores, kv_classes, self.id_type)
 
         kv_boxes, kv_scores, kv_classes = kv_postprocess_with_edge(kv_boxes, kv_scores, kv_classes)
 
         id_height, id_width = id_image_arr.shape[:2]
-        if cfgs.ID_ADD_BACKUP_BOXES:
+        if settings.ID_ADD_BACKUP_BOXES:
             inputs = (
                 kv_boxes, kv_scores, kv_classes, self.id_type, (id_width, id_height)
             )
@@ -152,8 +152,8 @@ class MultiModelService(BentoService):
         if self.save_output_img and self.savepath is not None:
             deidentify_img(id_image_arr, kv_boxes, kv_classes, self.savepath)
 
-        if cfgs.SAVE_ID_DEBUG_INFO and cfgs.ID_DEBUG_INFO_PATH is not None:
-            info_save_dir = os.path.join(cfgs.ID_DEBUG_INFO_PATH, time.strftime('%Y%m%d'))
+        if settings.SAVE_ID_DEBUG_INFO and settings.ID_DEBUG_INFO_PATH is not None:
+            info_save_dir = os.path.join(settings.ID_DEBUG_INFO_PATH, time.strftime('%Y%m%d'))
             os.makedirs(info_save_dir, exist_ok=True)
             info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
             deidentify_img(id_image_arr, kv_boxes, kv_classes, info_save_path)
@@ -162,7 +162,7 @@ class MultiModelService(BentoService):
         texts = self._rec_infer(cropped_images, class_masks)
 
         # TO DEBUG OUTPUT OF INFERENCE
-        if self.save_output_img and self.savepath is not None and cfgs.DEVELOP and cfgs.ID_DRAW_BBOX_IMG:
+        if self.save_output_img and self.savepath is not None and settings.DEVELOP and settings.ID_DRAW_BBOX_IMG:
             save_debug_img(id_image_arr, kv_boxes, kv_classes, texts, self.savepath)
 
         logger.info(f"Total inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
@@ -217,7 +217,7 @@ class MultiModelService(BentoService):
         (valid_mask, valid_keypoints, current_size, argmax_score, boundary_box, boundary_score, angle_label) = \
             boundary_postprocess(scores, boxes, labels, use_mask, use_keypoint, masks, keypoints, extra_info, original_size)
 
-        if use_mask and cfgs.ID_USE_BOUNDARY_MASK_TRANSFORM:
+        if use_mask and settings.ID_USE_BOUNDARY_MASK_TRANSFORM:
             H = if_use_mask(valid_mask, argmax_score, boundary_box, angle_label)
         elif use_keypoint:
             H, mask = if_use_keypoint(valid_keypoints, current_size, original_size)

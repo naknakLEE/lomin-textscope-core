@@ -53,11 +53,6 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FILE_MAX_BYTE: int = 1024 * 1024
-    BACKUP_COUNT: int = 100000000
-
-    LOGGER_LEVEL: str = "DEBUG"
-
     # BASE CONFIG
     DEVELOP: bool = True
     BASE_PATH: str = "/workspace"
@@ -67,6 +62,8 @@ class Settings(BaseSettings):
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"
+    FILE_MAX_BYTE: int = 1024 * 1024
+    BACKUP_COUNT: int = 100000000
 
     # OUTPUT_IMG_CONFIG
     OUTPUT_IMG_SAVE: bool = True
@@ -74,7 +71,7 @@ class Settings(BaseSettings):
     OUTPUT_DEBUG: str = "outputs/debug"
 
     # SERVICE CONFIG
-    SERVICE_CFG_PATH: str = "/workspace/assets/textscope_id.json"
+    SERVICE_CFG_PATH: str = f"{BASE_PATH}/assets/textscope_id.json"
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
@@ -82,15 +79,15 @@ class Settings(BaseSettings):
 
     SAVE_INPUT_IMAGE: bool = False
     INPUT_SAVE_PATH: str = "inputs/image"
-    SAVEPATH: str = "/workspace/outputs/idcard/test.png"
+    SAVEPATH: str = f"{BASE_PATH}/outputs/idcard/test.png"
 
     SAVE_ID_DEBUG_INFO: bool = False
-    ID_DEBUG_INFO_PATH: str = "/tmp/textscope/debug"
+    ID_DEBUG_INFO_PATH: str = f"{BASE_PATH}/tmp/textscope/debug"
 
     # MODEL CONFIG
     SAVE_UID: int = 1000
     SAVE_GID: int = 1000
-    DE_ID_SAVE_PATH: str = "inputs/image"
+    DE_ID_SAVE_PATH: str = f"{BASE_PATH}/inputs/image"
     DE_ID_LIMIT_SIZE: bool = True
     DE_ID_MAX_SIZE: int = 640
 

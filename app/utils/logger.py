@@ -38,7 +38,7 @@ def set_logger_config():
     log_file_dir = load_log_file_dir()
     logger.add(log_file_dir, rotation="1 MB")
     # fileHandler = logging.handlers.RotatingFileHandler(log_file_dir, maxBytes=settings.FILE_MAX_BYTE, backupCount=settings.BACKUP_COUNT)
-    # logger.setLevel(getattr(logging, settings.LOGGER_LEVEL))
+    # logger.setLevel(getattr(logging, settings.LOG_LEVEL))
     # logger.addHandler(fileHandler)
 
 

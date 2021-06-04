@@ -5,7 +5,7 @@
             {
                 "type": "onnx_model",
                 "name": "boundary_model",
-                "model_path": "/workspace/assets/id_boundary/1/kb_201027_skkang_002_id_outline_mask_0195000_b1.onnx",
+                "model_path": "assets/id_boundary/1/kb_201027_skkang_002_id_outline_mask_0195000_b1.onnx",
                 "preprocess": [
                     {
                         "type": "resize",
@@ -32,7 +32,7 @@
             {
                 "type": "onnx_model",
                 "name": "kv_model",
-                "model_path": "/workspace/assets/id_kv/1/kb_201016_skkang_001_id_kv_0069000_b1.onnx",
+                "model_path": "assets/id_kv/1/kb_201016_skkang_001_id_kv_0069000_b1.onnx",
                 "preprocess": [
                     {
                         "type": "resize",
@@ -68,7 +68,7 @@
             {
                 "type": "onnx_model",
                 "name": "recognition_model",
-                "model_path": "/workspace/assets/recognizer/1/kb_201109_skkang_001_id_rec_0020000_b9.onnx",
+                "model_path": "assets/recognizer/1/kb_201109_skkang_001_id_rec_0020000_b9.onnx",
                 "batch_size": 9,
                 "preprocess": [
                     {

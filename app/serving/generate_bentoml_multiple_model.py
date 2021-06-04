@@ -1,5 +1,6 @@
 import onnx
 import sys
+from os import path
 
 sys.path.append("/workspace")
 from app.serving.multiple_model_service import MultiModelService
@@ -11,7 +12,8 @@ settings = get_settings()
 service_cfg = load_json(settings.SERVICE_CFG_PATH)['idcard']['resources']
 model_path = {}
 for cfg in service_cfg:
-    model_path[cfg['name']] = cfg['model_path']
+    model_path[cfg['name']] = path.join(settings.BASE_PATH, cfg['model_path'])
+    
 
 # Create a pytorch model service instance
 multi_model_service = MultiModelService()

@@ -12,22 +12,22 @@ from service_streamer import ThreadedStreamer
 from shapely.geometry import Polygon
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
-from app.serving.utils.envs import logger,cfgs
+from app.serving.utils.envs import logger,settings
 from app.serving.utils.catalogs import ELabelCatalog, EDocumentCatalog
 from app.errors.exceptions import InferenceException
 
 
-characters = ELabelCatalog.get(("num","eng_cap","eng_low","kor_2350","symbols"), decipher=cfgs.DECIPHER)
+characters = ELabelCatalog.get(("num","eng_cap","eng_low","kor_2350","symbols"), decipher=settings.DECIPHER)
 converter = build_converter(characters, True)
 mask_generator = CharacterMaskGenerator(converter)
 mask_generator.class_mask_map.update(EDocumentCatalog.ID_CARD)
 
-boundary_score_threshold = float(cfgs.ID_BOUNDARY_SCORE_TH)
-kv_score_threshold = float(cfgs.ID_KV_SCORE_TH)
-kv_box_expansion = float(cfgs.ID_BOX_EXPANSION)
-target_width = int(cfgs.ID_TRANSFORM_TARGET_WIDTH)
-target_height = int(cfgs.ID_TRANSFORM_TARGET_HEIGHT)
-min_size = int(cfgs.ID_IMG_MIN_SIZE)
+boundary_score_threshold = float(settings.ID_BOUNDARY_SCORE_TH)
+kv_score_threshold = float(settings.ID_KV_SCORE_TH)
+kv_box_expansion = float(settings.ID_BOX_EXPANSION)
+target_width = int(settings.ID_TRANSFORM_TARGET_WIDTH)
+target_height = int(settings.ID_TRANSFORM_TARGET_HEIGHT)
+min_size = int(settings.ID_IMG_MIN_SIZE)
 deidentify_classes = ['id', 'dlc_license_num']
 valid_type = {
     'RRC': ['id', 'issue_date', 'name'],
@@ -400,7 +400,7 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
         _type = resource['type']
         _name = resource['name']
         _use_streamer = resource['use_streamer'] if 'use_streamer' in resource else False
-        _model_path = resource['model_path'] if 'model_path' in resource else ''
+        _model_path = os.path.join(settings.BASE_PATH, resource['model_path']) if 'model_path' in resource else ''
         _batch_size = resource['batch_size'] if 'batch_size' in resource else 1
         _max_latency = resource['max_latency'] if 'max_latency' in resource else 0.1
         _preprocess_cfg = resource['preprocess'] if 'preprocess' in resource else []
@@ -512,7 +512,7 @@ def deidentify_img(img_arr, kv_boxes, kv_classes, savepath):
         _box = kv_boxes[indicies[index]]
         _img_arr[_box[1]:_box[3], _box[0]:_box[2], :] = 0
 
-    if cfgs.DEVELOP:
+    if settings.DEVELOP:
         for _box, _class in zip(kv_boxes, kv_classes):
             min_x, min_y, max_x, max_y = _box.tolist()
             width = max_x - min_x
@@ -520,8 +520,8 @@ def deidentify_img(img_arr, kv_boxes, kv_classes, savepath):
             _img_arr = cv2.rectangle(_img_arr, (min_x, min_y, width, height), (255,0,0), 3)
 
     _img_arr = cv2.cvtColor(_img_arr, cv2.COLOR_BGR2RGB)
-    if cfgs.DE_ID_LIMIT_SIZE:
-        limit_size = cfgs.DE_ID_MAX_SIZE
+    if settings.DE_ID_LIMIT_SIZE:
+        limit_size = settings.DE_ID_MAX_SIZE
         image_max = max(_img_arr.shape)
         resize_ratio = limit_size / float(image_max)
         if resize_ratio < 1.0:
@@ -530,8 +530,8 @@ def deidentify_img(img_arr, kv_boxes, kv_classes, savepath):
     os.makedirs(pwd, exist_ok=True)
     cv2.imwrite(savepath, _img_arr)
     if sys.platform == "linux":
-        os.chown(pwd, int(cfgs.SAVE_UID), int(cfgs.SAVE_GID))
-        os.chown(savepath, int(cfgs.SAVE_UID), int(cfgs.SAVE_GID))
+        os.chown(pwd, int(settings.SAVE_UID), int(settings.SAVE_GID))
+        os.chown(savepath, int(settings.SAVE_UID), int(settings.SAVE_GID))
     logger.info(f"Deidentify time: \t{(time.time()-start_t) * 1000:.2f}ms")
     return 0
 
@@ -729,8 +729,8 @@ def if_use_mask(valid_mask, argmax_score, boundary_box, angle_label):
     boundary_quad = mask_to_quad(
         boundary_mask,
         boundary_box,
-        mask_threshold=cfgs.ID_BOUNDARY_MASK_THRESH,
-        force_rect=cfgs.ID_BOUNDARY_MASK_FORCE_RECT
+        mask_threshold=settings.ID_BOUNDARY_MASK_THRESH,
+        force_rect=settings.ID_BOUNDARY_MASK_FORCE_RECT
     )
     boundary_quad = order_points(boundary_quad)
 

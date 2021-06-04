@@ -39,7 +39,7 @@ async def index(session: Session = Depends(db.session)):
     # print('\033[96m' + f"{user}" + '\033[0m')
 
     curren_time = datetime.utcnow()
-    return Response(f"Notification API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
+    return Response(f"Textscope API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
 
 
 @router.get("/test")
