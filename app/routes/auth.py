@@ -25,6 +25,9 @@ async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(db.session),
 ) -> Dict:
+    """
+    OAuth2 호환 token 발급
+    """
     user = authenticate_user(form_data.email, form_data.password, session)
     if not user:
         raise ex.NotFoundUserException(email=form_data.email)

@@ -66,7 +66,7 @@ class BaseMixin:
     def get_by_email(cls, 
         session: Session, 
         email: EmailStr
-) -> Optional[ModelType]:
+    ) -> Optional[ModelType]:
         query = session.query(cls).filter(cls.email == email)
         return query.first()
 
@@ -86,7 +86,7 @@ class BaseMixin:
         *, 
         db_obj: User, 
         obj_in: UserUpdate
-    ) -> ModelType:
+    ) -> Any:
         is_exist = cls.get_by_email(session, email=obj_in.email)
         if is_exist:
             return "This user already exist"
@@ -118,13 +118,12 @@ class BaseMixin:
             col_name = col.name
             if col_name in kwargs:
                 setattr(obj, col_name, kwargs.get(col_name))
-        user = User(email=obj.email)
         session.add(obj)
         session.flush()
         if auto_commit:
             session.commit()
         # session.refresh(obj)
-        return user
+        return obj
 
     @classmethod
     def create_usage(cls, 
@@ -150,7 +149,7 @@ class Users(Base, BaseMixin):
     __tablename__ = "users"
     __table_args__ = {'extend_existing': True} 
     username = Column(String(length=128), nullable=True)
-    email = Column(String(length=255), nullable=False, primary_key=True)
+    email = Column(String(length=255), nullable=False)
     hashed_password = Column(String(length=2000), nullable=True)
     full_name = Column(String(length=128), nullable=True)
     disabled = Column(Boolean, nullable=True, default=False)
@@ -180,19 +179,27 @@ class Usage(Base, BaseMixin):
     status_code = Column(Integer, nullable=False)
 
     @classmethod
-    def get_usage(cls, session: Session, email: EmailStr = None) -> Optional[ModelType]:
+    def get_usage_count(cls, session: Session, email: EmailStr = None) -> Optional[ModelType]:
         if email is not None:
-            query = session.query(cls.status_code, cls.created_at).filter(cls.email == email)
+            query = session.query(func.count(cls.status_code)).filter(cls.email == email).group_by(cls.status_code)
         else:
-            query = session.query(cls.email, func.count(cls.email)).group_by(cls.email)
+            query = session.query(func.count(cls.email))
             
         success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
         failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
         return { 
-            # "total_response": query.all(),
             "success_response": success_response.all(), 
             "failed_response": failed_response.all(),
         }
+    
+    @classmethod
+    def get_usage(cls, session: Session, email: EmailStr = None, skip: int = 0, limit: int = 100) -> Optional[ModelType]:
+        if email is not None:
+            query = session.query(cls).filter(cls.email == email)
+        else:
+            query = session.query(cls).offset(skip).limit(limit)
+
+        return query.all()
 
 
 def create_db_table() -> None:

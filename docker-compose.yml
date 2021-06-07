@@ -18,6 +18,26 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
     restart: always
   
+  serving:
+    image: docker.lomin.ai/ts-serving:0.0.1
+    build:
+      context: ./
+      dockerfile: Dockerfile.bentoml
+    container_name: serving
+    ports: 
+      - 5000:5000
+    volumes:
+      - ./:/workspace
+      # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    tty: true
+    depends_on: 
+      - postgres
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_IP_ADDR}
+    # command: bentoml serve MultiModelService:latest
+
   web:
     image: docker.lomin.ai/ts-web:0.0.1
     build:
@@ -37,25 +57,18 @@ services:
     restart: unless-stopped
     # command: python /workspace/app/main.py
 
-  serving:
-    image: docker.lomin.ai/ts-serving:0.0.1
-    build:
-      context: ./
-      dockerfile: Dockerfile.bentoml
-    container_name: serving
-    ports: 
-      - 5000:5000
-    volumes:
-      - ./:/workspace
-      # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
-    tty: true
-    depends_on: 
-      - postgres
-    runtime: nvidia
-    networks:
-      our_net:
-          ipv4_address: ${SERVING_IP_ADDR}
-    # command: bentoml serve MultiModelService:latest
+
+        
+  # proxy:
+  #   image: nginx:latest
+  #   container_name: proxy
+  #   ports:
+  #     - "8011:80"
+  #   volumes:
+  #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${NGINX_IP_ADDR}
 
   gpu_telemetry:
     image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04

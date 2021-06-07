@@ -99,7 +99,9 @@ async def api_logger(
     # request.state.db.flush()
     # request.state.db.commit()
     # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
-    Usage.create_usage(request.state.db, auto_commit=True, email=email, status_code=status_code)
+
+    if request.url.path == '/inference':
+        Usage.create_usage(request.state.db, auto_commit=True, email=email, status_code=status_code)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.error(traceback.format_exc())

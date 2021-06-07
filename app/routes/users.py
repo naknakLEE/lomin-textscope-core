@@ -1,6 +1,6 @@
-from typing import Any, Dict, List
+from typing import Any
 
-from fastapi import Depends, APIRouter, HTTPException, Body
+from fastapi import Depends, APIRouter
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
@@ -8,7 +8,7 @@ from pydantic.networks import EmailStr
 from app.utils.auth import (
     get_current_active_user
 )
-from app.models import User
+from app import models
 from app.database.connection import db
 from app.database.schema import Users, UserUpdate
 from app.utils.auth import get_password_hash
@@ -18,51 +18,28 @@ from app.errors import exceptions as ex
 router = APIRouter()
 
 
-@router.get("", response_model=User)
-def read_users(
-    session: Session = Depends(db.session),
-    skip: int = 0,
-    limit: int = 100,
-    current_user: User = Depends(get_current_active_user),
-) -> Any:
-    if not current_user.is_superuser:
-        raise ex.PrivielgeException(current_user.email)
-    users = Users.get_multi(session, skip=skip, limit=limit)
-    return users
-
-
-@router.post("", response_model=User)
-def create_user(
-    session: Session = Depends(db.session),
-    user: Dict = {},
-    current_user: User = Depends(get_current_active_user)
-) -> Any:
-    if not current_user.is_superuser:
-        raise ex.PrivielgeException(current_user.email)
-    is_exist = Users.get(session, email=user["email"])
-    if is_exist:
-        raise ex.AlreadyExistException(current_user.email)
-    user["hashed_password"] = get_password_hash(user["password"])
-    created_user = Users.create(session, auto_commit=True, **user)
-    return created_user
-
-
-@router.get("/me", response_model=User)
+@router.get("/me", response_model=models.User)
 async def read_users_me(
-    current_user: User = Depends(get_current_active_user)
+    current_user: models.UserInfo = Depends(get_current_active_user)
 ) -> Any:
+    """
+    현재 유저 정보 조회
+    """
     return current_user
 
 
-@router.put("/me", response_model=User)
+@router.put("/me", response_model=models.UserInfo)
 def update_user_me(
     session: Session = Depends(db.session),
     email: EmailStr = None,
     full_name: str = None,
     username: str = None,
     password: str = None,
-    current_user: User = Depends(get_current_active_user)
+    current_user: models.UserInfo = Depends(get_current_active_user)
 ) -> Any:
+    """
+    현재 유저 정보 업데이트
+    """
     current_user_data = jsonable_encoder(current_user)
     user_in = UserUpdate(**current_user_data)
     if password is not None:
@@ -75,34 +52,3 @@ def update_user_me(
         user_in.email = email
     updated_user = Users.update(session, db_obj=current_user, obj_in=user_in)
     return updated_user
-
-
-@router.get("/{user_email}", response_model=User)
-def read_user_by_email(
-    user_email: EmailStr,
-    current_user: User = Depends(get_current_active_user),
-    session: Session = Depends(db.session),
-) -> Any:
-    user = Users.get(session, email=user_email)
-    if user == current_user:
-        return user
-    if not current_user.is_superuser:
-        raise ex.PrivielgeException(current_user.email)
-    return user
-
-
-@router.put("/{user_email}", response_model=User)
-def update_user(
-    *,
-    session: Session = Depends(db.session),
-    user_email: EmailStr,
-    user_in: UserUpdate,
-    current_user: User = Depends(get_current_active_user),
-) -> Any:
-    user = Users.get(session, email=user_email)
-    if not current_user.is_superuser:
-        raise ex.PrivielgeException(current_user.email)
-    if not user:
-        raise ex.AlreadyExistException(current_user.email)
-    user = Users.update(session, db_obj=user, obj_in=user_in)
-    return user

@@ -1,5 +1,4 @@
 import time
-import sys
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from fastapi import Request, Response
@@ -7,12 +6,10 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from jose import jwt
 
-sys.path.append("/workspace")
 from app.database.connection import db
 from app.utils.logger import api_logger
 from app.errors.exceptions import exception_handler
 from app.common.const import get_settings
-
 
 
 settings = get_settings()

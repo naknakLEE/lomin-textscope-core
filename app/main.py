@@ -8,7 +8,7 @@ from fastapi_cprofile.profiler import CProfileMiddleware
 from dataclasses import asdict
 
 sys.path.append("/workspace")
-from app.routes import auth, index, users, inference
+from app.routes import auth, index, users, inference, admin
 from app.database.connection import db
 from app.common.config import Config
 from app.common.const import get_settings
@@ -21,7 +21,7 @@ def create_app() -> FastAPI:
     db.init_app(app, **asdict(Config()))
 
     settings = get_settings()
-    # create_db_table()
+    create_db_table()
 
 
     if settings.PROFILING_TOOL == "pyinstrument":
@@ -39,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(inference.router, tags=["inference"], prefix="/inference")
     app.include_router(users.router, tags=["Users"], prefix="/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
+    app.include_router(admin.router, tags=["Admin"], prefix="/admin")
     return app
 
 app = create_app()
