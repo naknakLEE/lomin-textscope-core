@@ -24,7 +24,7 @@ stages:
       displayName: Build an web image
       inputs:
         repository: $(docker.lomin.ai/ts-web:0.0.1)
-        command: build -t docker.lomin.ai/ts-serving:0.0.1
+        command: build
         dockerfile: './Dockerfile.fastapi'
         tags: |
           $(tag)
