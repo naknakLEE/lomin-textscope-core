@@ -5,14 +5,12 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 
-from app.utils.auth import (
-    get_current_active_user
-)
-from app import models
+from app.utils.auth import get_current_active_user
 from app.database.connection import db
 from app.database.schema import Users, UserUpdate
 from app.utils.auth import get_password_hash
 from app.errors import exceptions as ex 
+from app import models
 
 
 router = APIRouter()

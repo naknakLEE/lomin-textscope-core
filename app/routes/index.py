@@ -1,5 +1,6 @@
 import requests
 
+from typing import Any
 from datetime import datetime
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
@@ -63,9 +64,6 @@ def check_status() -> Response:
     """
     서버 상태 체크
     """
-    # return JSONResponse(status_code=200, content=f"{[postgresConnection][0]}")
-    curren_time = datetime.utcnow()
-
     try:
         serving_server_status_check_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/healthz'
         response = requests.get(serving_server_status_check_url)
@@ -73,22 +71,15 @@ def check_status() -> Response:
         is_serving_server_working = 'Connection'
     except Exception:
         is_serving_server_working = 'Exception'
-        # return Response(f"Serving server error (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
-
-
 
     try:
-        # to check database we will execute raw query
         session = next(db.session())
         session.execute('SELECT 1')
         is_database_working = 'Connection'
     except Exception:
-        output = str(Exception)
         is_database_working = 'Exception'
-        # return Response(f"Database server error (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
     finally:
         session.close()
-    
     
     status = f"is_database_working: {is_database_working}, is_serving_server_working: {is_serving_server_working}"
     return Response(f"Textscope API ({status})")

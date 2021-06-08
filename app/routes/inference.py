@@ -5,7 +5,6 @@ from fastapi import Depends, File, UploadFile, APIRouter
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
-from app.models import User
 from app.database.schema import Usage
 from app.database.connection import db
 from app.utils.auth import get_current_active_user
@@ -33,9 +32,9 @@ async def inference(
     return response.json()
 
 
-@router.get("/me/usage", response_model=List[models.Usage])
+@router.get("/usage/me", response_model=List[models.Usage])
 def read_usage_me_by_email(
-    current_user: User = Depends(get_current_active_user),
+    current_user: models.User = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Any:
     """
@@ -44,9 +43,10 @@ def read_usage_me_by_email(
     usages = Usage.get_usage(session, email=current_user.email)
     return usages
 
-@router.get("/me/count")
+
+@router.get("/count/me")
 def count_usage_me(
-    current_user: User = Depends(get_current_active_user),
+    current_user: models.User = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Any:
     """
@@ -59,8 +59,6 @@ def count_usage_me(
 def cal_usage_count(usages) -> Dict:
     successed_count = sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
     failed_count = sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
-    test = usages["success_response"]
-    print('\033[96m' + f"\n{type(test[0])}" + '\033[0m')
     return { 
         "total_count": successed_count + failed_count,
         "success_count":successed_count, 

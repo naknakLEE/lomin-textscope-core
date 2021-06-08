@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 
 from app.utils.auth import get_current_active_user
-from app import models
 from app.database.connection import db
 from app.database.schema import Usage, Users, UserUpdate
 from app.utils.auth import get_password_hash
@@ -45,9 +44,6 @@ def create_user(
     """
     새로운 유저 생성
     """
-    # {"username": "tea","full_name": "tea","email": "tea@example.com","password": "123456","is_superuser": False,"hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e"}
-    # user = User(**user.__dict__)
-    # user = user.__dict__
     user = user.__dict__
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user['email'])
@@ -162,8 +158,6 @@ def count_usage_by_email(
 def cal_usage_count(usages) -> Dict:
     successed_count = sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
     failed_count = sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
-    test = usages["success_response"]
-    print('\033[96m' + f"\n{type(test[0])}" + '\033[0m')
     return { 
         "total_count": successed_count + failed_count,
         "success_count":successed_count, 
