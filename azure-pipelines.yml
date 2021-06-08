@@ -21,9 +21,29 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      displayName: Build an image
+      displayName: Build an web image
       inputs:
+        repository: $(docker.lomin.ai/ts-web:0.0.1)
+        command: build -t docker.lomin.ai/ts-serving:0.0.1
+        dockerfile: './Dockerfile.fastapi'
+        tags: |
+          $(tag)
+    steps:
+    - task: Docker@2
+      displayName: Build an serving image
+      inputs:
+        repository: $(docker.lomin.ai/ts-web:0.0.1)
         command: build
-        dockerfile: './docker-compose.yml'
+        dockerfile: './Dockerfile.bentoml'
+        tags: |
+          $(tag)
+    
+    steps:
+    - task: Docker@2
+      displayName: Build an postgres image
+      inputs:
+        repository: $(postgres)
+        command: build
+        image: postgres:11
         tags: |
           $(tag)
