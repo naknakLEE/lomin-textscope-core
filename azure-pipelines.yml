@@ -36,17 +36,12 @@ stages:
     #     dockerfile: './Dockerfile.bentoml'
     #     tags: |
     #       $(docker.lomin.ai/ts-web:0.0.1)
-    - task: Docker@2
-      displayName: Build an postgres image
-      inputs:
-        # repository: 
-        command: build
-        image: postgres:11
-        tags: |
-          $(postgres)
-    # - script: |
-    #       pytest tests/*
-    #       docker-compose up -d
+    - script: |
+          pytest tests
+          python -m nuitka --module app --include-package=app
+          mv app/main.py ./main.py
+          python -m nuitka main.py
+          docker-compose up -d
   
   # - stage: Testing
   #   displayName: Testing web app
