@@ -23,24 +23,24 @@ stages:
     - task: Docker@2
       displayName: Build an web image
       inputs:
-        repository: docker.lomin.ai/ts-web:0.0.1
+        # repository: 
         command: build
         dockerfile: './Dockerfile.fastapi'
         tags: |
-          $(tag)
+          $(docker.lomin.ai/ts-web:0.0.1)
     - task: Docker@2
       displayName: Build an serving image
       inputs:
-        repository: docker.lomin.ai/ts-web:0.0.1
+        # repository: 
         command: build
         dockerfile: './Dockerfile.bentoml'
         tags: |
-          $(tag)
+          $(docker.lomin.ai/ts-web:0.0.1)
     - task: Docker@2
       displayName: Build an postgres image
       inputs:
-        repository: postgres
+        # repository: 
         command: build
         image: postgres:11
         tags: |
-          $(tag)
+          $(postgres)
