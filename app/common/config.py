@@ -31,4 +31,4 @@ class ProdConfig(Config):
 
 def config() -> Any:
     config = dict(production=ProdConfig(), test=TestConfig())
-    return config.get(environ.get("API_ENV", "local"))
+    return config.get(settings.API_ENV)

@@ -1,11 +1,10 @@
 import uvicorn
 import sys
+import os
 
-from prometheusrock import PrometheusMiddleware, metrics_route
 from fastapi import FastAPI
-from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
-from fastapi_cprofile.profiler import CProfileMiddleware
 from dataclasses import asdict
+from prometheusrock import PrometheusMiddleware, metrics_route
 
 sys.path.append("/workspace")
 from app.routes import auth, index, users, inference, admin
@@ -16,17 +15,20 @@ from app.database.schema import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 
 
+settings = get_settings()
+
+
 def create_app() -> FastAPI:
     app = FastAPI()
     db.init_app(app, **asdict(Config()))
 
-    settings = get_settings()
     create_db_table()
 
-
     if settings.PROFILING_TOOL == "pyinstrument":
+        from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
         app.add_middleware(PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True)
     elif settings.PROFILING_TOOL == "cProfile":
+        from fastapi_cprofile.profiler import CProfileMiddleware
         app.add_middleware(CProfileMiddleware, enable=True, server_app=app, print_each_request=True, filename='/tmp/output.pstats', strip_dirs=False, sort_by='cumulative')
     else:
         pass

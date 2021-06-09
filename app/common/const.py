@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     # BASE CONFIG
     DEVELOP: bool = True
     BASE_PATH: str = "/workspace"
+    API_ENV: str = 'test'
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = "logs/log"
