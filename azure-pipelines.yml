@@ -13,15 +13,8 @@ variables:
 
 stages:
   - task: DownloadSecureFile@1
-      name: security
-      displayName: 'Download .env'
       inputs:
         secureFile: '.env'
-    - script: |
-      echo Installing $(security.secureFilePath) to the trusted CA directory...
-      sudo chown root:root $(security.secureFilePath)
-      sudo chmod a+r $(security.secureFilePath)
-      sudo mv $(security.secureFilePath) .
 # - stage: Build
 #   displayName: Build image
 #   jobs:
