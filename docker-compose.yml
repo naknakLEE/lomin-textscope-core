@@ -68,24 +68,24 @@ services:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
 
-  gpu_telemetry:
-    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
-    container_name: gpu_telemetry
-    ports:
-      - 9400:9400
-    runtime: nvidia
-    networks:
-      our_net:
-        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+  # gpu_telemetry:
+  #   image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+  #   container_name: gpu_telemetry
+  #   ports:
+  #     - 9400:9400
+  #   runtime: nvidia
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
     
-  hardware_telemetry:
-    image: prom/node-exporter
-    container_name: hardware_telemetry
-    ports:
-      - 9100:9100
-    networks:
-      our_net:
-        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+  # hardware_telemetry:
+  #   image: prom/node-exporter
+  #   container_name: hardware_telemetry
+  #   ports:
+  #     - 9100:9100
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${NODE_EXPORTER_IP_ADDR}
 
   prometheus:
     image: prom/prometheus
