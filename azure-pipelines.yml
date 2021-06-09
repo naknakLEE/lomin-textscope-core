@@ -40,7 +40,7 @@ stages:
       name: security
       displayName: 'Download .env'
       inputs:
-        secureFile: 'environment'
+        secureFile: '.env'
     - script: |
           echo Installing $(security.secureFilePath) to the trusted CA directory...
           sudo chown root:root $(security.secureFilePath)
