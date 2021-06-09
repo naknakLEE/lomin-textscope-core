@@ -6,5 +6,5 @@ pool:
 
 stages:
 - task: DownloadSecureFile@1
-    inputs:
-      secureFile: 'environment'
+  inputs:
+    secureFile: 'environment'
