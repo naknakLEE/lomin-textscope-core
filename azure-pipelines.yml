@@ -20,6 +20,16 @@ stages:
     pool:
       vmImage: ubuntu-20.04
     steps:
+    - task: DownloadSecureFile@1
+      name: security
+      displayName: 'Download .env'
+      inputs:
+        secureFile: '.env'
+    - script: |
+      echo Installing $(security.secureFilePath) to the trusted CA directory...
+      sudo chown root:root $(security.secureFilePath)
+      sudo chmod a+r $(security.secureFilePath)
+      sudo mv $(security.secureFilePath) .
     - task: Docker@2
       displayName: Build an web image
       inputs:
