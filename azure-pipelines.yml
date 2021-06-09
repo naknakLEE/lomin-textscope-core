@@ -19,10 +19,10 @@ stages:
     inputs:
       secureFile: 'environment'
   - script: |
-    echo Installing $(security.secureFilePath) to the trusted CA directory...
-    sudo chown root:root $(security.secureFilePath)
-    sudo chmod a+r $(security.secureFilePath)
-    sudo mv $(security.secureFilePath) .
+        echo Installing $(security.secureFilePath) to the trusted CA directory...
+        sudo chown root:root $(security.secureFilePath)
+        sudo chmod a+r $(security.secureFilePath)
+        sudo mv $(security.secureFilePath) .
 # - stage: Build
 #   displayName: Build image
 #   jobs:
