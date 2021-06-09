@@ -15,18 +15,20 @@ class Config:
     DB_ECHO: bool = True
     DEBUG: bool = False
     TEST_MODE: bool = False
-    DB_URL: str = environ.get("DB_URL", f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_ADDR}/{settings.POSTGRES_DB}")
+    # DB_URL: str = f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_ADDR}/{settings.POSTGRES_DB}"
+    DB_URL: str = "sqlite:///./sql_app.db"
 
 
 @dataclass
 class TestConfig(Config):
     # DB_URL: str = environ.get("DB_URL", f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_ADDR}/test")
     TEST_MODE: bool = True
+    DB_URL: str = "sqlite:///./sql_app.db"
 
 
 @dataclass
 class ProdConfig(Config):
-    ...
+    DB_URL: str = "sqlite:///./sql_app.db"
 
 
 def config() -> Any:
