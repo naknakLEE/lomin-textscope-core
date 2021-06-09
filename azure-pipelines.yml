@@ -5,11 +5,8 @@
 trigger:
 - azure-pipeline
 
-resources:
-- repo: self
-
-variables:
-  tag: '$(Build.BuildId)'
+pool:
+  vmImage: 'ubuntu-20.04'
 
 stages:
   - task: DownloadSecureFile@1
