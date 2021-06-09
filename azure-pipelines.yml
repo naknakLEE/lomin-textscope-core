@@ -12,7 +12,6 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-  - stage: Download
   - task: DownloadSecureFile@1
       name: security
       displayName: 'Download .env'
