@@ -18,25 +18,25 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
     restart: always
   
-  serving:
-    image: docker.lomin.ai/ts-serving:0.0.1
-    build:
-      context: ./
-      dockerfile: Dockerfile.bentoml
-    container_name: serving
-    ports: 
-      - 5000:5000
-    volumes:
-      - ./:/workspace
-      # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
-    tty: true
-    depends_on: 
-      - postgres
-    runtime: nvidia
-    networks:
-      our_net:
-        ipv4_address: ${SERVING_IP_ADDR}
-    # command: bentoml serve MultiModelService:latest
+  # serving:
+  #   image: docker.lomin.ai/ts-serving:0.0.1
+  #   build:
+  #     context: ./
+  #     dockerfile: Dockerfile.bentoml
+  #   container_name: serving
+  #   ports: 
+  #     - 5000:5000
+  #   volumes:
+  #     - ./:/workspace
+  #     # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+  #   tty: true
+  #   depends_on: 
+  #     - postgres
+  #   runtime: nvidia
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${SERVING_IP_ADDR}
+  #   # command: bentoml serve MultiModelService:latest
 
   web:
     image: docker.lomin.ai/ts-web:0.0.1
@@ -92,7 +92,7 @@ services:
     container_name: prometheus
     depends_on: 
       - web
-      - serving
+      # - serving
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus

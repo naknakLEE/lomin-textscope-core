@@ -42,9 +42,8 @@ stages:
           python -m nuitka --module app --include-package=app
           mv app/main.py ./main.py
           python -m nuitka main.py
-          ./main.bin
-          # docker-compose up -d
-  
+          docker-compose up -d
+  # ./main.bin
   # - stage: Testing
   #   displayName: Testing web app
   #   jobs:
