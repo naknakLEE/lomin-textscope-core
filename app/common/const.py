@@ -125,7 +125,7 @@ class Settings(BaseSettings):
     DECIPHER: bool = False
 
     class Config:
-        env_file = "/workspace/.env"
+        env_file = ".env"
 
 
 @lru_cache()
