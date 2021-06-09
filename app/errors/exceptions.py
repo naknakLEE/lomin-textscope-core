@@ -99,7 +99,7 @@ class JWTNotFoundUserException(APIException):
 
 
 class JWTExpiredExetpion(APIException):
-    def __init__(self, email: str = None, ex: Exception = None) -> None:
+    def __init__(self, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"Session has expired and logged out",
@@ -110,13 +110,24 @@ class JWTExpiredExetpion(APIException):
 
 
 class JWTException(APIException):
-    def __init__(self, JWTError: str = None, ex: Exception = None) -> None:
+    def __init__(self, JWTError: str = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
             msg=f"Could not valemailate credentials",
             detail="JWTError",
             code=f"{'1'.zfill(4)}",
             ex=JWTError,
+        )
+
+
+class NotAuthenticatedException(APIException):
+    def __init__(self, ex: Exception = None) -> None:
+        super().__init__(
+            status_code=StatusCode.HTTP_403,
+            msg=f"Not authenticated",
+            detail="Not authenticated",
+            code=f"{'1'.zfill(4)}",
+            ex=ex,
         )
 
 

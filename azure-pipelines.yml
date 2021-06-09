@@ -37,11 +37,13 @@ stages:
     #     tags: |
     #       $(docker.lomin.ai/ts-web:0.0.1)
     - script: |
+          pip3 install pytest
           pytest tests
           python -m nuitka --module app --include-package=app
           mv app/main.py ./main.py
           python -m nuitka main.py
-          docker-compose up -d
+          ./main.bin
+          # docker-compose up -d
   
   # - stage: Testing
   #   displayName: Testing web app

@@ -23,10 +23,11 @@ def test_get_access_token(client: TestClient) -> None:
 
 
 def test_use_access_token(
-    client: TestClient, superuser_token: Dict[str, str]
+    client: TestClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    response = client.get(f"/users/me?token={superuser_token}")
+    response = client.get(f"/users/me", headers=superuser_token_headers)
     result = response.json()
+    print('\033[96m' + f"response: {result}, {superuser_token_headers}" + '\033[m')
     assert response.status_code == 200
     assert "username" in result
     assert "email" in result

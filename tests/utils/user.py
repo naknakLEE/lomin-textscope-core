@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.common.const import get_settings
-from app.models import User, UserUpdate
+from app.models import User, UserUpdate, UserDatabaseScheme
 from app.database.schema import Users
 from tests.utils.utils import random_email, random_lower_string
 from app.utils.auth import get_password_hash
@@ -22,7 +22,8 @@ def user_authentication(
     response = r.json()
     print('\033[96m' + f"user_authentication: {response}" + '\033[0m')
     auth_token = response["access_token"]
-    return auth_token
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    return headers
 
 
 def create_random_user(db: Session) -> User:
@@ -41,12 +42,12 @@ def authentication_token_from_email(
     current_user = {}
     for key in user.__dict__: 
         current_user[key] = getattr(user, key)
-    user = UserUpdate(**current_user)
+    user = UserDatabaseScheme(**current_user)
     if not user:
         user = Users.create(db, username=email, email=email, password=password)
     else:
         hashed_password = get_password_hash(password)
-        user_in_update = UserUpdate(hashed_password=hashed_password)
+        user_in_update = UserDatabaseScheme(hashed_password=hashed_password)
         user_in_update.hashed_password = hashed_password
         user = Users.update(db, db_obj=user, obj_in=user_in_update)
         

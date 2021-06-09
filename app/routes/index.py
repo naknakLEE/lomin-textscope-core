@@ -68,16 +68,16 @@ def check_status() -> Response:
         serving_server_status_check_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/healthz'
         response = requests.get(serving_server_status_check_url)
         assert response.status_code == 200
-        is_serving_server_working = 'Connection'
+        is_serving_server_working = 'True'
     except Exception:
-        is_serving_server_working = 'Exception'
+        is_serving_server_working = 'False'
 
     try:
         session = next(db.session())
         session.execute('SELECT 1')
-        is_database_working = 'Connection'
+        is_database_working = 'True'
     except Exception:
-        is_database_working = 'Exception'
+        is_database_working = 'False'
     finally:
         session.close()
     

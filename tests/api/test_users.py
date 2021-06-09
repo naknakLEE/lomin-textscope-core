@@ -13,23 +13,25 @@ fake_info = settings.FAKE_USER_INFORMATION
 
 
 def test_get_users_normal_user_me(
-    client: TestClient, normal_user_token: Dict[str, str]
+    client: TestClient, normal_user_token_headers: Dict[str, str]
 ) -> None:
-    response = client.get(f"users/me?token={normal_user_token}")
+    response = client.get(f"users/me", headers=normal_user_token_headers)
     current_user = response.json()
+    # print('\033[096m' + f"email: {current_user}" + '\033[m')
     assert current_user["email"] == fake_info["email"]
     assert current_user["full_name"] == fake_info["full_name"]
     assert current_user["username"] == fake_info["username"]
 
 def test_create_user_new_email(
-    client: TestClient, superuser_token: dict, get_db: Session
+    client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
     email = random_email()
     password = random_lower_string()
     data = {"email": email, "password": password}
     response = client.post(
-        f"/users?token={superuser_token}", json=data,
+        f"/admin/users/create", json=data, headers=superuser_token_headers
     )
+    # print('\033[096m' + f"404 error: {response.json()}" + '\033[m')
     assert 200 <= response.status_code < 300
     created_user = response.json()
     user = Users.get(email=email)
@@ -39,16 +41,16 @@ def test_create_user_new_email(
 
 
 def test_get_existing_user(
-    client: TestClient, superuser_token: dict, get_db: Session
+    client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
     email = random_email()
     password = random_lower_string()
     user = Users.create(get_db, email=email, password=password)
     user_email = user.email
     response = client.get(
-        f"/users/{user_email}?token={superuser_token}",
+        f"admin/users/{user_email}", headers=superuser_token_headers
     )
-    print('\033[96m' + f"test_get_existing_user: {response.json()}" + '\033[0m')
+    # print('\033[96m' + f"test_get_existing_user: {response.json()}" + '\033[0m')
     assert 200 <= response.status_code < 300
     api_user = response.json()
     existing_user = Users.get_by_email(get_db, email=email)
@@ -57,7 +59,7 @@ def test_get_existing_user(
 
 
 def test_create_user_existing_username(
-    client: TestClient, superuser_token: dict, get_db: Session
+    client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
     email = random_email()
     password = random_lower_string()
@@ -65,7 +67,7 @@ def test_create_user_existing_username(
 
     data = {"email": email, "password": password}
     response = client.post(
-        f"/users?token={superuser_token}", json=data,
+        f"admin/users/create", json=data, headers=superuser_token_headers
     )
     created_user = response.json()
     
@@ -73,20 +75,21 @@ def test_create_user_existing_username(
     assert "_id" not in created_user
 
 
-def test_create_user_by_normal_user(
-    client: TestClient, normal_user_token: Dict[str, str]
-) -> None:
-    username = random_email()
-    password = random_lower_string()
-    data = {"email": username, "password": password}
-    response = client.post(
-        f"/users?token={normal_user_token}", json=data,
-    )
-    assert response.status_code == 400
+# API 추가 필요
+# def test_create_user_by_normal_user(
+#     client: TestClient, normal_user_token_headers: Dict[str, str]
+# ) -> None:
+#     username = random_email()
+#     password = random_lower_string()
+#     data = {"email": username, "password": password}
+#     response = client.post(
+#         f"/users", json=data, headers=normal_user_token_headers
+#     )
+#     assert response.status_code == 400
 
 
 def test_retrieve_users(
-    client: TestClient, superuser_token: dict, get_db: Session
+    client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -96,7 +99,7 @@ def test_retrieve_users(
     password2 = random_lower_string()
     user2 = Users.create(get_db, email=username2, password=password2)
 
-    response = client.get(f"/users?token={superuser_token}")
+    response = client.get(f"/admin/users", headers=superuser_token_headers)
     all_users = response.json()
 
     assert len(all_users) > 1

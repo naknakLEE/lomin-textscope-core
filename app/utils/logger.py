@@ -15,6 +15,7 @@ from loguru import logger
 
 from app.database.schema import Logs, Usage
 from app.common.const import get_settings
+from app.errors import exceptions as ex
 
 
 settings = get_settings()
@@ -100,7 +101,7 @@ async def api_logger(
     # request.state.db.commit()
     # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
 
-    if request.url.path == '/inference':
+    if email is not None and request.url.path == '/inference':
         Usage.create_usage(request.state.db, auto_commit=True, email=email, status_code=status_code)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
