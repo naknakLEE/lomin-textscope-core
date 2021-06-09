@@ -5,6 +5,6 @@ pool:
   vmImage: 'ubuntu-20.04'
 
 stages:
-  - task: DownloadSecureFile@1
-      inputs:
-        secureFile: 'environment'
+- task: DownloadSecureFile@1
+    inputs:
+      secureFile: 'environment'
