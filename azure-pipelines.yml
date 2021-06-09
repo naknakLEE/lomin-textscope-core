@@ -12,59 +12,58 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-  - stage: Download
-  - task: DownloadSecureFile@1
-    name: security
-    displayName: 'Download .env'
-    inputs:
-      secureFile: 'environment'
-  - script: |
-        echo Installing $(security.secureFilePath) to the trusted CA directory...
-        sudo chown root:root $(security.secureFilePath)
-        sudo chmod a+r $(security.secureFilePath)
-        sudo mv $(security.secureFilePath) .
-# - stage: Build
-#   displayName: Build image
-#   jobs:
-#   - job: Build
-#     displayName: Build
-#     pool:
-#       vmImage: ubuntu-20.04
-#     steps:
-#     - task: Docker@2
-#       displayName: Build an web image
-#       inputs:
-#         # repository: 
-#         command: build
-#         dockerfile: './Dockerfile.fastapi'
-#         tags: |
-#           $(docker.lomin.ai/ts-web:0.0.1)
-#     # - task: Docker@2
-#     #   displayName: Build an serving image
-#     #   inputs:
-#     #     # repository: 
-#     #     command: build
-#     #     dockerfile: './Dockerfile.bentoml'
-#     #     tags: |
-#     #       $(docker.lomin.ai/ts-web:0.0.1)
-#     - script: |
-#           pip install pytest pytest-azurepipelines
-#           pip install pytest-cov
-#           pip install fastapi[all]
-#           pip install sqlalchemy
-#           pip install prometheusrock
-#           pip install python-jose
-#           pip install passlib
-#           pip install loguru
-#           pip install psycopg2-binary
-#           pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml tests
-#       displayName: 'pytest'
-#     - script: |
-#           mv app/main.py ./main.py
-#           python -m nuitka --module app --include-package=app
-#           python -m nuitka main.py
-#           docker-compose up -d
-#       displayName: 'convert python -> c using nuitka'
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-20.04
+    steps:
+    # - task: Docker@2
+    #   displayName: Build an web image
+    #   inputs:
+    #     # repository: 
+    #     command: build
+    #     dockerfile: './Dockerfile.fastapi'
+    #     tags: |
+    #       $(docker.lomin.ai/ts-web:0.0.1)
+    # - task: Docker@2
+    #   displayName: Build an serving image
+    #   inputs:
+    #     # repository: 
+    #     command: build
+    #     dockerfile: './Dockerfile.bentoml'
+    #     tags: |
+    #       $(docker.lomin.ai/ts-web:0.0.1)
+    - task: DownloadSecureFile@1
+      name: security
+      displayName: 'Download .env'
+      inputs:
+        secureFile: 'environment'
+    - script: |
+          echo Installing $(security.secureFilePath) to the trusted CA directory...
+          sudo chown root:root $(security.secureFilePath)
+          sudo chmod a+r $(security.secureFilePath)
+          sudo mv $(security.secureFilePath) .
+    - script: |
+          pip install pytest pytest-azurepipelines
+          pip install pytest-cov
+          pip install fastapi[all]
+          pip install sqlalchemy
+          pip install prometheusrock
+          pip install python-jose
+          pip install passlib
+          pip install loguru
+          pip install psycopg2-binary
+          pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml tests
+      displayName: 'pytest'
+    - script: |
+          mv app/main.py ./main.py
+          python -m nuitka --module app --include-package=app
+          python -m nuitka main.py
+          docker-compose up -d
+      displayName: 'convert python -> c using nuitka'
 
 
   # ./main.bin
