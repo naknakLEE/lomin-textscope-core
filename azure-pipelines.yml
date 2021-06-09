@@ -42,10 +42,11 @@ stages:
       inputs:
         secureFile: '.env'
     - script: |
-          echo Installing $(security.secureFilePath) to the trusted CA directory...
+          echo Download $(security.secureFilePath) to the trusted CA directory...
           sudo chown root:root $(security.secureFilePath)
           sudo chmod a+r $(security.secureFilePath)
           sudo mv $(security.secureFilePath) .
+          echo $(pwd)
     - script: |
           pip install pytest pytest-azurepipelines
           pip install pytest-cov
