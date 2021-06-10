@@ -63,8 +63,10 @@ stages:
           mv app/main.py ./main.py
           python -m nuitka --module app --include-package=app
           python -m nuitka main.py
-          docker-compose up -d
       displayName: 'convert python -> c using nuitka'
+    - script: |
+          docker-compose up -d
+      displayName: 'run docker-compose'
 
 
   # ./main.bin

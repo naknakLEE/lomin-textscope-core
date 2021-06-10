@@ -13,17 +13,19 @@ RUN pip3 install fastapi uvicorn
 # RUN sudo apt-get -y install postgresql postgresql-contrib
 RUN sudo apt-get -y install postgresql-client
 
-RUN pip3 install sqlalchemy && \
-    pip3 install requests
+RUN pip3 install --pre -U bentoml 
+
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install jupyter && \
+    pip3 install -r ./guides/quick-start/requirements.txt
 
 RUN pip3 install python-jose[cryptography] && \
     pip3 install passlib[bcrypt] && \
     pip3 install python-multipart && \
     pip3 install cryptography==3.3.2
 
-RUN pip3 install sqlalchemy && \
-    pip3 install requests && \
-    pip3 install psycopg2-binary && \
+RUN pip3 install psycopg2-binary && \
     pip3 install python-dotenv && \
     pip3 install pydantic[email] && \
     pip3 install PyJWT
@@ -36,22 +38,21 @@ RUN pip3 install fastapi_profiler && \
 
 RUN apt-get install -y psmisc
 
+RUN pip3 install opencv-python && \
+    apt-get -y install libgl1-mesa-glx
+
 WORKDIR /
 RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
-    python3 setup.py install
+    python setup.py install
 
-COPY ./app /workspace/app
-COPY ./.env /workspace
+RUN apt-get install gawk && \
+    apt-get install bison
 
 WORKDIR /workspace
-RUN mv app/main.py ./main.py && \
-    python3 -m nuitka --module app --include-package=app && \
-    python3 -m nuitka main.py && \
-    python3 -m nuitka --module main.py
-
-RUN rm -r app 
-
+# RUN python -m nuitka --module app --include-package=app
+# RUN cp app/main.py ./main.py
+# RUN python -m nuitka main.py
 
 
 # RUN mkdir ~/glibc_install && \

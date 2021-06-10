@@ -122,10 +122,12 @@ Textscope-old/
 Textscope-old
 temp
 temp/
-
+core
 
 # DB data
 pgdata/
+sql_app.db
+*.db
 
 # models
 *.pt

@@ -190,6 +190,7 @@ class MultiModelService(BentoService):
             'images': np.expand_dims(img_arr.astype(np.float32), axis=0)
         }
         output_names = self.infer_sess_map['boundary_model']['output_names']
+        output_names = [_.name for _ in self.artifacts.boundary_detection.get_outputs()]
         use_mask = 'mask' in output_names
         use_keypoint = 'keypoints' in output_names
         masks = None
@@ -236,7 +237,8 @@ class MultiModelService(BentoService):
             'images': np.expand_dims(img_arr.astype(np.float32), axis=0)
         }
 
-        output_names = self.infer_sess_map['kv_model']['output_names']
+        # output_names = self.infer_sess_map['kv_model']['output_names']
+        output_names = [_.name for _ in self.artifacts.kv_detection.get_outputs()]
         boxes, labels, scores = self.artifacts.kv_detection.run(output_names, inputs)
 
         valid_scores, valid_boxes, kv_classes = kv_postprocess(scores, boxes, labels, extra_info, self.infer_sess_map, original_size)

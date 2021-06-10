@@ -18,25 +18,25 @@ services:
           ipv4_address: ${POSTGRES_IP_ADDR}
     restart: always
   
-  # serving:
-  #   image: docker.lomin.ai/ts-serving:0.0.1
-  #   build:
-  #     context: ./
-  #     dockerfile: Dockerfile.bentoml
-  #   container_name: serving
-  #   ports: 
-  #     - 5000:5000
-  #   volumes:
-  #     - ./:/workspace
-  #     # - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
-  #   tty: true
-  #   depends_on: 
-  #     - postgres
-  #   runtime: nvidia
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${SERVING_IP_ADDR}
-  #   # command: bentoml serve MultiModelService:latest
+  serving:
+    image: docker.lomin.ai/ts-serving:0.0.1
+    build:
+      context: ./
+      dockerfile: Dockerfile.bentoml
+    container_name: serving
+    ports: 
+      - 5000:5000
+    # volumes:
+    #   - ./:/workspace
+    #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    tty: true
+    depends_on: 
+      - postgres
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_IP_ADDR}
+    # command: bentoml serve MultiModelService:latest
 
   web:
     image: docker.lomin.ai/ts-web:0.0.1
@@ -46,8 +46,8 @@ services:
     container_name: web
     ports: 
       - 8000:8000
-    volumes:
-      - ./:/workspace
+    # volumes:
+    #   - ./:/workspace
     tty: true
     depends_on: 
       - postgres
@@ -55,7 +55,7 @@ services:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
     restart: unless-stopped
-    command: python /workspace/app/main.py
+    # command: python /workspace/main.bin
 
   proxy:
     image: nginx:latest
@@ -78,14 +78,14 @@ services:
   #     our_net:
   #       ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
     
-  # hardware_telemetry:
-  #   image: prom/node-exporter
-  #   container_name: hardware_telemetry
-  #   ports:
-  #     - 9100:9100
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+  hardware_telemetry:
+    image: prom/node-exporter
+    container_name: hardware_telemetry
+    ports:
+      - 9100:9100
+    networks:
+      our_net:
+        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
 
   prometheus:
     image: prom/prometheus

@@ -8,7 +8,7 @@ import onnxruntime as rt
 import time
 
 from collections import defaultdict
-from service_streamer import ThreadedStreamer
+# from service_streamer import ThreadedStreamer
 from shapely.geometry import Polygon
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
@@ -438,12 +438,12 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
             if 'label_classes' in _extra_config:
                 lookup_table = np.asarray(_extra_config['label_classes'])
                 _extra_config['label_classes'] = lookup_table
-            if _use_streamer:
-                streamer = ThreadedStreamer(
-                    batch_prediction,
-                    batch_size=_batch_size,
-                    max_latency=_max_latency
-                )
+            # if _use_streamer:
+            #     streamer = ThreadedStreamer(
+            #         batch_prediction,
+            #         batch_size=_batch_size,
+            #         max_latency=_max_latency
+            #     )
             else:
                 streamer = None
             infer_sess_map[_name] = {

@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     # BASE CONFIG
     DEVELOP: bool = True
     BASE_PATH: str = "."
-    API_ENV: str = 'test'
+    API_ENV: str = 'production'
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = "logs/log"

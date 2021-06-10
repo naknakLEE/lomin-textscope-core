@@ -1,0 +1,26 @@
+FROM ubuntu:20.04
+
+EXPOSE 8000
+
+RUN apt-get update && \
+    apt-get -y install git && \
+    apt-get -y install python3-pip
+
+RUN pip3 install fastapi uvicorn
+
+RUN sudo apt-get -y install postgresql-client
+
+RUN pip3 install python-jose[cryptography] && \
+    pip3 install passlib[bcrypt] && \
+    pip3 install python-multipart && \
+    pip3 install cryptography==3.3.2
+
+RUN pip3 install psycopg2-binary && \
+    pip3 install python-dotenv && \
+    pip3 install pydantic[email] && \
+    pip3 install PyJWT
+
+RUN pip3 install prometheusrock && \
+    pip3 install loguru
+
+WORKDIR /workspace

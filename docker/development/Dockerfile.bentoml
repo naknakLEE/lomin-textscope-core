@@ -1,0 +1,53 @@
+FROM pytorch/pytorch:1.8.0-cuda11.1-cudnn8-devel
+
+# RUN pip3 install fastapi uvicorn
+
+RUN apt-get update && \
+    apt-get install sudo 
+
+RUN apt-get install nano && \
+    apt-get install -y git  && \
+    apt-get install wget
+
+RUN apt-get install -y python3-pip && \
+    pip3 install --pre -U bentoml 
+
+RUN pip3 install opencv-python && \
+    apt-get -y install libgl1-mesa-glx
+
+RUN git clone http://github.com/bentoml/bentoml
+
+WORKDIR /workspace/bentoml
+RUN pip3 install jupyter && \
+    pip3 install -r ./guides/quick-start/requirements.txt --use-feature=2020-resolver
+
+RUN pip3 install typing
+
+RUN pip3 install imageio
+
+RUN pip3 install onnx && \
+    pip3 install onnxruntime && \
+    pip3 install imutils && \
+    pip3 install service_streamer && \
+    pip3 install scikit-image && \
+    pip3 install loguru
+
+RUN pip3 install pydantic[dotenv]
+
+WORKDIR /bin
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && chmod 755 jq
+
+RUN pip3 install uvicorn && \ 
+    pip3 install fastapi && \ 
+    pip3 install fastapi_profiler && \ 
+    pip3 install pydantic[email]
+
+COPY ./ /workspace
+
+WORKDIR /workspace/lovit
+RUN python setup.py install
+    
+WORKDIR /workspace/app/serving
+RUN python generate_bentoml_multiple_model.py
+
+# CMD ["bentoml", "serve", "PytorchModelService:latest"]
