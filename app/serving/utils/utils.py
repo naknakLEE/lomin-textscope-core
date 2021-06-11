@@ -400,7 +400,7 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
         _type = resource['type']
         _name = resource['name']
         _use_streamer = resource['use_streamer'] if 'use_streamer' in resource else False
-        _model_path = os.path.join(settings.BASE_PATH, resource['model_path']) if 'model_path' in resource else ''
+        # _model_path = os.path.join(settings.BASE_PATH, resource['model_path']) if 'model_path' in resource else ''
         _batch_size = resource['batch_size'] if 'batch_size' in resource else 1
         _max_latency = resource['max_latency'] if 'max_latency' in resource else 0.1
         _preprocess_cfg = resource['preprocess'] if 'preprocess' in resource else []
@@ -409,7 +409,7 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
             continue
         
         if _type == "onnx_model":
-            _model_name = os.path.basename(_model_path)
+            # _model_name = os.path.basename(_model_path)
             # if decipher:
             #     dir_path, basename = os.path.split(_model_path)
             #     _model_path = os.path.join(dir_path, decipher.prefix + basename)
@@ -417,21 +417,21 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
             #     _sess = rt.InferenceSession(_onnx_io.getvalue())
             # else:
             #     _sess = rt.InferenceSession(_model_path)
-            _sess = rt.InferenceSession(_model_path)
+            # _sess = rt.InferenceSession(_model_path)
 
-            output_names = [_.name for _ in _sess.get_outputs()]
+            # output_names = [_.name for _ in _sess.get_outputs()]
 
-            def batch_prediction(inputs):
-                images = np.stack(inputs)
-                outputs = _sess.run(output_names, {'images': images})
-                batch_size = len(images)
-                output_list = list()
-                for i in range(batch_size):
-                    _output = list()
-                    for j in range(len(output_names)):
-                        _output.append(outputs[j][i])
-                    output_list.append(_output)
-                return output_list
+            # def batch_prediction(inputs):
+            #     images = np.stack(inputs)
+            #     outputs = _sess.run(output_names, {'images': images})
+            #     batch_size = len(images)
+            #     output_list = list()
+            #     for i in range(batch_size):
+            #         _output = list()
+            #         for j in range(len(output_names)):
+            #             _output.append(outputs[j][i])
+            #         output_list.append(_output)
+            #     return output_list
 
             _pre_process = build_preprocess(_preprocess_cfg)
 
@@ -448,8 +448,8 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
                 streamer = None
             infer_sess_map[_name] = {
                 'streamer': streamer,
-                'sess': _sess,
-                'output_names': output_names,
+                # 'sess': _sess,
+                # 'output_names': output_names,
                 'preprocess': _pre_process,
                 'config': _extra_config,
                 'batch_size': _batch_size

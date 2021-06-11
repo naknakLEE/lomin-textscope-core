@@ -189,7 +189,7 @@ class MultiModelService(BentoService):
         inputs = {
             'images': np.expand_dims(img_arr.astype(np.float32), axis=0)
         }
-        output_names = self.infer_sess_map['boundary_model']['output_names']
+        # output_names = self.infer_sess_map['boundary_model']['output_names']
         output_names = [_.name for _ in self.artifacts.boundary_detection.get_outputs()]
         use_mask = 'mask' in output_names
         use_keypoint = 'keypoints' in output_names

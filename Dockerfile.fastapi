@@ -47,10 +47,8 @@ COPY ./.env /workspace
 WORKDIR /workspace
 RUN mv app/main.py ./main.py && \
     python3 -m nuitka --module app --include-package=app && \
-    python3 -m nuitka main.py && \
-    python3 -m nuitka --module main.py
+    rm -r app 
 
-RUN rm -r app 
 
 
 

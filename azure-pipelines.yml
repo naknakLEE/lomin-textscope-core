@@ -20,22 +20,22 @@ stages:
     pool:
       vmImage: ubuntu-20.04
     steps:
-    # - task: Docker@2
-    #   displayName: Build an web image
-    #   inputs:
-    #     # repository: 
-    #     command: build
-    #     dockerfile: './Dockerfile.fastapi'
-    #     tags: |
-    #       $(docker.lomin.ai/ts-web:0.0.1)
-    # - task: Docker@2
-    #   displayName: Build an serving image
-    #   inputs:
-    #     # repository: 
-    #     command: build
-    #     dockerfile: './Dockerfile.bentoml'
-    #     tags: |
-    #       $(docker.lomin.ai/ts-web:0.0.1)
+    - task: Docker@2
+      displayName: Build an web image
+      inputs:
+        repository: textscopeRegistry
+        command: build
+        dockerfile: './Dockerfile.fastapi'
+        tags: |
+          docker.lomin.ai/ts-web:0.0.1
+    - task: Docker@2
+      displayName: Build an serving image
+      inputs:
+        repository: textscopeRegistry
+        command: build
+        dockerfile: './Dockerfile.bentoml'
+        tags: |
+          docker.lomin.ai/ts-serving:0.0.1
     - task: DownloadSecureFile@1
       name: security
       displayName: 'Download .env'

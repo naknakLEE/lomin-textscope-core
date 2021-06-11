@@ -184,7 +184,7 @@ def load_bento_service_class(bundle_path):
     
     # Remove bundle_path from sys.path to avoid import naming conflicts
     sys.path.append(bundle_path)
-    from MultiModelService.app.serving.multiple_model_service import MultiModelService
+    from MultiModelService.multiple_model_service import MultiModelService
     sys.path.remove(bundle_path)
 
     model_service_class = MultiModelService
