@@ -31,24 +31,28 @@ stages:
           sudo chmod a+r $(security.secureFilePath)
           sudo mv $(security.secureFilePath) .
           echo $(pwd)
+    - script: |
+        git submodule init
+        git submodule update
+      displayName: 'Download submodule'
     - task: Docker@2
       displayName: Build an serving image
       inputs:
-        containerRegistry: textscopeRegistry
+        containerRegistryrepository: textscopeRegistry
         command: build
         dockerfile: './Dockerfile.bentoml'
         # containerRegistry: textscopeRegistry
         tags: |
           ts-serving-0.0.1
+    - task: Docker@2
       displayName: Build an web image
       inputs:
-        containerRegistry: textscopeRegistry
+        containerRegistryrepository: textscopeRegistry
         command: build
         dockerfile: './Dockerfile.fastapi'
         # containerRegistry: textscopeRegistry
         tags: |
           ts-web-0.0.1
-    - task: Docker@2
     - script: |
           pip install pytest pytest-azurepipelines
           pip install pytest-cov
