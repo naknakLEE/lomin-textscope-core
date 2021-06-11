@@ -32,6 +32,9 @@ RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
 
 RUN pip3 install uvicorn
 
+RUN git submodule init && \
+    git submodule update
+
 COPY ./ /workspace/
 
 WORKDIR /workspace/lovit
