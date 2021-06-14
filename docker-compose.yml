@@ -21,7 +21,7 @@ services:
   serving:
     image: docker.lomin.ai/ts-serving:0.0.1
     build:
-      context: ./
+      context: ./docker
       dockerfile: Dockerfile.bentoml
     container_name: serving
     ports: 
@@ -41,7 +41,7 @@ services:
   web:
     image: docker.lomin.ai/ts-web:0.0.1
     build:
-      context: ./
+      context: ./docker
       dockerfile: Dockerfile.fastapi
     container_name: web
     ports: 

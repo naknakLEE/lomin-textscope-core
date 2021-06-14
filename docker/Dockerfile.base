@@ -4,4 +4,4 @@ RUN apt-get update && \
     apt-get -y install python3-pip
 
 RUN pip3 install opencv-python && \
-    apt-get -y install libglib2.0-0 libsm6 libxrender1 libxext6
+    apt-get -y install libglib2.0-0 libsm6 libxrender1 libxext6 libgl1-mesa-glx
