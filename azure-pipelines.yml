@@ -31,27 +31,6 @@ stages:
           sudo chmod a+r $(security.secureFilePath)
           sudo mv $(security.secureFilePath) .
           echo $(pwd)
-    - task: DownloadSecureFile@2
-      name: security
-      displayName: 'Download id_rsa'
-      inputs:
-        secureFile: 'id_rsa'
-    - task: DownloadSecureFile@3
-      name: security
-      displayName: 'Download id_rsa.pub'
-      inputs:
-        secureFile: 'id_rsa.pub'
-    - task: DownloadSecureFile@4
-      name: security
-      displayName: 'Download known_hosts'
-      inputs:
-        secureFile: 'known_hosts'
-    - script: |
-          echo Download $(security.secureFilePath) to the trusted CA directory...
-          sudo chown root:root $(security.secureFilePath)
-          sudo chmod a+r $(security.secureFilePath)
-          sudo mkdir ~/.ssh
-          sudo mv $(security.secureFilePath) ~./ssh
     - task: InstallSSHKey@0
       displayName: 'Install an SSH key'
       inputs:
@@ -59,18 +38,17 @@ stages:
         sshPublicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDvbXOPSFaT9X8ShfitD0mYtwqMXq1xa9JVL8RRwGul3MWb7BvK3Zu7ZSEQsVn16KaVzXun8v7/F7VhUNEEb2tyma4j66y/DTUeyfEoDsYYdHTtEfYiShROmVIY6sKrklOJmEwnqcdMeWo0GHFKczO1DB5lLaUbwAJUUB8RrR8ujXTK2vGdIadyfAP8qEc4GDhwBUU6az8wrDM4I1XiIHnEJjjFM0DVDKHOBG2iABUemGiE/ms1ayjxkpVeV7bhCnHw4qVRVEUWM+gz5ow50c0l0+koIOutnhHNzmcpN7Te8w4H7Z/DtebSq5ADSj1l4XvZ4HFOntPbcoiGA6EvOAL0MNfyZkccJBCPXEvAHPDuyoUnqrUJyLaz52T8Jd9lqL2vxkrP02xjEuM8J5E6CqqI4bACz0R0aiA/QPQN4vv92oAWT+v8FpstW8CpthR2mORTvGim8SPb4uH6L8D3HcSSmgG/vun1d8P70zGNhc/AnDRqRU1mZ7Y+XAJVYglJAmk= sw.lee@lomin.ai'
         sshKeySecureFile: 'id_rsa'
     - script: |
-        git submodule init
-        git submodule update
+        git clone git@ssh.dev.azure.com:v3/textscope/Textscope/lovit
       displayName: 'Download submodule'
-    - task: Docker@2
-      displayName: Build an serving image
-      inputs:
-        containerRegistryrepository: textscopeRegistry
-        command: build
-        dockerfile: './Dockerfile.bentoml'
-        # containerRegistry: textscopeRegistry
-        tags: |
-          ts-serving-0.0.1
+    # - task: Docker@2
+    #   displayName: Build an serving image
+    #   inputs:
+    #     containerRegistryrepository: textscopeRegistry
+    #     command: build
+    #     dockerfile: './Dockerfile.bentoml'
+    #     # containerRegistry: textscopeRegistry
+    #     tags: |
+    #       ts-serving-0.0.1
     - task: Docker@2
       displayName: Build an web image
       inputs:
