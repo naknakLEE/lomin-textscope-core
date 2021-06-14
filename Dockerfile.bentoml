@@ -32,14 +32,13 @@ RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
 
 RUN pip3 install uvicorn
 
-RUN git submodule init && \
-    git submodule update
-
 COPY ./ /workspace/
 
-WORKDIR /workspace/lovit
-RUN python3 setup.py install && \
-    rm -r lovit
+WORKDIR /
+RUN git clone git@ssh.dev.azure.com:v3/textscope/Textscope/lovit && \ 
+    cd /lovit && \
+    python3 setup.py install && \
+    rm -r /lovit
 
 WORKDIR /workspace
 RUN cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml
