@@ -54,7 +54,7 @@ stages:
       inputs:
         containerRegistryrepository: textscopeRegistry
         command: build
-        dockerfile: './Dockerfile.fastapi'
+        dockerfile: './Dockerfile.nginx'
         # containerRegistry: textscopeRegistry
         tags: |
           ts-web-0.0.1
