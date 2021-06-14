@@ -53,19 +53,11 @@ stages:
     #     tags: |
     #       ts-serving-0.0.1
     - task: Docker@2
-      displayName: Build an web image
+      displayName: Build and push an image to container registry
       inputs:
-        command: build
+        command: buildAndPush
         repository: ts-web
         dockerfile: './Dockerfile.nginx'
-        containerRegistryrepository: textscopeRegistry
-        tags: |
-          0.0.1
-    - task: Docker@2
-      displayName: Push an web image to container registry
-      inputs:
-        command: push
-        repository: ts-web
         containerRegistryrepository: textscopeRegistry
         tags: |
           0.0.1
