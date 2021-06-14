@@ -58,7 +58,7 @@ stages:
         command: buildAndPush
         repository: ts-web
         dockerfile: './Dockerfile.nginx'
-        containerRegistry: textscoperegistry.azurecr.io
+        containerRegistry: textscopeRegistry.azurecr.io
         tags: |
           0.0.1
     - script: |
