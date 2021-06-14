@@ -1,27 +1,21 @@
-FROM pytorch/pytorch:1.8.0-cuda11.1-cudnn8-devel
-
-# RUN pip3 install fastapi uvicorn
-
-RUN apt-get update && \
-    apt-get install sudo 
+FROM wook3024/opencv_base_image:ubuntu20.04
 
 RUN apt-get install nano && \
     apt-get install -y git  && \
     apt-get install wget
 
-RUN apt-get install -y python3-pip && \
-    pip3 install --pre -U bentoml 
+RUN pip3 install torch==1.8.1+cpu torchvision==0.9.1+cpu torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 
-RUN pip3 install opencv-python && \
-    apt-get -y install libgl1-mesa-glx
+RUN pip3 install --pre -U bentoml 
 
-RUN git clone http://github.com/bentoml/bentoml
+WORKDIR /
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install -r ./guides/quick-start/requirements.txt
 
-WORKDIR /workspace/bentoml
-RUN pip3 install jupyter && \
-    pip3 install -r ./guides/quick-start/requirements.txt --use-feature=2020-resolver
-
-RUN pip3 install typing
+RUN pip3 install typing && \
+    pip3 install pydantic[dotenv] && \
+    pip3 install pydantic[email]
 
 RUN pip3 install imageio
 
@@ -32,22 +26,50 @@ RUN pip3 install onnx && \
     pip3 install scikit-image && \
     pip3 install loguru
 
-RUN pip3 install pydantic[dotenv]
-
 WORKDIR /bin
-RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && chmod 755 jq
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
+    chmod 755 jq
 
-RUN pip3 install uvicorn && \ 
-    pip3 install fastapi && \ 
-    pip3 install fastapi_profiler && \ 
-    pip3 install pydantic[email]
+RUN pip3 install uvicorn
 
-COPY ./ /workspace
+COPY ./ /workspace/
 
 WORKDIR /workspace/lovit
-RUN python setup.py install
-    
-WORKDIR /workspace/app/serving
-RUN python generate_bentoml_multiple_model.py
+RUN python3 setup.py install && \
+    rm -r /workspace/lovit
+
+WORKDIR /workspace
+RUN cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml
+RUN python3 app/serving/generate_bentoml_multiple_model.py
+
+WORKDIR /
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
+
+
+WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
+RUN mkdir assets && \ 
+    mv /workspace/assets/textscope_id.json ./assets/textscope_id.json && \
+    mv /workspace/.env .env && \ 
+    mv ./app/serving/multiple_model_service.py ./multiple_model_service.py && \
+    python3 -m nuitka --module app --include-package=app && \
+    python3 -m nuitka --module multiple_model_service.py
+
+RUN rm -r /workspace/* /Nuitka
+
+
+# RUN python3 -m nuitka --module app --include-package=app
+# RUN python3 -m nuitka main.py
+# RUN python3 -m nuitka --module main.py
+
+
+
+# RUN apt-get update && \
+#     apt-get install sudo && \
+#     apt-get -y install python3-pip
+
+# RUN pip3 install opencv-python && \
+#     apt-get -y install libglib2.0-0 libsm6 libxrender1 libxext6
 
 # CMD ["bentoml", "serve", "PytorchModelService:latest"]
