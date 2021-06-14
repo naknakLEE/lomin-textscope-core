@@ -34,7 +34,7 @@ stages:
     - task: InstallSSHKey@0
       displayName: 'Install an SSH key'
       inputs:
-        knownHostsEntry: 'SHA256:AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
+        knownHostsEntry: 'SHA256:AAAAB3NzaC1yc2EAAAADAQABAAABgQDvbXOPSFaT9X8ShfitD0mYtwqMXq1xa9JVL8RRwGul3MWb7BvK3Zu7ZSEQsVn16KaVzXun8v7/F7VhUNEEb2tyma4j66y/DTUeyfEoDsYYdHTtEfYiShROmVIY6sKrklOJmEwnqcdMeWo0GHFKczO1DB5lLaUbwAJUUB8RrR8ujXTK2vGdIadyfAP8qEc4GDhwBUU6az8wrDM4I1XiIHnEJjjFM0DVDKHOBG2iABUemGiE/ms1ayjxkpVeV7bhCnHw4qVRVEUWM+gz5ow50c0l0+koIOutnhHNzmcpN7Te8w4H7Z/DtebSq5ADSj1l4XvZ4HFOntPbcoiGA6EvOAL0MNfyZkccJBCPXEvAHPDuyoUnqrUJyLaz52T8Jd9lqL2vxkrP02xjEuM8J5E6CqqI4bACz0R0aiA/QPQN4vv92oAWT+v8FpstW8CpthR2mORTvGim8SPb4uH6L8D3HcSSmgG/vun1d8P70zGNhc/AnDRqRU1mZ7Y+XAJVYglJAmk= sw.lee@lomin.ai'
         sshPublicKey: '$(myPubKey)'
         sshKeySecureFile: 'id_rsa.pub'
     - script: |
