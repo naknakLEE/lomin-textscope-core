@@ -56,9 +56,9 @@ stages:
       displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
-        repository: ts-web
+        repository: textscopeRegistry.azurecr.io/ts-web
         dockerfile: './Dockerfile.nginx'
-        containerRegistry: textscopeRegistry
+        # containerRegistry: textscopeRegistry
         tags: |
           0.0.1
     - script: |
