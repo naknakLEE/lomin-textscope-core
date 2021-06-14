@@ -31,12 +31,20 @@ stages:
           sudo chmod a+r $(security.secureFilePath)
           sudo mv $(security.secureFilePath) .
           echo $(pwd)
-    - task: DownloadSecureFile@2
+    - task: DownloadSecureFile@1
       name: security
-      displayName: 'Download .ssh'
+      displayName: 'Download id_rsa'
       inputs:
         secureFile: 'id_rsa'
+    - task: DownloadSecureFile@1
+      name: security
+      displayName: 'Download id_rsa.pub'
+      inputs:
         secureFile: 'id_rsa.pub'
+    - task: DownloadSecureFile@1
+      name: security
+      displayName: 'Download known_hosts'
+      inputs:
         secureFile: 'known_hosts'
     - script: |
           echo Download $(security.secureFilePath) to the trusted CA directory...
