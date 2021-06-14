@@ -36,7 +36,7 @@ stages:
       displayName: 'Install an SSH key'
       inputs:
         knownHostsEntry: 'SHA256:uQQZzJocI8jw3J7lhyaYCKkpstc=|WIGmnyxih3oUBSnv87LRdogHgUY= sw.lee@lomin.ai'
-        sshPublicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDvbXOPSFaT9X8ShfitD0mYtwqMXq1xa9JVL8RRwGul3MWb7BvK3Zu7ZSEQsVn16KaVzXun8v7/F7VhUNEEb2tyma4j66y/DTUeyfEoDsYYdHTtEfYiShROmVIY6sKrklOJmEwnqcdMeWo0GHFKczO1DB5lLaUbwAJUUB8RrR8ujXTK2vGdIadyfAP8qEc4GDhwBUU6az8wrDM4I1XiIHnEJjjFM0DVDKHOBG2iABUemGiE/ms1ayjxkpVeV7bhCnHw4qVRVEUWM+gz5ow50c0l0+koIOutnhHNzmcpN7Te8w4H7Z/DtebSq5ADSj1l4XvZ4HFOntPbcoiGA6EvOAL0MNfyZkccJBCPXEvAHPDuyoUnqrUJyLaz52T8Jd9lqL2vxkrP02xjEuM8J5E6CqqI4bACz0R0aiA/QPQN4vv92oAWT+v8FpstW8CpthR2mORTvGim8SPb4uH6L8D3HcSSmgG/vun1d8P70zGNhc/AnDRqRU1mZ7Y+XAJVYglJAmk= sw.lee@lomin.ai'
+        sshPublicKey: $(myPubKey)
         sshKeySecureFile: 'id_rsa'
     - script: |
         git submodule init
