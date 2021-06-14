@@ -31,6 +31,9 @@ stages:
           sudo chmod a+r $(security.secureFilePath)
           sudo mv $(security.secureFilePath) .
           echo $(pwd)
+    - script: |
+        docker login textscopeRegistry.azurecr.io --username textscopeRegistry --password O8Jy+aZOtRRGG0+n6D4L6N+Iop71EIuU
+      displayName: 'Login textscope azure container repository'
     - task: InstallSSHKey@0
       displayName: 'Install an SSH key'
       inputs:
