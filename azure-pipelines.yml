@@ -58,14 +58,6 @@ stages:
         containerRegistry: textscopeRegistry
         tags: |
           0.0.1
-    - task: Docker@2
-      displayName: Push an web image to container registry
-      inputs:
-        command: push
-        repository: ts-web
-        containerRegistry: textscopeRegistry
-        tags: |
-          0.0.1
     - script: |
           pip install pytest pytest-azurepipelines
           pip install pytest-cov
@@ -83,9 +75,9 @@ stages:
     #       python -m nuitka --module app --include-package=app
     #       python -m nuitka main.py
     #   displayName: 'convert python -> c using nuitka'
-    # - script: |
-    #       docker-compose up -d
-    #   displayName: 'run docker-compose'
+    - script: |
+          docker-compose up -d
+      displayName: 'run docker-compose'
 
 
   # ./main.bin
