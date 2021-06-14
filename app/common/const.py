@@ -6,13 +6,19 @@ from functools import lru_cache
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
     POSTGRES_IP_ADDR: str
+    MYSQL_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
 
     # POSTGRESQL CONFIG
-    POSTGRES_DB: str = "user"
-    POSTGRES_USER: str = "user"
+    POSTGRES_DB: str = "admin"
+    POSTGRES_USER: str = "admin"
     POSTGRES_PASSWORD: str = "1q2w3e4r"
+
+    # MYSQL CONFIG
+    MYSQL_USER: str = "root"
+    MYSQL_DB: str = "test"
+    MYSQL_PASSWORD: str = "1q2w3e4r"
 
     # AUTHORIZATION SETTING
     SECRET_KEY: str
@@ -56,7 +62,7 @@ class Settings(BaseSettings):
     # BASE CONFIG
     DEVELOP: bool = True
     BASE_PATH: str = "."
-    API_ENV: str = 'test'
+    API_ENV: str = 'production'
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = "logs/log"

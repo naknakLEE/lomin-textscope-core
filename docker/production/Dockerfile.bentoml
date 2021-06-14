@@ -34,11 +34,9 @@ RUN pip3 install uvicorn
 
 COPY ./ /workspace/
 
-WORKDIR /
-RUN git clone git@ssh.dev.azure.com:v3/textscope/Textscope/lovit && \ 
-    cd /lovit && \
-    python3 setup.py install && \
-    rm -r /lovit
+WORKDIR /workspace/lovit
+RUN python3 setup.py install && \
+    rm -r /workspace/lovit
 
 WORKDIR /workspace
 RUN cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml

@@ -2,36 +2,37 @@ version: '2.3'
 
 services:
 
-  postgres:
-    image: postgres:11
-    container_name: postgres
+  mysql:
+    image: mysql:8.0.25
+    container_name: mysql
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_DATABASE=${MYSQL_DB}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
     ports: 
-      - 5432:5432
+      - 3307:3306
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
     networks:
       our_net:
-          ipv4_address: ${POSTGRES_IP_ADDR}
+          ipv4_address: ${MYSQL_IP_ADDR}
     restart: always
   
   serving:
     image: docker.lomin.ai/ts-serving:0.0.1
     build:
-      context: ./docker
+      context: ./docker/development
       dockerfile: Dockerfile.bentoml
     container_name: serving
     ports: 
       - 5000:5000
-    # volumes:
-    #   - ./:/workspace
+    volumes:
+      - ./:/workspace
     #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
     tty: true
     depends_on: 
-      - postgres
+      - mysql
     runtime: nvidia
     networks:
       our_net:
@@ -41,16 +42,16 @@ services:
   web:
     image: docker.lomin.ai/ts-web:0.0.1
     build:
-      context: ./docker
+      context: ./docker/development
       dockerfile: Dockerfile.fastapi
     container_name: web
     ports: 
       - 8000:8000
-    # volumes:
-    #   - ./:/workspace
+    volumes:
+      - ./:/workspace
     tty: true
     depends_on: 
-      - postgres
+      - mysql
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
@@ -117,39 +118,40 @@ services:
           ipv4_address: ${GRAFANA_IP_ADDR}
     restart: always
 
-  postgres-exporter:
-    image: quay.io/prometheuscommunity/postgres-exporter
-    container_name: postgres-exporter
-    ports:
-      - 9187:9187
-    environment:
-      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_IP_ADDR}/${POSTGRES_DB}?sslmode=disable
-    networks:
-      our_net:
-        ipv4_address: ${POSTGRES_EXPORTER_IP_ADDER}
+  # postgres-exporter:
+  #   image: quay.io/prometheuscommunity/postgres-exporter
+  #   container_name: postgres-exporter
+  #   ports:
+  #     - 9187:9187
+  #   environment:
+  #     - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_IP_ADDR}/${POSTGRES_DB}?sslmode=disable
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${POSTGRES_EXPORTER_IP_ADDER}
     restart: always
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    volumes:
-        - pgadmin:/root/.pgadmin
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    networks:
-      our_net:
-          ipv4_address: ${PGADMIN_IP_ADDR}
-    restart: unless-stopped
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+  #     PGADMIN_CONFIG_SERVER_MODE: 'False'
+  #   volumes:
+  #       - pgadmin:/root/.pgadmin
+  #   ports:
+  #     - "${PGADMIN_PORT:-5050}:80"
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${PGADMIN_IP_ADDR}
+  #   restart: unless-stopped
 
 volumes: 
   prometheus_data: {}
   grafana_data: {}
   pgdata: {}
-  pgadmin: {}
+  mysqldata: {}
+  # pgadmin: {}
 
 networks:
   our_net:

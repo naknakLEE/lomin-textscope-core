@@ -1,15 +1,20 @@
 FROM ubuntu:20.04
 
-EXPOSE 8000
+# EXPOSE 80
 
 RUN apt-get update && \
+    apt-get install sudo && \
     apt-get install nano && \
     apt-get -y install git && \
     apt-get -y install python3-pip
 
 RUN pip3 install fastapi uvicorn
 
-RUN sudo apt-get -y install postgresql-client
+# RUN sudo apt-get -y install postgresql postgresql-contrib
+# RUN sudo apt-get -y install postgresql-client
+# RUN sudo apt-get -y install libmysqlclient-dev && \
+#     pip3 install mysqlclient
+RUN sudo apt-get install python3-pymysql
 
 RUN pip3 install sqlalchemy && \
     pip3 install requests
@@ -34,15 +39,37 @@ RUN pip3 install fastapi_profiler && \
 
 RUN apt-get install -y psmisc
 
-WORKDIR /
-RUN git clone https://github.com/Nuitka/Nuitka.git && \
-    cd Nuitka && \
-    python3 setup.py install
-
 COPY ./app /workspace/app
 COPY ./.env /workspace
 
 WORKDIR /workspace
-RUN mv app/main.py ./main.py && \
-    python3 -m nuitka --module app --include-package=app && \
-    rm -r app 
+# RUN mv app/main.py ./main.py && \
+#     python3 -m nuitka --module app --include-package=app && \
+#     rm -r app 
+
+
+
+
+# RUN mkdir ~/glibc_install && \
+#     cd ~/glibc_install && \
+#     wget http://ftp.gnu.org/gnu/glibc/glibc-2.31.tar.gz && \
+#     tar zxvf glibc-2.31.tar.gz && \
+#     cd glibc-2.31 && \
+#     mkdir build && \
+#     cd build && \
+#     ../configure --prefix=/opt/glibc-2.31 && \
+#     make -j4 && \
+#     sudo make install && \
+#     export LD_LIBRARY_PATH=/opt/glibc-2.31/lib
+# wget -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
+# 	wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-2.29-r0.apk && \
+# 	apk add --no-cache glibc-2.29-r0.apk && \
+# 	rm glibc-2.29-r0.apk && \
+# 	wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-bin-2.29-r0.apk && \
+# 	apk add --no-cache glibc-bin-2.29-r0.apk && \
+# 	rm glibc-bin-2.29-r0.apk && \
+# 	wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-i18n-2.29-r0.apk && \
+# 	apk add --no-cache glibc-i18n-2.29-r0.apk && \
+# 	rm glibc-i18n-2.29-r0.apk /etc/apk/keys/sgerrand.rsa.pub && \
+# 	/usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8 && \
+# 	apk del glibc-bin glibc-i18n
