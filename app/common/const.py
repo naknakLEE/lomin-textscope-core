@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "1q2w3e4r"
 
     # MYSQL CONFIG
-    MYSQL_USER: str = "root"
+    MYSQL_ROOT_USER: str = "root"
     MYSQL_DB: str = "test"
     MYSQL_PASSWORD: str = "1q2w3e4r"
 
