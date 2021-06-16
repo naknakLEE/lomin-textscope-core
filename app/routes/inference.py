@@ -1,4 +1,6 @@
 import requests
+import aiohttp
+import asyncio
 
 from typing import Dict, Any, List
 from fastapi import Depends, File, UploadFile, APIRouter
@@ -27,9 +29,17 @@ async def inference(
     serving_server_inference_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference'
 
     image_data = await file.read()
-    response = requests.post(serving_server_inference_url, data=image_data)
-    print("\033[96m" + f"response_type: {type(response.json())}" + '\033[0m')
-    return response.json()
+    # task = asyncio.create_task(requests.post(serving_server_inference_url, data=image_data))
+    # await task
+    async with aiohttp.ClientSession() as session:
+        async with session.post(serving_server_inference_url, data=image_data) as response:
+            result = await response.json()
+            return result
+
+            
+    # response = await requests.post(serving_server_inference_url, data=image_data)
+    # print("\033[96m" + f"response_type: {type(response.json())}" + '\033[0m')
+    # return response.json()
 
 
 @router.get("/usage/me", response_model=List[models.Usage])
