@@ -1,4 +1,6 @@
 import requests
+import time
+import asyncio
 
 from typing import Any
 from datetime import datetime
@@ -12,7 +14,7 @@ from inspect import currentframe as frame
 from app.database.connection import db
 from app.database.schema import Users, Usage, Logs
 from app.common.const import get_settings
-from app.models import User, UserUpdate
+from app import models
 
 
 
@@ -44,23 +46,30 @@ router = APIRouter()
 #     return Response(f"Textscope API (UTC: {curren_time.strftime('%Y.%m.%d %H:%M:%S')})")
 
 
-# @router.get("/test")
-# async def test(request: Request) -> Response:
-#     print("state.user", request.state.user)
-#     # await index()
-#     # Errors.create(next(db.session()), auto_commit=True)
-#     # Users.create(session, auto_commit=True, name="test", **FAKE_USER_NFORMATION)
-#     try:
-#         a = 1/0
-#     except Exception as e:
-#         request.state.inspect = frame()
-#         raise e
-#     current_time = datetime.utcnow()
-#     return Response(f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})")
+async def sleep_func():
+    time.sleep(5)
+    return 342
+
+@router.get("/test")
+async def test(request: Request) -> Response:
+    # print("state.user", request.state.user)
+    # await index()
+    # Errors.create(next(db.session()), auto_commit=True)
+    # Users.create(session, auto_commit=True, name="test", **FAKE_USER_NFORMATION)
+    # await sleep_func()
+    task = asyncio.create_task(sleep_func())
+    await task
+    # try:
+    #     a = 1/0
+    # except Exception as e:
+    #     request.state.inspect = frame()
+    #     raise e
+    current_time = datetime.utcnow()
+    return Response(f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})")
 
 
-@router.get("/status")
-def check_status() -> Response:
+@router.get("/status", response_model=models.StatusResponse)
+def check_status() -> Any:
     """
     서버 상태 체크
     """

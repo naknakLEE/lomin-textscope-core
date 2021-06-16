@@ -3,6 +3,7 @@ from typing import Optional, List
 from jose.utils import int_arr_to_long
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
+from pydantic import Json
 
 
 class UserToken(BaseModel):
@@ -22,6 +23,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[EmailStr] = None
+    scopes: List[str] = []
 
 
 class User(BaseModel):
@@ -76,3 +78,14 @@ class UsageCount(BaseModel):
     success_count: int
     failed_count: int
 
+
+class StatusResponse(BaseModel):
+    response: str = f"Textscope API (is_database_working: (is_database_working), is_serving_server_working: $(is_serving_server_working))"
+
+
+class InferenceResponse(BaseModel):
+    status: str = ""
+    minQlt: str = ""
+    reliability: str = ""
+    docuType: str = ""
+    ocrResult: dict = ""

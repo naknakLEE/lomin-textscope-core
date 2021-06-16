@@ -1,6 +1,7 @@
 import requests
 import aiohttp
 import asyncio
+import json
 
 from typing import Dict, Any, List
 from fastapi import Depends, File, UploadFile, APIRouter
@@ -19,7 +20,12 @@ settings = get_settings()
 router = APIRouter()
 
 
-@router.post("", dependencies=[Depends(db.session), Depends(get_current_active_user)])
+@router.post(
+    "", 
+    dependencies=[Depends(db.session), 
+    Depends(get_current_active_user)],
+    response_model=models.InferenceResponse
+)
 async def inference(
     file: UploadFile = File(...)
 ) -> Response:
@@ -29,17 +35,10 @@ async def inference(
     serving_server_inference_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference'
 
     image_data = await file.read()
-    # task = asyncio.create_task(requests.post(serving_server_inference_url, data=image_data))
-    # await task
     async with aiohttp.ClientSession() as session:
         async with session.post(serving_server_inference_url, data=image_data) as response:
             result = await response.json()
-            return result
-
-            
-    # response = await requests.post(serving_server_inference_url, data=image_data)
-    # print("\033[96m" + f"response_type: {type(response.json())}" + '\033[0m')
-    # return response.json()
+            return models.InferenceResponse(ocrResult=result)
 
 
 @router.get("/usage/me", response_model=List[models.Usage])
@@ -54,7 +53,7 @@ def read_usage_me_by_email(
     return usages
 
 
-@router.get("/count/me")
+@router.get("/count/me", response_model=models.UsageCount)
 def count_usage_me(
     current_user: models.User = Depends(get_current_active_user),
     session: Session = Depends(db.session),
