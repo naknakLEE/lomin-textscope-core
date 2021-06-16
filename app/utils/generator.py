@@ -3,7 +3,8 @@ import sys
 import os
 import asyncio
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
+from fastapi.security import OAuth2PasswordBearer
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
 
@@ -18,6 +19,12 @@ from app.errors import exceptions as ex
 
 
 settings = get_settings()
+
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="auth2/token",
+    scopes={"me": "Read information about the current user.", "items": "Read items."},
+)
 
 
 def create_app() -> FastAPI:

@@ -18,7 +18,7 @@ router = APIRouter()
 
 @router.get("/me", response_model=models.User)
 async def read_users_me(
-    current_user: models.UserInfo = Depends(get_current_active_user)
+    current_user: dict = Depends(get_current_active_user)
 ) -> Any:
     """
     현재 유저 정보 조회
