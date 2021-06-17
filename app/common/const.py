@@ -79,6 +79,7 @@ class Settings(BaseSettings):
 
     # SERVICE CONFIG
     SERVICE_CFG_PATH: str = f"{BASE_PATH}/assets/textscope_id.json"
+    SERVICE_ENV_PATH: str = f"{BASE_PATH}/.env"
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"

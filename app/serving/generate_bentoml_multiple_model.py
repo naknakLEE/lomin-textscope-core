@@ -25,8 +25,14 @@ recognition_model = onnx.load(f"{model_path['recognition_model']}")
 multi_model_service.pack('boundary_detection', boundary_detection_model)
 multi_model_service.pack('kv_detection', kv_detection_model)
 multi_model_service.pack('recognition', recognition_model)
-multi_model_service.set_version("2021-06.textscope")
+# multi_model_service.set_version("2021-06.textscope")
 
 # Save the prediction service to disk for model serving
 multi_model_service.save()
 # multi_model_service.save_to_dir('/root/bentoml/repository/MultiModelService')
+
+
+# import numpy as np 
+# import cv2
+# img = np.expand_dims(cv2.imread("/workspace/others/assets/000000000000000IMG_4831.jpg"), axis=0)
+# multi_model_service.inference(img)

@@ -63,12 +63,12 @@ class BaseMixin:
 
 
     @classmethod
-    def get_by_email(cls, 
+    async def get_by_email(cls, 
         session: Session, 
         email: EmailStr
     ) -> Optional[ModelType]:
         query = session.query(cls).filter(cls.email == email)
-        return query.first()
+        return await query.first()
 
 
     @classmethod
@@ -202,11 +202,11 @@ class Usage(Base, BaseMixin):
         return query.all()
 
 
-def create_db_table() -> None:
+async def create_db_table() -> None:
     try:
         settings = get_settings()
         session = next(db.session())
-        Base.metadata.create_all(db._engine)
+        # Base.metadata.create_all(db._engine)
         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
     finally:

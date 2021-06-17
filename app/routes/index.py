@@ -50,22 +50,23 @@ async def sleep_func():
     time.sleep(5)
     return 342
 
-@router.get("/test")
-async def test(request: Request) -> Response:
-    # print("state.user", request.state.user)
-    # await index()
-    # Errors.create(next(db.session()), auto_commit=True)
-    # Users.create(session, auto_commit=True, name="test", **FAKE_USER_NFORMATION)
-    # await sleep_func()
-    task = asyncio.create_task(sleep_func())
-    await task
-    # try:
-    #     a = 1/0
-    # except Exception as e:
-    #     request.state.inspect = frame()
-    #     raise e
-    current_time = datetime.utcnow()
-    return Response(f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})")
+# @router.get("/test")
+# async def test(request: Request) -> Response:
+#     # print("state.user", request.state.user)
+#     # await index()
+#     # Errors.create(next(db.session()), auto_commit=True)
+#     # Users.create(session, auto_commit=True, name="test", **FAKE_USER_NFORMATION)
+#     # await sleep_func()
+#     # task = asyncio.create_task(sleep_func())
+#     # await task
+#     # sleep_func()
+#     # try:
+#     #     a = 1/0
+#     # except Exception as e:
+#     #     request.state.inspect = frame()
+#     #     raise e
+#     current_time = datetime.utcnow()
+#     return Response(f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})")
 
 
 @router.get("/status", response_model=models.StatusResponse)

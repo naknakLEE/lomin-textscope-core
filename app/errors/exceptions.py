@@ -60,7 +60,7 @@ class NotFoundUserException(APIException):
             status_code=StatusCode.HTTP_404,
             msg=f"Incorrect email or password",
             detail=f"Not Found User email: {email}",
-            code=f"{'1'.zfill(4)}",
+            code=f"{'0'.zfill(4)}",
             ex=ex,
         )
 
@@ -71,7 +71,7 @@ class PrivielgeException(APIException):
             status_code=StatusCode.HTTP_400,
             msg=f"The user doesn't have enough privileges",
             detail=f"{email} doesn't have enough privileges",
-            code=f"{'1'.zfill(4)}",
+            code=f"{'0'.zfill(4)}",
             ex=ex,
         )
 
@@ -82,7 +82,7 @@ class AlreadyExistException(APIException):
             status_code=StatusCode.HTTP_400,
             msg=f"The user with this email already exists in the system.",
             detail=f"{email} already exists in the system",
-            code=f"{'1'.zfill(4)}",
+            code=f"{'0'.zfill(4)}",
             ex=ex,
         )
 
@@ -93,7 +93,7 @@ class JWTNotFoundUserException(APIException):
             status_code=StatusCode.HTTP_401,
             msg=f"Could not valemailate credentials",
             detail=f"Not Found User email: {email}",
-            code=f"{'1'.zfill(4)}",
+            code=f"{'0'.zfill(4)}",
             ex=ex,
         )
 
@@ -103,20 +103,31 @@ class JWTExpiredExetpion(APIException):
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"Session has expired and logged out",
-            detail="Token Expired",
-            code=f"{'1'.zfill(4)}",
+            detail="",
+            code=f"{'0'.zfill(4)}",
             ex=ex,
         )
 
 
 class JWTException(APIException):
-    def __init__(self, JWTError: str = None) -> None:
+    def __init__(self, ex: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
-            msg=f"Could not valemailate credentials",
-            detail="JWTError",
-            code=f"{'1'.zfill(4)}",
-            ex=JWTError,
+            msg=f"Could not valilate credentials",
+            detail="",
+            code=f"{'0'.zfill(4)}",
+            ex=ex,
+        )
+
+
+class JWTScopeException(APIException):
+    def __init__(self, ex: Exception = None, authenticate_value: str = None) -> None:
+        super().__init__(
+            status_code=StatusCode.HTTP_401,
+            msg=f"Not enough permissions",
+            detail=authenticate_value,
+            code=f"{'0'.zfill(4)}",
+            ex=ex,
         )
 
 
@@ -126,7 +137,18 @@ class NotAuthenticatedException(APIException):
             status_code=StatusCode.HTTP_403,
             msg=f"Not authenticated",
             detail="Not authenticated",
-            code=f"{'1'.zfill(4)}",
+            code=f"{'0'.zfill(4)}",
+            ex=ex,
+        )
+
+
+class TimeoutException(APIException):
+    def __init__(self, ex: Exception = None) -> None:
+        super().__init__(
+            status_code=StatusCode.HTTP_403,
+            msg=f"timeout exception",
+            detail="",
+            code=f"{'0'.zfill(4)}",
             ex=ex,
         )
 

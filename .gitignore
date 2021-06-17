@@ -133,6 +133,7 @@ sql_app.db
 *.pt
 *.pth
 *.onnx
+*.ts
 
 # CPytnon
 app.*

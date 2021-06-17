@@ -162,7 +162,8 @@ class MultiModelService(BentoService):
         texts = self._rec_infer(cropped_images, class_masks)
 
         # TO DEBUG OUTPUT OF INFERENCE
-        if self.save_output_img and self.savepath is not None and settings.DEVELOP and settings.ID_DRAW_BBOX_IMG:
+        if self.save_output_img and self.savepath is not None:
+        # if self.save_output_img and self.savepath is not None and settings.DEVELOP and settings.ID_DRAW_BBOX_IMG:
             save_debug_img(id_image_arr, kv_boxes, kv_classes, texts, self.savepath)
 
         logger.info(f"Total inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
@@ -233,14 +234,36 @@ class MultiModelService(BentoService):
         extra_info = dict()
         for _proc in self.infer_sess_map['kv_model']['preprocess']:
             img_arr, extra_info = _proc(img_arr, extra_info=extra_info)
+
+
+        # img_arr = np.transpose(img_arr, (1,2,0))
+        # img_arr = cv2.resize(img_arr.astype(np.uint8), dsize=(2400,3200), interpolation=cv2.INTER_AREA)
+        # img_arr = np.transpose(img_arr, (2,0,1))
+        # inputs = {
+        #     '0': img_arr.astype(np.uint8)
+        # }
         inputs = {
             'images': np.expand_dims(img_arr.astype(np.float32), axis=0)
         }
 
+        # model_input_names = self.artifacts.kv_detection.get_inputs()
+        # print('\033[95m' + f"{model_input_names[0]}" + '\033[m')
+
+        # print('\033[95m' + f"{input_names[0].name}" + '\033[m')
         # output_names = self.infer_sess_map['kv_model']['output_names']
         output_names = [_.name for _ in self.artifacts.kv_detection.get_outputs()]
+        print('\033[95m' + f"{output_names}" + '\033[m')
+        # exit()
         boxes, labels, scores = self.artifacts.kv_detection.run(output_names, inputs)
-
+        # print('\033[95m' + f"{boxes.shape}" + '\033[m')
+        # print('\033[95m' + f"{labels.shape}" + '\033[m')
+        # print('\033[95m' + f"{scores.shape}" + '\033[m')
+        # mask = scores > 0.5
+        # boxes = boxes[mask]
+        # scores = scores[mask]
+        # labels = labels[mask] 
+        # print('\033[95m' + f"{_.shape}" + '\033[m')
+        # print('\033[95m' + f"{scores.shape}" + '\033[m')
         valid_scores, valid_boxes, kv_classes = kv_postprocess(scores, boxes, labels, extra_info, self.infer_sess_map, original_size)
         logger.info(f"KV inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
 

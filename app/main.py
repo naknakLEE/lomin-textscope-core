@@ -2,7 +2,7 @@ import uvicorn
 import sys
 
 sys.path.append("/workspace")
-from app.create_app import create_app
+from app.utils.generator import create_app
 
 app = create_app()
 

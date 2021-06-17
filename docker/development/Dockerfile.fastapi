@@ -12,12 +12,13 @@ RUN pip3 install fastapi uvicorn
 
 # RUN sudo apt-get -y install postgresql postgresql-contrib
 # RUN sudo apt-get -y install postgresql-client
-# RUN sudo apt-get -y install libmysqlclient-dev && \
-#     pip3 install mysqlclient
-RUN sudo apt-get -y install python3-pymysql
+RUN apt-get -y install libmysqlclient-dev && \
+    pip3 install mysqlclient
+# RUN sudo apt-get -y install python3-pymysql
 
 RUN pip3 install sqlalchemy && \
-    pip3 install requests
+    pip3 install databases && \
+    pip3 install aiomysql
 
 RUN pip3 install python-jose[cryptography] && \
     pip3 install passlib[bcrypt] && \
@@ -29,7 +30,8 @@ RUN pip3 install sqlalchemy && \
     pip3 install psycopg2-binary && \
     pip3 install python-dotenv && \
     pip3 install pydantic[email] && \
-    pip3 install PyJWT
+    pip3 install PyJWT && \
+    pip3 install aiohttp
 
 RUN pip3 install fastapi_profiler && \
     pip3 install fastapi-cprofile && \ 

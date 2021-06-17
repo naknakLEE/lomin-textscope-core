@@ -4,6 +4,7 @@ from jose.utils import int_arr_to_long
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
 from pydantic import Json
+from fastapi.param_functions import Form
 
 
 class UserToken(BaseModel):
@@ -18,7 +19,7 @@ class UserToken(BaseModel):
 
 class Token(BaseModel):
     access_token: str
-    token_type: str
+    token_type: str = "Bearer"
 
 
 class TokenData(BaseModel):
@@ -27,8 +28,8 @@ class TokenData(BaseModel):
 
 
 class User(BaseModel):
-    email: EmailStr = None
-    username: Optional[str]
+    email: EmailStr
+    username: Optional[str] = None
     full_name: Optional[str] = None
 
     class  Config:
@@ -84,8 +85,26 @@ class StatusResponse(BaseModel):
 
 
 class InferenceResponse(BaseModel):
-    status: str = ""
-    minQlt: str = ""
-    reliability: str = ""
-    docuType: str = ""
-    ocrResult: dict = ""
+    status: str
+    minQlt: str
+    reliability: str
+    docuType: str
+    ocrResult: dict
+
+
+class OAuth2PasswordRequestForm():
+    def __init__(
+        self,
+        grant_type: str = Form(None, regex="password"),
+        email: EmailStr = Form(...),
+        password: str = Form(...),
+        scope: str = Form(""),
+        client_id: Optional[str] = Form(None),
+        client_secret: Optional[str] = Form(None),
+    ):
+        self.grant_type = grant_type
+        self.email = email
+        self.password = password
+        self.scopes = scope.split()
+        self.client_id = client_id
+        self.client_secret = client_secret
