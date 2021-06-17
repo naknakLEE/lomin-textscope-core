@@ -21,22 +21,23 @@ router = APIRouter()
 
 
 @router.post(
-    "", 
-    dependencies=[Depends(db.session), 
-    Depends(get_current_active_user)],
-    response_model=models.InferenceResponse
+    "",
+    dependencies=[Depends(db.session), Depends(get_current_active_user)],
+    response_model=models.InferenceResponse,
 )
-async def inference(
-    file: UploadFile = File(...)
-) -> Response:
+async def inference(file: UploadFile = File(...)) -> Response:
     """
     모델 서버에 inference 요청
     """
-    serving_server_inference_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference'
+    serving_server_inference_url = (
+        f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference"
+    )
 
     image_data = await file.read()
     async with aiohttp.ClientSession() as session:
-        async with session.post(serving_server_inference_url, data=image_data) as response:
+        async with session.post(
+            serving_server_inference_url, data=image_data
+        ) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
 
@@ -66,10 +67,14 @@ def count_usage_me(
 
 
 def cal_usage_count(usages) -> Dict:
-    successed_count = sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
-    failed_count = sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
-    return { 
+    successed_count = (
+        sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
+    )
+    failed_count = (
+        sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
+    )
+    return {
         "total_count": successed_count + failed_count,
-        "success_count":successed_count, 
+        "success_count": successed_count,
         "failed_count": failed_count,
     }

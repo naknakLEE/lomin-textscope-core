@@ -12,7 +12,7 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     and_,
-    or_
+    or_,
 )
 from sqlalchemy.orm import Session, relationships
 from fastapi.encoders import jsonable_encoder
@@ -32,8 +32,11 @@ class BaseMixin:
     created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
 
     def all_columns(self) -> List:
-        return [c for c in self.__table__.columns if c.primary_key is False and c.name != "created_at"]
-
+        return [
+            c
+            for c in self.__table__.columns
+            if c.primary_key is False and c.name != "created_at"
+        ]
 
     @classmethod
     def get(cls, session: Session = None, **kwargs) -> Optional[ModelType]:
@@ -50,43 +53,29 @@ class BaseMixin:
         #     raise Exception("Only one row is supposed to be returned, but got more than one.")
         return query.first()
 
-
     @classmethod
     def get_multi(
-        cls, 
-        session: Session, 
-        skip: int = 0, 
-        limit: int = 100
+        cls, session: Session, skip: int = 0, limit: int = 100
     ) -> Optional[ModelType]:
         query = session.query(cls).offset(skip).limit(limit)
         return query.all()
 
-
     @classmethod
-    async def get_by_email(cls, 
-        session: Session, 
-        email: EmailStr
+    async def get_by_email(
+        cls, session: Session, email: EmailStr
     ) -> Optional[ModelType]:
         query = session.query(cls).filter(cls.email == email)
         return await query.first()
 
-
     @classmethod
     def remove(cls, session: Session, email: EmailStr) -> ModelType:
-        obj = session.query(cls).filter(cls.email==email).delete()
+        obj = session.query(cls).filter(cls.email == email).delete()
         session.flush()
         session.commit()
         return obj
 
-
     @classmethod
-    def update(
-        cls, 
-        session: Session, 
-        *, 
-        db_obj: User, 
-        obj_in: UserUpdate
-    ) -> Any:
+    def update(cls, session: Session, *, db_obj: User, obj_in: UserUpdate) -> Any:
         is_exist = cls.get_by_email(session, email=obj_in.email)
         if is_exist:
             return "This user already exist"
@@ -101,18 +90,14 @@ class BaseMixin:
         session.commit()
         return user
 
-
     @classmethod
     def create(
-        cls, 
-        session: Session, 
-        auto_commit=True, 
-        **kwargs
+        cls, session: Session, auto_commit=True, **kwargs
     ) -> Optional[ModelType]:
         is_exist = cls.get_by_email(session, email=kwargs["email"])
         if is_exist:
             return "This user already exist"
-        
+
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
@@ -126,11 +111,7 @@ class BaseMixin:
         return obj
 
     @classmethod
-    def create_usage(cls, 
-        session: Session, 
-        auto_commit=True, 
-        **kwargs
-    ) -> ModelType:
+    def create_usage(cls, session: Session, auto_commit=True, **kwargs) -> ModelType:
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
@@ -147,7 +128,7 @@ class BaseMixin:
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"
-    __table_args__ = {'extend_existing': True} 
+    __table_args__ = {"extend_existing": True}
     username = Column(String(length=128), nullable=True)
     email = Column(String(length=255), nullable=False)
     hashed_password = Column(String(length=2000), nullable=True)
@@ -155,12 +136,17 @@ class Users(Base, BaseMixin):
     disabled = Column(Boolean, nullable=True, default=False)
     is_active = Column(Boolean, nullable=True, default=False)
     is_superuser = Column(Boolean, nullable=False, default=False)
-    updated_at = Column(DateTime, nullable=False, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
 
 
 class Logs(Base, BaseMixin):
     __tablename__ = "logs"
-    __table_args__ = {'extend_existing': True} 
+    __table_args__ = {"extend_existing": True}
     url = Column(String(length=2000), nullable=False)
     method = Column(String(length=255), nullable=False)
     status_code = Column(String(length=255), nullable=False)
@@ -174,26 +160,38 @@ class Logs(Base, BaseMixin):
 
 class Usage(Base, BaseMixin):
     __tablename__ = "usage"
-    __table_args__ = {'extend_existing': True} 
+    __table_args__ = {"extend_existing": True}
     email = Column(String(length=255), nullable=False)
     status_code = Column(Integer, nullable=False)
 
     @classmethod
-    def get_usage_count(cls, session: Session, email: EmailStr = None) -> Optional[ModelType]:
+    def get_usage_count(
+        cls, session: Session, email: EmailStr = None
+    ) -> Optional[ModelType]:
         if email is not None:
-            query = session.query(func.count(cls.status_code)).filter(cls.email == email).group_by(cls.status_code)
+            query = (
+                session.query(func.count(cls.status_code))
+                .filter(cls.email == email)
+                .group_by(cls.status_code)
+            )
         else:
             query = session.query(func.count(cls.email))
-            
-        success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
-        failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
-        return { 
-            "success_response": success_response.all(), 
+
+        success_response = query.filter(
+            and_(cls.status_code < 300, cls.status_code >= 200)
+        )
+        failed_response = query.filter(
+            or_(cls.status_code >= 300, cls.status_code < 200)
+        )
+        return {
+            "success_response": success_response.all(),
             "failed_response": failed_response.all(),
         }
-    
+
     @classmethod
-    def get_usage(cls, session: Session, email: EmailStr = None, skip: int = 0, limit: int = 100) -> Optional[ModelType]:
+    def get_usage(
+        cls, session: Session, email: EmailStr = None, skip: int = 0, limit: int = 100
+    ) -> Optional[ModelType]:
         if email is not None:
             query = session.query(cls).filter(cls.email == email)
         else:

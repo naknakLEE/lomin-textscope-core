@@ -9,7 +9,7 @@ from app.utils.auth import get_current_active_user
 from app.database.connection import db
 from app.database.schema import Users, UserUpdate
 from app.utils.auth import get_password_hash
-from app.errors import exceptions as ex 
+from app.errors import exceptions as ex
 from app import models
 
 
@@ -17,9 +17,7 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=models.User)
-async def read_users_me(
-    current_user: dict = Depends(get_current_active_user)
-) -> Any:
+async def read_users_me(current_user: dict = Depends(get_current_active_user)) -> Any:
     """
     현재 유저 정보 조회
     """
@@ -33,7 +31,7 @@ def update_user_me(
     full_name: str = None,
     username: str = None,
     password: str = None,
-    current_user: models.UserInfo = Depends(get_current_active_user)
+    current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
     현재 유저 정보 업데이트

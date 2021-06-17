@@ -35,10 +35,22 @@ def create_app() -> FastAPI:
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
-        app.add_middleware(PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True)
+
+        app.add_middleware(
+            PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
+        )
     elif settings.PROFILING_TOOL == "cProfile":
         from fastapi_cprofile.profiler import CProfileMiddleware
-        app.add_middleware(CProfileMiddleware, enable=True, server_app=app, print_each_request=True, filename='/tmp/output.pstats', strip_dirs=False, sort_by='cumulative')
+
+        app.add_middleware(
+            CProfileMiddleware,
+            enable=True,
+            server_app=app,
+            print_each_request=True,
+            filename="/tmp/output.pstats",
+            strip_dirs=False,
+            sort_by="cumulative",
+        )
     else:
         pass
     app.add_middleware(TimeoutMiddleware)
@@ -53,5 +65,3 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/admin")
     return app
-
-

@@ -9,7 +9,7 @@ from app.utils.auth import get_current_active_user
 from app.database.connection import db
 from app.database.schema import Usage, Users, UserUpdate
 from app.utils.auth import get_password_hash
-from app.errors import exceptions as ex 
+from app.errors import exceptions as ex
 from app.common.const import get_settings
 from app import models
 
@@ -39,18 +39,18 @@ def create_user(
     *,
     session: Session = Depends(db.session),
     user: models.UserRegister,
-    current_user: models.UserInfo = Depends(get_current_active_user)
+    current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
     새로운 유저 생성
     """
     user = user.__dict__
     if not current_user.is_superuser:
-        raise ex.PrivielgeException(current_user['email'])
-    is_exist = Users.get(session, email=user['email'])
+        raise ex.PrivielgeException(current_user["email"])
+    is_exist = Users.get(session, email=user["email"])
     if is_exist:
-        raise ex.AlreadyExistException(user['email'])
-    user['hashed_password'] = get_password_hash(user['password'])
+        raise ex.AlreadyExistException(user["email"])
+    user["hashed_password"] = get_password_hash(user["password"])
     created_user = Users.create(session, auto_commit=True, **user)
     return created_user
 
@@ -88,9 +88,11 @@ def update_user(
         raise ex.PrivielgeException(current_user.email)
     if not user:
         raise ex.AlreadyExistException(current_user.email)
-    
+
     hashed_password = get_password_hash(user_in.password)
-    user_in = models.UserDatabaseScheme(**user_in.__dict__, hashed_password=hashed_password)
+    user_in = models.UserDatabaseScheme(
+        **user_in.__dict__, hashed_password=hashed_password
+    )
     user = Users.update(session, db_obj=user, obj_in=user_in)
     return user
 
@@ -156,10 +158,14 @@ def count_usage_by_email(
 
 
 def cal_usage_count(usages) -> Dict:
-    successed_count = sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
-    failed_count = sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
-    return { 
+    successed_count = (
+        sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
+    )
+    failed_count = (
+        sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
+    )
+    return {
         "total_count": successed_count + failed_count,
-        "success_count":successed_count, 
+        "success_count": successed_count,
         "failed_count": failed_count,
     }

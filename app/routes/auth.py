@@ -3,12 +3,13 @@ from datetime import timedelta
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+
 # from fastapi.security import OAuth2PasswordRequestForm
 
 from app.models import Token
 from app.utils.auth import authenticate_user, create_access_token
 from app.common.const import get_settings
-from app.errors import exceptions as ex 
+from app.errors import exceptions as ex
 from app.database.connection import db
 from app.models import OAuth2PasswordRequestForm
 
@@ -30,7 +31,8 @@ async def login_for_access_token(
         raise ex.NotFoundUserException(email=form_data.email)
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": form_data.email, "scopes": form_data.scopes }, expires_delta=access_token_expires
+        data={"sub": form_data.email, "scopes": form_data.scopes},
+        expires_delta=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}
 

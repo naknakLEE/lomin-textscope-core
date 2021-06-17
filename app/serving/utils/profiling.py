@@ -8,10 +8,11 @@ settings = get_settings()
 if settings.PROFILING_TOOL is not None:
     img = np.expand_dims(cv2.imread("test.jpg"), axis=0)
     multi_model_service.inference(img)
-    
-if settings.PROFILING_TOOL == 'cProfile':
+
+if settings.PROFILING_TOOL == "cProfile":
     import cProfile
     import pstats
+
     profiler = cProfile.Profile()
     profiler.enable()
     multi_model_service.inference(img)
@@ -19,8 +20,9 @@ if settings.PROFILING_TOOL == 'cProfile':
     stats = pstats.Stats(profiler).sort_stats("tottime")
     stats.strip_dirs()
     stats.print_stats()
-elif settings.PROFILING_TOOL == 'pyinstrument':
+elif settings.PROFILING_TOOL == "pyinstrument":
     from pyinstrument import Profiler
+
     profiler = Profiler()
     profiler.start()
     multi_model_service.inference(img)

@@ -4,7 +4,6 @@ async def exception_handler(error: Exception):
     return error
 
 
-
 class APIException(Exception):
     status_code: str
     minQlt: str
@@ -21,7 +20,7 @@ class APIException(Exception):
         reliability: str = None,
         docuType: str = None,
         ocrResult: str = None,
-        ex
+        ex,
     ) -> None:
         self.status_code = status_code
         self.minQlt = minQlt
@@ -34,13 +33,7 @@ class APIException(Exception):
 
 
 class successful(APIException):
-    def __init__(
-        self, 
-        reliability,
-        docuType,
-        ocrResult,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, reliability, docuType, ocrResult, ex: Exception = None) -> None:
         super().__init__(
             status_code="1200",
             minQlt=f"00",
@@ -50,12 +43,9 @@ class successful(APIException):
             ex=ex,
         )
 
+
 class minQltException(APIException):
-    def __init__(
-        self, 
-        minQlt,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
             status_code="1400",
             minQlt=minQlt,
@@ -67,11 +57,7 @@ class minQltException(APIException):
 
 
 class serverException(APIException):
-    def __init__(
-        self, 
-        minQlt,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
             status_code="2400",
             minQlt=minQlt,
@@ -83,11 +69,7 @@ class serverException(APIException):
 
 
 class inferenceResultException(APIException):
-    def __init__(
-        self, 
-        minQlt,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
             status_code="3400",
             minQlt=minQlt,
@@ -97,13 +79,9 @@ class inferenceResultException(APIException):
             ex=ex,
         )
 
-        
+
 class serverTemplateException(APIException):
-    def __init__(
-        self, 
-        minQlt,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
             status_code="4400",
             minQlt=minQlt,
@@ -115,12 +93,7 @@ class serverTemplateException(APIException):
 
 
 class inferenceReliabilityException(APIException):
-    def __init__(
-        self, 
-        minQlt,
-        reliability,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, minQlt, reliability, ex: Exception = None) -> None:
         super().__init__(
             status_code="5400",
             minQlt=minQlt,
@@ -132,12 +105,7 @@ class inferenceReliabilityException(APIException):
 
 
 class otherException(APIException):
-    def __init__(
-        self, 
-        minQlt,
-        reliability,
-        ex: Exception = None
-        ) -> None:
+    def __init__(self, minQlt, reliability, ex: Exception = None) -> None:
         super().__init__(
             status_code="6400",
             minQlt=minQlt,

@@ -32,8 +32,9 @@ class User(BaseModel):
     username: Optional[str] = None
     full_name: Optional[str] = None
 
-    class  Config:
+    class Config:
         orm_mode = True
+
 
 class UserInfo(User):
     disabled: bool = False
@@ -41,7 +42,7 @@ class UserInfo(User):
     is_superuser: bool = False
     id: Optional[int] = None
 
-    class  Config:
+    class Config:
         orm_mode = True
 
 
@@ -74,6 +75,7 @@ class Usage(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UsageCount(BaseModel):
     total_count: int
     success_count: int
@@ -92,7 +94,7 @@ class InferenceResponse(BaseModel):
     ocrResult: dict
 
 
-class OAuth2PasswordRequestForm():
+class OAuth2PasswordRequestForm:
     def __init__(
         self,
         grant_type: str = Form(None, regex="password"),

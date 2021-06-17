@@ -12,6 +12,7 @@ from app.common.const import get_settings
 
 settings = get_settings()
 
+
 class SQLAlchemy:
     def __init__(self, app: FastAPI = None, **kwargs) -> None:
         self._engine = None
@@ -25,8 +26,8 @@ class SQLAlchemy:
         echo = kwargs.setdefault("DB_ECHO", False)
 
         check_same_thread = {}
-        if settings.API_ENV is 'test':
-            check_same_thread={"check_same_thread": False}
+        if settings.API_ENV is "test":
+            check_same_thread = {"check_same_thread": False}
         self._engine = create_engine(
             database_url,
             connect_args=check_same_thread,
@@ -35,7 +36,9 @@ class SQLAlchemy:
             pool_pre_ping=True,
             # pool_size=30,
         )
-        self._session = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
+        self._session = sessionmaker(
+            autocommit=False, autoflush=False, bind=self._engine
+        )
 
         @app.on_event("startup")
         def startup() -> None:

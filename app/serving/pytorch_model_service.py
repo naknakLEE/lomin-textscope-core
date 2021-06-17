@@ -11,8 +11,8 @@ from bentoml.frameworks.pytorch import PytorchModelArtifact
 # multiple model inference
 # https://docs.bentoml.org/en/latest/concepts.html#packaging-model-artifacts
 @env(infer_pip_packages=True)
-@env(pip_packages=['torchvision'])
-@artifacts([PytorchModelArtifact('net')])
+@env(pip_packages=["torchvision"])
+@artifacts([PytorchModelArtifact("net")])
 class PytorchModelService(BentoService):
     """
     A minimum prediction service exposing a Scikit-learn model
@@ -35,6 +35,6 @@ class PytorchModelService(BentoService):
         # size= results[4]
         # for result in results:
         #     print(result.shape)
-        print('\033[96m' + f"{results}" + '\033[m')
+        print("\033[96m" + f"{results}" + "\033[m")
         return [results]
         # return [{"pred_boxes": results[0], "pred_classes": results[1], "pred_masks": results[2], "scores": results[3], "size": results[4]}]

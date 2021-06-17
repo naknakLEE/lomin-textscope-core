@@ -16,11 +16,10 @@ from app.errors import exceptions as ex
 
 settings = get_settings()
 
+
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(
-        self, 
-        request: Request, 
-        call_next: RequestResponseEndpoint
+        self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         try:
             request.state.req_time = datetime.utcnow()
@@ -30,11 +29,19 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.ip = None
             request.state.email = None
             headers = request.headers
-            ip = headers["x-forwarded-for"] if "x-forwarded-for" in request.headers.keys() else request.client.host
+            ip = (
+                headers["x-forwarded-for"]
+                if "x-forwarded-for" in request.headers.keys()
+                else request.client.host
+            )
             request.state.ip = ip.split(",")[0] if "," in ip else ip
             if "authorization" in headers.keys():
                 token = headers.get("Authorization")
-                payload = jwt.decode(token.replace("Bearer ",""), settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+                payload = jwt.decode(
+                    token.replace("Bearer ", ""),
+                    settings.SECRET_KEY,
+                    algorithms=[settings.ALGORITHM],
+                )
                 # print('\033[96m' + f"{payload}" + '\033[m')
                 request.state.email = payload.get("sub")
             response = await call_next(request)
@@ -42,7 +49,12 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             await api_logger(request=request, response=response)
         except Exception as e:
             error = await exception_handler(e)
-            error_dict = dict(status=error.status_code, msg=error.msg, detail=error.detail, code=error.code)
+            error_dict = dict(
+                status=error.status_code,
+                msg=error.msg,
+                detail=error.detail,
+                code=error.code,
+            )
             response = JSONResponse(status_code=error.status_code, content=error_dict)
             await api_logger(request=request, error=error)
         finally:

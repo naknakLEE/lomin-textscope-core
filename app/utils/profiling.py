@@ -33,8 +33,7 @@ create_db_table()
 
 @app.middleware("http")
 async def add_process_time_header(
-    request: Request, 
-    call_next: RequestResponseEndpoint
+    request: Request, call_next: RequestResponseEndpoint
 ) -> None:
     try:
         request.state.req_time = datetime.utcnow()
@@ -42,18 +41,28 @@ async def add_process_time_header(
         request.state.inspect = None
         request.state.user = None
         request.state.db = db._session()
-        ip = request.headers["x-forwarded-for"] if "x-forwarded-for" in request.headers.keys() else request.client.host
+        ip = (
+            request.headers["x-forwarded-for"]
+            if "x-forwarded-for" in request.headers.keys()
+            else request.client.host
+        )
         request.state.ip = ip.split(",")[0] if "," in ip else ip
         response = await call_next(request)
         await api_logger(request=request, response=response)
     except Exception as e:
         error = await exception_handler(e)
-        error_dict = dict(status=error.status_code, msg=error.msg, detail=error.detail, code=error.code)
+        error_dict = dict(
+            status=error.status_code,
+            msg=error.msg,
+            detail=error.detail,
+            code=error.code,
+        )
         response = JSONResponse(status_code=error.status_code, content=error_dict)
         await api_logger(request=request, error=error)
     finally:
         request.state.db.close()
     return response
+
 
 app.include_router(index.router)
 app.include_router(inference.router, tags=["inference"])
@@ -64,11 +73,11 @@ app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
 client = TestClient(app)
 
 
-image_dir = 'test.jpg'
+image_dir = "test.jpg"
 token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNjIyMTg3MjQxfQ.XvKljVY9zmor3DB8snNOCSFYRvarFoe0cQyFvbqUD9U"
 
 img = cv2.imread(image_dir)
-_, img_encoded = cv2.imencode('.jpg', img)
+_, img_encoded = cv2.imencode(".jpg", img)
 
 
 def test_main() -> None:
@@ -80,18 +89,17 @@ def test_main() -> None:
         "accept": "application/json",
         "Content-Type": "application/x-www-form-urlencoded",
     }
-    response = client.post(
-        "/auth/token",
-        headers=headers,
-        data=login_data
-    )
+    response = client.post("/auth/token", headers=headers, data=login_data)
     token = response.json()["access_token"]
     response = client.post(
         f"/inference?token={token}",
-        headers={ "accept": "application/json", },
-        files={ 'file': img_encoded.tobytes() },
+        headers={
+            "accept": "application/json",
+        },
+        files={"file": img_encoded.tobytes()},
     )
     print(response.json())
+
 
 settings.PROFILING_TOOL = "pyinstrument"
 if settings.PROFILING_TOOL == "pyinstrument":

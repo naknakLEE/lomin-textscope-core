@@ -8,7 +8,7 @@ from fastapi.security import (
     OAuth2PasswordBearer,
     HTTPAuthorizationCredentials,
     HTTPBearer,
-    SecurityScopes
+    SecurityScopes,
 )
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
@@ -61,17 +61,13 @@ def is_username_exist(username: str, session: Session) -> Any:
 
 
 def is_email_exist(email: EmailStr, session: Session) -> Any:
-    user = Users.get(session=session,email=email)
+    user = Users.get(session=session, email=email)
     if user:
         return user
     return False
 
 
-def authenticate_user(
-    email: EmailStr, 
-    password: str, 
-    session: Session
-) -> Any:
+def authenticate_user(email: EmailStr, password: str, session: Session) -> Any:
     user = get_user(email, session)
     if not user:
         return False
@@ -81,17 +77,16 @@ def authenticate_user(
     return user
 
 
-def create_access_token(
-    data: dict, 
-    expires_delta: Optional[timedelta] = None
-) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -100,7 +95,7 @@ def create_access_token(
 async def get_current_user(
     security_scopes: SecurityScopes,
     token: HTTPAuthorizationCredentials = Security(security),
-    session = Depends(db.session)
+    session=Depends(db.session),
 ) -> Any:
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
@@ -108,14 +103,16 @@ async def get_current_user(
         authenticate_value = f"Bearer"
 
     try:
-        payload = jwt.decode(token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         email: str = payload.get("sub")
         if email is None:
             raise ex.InvalidCredentiolException(email)
         # token_data = TokenData(email=email)
         token_scopes = payload.get("scopes", [])
         token_data = TokenData(scopes=token_scopes, email=email)
-    
+
     except ExpiredSignatureError:
         raise ex.JWTExpiredExetpion()
     except (JWTError, ValidationError):
@@ -124,7 +121,7 @@ async def get_current_user(
     user = get_user(email=token_data.email, session=session)
     if user is None:
         raise ex.JWTNotFoundUserException(email)
-    print('\033[96m' + f"{token_data}" + '\033[m')
+    print("\033[96m" + f"{token_data}" + "\033[m")
     for scope in security_scopes.scopes:
         if scope not in token_data.scopes:
             raise ex.JWTScopeException(authenticate_value)
@@ -132,7 +129,7 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> User:
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")

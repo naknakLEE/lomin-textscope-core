@@ -3,6 +3,7 @@ import traceback
 import os
 import logging
 from logging.handlers import QueueHandler
+
 print(logging.handlers)
 
 from os import path
@@ -10,6 +11,7 @@ from time import time
 from typing import Optional
 from fastapi.requests import Request
 from jose import jwt
+
 # from fastapi.logger import logger
 from loguru import logger
 
@@ -49,11 +51,7 @@ def set_logger_config():
 set_logger_config()
 
 
-async def api_logger(
-    request: Request = None, 
-    response=None, 
-    error=None
-) -> None:
+async def api_logger(request: Request = None, response=None, error=None) -> None:
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
@@ -80,7 +78,7 @@ async def api_logger(
     user_log = dict(
         # user=user.id if user and user.id else None,
         client=request.state.ip,
-        email=email
+        email=email,
     )
 
     log_dict = dict(
@@ -102,8 +100,10 @@ async def api_logger(
     # request.state.db.commit()
     # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
 
-    if email is not None and request.url.path == '/inference':
-        Usage.create_usage(request.state.db, auto_commit=True, email=email, status_code=status_code)
+    if email is not None and request.url.path == "/inference":
+        Usage.create_usage(
+            request.state.db, auto_commit=True, email=email, status_code=status_code
+        )
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.error(traceback.format_exc())

@@ -34,7 +34,7 @@ logger.add(
     format="{time:YYYY-MM-DD HH:mm:ss.SSS} {level} {message}",
     # filter=log_filter,
     encoding="utf-8",
-    level=settings.LOG_LEVEL
+    level=settings.LOG_LEVEL,
 )
 
 # logger.remove()

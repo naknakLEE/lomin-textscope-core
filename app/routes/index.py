@@ -17,7 +17,6 @@ from app.common.const import get_settings
 from app import models
 
 
-
 settings = get_settings()
 router = APIRouter()
 
@@ -50,6 +49,7 @@ async def sleep_func():
     time.sleep(5)
     return 342
 
+
 # @router.get("/test")
 # async def test(request: Request) -> Response:
 #     # print("state.user", request.state.user)
@@ -75,21 +75,23 @@ def check_status() -> Any:
     서버 상태 체크
     """
     try:
-        serving_server_status_check_url = f'http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/healthz'
+        serving_server_status_check_url = (
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/healthz"
+        )
         response = requests.get(serving_server_status_check_url)
         assert response.status_code == 200
-        is_serving_server_working = 'True'
+        is_serving_server_working = "True"
     except Exception:
-        is_serving_server_working = 'False'
+        is_serving_server_working = "False"
 
     try:
         session = next(db.session())
-        session.execute('SELECT 1')
-        is_database_working = 'True'
+        session.execute("SELECT 1")
+        is_database_working = "True"
     except Exception:
-        is_database_working = 'False'
+        is_database_working = "False"
     finally:
         session.close()
-    
+
     status = f"is_database_working: {is_database_working}, is_serving_server_working: {is_serving_server_working}"
     return Response(f"Textscope API ({status})")
