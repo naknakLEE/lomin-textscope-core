@@ -61,11 +61,11 @@ class BaseMixin:
         return query.all()
 
     @classmethod
-    async def get_by_email(
+    def get_by_email(
         cls, session: Session, email: EmailStr
     ) -> Optional[ModelType]:
         query = session.query(cls).filter(cls.email == email)
-        return await query.first()
+        return query.first()
 
     @classmethod
     def remove(cls, session: Session, email: EmailStr) -> ModelType:
@@ -200,7 +200,7 @@ class Usage(Base, BaseMixin):
         return query.all()
 
 
-async def create_db_table() -> None:
+def create_db_table() -> None:
     try:
         settings = get_settings()
         session = next(db.session())

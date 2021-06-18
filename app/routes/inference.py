@@ -25,9 +25,11 @@ router = APIRouter()
     dependencies=[Depends(db.session), Depends(get_current_active_user)],
     response_model=models.InferenceResponse,
 )
-async def inference(file: UploadFile = File(...)) -> Response:
+async def inference(file: UploadFile = File(...)) -> Any:
     """
-    모델 서버에 inference 요청
+    ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
+    입력 데이터: 토큰, ocr에 사용할 파일 <br/>
+    응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
     serving_server_inference_url = (
         f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference"
@@ -42,13 +44,16 @@ async def inference(file: UploadFile = File(...)) -> Response:
             return models.InferenceResponse(ocrResult=result)
 
 
+
 @router.get("/usage/me", response_model=List[models.Usage])
 def read_usage_me_by_email(
     current_user: models.User = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    현재 유저의 사용량 정보 (날짜, 상태코드 포함) 조회
+    ### 현재 유저의 사용량 정보 조회 <br/>
+    입력 데이터: 사용량 정보를 조회할 유저의 토큰 <br/>
+`   응답 데이터: 사용량 정보 배열 (각 ocr 요청에 대한 사용일, 상태코드, 이메일 정보 포함)
     """
     usages = Usage.get_usage(session, email=current_user.email)
     return usages
@@ -60,7 +65,9 @@ def count_usage_me(
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    현재 유저의 사용량 조회
+    ### 현재 유저의 사용량 조회
+    입력 데이터: 사용량 조회할 유저의 토큰 <br/>
+    응답 데이터: ocr 시도 횟수, ocr 성공 횟수, ocr 실패 횟수
     """
     usages = Usage.get_usage_count(session, email=current_user.email)
     return cal_usage_count(usages)

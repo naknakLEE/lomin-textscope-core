@@ -19,9 +19,8 @@ class Config:
 
 @dataclass
 class TestConfig(Config):
-    # DB_URL: str = environ.get("DB_URL", f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_ADDR}/test")
     TEST_MODE: bool = True
-    DB_URL: str = "sqlite:///./others/sql_app.db"
+    DB_URL: str = "sqlite:///./assets/sql_app.db"
 
 
 @dataclass

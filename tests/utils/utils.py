@@ -27,6 +27,7 @@ def get_superuser_token_headers(client: TestClient) -> Dict[str, str]:
     }
     response = client.post("/auth/token", data=login_data)
     tokens = response.json()
+    print('\033[95m' + f"tokens: {tokens}" + '\033[m')
     access_token = tokens["access_token"]
     headers = {"Authorization": f"Bearer {access_token}"}
     return headers

@@ -26,7 +26,9 @@ def read_users(
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
-    skip 부터 limit 만큼의 유저 정보 조회
+    ### 유저 정보를 조회
+    한번에 여러 유저의 정보를 조회 가능하도록 구성 <br/>
+    skip으로 offset을 설정하며, limit 수만큼의 유저 정보 조회
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
@@ -38,11 +40,13 @@ def read_users(
 def create_user(
     *,
     session: Session = Depends(db.session),
-    user: models.UserRegister,
+    user: models.UserRegister = Depends(),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
-    새로운 유저 생성
+    ### 데이터베이스에 새로운 유저 생성 
+    유저가 생성 과정 진행 후 생성된 유저 정보 반환 <br/>
+    반환된 유저 정보에는 입력 받은 정보 외에도 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id에 대한 정보 포함 
     """
     user = user.__dict__
     if not current_user.is_superuser:
@@ -62,7 +66,8 @@ def read_user_by_email(
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    특정한 유저 정보 조회
+    ### 특정한 유저 정보 조회
+    반환된 유저 정보에는 email, username, full_name, 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id가 몇 번인지 (id)에 대한 정보 포함 
     """
     user = Users.get(session, email=user_email)
     if user == current_user:
@@ -77,11 +82,12 @@ def update_user(
     *,
     session: Session = Depends(db.session),
     user_email: EmailStr,
-    user_in: UserUpdate,
+    user_in: UserUpdate = Depends(),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
-    특정한 유저 정보 업데이트
+    ### 특정한 유저 정보 업데이트
+    email, username, full_name, 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id에 대한 정보 중에 입력한 부분 업데이트
     """
     user = Users.get(session, email=user_email)
     if not current_user.is_superuser:
@@ -105,7 +111,9 @@ def read_usage(
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    전체 유저의 요청 정보 조회
+    ### 전체 유저의 사용량 정보 조회
+    skip으로 offset을 설정하며, limit 수만큼의 사용량 정보 조회 <br/>
+    해당 호출에서 각 요청에 대한 정보에는 요청 일시, 상태 코드, 이메일 포함
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
@@ -120,7 +128,8 @@ def read_usage_by_email(
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    특정한 유저의 요청 정보 조회
+    ### 특정한 유저의 요청 정보 조회
+    해당 호출의 응답은 특정한 유저의 각 요청에 대한 정보에는 요청 일시, 상태 코드, 이메일가 포함
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
@@ -134,7 +143,8 @@ def count_usage(
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    전체 유저의 사용량 조회
+    ### 전체 유저의 사용량 조회
+    해당 호출은 총 요청 수, 성공한 요청 수, 실패한 요청 수를 반환
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
@@ -149,7 +159,8 @@ def count_usage_by_email(
     session: Session = Depends(db.session),
 ) -> Any:
     """
-    특정한 유저의 사용량 조회
+    ### 특정한 유저의 사용량 조회
+    해당 호출은 특정한 유저의 총 요청 수, 성공한 요청 수, 실패한 요청 수를 반환
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)

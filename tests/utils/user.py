@@ -47,8 +47,8 @@ def authentication_token_from_email(
         user = Users.create(db, username=email, email=email, password=password)
     else:
         hashed_password = get_password_hash(password)
-        user_in_update = UserDatabaseScheme(hashed_password=hashed_password)
-        user_in_update.hashed_password = hashed_password
+        current_user['hashed_password'] = hashed_password
+        user_in_update = UserDatabaseScheme(**current_user)
         user = Users.update(db, db_obj=user, obj_in=user_in_update)
         
     return user_authentication(client=client, email=email, password=password)

@@ -4,6 +4,7 @@ import os
 import asyncio
 
 from fastapi import FastAPI, Request, Depends
+from fastapi import Depends, File, UploadFile, APIRouter
 from fastapi.security import OAuth2PasswordBearer
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
@@ -64,4 +65,5 @@ def create_app() -> FastAPI:
     app.include_router(users.router, tags=["Users"], prefix="/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/admin")
+
     return app

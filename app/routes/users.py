@@ -16,12 +16,14 @@ from app import models
 router = APIRouter()
 
 
-@router.get("/me", response_model=models.User)
+@router.get("/me", response_model=EmailStr)
 async def read_users_me(current_user: dict = Depends(get_current_active_user)) -> Any:
     """
-    현재 유저 정보 조회
+    ### 토큰 생성시 입력했던 이메일 조회
+    입력 데이터: 이메일 정보 조회할 토큰 <br/>
+    응답 데이터: 토큰 생성시 입력한 이메일 정보
     """
-    return current_user
+    return current_user.email
 
 
 @router.put("/me", response_model=models.UserInfo)
@@ -34,7 +36,10 @@ def update_user_me(
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
-    현재 유저 정보 업데이트
+    ### 현재 유저 정보 업데이트
+    입력 데이터: 토큰 발급받은 유저의 email, full_name, username, password 중 변경할 데이터 <br/>
+    응답 데이터: 업데이트된 유저 정보 반환
+    
     """
     current_user_data = jsonable_encoder(current_user)
     user_in = UserUpdate(**current_user_data)

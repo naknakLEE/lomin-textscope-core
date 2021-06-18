@@ -26,7 +26,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
-            request.state.ip = None
+            request.state.db = next(db.session())
             request.state.email = None
             headers = request.headers
             ip = (
@@ -45,7 +45,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 # print('\033[96m' + f"{payload}" + '\033[m')
                 request.state.email = payload.get("sub")
             response = await call_next(request)
-            request.state.db = next(db.session())
             await api_logger(request=request, response=response)
         except Exception as e:
             error = await exception_handler(e)

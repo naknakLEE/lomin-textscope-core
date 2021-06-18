@@ -37,7 +37,7 @@ class User(BaseModel):
 
 
 class UserInfo(User):
-    disabled: bool = False
+    disabled: Optional[bool] = False
     is_active: Optional[bool] = None
     is_superuser: bool = False
     id: Optional[int] = None
@@ -55,6 +55,9 @@ class UserInDB(UserInfo):
 
 
 class UserUpdate(User):
+    disabled: Optional[bool] = None
+    is_active: Optional[bool] = None
+    is_superuser: bool = None
     password: Optional[str] = None
     # created_at: Optional[datetime] = None
     # updated_at: Optional[datetime] = None
@@ -69,7 +72,7 @@ class UserDatabaseScheme(UserInfo):
 class Usage(BaseModel):
     created_at: datetime
     status_code: int
-    id: Optional[int] = None
+    # id: Optional[int] = None
     email: str
 
     class Config:
