@@ -23,7 +23,7 @@ recognition_model = onnx.load(f"{model_path['recognition_model']}")
 multi_model_service.pack("boundary_detection", boundary_detection_model)
 multi_model_service.pack("kv_detection", kv_detection_model)
 multi_model_service.pack("recognition", recognition_model)
-# multi_model_service.set_version("2021-06.textscope")
+multi_model_service.set_version("2021-06.textscope")
 
 # Save the prediction service to disk for model serving
 multi_model_service.save()

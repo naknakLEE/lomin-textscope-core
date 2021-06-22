@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     # ACCESS KEY
-    AZURE_STORAGE_CONNECTION_STRING: str
+    AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
 
     # SERVING CONFIG
     SERVING_IP_PORT: int
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     # BASE CONFIG
     DEVELOP: bool = True
     BASE_PATH: str = "."
-    API_ENV: str = "production"
+    API_ENV: str = "test"
 
     # MiDDLEWARE CONFIG
     EXCEPT_PATH_LIST: List[str] = ["/", "/openapi.json"]
