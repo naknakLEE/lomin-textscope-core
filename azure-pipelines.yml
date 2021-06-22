@@ -31,6 +31,7 @@ stages:
           sudo chmod a+r $(security.secureFilePath)
           sudo mv $(security.secureFilePath) .
           echo $(pwd)
+          echo $(ls)
     - script: |
         docker login textscoperegistry.azurecr.io --username $(registry_username) --password $(registry_password)
       displayName: 'Login textscope azure container repository'
