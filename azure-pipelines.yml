@@ -33,7 +33,7 @@ stages:
           echo $(pwd)
           echo $(ls)
     - script: |
-        docker login textscoperegistry.azurecr.io --username $(registry_username) --password $(registry_password)
+        docker login textscoperegistry.azurecr.io --username $(username) --password $(password)
       displayName: 'Login textscope azure container repository'
     - task: InstallSSHKey@0
       displayName: 'Install an SSH key'
