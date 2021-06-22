@@ -20,7 +20,8 @@ class Config:
 @dataclass
 class TestConfig(Config):
     TEST_MODE: bool = True
-    DB_URL: str = "sqlite:///./assets/sql_app.db"
+    # DB_URL: str = "sqlite:///./assets/sql_app.db"
+    DB_URL: str = f"mysql://{settings.MYSQL_ROOT_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_IP_ADDR}/{settings.MYSQL_DB}"
 
 
 @dataclass

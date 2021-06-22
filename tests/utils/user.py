@@ -20,7 +20,7 @@ def user_authentication(
 
     r = client.post("/auth/token", data=data)
     response = r.json()
-    print('\033[96m' + f"user_authentication: {response}" + '\033[0m')
+    print("\033[96m" + f"user_authentication: {response}" + "\033[0m")
     auth_token = response["access_token"]
     headers = {"Authorization": f"Bearer {auth_token}"}
     return headers
@@ -37,18 +37,18 @@ def authentication_token_from_email(
     *, client: TestClient, email: str, db: Session
 ) -> Dict[str, str]:
     password = random_lower_string()
-    user = Users.get(email = email)
+    user = Users.get(email=email)
     del user.id, user.updated_at, user.created_at, user._sa_instance_state
     current_user = {}
-    for key in user.__dict__: 
+    for key in user.__dict__:
         current_user[key] = getattr(user, key)
     user = UserDatabaseScheme(**current_user)
     if not user:
         user = Users.create(db, username=email, email=email, password=password)
     else:
         hashed_password = get_password_hash(password)
-        current_user['hashed_password'] = hashed_password
+        current_user["hashed_password"] = hashed_password
         user_in_update = UserDatabaseScheme(**current_user)
         user = Users.update(db, db_obj=user, obj_in=user_in_update)
-        
+
     return user_authentication(client=client, email=email, password=password)

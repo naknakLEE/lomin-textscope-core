@@ -36,7 +36,6 @@ class StatusEnum(enum.Enum):
     disabled = 3
 
 
-
 class BaseMixin:
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
@@ -71,9 +70,7 @@ class BaseMixin:
         return query.all()
 
     @classmethod
-    def get_by_email(
-        cls, session: Session, email: EmailStr
-    ) -> Optional[ModelType]:
+    def get_by_email(cls, session: Session, email: EmailStr) -> Optional[ModelType]:
         query = session.query(cls).filter(cls.email == email)
         return query.first()
 
@@ -173,7 +170,11 @@ class Usage(Base, BaseMixin):
 
     @classmethod
     def get_usage_count(
-        cls, session: Session, email: EmailStr = None, start_time: datetime = None, end_time: datetime = None,
+        cls,
+        session: Session,
+        email: EmailStr = None,
+        start_time: datetime = None,
+        end_time: datetime = None,
     ) -> Optional[ModelType]:
         if email is not None:
             query = (
@@ -185,7 +186,9 @@ class Usage(Base, BaseMixin):
             query = session.query(func.count(cls.email))
 
         if start_time is not None and end_time is not None:
-            query = query.filter(and_(cls.created_at <= end_time, cls.created_at >= start_time))
+            query = query.filter(
+                and_(cls.created_at <= end_time, cls.created_at >= start_time)
+            )
         elif start_time is not None:
             query = query.filter(cls.created_at >= start_time)
         elif end_time is not None:
@@ -204,16 +207,24 @@ class Usage(Base, BaseMixin):
 
     @classmethod
     def get_usage(
-        cls, session: Session, email: EmailStr = None, skip: int = 0, limit: int = 100, start_time: datetime = None, end_time: datetime = None
+        cls,
+        session: Session,
+        email: EmailStr = None,
+        skip: int = 0,
+        limit: int = 100,
+        start_time: datetime = None,
+        end_time: datetime = None,
     ) -> Optional[ModelType]:
         query = session.query(cls)
         if start_time is not None and end_time is not None:
-            query = query.filter(and_(cls.created_at <= end_time, cls.created_at >= start_time))
+            query = query.filter(
+                and_(cls.created_at <= end_time, cls.created_at >= start_time)
+            )
         elif start_time is not None:
             query = query.filter(cls.created_at >= start_time)
         elif end_time is not None:
             query = query.filter(cls.created_at <= end_time)
-            
+
         if email is not None:
             query = query.filter(cls.email == email)
         else:

@@ -11,22 +11,30 @@ class Settings(BaseSettings):
     SERVING_IP_ADDR: str
 
     # POSTGRESQL CONFIG
-    POSTGRES_DB: str = "admin"
-    POSTGRES_USER: str = "admin"
-    POSTGRES_PASSWORD: str = "1q2w3e4r"
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
 
     # MYSQL CONFIG
-    MYSQL_ROOT_USER: str = "root"
-    MYSQL_DB: str = "test"
-    MYSQL_PASSWORD: str = "1q2w3e4r"
+    MYSQL_ROOT_USER: str
+    MYSQL_DB: str
+    MYSQL_PASSWORD: str
 
     # AUTHORIZATION SETTING
     SECRET_KEY: str
     ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+
+    # ACCESS KEY
+    AZURE_STORAGE_CONNECTION_STRING: str
 
     # SERVING CONFIG
-    SERVING_IP_PORT: int = 5000
+    SERVING_IP_PORT: int
+
+    # BASE CONFIG
+    DEVELOP: bool = True
+    BASE_PATH: str = "."
+    API_ENV: str = "production"
 
     # MiDDLEWARE CONFIG
     EXCEPT_PATH_LIST: List[str] = ["/", "/openapi.json"]
@@ -58,11 +66,6 @@ class Settings(BaseSettings):
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
-
-    # BASE CONFIG
-    DEVELOP: bool = True
-    BASE_PATH: str = "."
-    API_ENV: str = "test"
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = "logs/log"

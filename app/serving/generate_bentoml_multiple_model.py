@@ -1,8 +1,6 @@
 import onnx
-import sys
 from os import path
 
-sys.path.append("/workspace")
 from app.serving.multiple_model_service import MultiModelService
 from app.common.const import get_settings
 from app.serving.utils.utils import load_json

@@ -1,4 +1,6 @@
-FROM wook3024/opencv_base_image:ubuntu20.04
+FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
 RUN apt-get install nano && \
     apt-get install -y git  && \

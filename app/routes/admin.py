@@ -45,9 +45,9 @@ def create_user(
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
-    ### 데이터베이스에 새로운 유저 생성 
+    ### 데이터베이스에 새로운 유저 생성
     유저가 생성 과정 진행 후 생성된 유저 정보 반환 <br/>
-    반환된 유저 정보에는 입력 받은 정보 외에도 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id에 대한 정보 포함 
+    반환된 유저 정보에는 입력 받은 정보 외에도 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id에 대한 정보 포함
     """
     user = user.__dict__
     if not current_user.is_superuser:
@@ -68,7 +68,7 @@ def read_user_by_email(
 ) -> Any:
     """
     ### 특정한 유저 정보 조회
-    반환된 유저 정보에는 email, username, full_name, 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id가 몇 번인지 (id)에 대한 정보 포함 
+    반환된 유저 정보에는 email, username, full_name, 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id가 몇 번인지 (id)에 대한 정보 포함
     """
     user = Users.get(session, email=user_email)
     if user == current_user:
@@ -96,11 +96,9 @@ def update_user(
         raise ex.AlreadyExistException(current_user.email)
 
     hashed_password = None
-    if user_in.password is not None: 
+    if user_in.password is not None:
         hashed_password = get_password_hash(user_in.password)
-    user_in = models.UsersScheme(
-        **user_in.__dict__, hashed_password=hashed_password
-    )
+    user_in = models.UsersScheme(**user_in.__dict__, hashed_password=hashed_password)
     user = Users.update(session, db_obj=user, obj_in=user_in)
     return user
 
@@ -121,7 +119,9 @@ def read_usage(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage(session, skip=skip, limit=limit, start_time=start_time, end_time=end_time)
+    usages = Usage.get_usage(
+        session, skip=skip, limit=limit, start_time=start_time, end_time=end_time
+    )
     return usages
 
 
@@ -139,7 +139,9 @@ def read_usage_by_email(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage(session, email=user_email, start_time=start_time, end_time=end_time)
+    usages = Usage.get_usage(
+        session, email=user_email, start_time=start_time, end_time=end_time
+    )
     return usages
 
 
@@ -174,7 +176,12 @@ def count_usage_by_email(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage_count(session, email=user_email, start_time=start_time, end_time=end_time,)
+    usages = Usage.get_usage_count(
+        session,
+        email=user_email,
+        start_time=start_time,
+        end_time=end_time,
+    )
     return cal_usage_count(usages)
 
 

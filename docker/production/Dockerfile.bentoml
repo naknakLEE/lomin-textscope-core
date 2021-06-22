@@ -1,4 +1,6 @@
-FROM wook3024/opencv_base_image:ubuntu20.04
+FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
 RUN apt-get install nano && \
     apt-get install -y git  && \
@@ -13,7 +15,8 @@ RUN git clone http://github.com/bentoml/bentoml && \
     cd bentoml && \
     pip3 install -r ./guides/quick-start/requirements.txt
 
-RUN pip3 install typing && \
+RUN pip3 install uvicorn && \
+    pip3 install typing && \
     pip3 install pydantic[dotenv] && \
     pip3 install pydantic[email]
 
@@ -30,23 +33,25 @@ WORKDIR /bin
 RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
     chmod 755 jq
 
-RUN pip3 install uvicorn
-
 COPY ./ /workspace/
 
 WORKDIR /workspace/lovit
 RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
+RUN pip install azure-storage-blob
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
 WORKDIR /workspace
-RUN cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml
-RUN python3 app/serving/generate_bentoml_multiple_model.py
+RUN python3 app/utils/azure_blob_container/download_blob_to_local.py && \
+    cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml && \
+    python3 app/serving/generate_bentoml_multiple_model.py
 
 WORKDIR /
 RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python3 setup.py install
-
 
 WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
 RUN mkdir assets && \ 

@@ -2,7 +2,6 @@ import time
 import cProfile
 import pstats
 import cv2
-import sys
 
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, Request
@@ -13,7 +12,6 @@ from pyinstrument import Profiler
 from pyinstrument_flame import FlameGraphRenderer
 from starlette.middleware.base import RequestResponseEndpoint
 
-sys.path.append("/workspace")
 from app.routes import auth, index, users, inference
 from app.database.connection import db
 from app.common.config import Config

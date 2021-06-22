@@ -2,6 +2,8 @@ FROM ubuntu:20.04
 
 # EXPOSE 80
 
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
 RUN apt-get update && \
     apt-get install sudo && \
     apt-get install nano && \

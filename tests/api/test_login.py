@@ -8,10 +8,11 @@ from app.common.const import get_settings
 settings = get_settings()
 fake_super_user_info = settings.FAKE_SUPERUSER_INFORMATION
 
+
 def test_get_access_token(client: TestClient) -> None:
     login_data = {
         "email": fake_super_user_info["email"],
-        "password": fake_super_user_info["password"]
+        "password": fake_super_user_info["password"],
     }
     response = client.post(f"/auth/token", data=login_data)
     tokens = response.json()
@@ -27,7 +28,7 @@ def test_use_access_token(
 ) -> None:
     response = client.get(f"/users/me", headers=superuser_token_headers)
     result = response.json()
-    print('\033[96m' + f"response: {result}, {superuser_token_headers}" + '\033[m')
+    print("\033[96m" + f"response: {result}, {superuser_token_headers}" + "\033[m")
     assert response.status_code == 200
     assert "username" in result
     assert "email" in result

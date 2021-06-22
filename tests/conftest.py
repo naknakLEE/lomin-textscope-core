@@ -1,13 +1,11 @@
 from typing import Dict
 
 import os
-import sys
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-sys.path.append("/workspace")
 from app.utils.generator import create_app
 from app.database.connection import Base, db
 from tests.utils.user import authentication_token_from_email

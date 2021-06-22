@@ -22,6 +22,7 @@ def test_get_users_normal_user_me(
     assert current_user["full_name"] == fake_info["full_name"]
     assert current_user["username"] == fake_info["username"]
 
+
 def test_create_user_new_email(
     client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
@@ -39,7 +40,6 @@ def test_create_user_new_email(
     assert user.email == created_user["email"]
 
 
-
 def test_get_existing_user(
     client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
@@ -47,9 +47,7 @@ def test_get_existing_user(
     password = random_lower_string()
     user = Users.create(get_db, email=email, password=password)
     user_email = user.email
-    response = client.get(
-        f"admin/users/{user_email}", headers=superuser_token_headers
-    )
+    response = client.get(f"admin/users/{user_email}", headers=superuser_token_headers)
     # print('\033[96m' + f"test_get_existing_user: {response.json()}" + '\033[0m')
     assert 200 <= response.status_code < 300
     api_user = response.json()
@@ -70,7 +68,7 @@ def test_create_user_existing_username(
         f"admin/users/create", json=data, headers=superuser_token_headers
     )
     created_user = response.json()
-    
+
     assert response.status_code == 400
     assert "_id" not in created_user
 
