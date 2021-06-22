@@ -53,11 +53,29 @@ stages:
     #     tags: |
     #       ts-serving-0.0.1
     - task: Docker@2
-      displayName: Build and push an image to container registry
+      displayName: Build and push an serving image to container registry
+      inputs:
+        command: buildAndPush
+        repository: textscoperegistry.azurecr.io/ts-serving
+        dockerfile: './docker/production/Dockerfile.serving'
+        # containerRegistry: textscopeRegistry
+        tags: |
+          0.0.1
+    - task: Docker@2
+      displayName: Build and push an nginx image to container registry
+      inputs:
+        command: buildAndPush
+        repository: textscoperegistry.azurecr.io/ts-nginx
+        dockerfile: './docker/Dockerfile.nginx'
+        # containerRegistry: textscopeRegistry
+        tags: |
+          0.0.1
+    - task: Docker@2
+      displayName: Build and push an web image to container registry
       inputs:
         command: buildAndPush
         repository: textscoperegistry.azurecr.io/ts-web
-        dockerfile: './Dockerfile.nginx'
+        dockerfile: './docker/production/Dockerfile.web'
         # containerRegistry: textscopeRegistry
         tags: |
           0.0.1
