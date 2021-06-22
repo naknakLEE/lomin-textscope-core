@@ -51,20 +51,21 @@ class UserRegister(User):
 
 
 class UserInDB(UserInfo):
-    hashed_password: str
+    password: Optional[str] = None
+    hashed_password: Optional[str] = None
 
 
 class UserUpdate(User):
     disabled: Optional[bool] = None
     is_active: Optional[bool] = None
-    is_superuser: bool = None
-    password: Optional[str] = None
+    is_superuser: bool = False
+    password: str = False
     # created_at: Optional[datetime] = None
     # updated_at: Optional[datetime] = None
 
 
-class UserDatabaseScheme(UserInfo):
-    hashed_password: str
+class UsersScheme(UserInfo):
+    hashed_password: str = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -86,7 +87,7 @@ class UsageCount(BaseModel):
 
 
 class StatusResponse(BaseModel):
-    response: str = f"Textscope API (is_database_working: (is_database_working), is_serving_server_working: $(is_serving_server_working))"
+    response: str = f"Textscope API (is_database_working: $(is_database_working), is_serving_server_working: $(is_serving_server_working))"
 
 
 class InferenceResponse(BaseModel):

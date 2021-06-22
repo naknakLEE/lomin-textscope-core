@@ -3,7 +3,8 @@ import aiohttp
 import asyncio
 import json
 
-from typing import Dict, Any, List
+from datetime import datetime
+from typing import Dict, Any, List, Optional
 from fastapi import Depends, File, UploadFile, APIRouter
 from sqlalchemy.orm import Session
 from starlette.responses import Response
@@ -20,10 +21,40 @@ settings = get_settings()
 router = APIRouter()
 
 
+inference_responses = {
+    200: {
+        "description": "Item requested by ID",
+        "content": {
+            "application/json": {
+                "example": {
+                    "status": "1200",
+                    "minQlt": "00",
+                    "reliability": "0.367125",
+                    "docuType": "00",
+                    "ocrResult": {
+                        "tenantName": "홍길동",
+                        "tenantID": "200123-1234567",
+                        "memberNum": "5",
+                        "memberList": {
+                            "memberName": "심청이",
+                            "memberID": "510123-2234567",
+                            "memberRelation": "배우자",
+                            "status": "00",
+                        },
+                        "releaseData": "2021-02-10",
+                    },
+                }
+            }
+        },
+    }
+}
+
+
 @router.post(
     "",
     dependencies=[Depends(db.session), Depends(get_current_active_user)],
     response_model=models.InferenceResponse,
+    responses=inference_responses,
 )
 async def inference(file: UploadFile = File(...)) -> Any:
     """
@@ -42,46 +73,3 @@ async def inference(file: UploadFile = File(...)) -> Any:
         ) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
-
-
-
-@router.get("/usage/me", response_model=List[models.Usage])
-def read_usage_me_by_email(
-    current_user: models.User = Depends(get_current_active_user),
-    session: Session = Depends(db.session),
-) -> Any:
-    """
-    ### 현재 유저의 사용량 정보 조회 <br/>
-    입력 데이터: 사용량 정보를 조회할 유저의 토큰 <br/>
-`   응답 데이터: 사용량 정보 배열 (각 ocr 요청에 대한 사용일, 상태코드, 이메일 정보 포함)
-    """
-    usages = Usage.get_usage(session, email=current_user.email)
-    return usages
-
-
-@router.get("/count/me", response_model=models.UsageCount)
-def count_usage_me(
-    current_user: models.User = Depends(get_current_active_user),
-    session: Session = Depends(db.session),
-) -> Any:
-    """
-    ### 현재 유저의 사용량 조회
-    입력 데이터: 사용량 조회할 유저의 토큰 <br/>
-    응답 데이터: ocr 시도 횟수, ocr 성공 횟수, ocr 실패 횟수
-    """
-    usages = Usage.get_usage_count(session, email=current_user.email)
-    return cal_usage_count(usages)
-
-
-def cal_usage_count(usages) -> Dict:
-    successed_count = (
-        sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
-    )
-    failed_count = (
-        sum(usages["failed_response"][0]) if len(usages["failed_response"]) else 0
-    )
-    return {
-        "total_count": successed_count + failed_count,
-        "success_count": successed_count,
-        "failed_count": failed_count,
-    }
