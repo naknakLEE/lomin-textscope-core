@@ -1,4 +1,5 @@
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 from itertools import cycle
 from fastapi import Depends, APIRouter, HTTPException, Body
 from fastapi.encoders import jsonable_encoder
@@ -40,7 +41,7 @@ def read_users(
 def create_user(
     *,
     session: Session = Depends(db.session),
-    user: models.UserRegister = Depends(),
+    user: models.UserRegister,
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
@@ -81,7 +82,6 @@ def read_user_by_email(
 def update_user(
     *,
     session: Session = Depends(db.session),
-    user_email: EmailStr,
     user_in: UserUpdate = Depends(),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
@@ -89,24 +89,28 @@ def update_user(
     ### 특정한 유저 정보 업데이트
     email, username, full_name, 계정 활성화 상태 (disabled), 현재 활동 여부 (is_active), superuser 권한을 소유하고 있는지 (is_superuser), id에 대한 정보 중에 입력한 부분 업데이트
     """
-    user = Users.get(session, email=user_email)
+    user = Users.get(session, email=user_in.email)
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
     if not user:
         raise ex.AlreadyExistException(current_user.email)
 
-    hashed_password = get_password_hash(user_in.password)
-    user_in = models.UserDatabaseScheme(
+    hashed_password = None
+    if user_in.password is not None: 
+        hashed_password = get_password_hash(user_in.password)
+    user_in = models.UsersScheme(
         **user_in.__dict__, hashed_password=hashed_password
     )
     user = Users.update(session, db_obj=user, obj_in=user_in)
     return user
 
 
-@router.get("/inference/usage", response_model=List[models.Usage])
+@router.get("/usage/inference", response_model=List[models.Usage])
 def read_usage(
     skip: int = 0,
     limit: int = 100,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
     current_user: models.UserInfo = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Any:
@@ -117,13 +121,15 @@ def read_usage(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage(session, skip=skip, limit=limit)
+    usages = Usage.get_usage(session, skip=skip, limit=limit, start_time=start_time, end_time=end_time)
     return usages
 
 
-@router.get("/inference/usage/{user_email}", response_model=List[models.Usage])
+@router.get("/usage/inference/{user_email}", response_model=List[models.Usage])
 def read_usage_by_email(
     user_email: EmailStr,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
     current_user: models.UserInfo = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Any:
@@ -133,13 +139,15 @@ def read_usage_by_email(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage(session, email=user_email)
+    usages = Usage.get_usage(session, email=user_email, start_time=start_time, end_time=end_time)
     return usages
 
 
-@router.get("/inference/count", response_model=models.UsageCount)
+@router.get("/count/inference", response_model=models.UsageCount)
 def count_usage(
     current_user: models.UserInfo = Depends(get_current_active_user),
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
     session: Session = Depends(db.session),
 ) -> Any:
     """
@@ -148,13 +156,15 @@ def count_usage(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage_count(session)
+    usages = Usage.get_usage_count(session, start_time=start_time, end_time=end_time)
     return cal_usage_count(usages)
 
 
-@router.get("/inference/count/{user_email}", response_model=models.UsageCount)
+@router.get("/count/inference/{user_email}", response_model=models.UsageCount)
 def count_usage_by_email(
     user_email: EmailStr,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
     current_user: models.UserInfo = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Any:
@@ -164,7 +174,7 @@ def count_usage_by_email(
     """
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
-    usages = Usage.get_usage_count(session, email=user_email)
+    usages = Usage.get_usage_count(session, email=user_email, start_time=start_time, end_time=end_time,)
     return cal_usage_count(usages)
 
 

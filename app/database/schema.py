@@ -1,5 +1,7 @@
 import json
+import enum
 
+from datetime import datetime
 from logging import disable
 from typing import Any, Dict, Union, Optional, List, TypeVar
 from sqlalchemy import (
@@ -10,6 +12,7 @@ from sqlalchemy import (
     func,
     JSON,
     Boolean,
+    Enum,
     ForeignKey,
     and_,
     or_,
@@ -25,6 +28,13 @@ from app.models import UserUpdate, User
 
 
 ModelType = TypeVar("ModelType", bound=Base)
+
+
+class StatusEnum(enum.Enum):
+    active = 1
+    inactive = 2
+    disabled = 3
+
 
 
 class BaseMixin:
@@ -76,12 +86,10 @@ class BaseMixin:
 
     @classmethod
     def update(cls, session: Session, *, db_obj: User, obj_in: UserUpdate) -> Any:
-        is_exist = cls.get_by_email(session, email=obj_in.email)
-        if is_exist:
-            return "This user already exist"
         current_user_email = db_obj.email
         obj_data = jsonable_encoder(db_obj)
         user = session.query(cls).filter(cls.email == current_user_email).first()
+        # print('\033[94m' + f"{user.__dict__}" + '\033[m')
         for field in obj_data:
             field_value = getattr(obj_in, field)
             if field_value is not None:
@@ -133,8 +141,7 @@ class Users(Base, BaseMixin):
     email = Column(String(length=255), nullable=False)
     hashed_password = Column(String(length=2000), nullable=True)
     full_name = Column(String(length=128), nullable=True)
-    disabled = Column(Boolean, nullable=True, default=False)
-    is_active = Column(Boolean, nullable=True, default=False)
+    status = Column(Enum(StatusEnum), nullable=True)
     is_superuser = Column(Boolean, nullable=False, default=False)
     updated_at = Column(
         DateTime,
@@ -166,7 +173,7 @@ class Usage(Base, BaseMixin):
 
     @classmethod
     def get_usage_count(
-        cls, session: Session, email: EmailStr = None
+        cls, session: Session, email: EmailStr = None, start_time: datetime = None, end_time: datetime = None,
     ) -> Optional[ModelType]:
         if email is not None:
             query = (
@@ -176,6 +183,13 @@ class Usage(Base, BaseMixin):
             )
         else:
             query = session.query(func.count(cls.email))
+
+        if start_time is not None and end_time is not None:
+            query = query.filter(and_(cls.created_at <= end_time, cls.created_at >= start_time))
+        elif start_time is not None:
+            query = query.filter(cls.created_at >= start_time)
+        elif end_time is not None:
+            query = query.filter(cls.created_at <= end_time)
 
         success_response = query.filter(
             and_(cls.status_code < 300, cls.status_code >= 200)
@@ -190,12 +204,20 @@ class Usage(Base, BaseMixin):
 
     @classmethod
     def get_usage(
-        cls, session: Session, email: EmailStr = None, skip: int = 0, limit: int = 100
+        cls, session: Session, email: EmailStr = None, skip: int = 0, limit: int = 100, start_time: datetime = None, end_time: datetime = None
     ) -> Optional[ModelType]:
+        query = session.query(cls)
+        if start_time is not None and end_time is not None:
+            query = query.filter(and_(cls.created_at <= end_time, cls.created_at >= start_time))
+        elif start_time is not None:
+            query = query.filter(cls.created_at >= start_time)
+        elif end_time is not None:
+            query = query.filter(cls.created_at <= end_time)
+            
         if email is not None:
-            query = session.query(cls).filter(cls.email == email)
+            query = query.filter(cls.email == email)
         else:
-            query = session.query(cls).offset(skip).limit(limit)
+            query = query.offset(skip).limit(limit)
 
         return query.all()
 
