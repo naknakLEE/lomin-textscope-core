@@ -58,6 +58,7 @@ stages:
       inputs:
         command: buildAndPush
         repository: textscoperegistry.azurecr.io/ts-serving
+        buildContext: $(Build.Repository.LocalPath)
         dockerfile: './docker/production/Dockerfile.serving'
         # containerRegistry: textscopeRegistry
         tags: |
@@ -67,6 +68,7 @@ stages:
       inputs:
         command: buildAndPush
         repository: textscoperegistry.azurecr.io/ts-nginx
+        buildContext: $(Build.Repository.LocalPath)
         dockerfile: './docker/Dockerfile.nginx'
         # containerRegistry: textscopeRegistry
         tags: |
@@ -76,6 +78,7 @@ stages:
       inputs:
         command: buildAndPush
         repository: textscoperegistry.azurecr.io/ts-web
+        buildContext: $(Build.Repository.LocalPath)
         dockerfile: './docker/production/Dockerfile.web'
         # containerRegistry: textscopeRegistry
         tags: |
