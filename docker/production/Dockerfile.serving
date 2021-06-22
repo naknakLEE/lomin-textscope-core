@@ -1,0 +1,40 @@
+FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
+RUN apt-get install -y git  && \
+    apt-get install wget
+
+WORKDIR /bin
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
+    chmod 755 jq
+
+COPY ./ /workspace
+
+RUN pip3 install -r /workspace/requirments-serving.txt
+
+WORKDIR /workspace/lovit
+RUN python3 setup.py install && \
+    rm -r /workspace/lovit
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
+WORKDIR /workspace
+RUN python3 app/utils/azure_blob_container/download_blob_to_local.py && \
+    cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml && \
+    python3 app/serving/generate_bentoml_multiple_model.py
+
+WORKDIR /
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
+
+WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
+RUN mkdir assets && \ 
+    mv /workspace/assets/textscope_id.json ./assets/textscope_id.json && \
+    mv /workspace/.env .env && \ 
+    mv ./app/serving/multiple_model_service.py ./multiple_model_service.py && \
+    python3 -m nuitka --module app --include-package=app && \
+    python3 -m nuitka --module multiple_model_service.py
+
+RUN rm -r /workspace /Nuitka

@@ -58,5 +58,6 @@ for blob in blob_list:
     #     model_file_path = model_file_path.replace(".onnx", "_DOWNLOADED.onnx")
 
     bytes = container_client.get_blob_client(blob).download_blob().readall()
+    os.makedirs(os.path.dirname(model_file_path), exist_ok=True)
     with open(model_file_path, "wb") as file:
         file.write(bytes)

@@ -27,10 +27,7 @@ RUN pip3 install python-jose[cryptography] && \
     pip3 install python-multipart && \
     pip3 install cryptography==3.3.2
 
-RUN pip3 install sqlalchemy && \
-    pip3 install requests && \
-    pip3 install psycopg2-binary && \
-    pip3 install python-dotenv && \
+RUN pip3 install python-dotenv && \
     pip3 install pydantic[email] && \
     pip3 install PyJWT && \
     pip3 install aiohttp
