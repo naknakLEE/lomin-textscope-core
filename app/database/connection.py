@@ -33,7 +33,6 @@ class SQLAlchemy:
         self._engine = create_engine(
             database_url,
             connect_args=check_same_thread,
-            poolclass=SingletonThreadPool,
             echo=echo,
             pool_recycle=pool_recycle,
             pool_pre_ping=True,

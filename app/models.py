@@ -88,7 +88,9 @@ class UsageCount(BaseModel):
 
 
 class StatusResponse(BaseModel):
-    response: str = f"Textscope API (is_database_working: $(is_database_working), is_serving_server_working: $(is_serving_server_working))"
+    response: str = (
+        f"Textscope API (is_database_working: True, is_serving_server_working: True)"
+    )
 
 
 class InferenceResponse(BaseModel):
