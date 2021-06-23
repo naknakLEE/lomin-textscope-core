@@ -47,6 +47,7 @@ def get_user(email: EmailStr, session: Session) -> UserInDB:
             "username": user.username,
             "full_name": user.full_name,
             "email": user.email,
+            "status": user.status,
             "is_superuser": user.is_superuser,
             "hashed_password": user.hashed_password,
         }
@@ -131,6 +132,6 @@ async def get_current_user(
 async def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
+    if current_user.status == "disabled":
+        raise HTTPException(status_code=400, detail="Disabled user")
     return current_user

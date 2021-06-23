@@ -16,14 +16,19 @@ from app import models
 router = APIRouter()
 
 
-@router.get("/me", response_model=EmailStr)
-async def read_users_me(current_user: dict = Depends(get_current_active_user)) -> Any:
+@router.get("/me", response_model=models.UserInfo)
+async def read_users_me(
+    session: Session = Depends(db.session),
+    current_user: dict = Depends(get_current_active_user),
+) -> Any:
     """
     ### 토큰 생성시 입력했던 이메일 조회
     입력 데이터: 이메일 정보 조회할 토큰 <br/>
     응답 데이터: 토큰 생성시 입력한 이메일 정보
     """
-    return current_user.email
+    user_info = Users.get_by_email(session, email=current_user.email)
+    print("\033[95m" + f"{user_info.__dict__}" + "\033[m")
+    return user_info
 
 
 @router.put("/me", response_model=models.UserInfo)

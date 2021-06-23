@@ -24,10 +24,19 @@ from pydantic.networks import EmailStr
 
 from app.database.connection import Base, db
 from app.common.const import get_settings
-from app.models import UserUpdate, User
+from app.models import UserUpdate, User, UsersScheme, UserInDB
 
 
 ModelType = TypeVar("ModelType", bound=Base)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password, hashed_password) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password) -> str:
+    return pwd_context.hash(password)
 
 
 class StatusEnum(enum.Enum):
@@ -82,13 +91,13 @@ class BaseMixin:
         return obj
 
     @classmethod
-    def update(cls, session: Session, *, db_obj: User, obj_in: UserUpdate) -> Any:
+    def update(cls, session: Session, *, db_obj: User, obj_in: UserInDB) -> Any:
         current_user_email = db_obj.email
+        obj_in.hashed_password = get_password_hash(obj_in.password)
         obj_data = jsonable_encoder(db_obj)
         user = session.query(cls).filter(cls.email == current_user_email).first()
-        # print('\033[94m' + f"{user.__dict__}" + '\033[m')
         for field in obj_data:
-            field_value = getattr(obj_in, field)
+            field_value = getattr(obj_in, field) if hasattr(obj_in, field) else None
             if field_value is not None:
                 setattr(user, field, field_value)
         session.flush()
@@ -102,6 +111,7 @@ class BaseMixin:
         is_exist = cls.get_by_email(session, email=kwargs["email"])
         if is_exist:
             return "This user already exist"
+        kwargs["hashed_password"] = get_password_hash(kwargs["password"])
 
         obj = cls()
         for col in obj.all_columns():
@@ -130,43 +140,16 @@ class BaseMixin:
         # session.refresh(obj)
         return user
 
-
-class Users(Base, BaseMixin):
-    __tablename__ = "users"
-    __table_args__ = {"extend_existing": True}
-    username = Column(String(length=128), nullable=True)
-    email = Column(String(length=255), nullable=False)
-    hashed_password = Column(String(length=2000), nullable=True)
-    full_name = Column(String(length=128), nullable=True)
-    status = Column(Enum(StatusEnum), nullable=True)
-    is_superuser = Column(Boolean, nullable=False, default=False)
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        default=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
-    )
-
-
-class Logs(Base, BaseMixin):
-    __tablename__ = "logs"
-    __table_args__ = {"extend_existing": True}
-    url = Column(String(length=2000), nullable=False)
-    method = Column(String(length=255), nullable=False)
-    status_code = Column(String(length=255), nullable=False)
-    log_detail = Column(String(length=2000), nullable=True)
-    error_detail = Column(JSON, nullable=True)
-    client = Column(String(length=2000), nullable=True)
-    request_timestamp = Column(String(length=255), nullable=False)
-    response_timestamp = Column(String(length=255), nullable=False)
-    processed_time = Column(String(length=255), nullable=False)
-
-
-class Usage(Base, BaseMixin):
-    __tablename__ = "usage"
-    __table_args__ = {"extend_existing": True}
-    email = Column(String(length=255), nullable=False)
-    status_code = Column(Integer, nullable=False)
+    @classmethod
+    def authenticate(
+        cls, get_db: Session, *, email: str, password: str
+    ) -> Optional[User]:
+        user = cls.get_by_email(get_db, email=email)
+        if not user:
+            return None
+        if not verify_password(password, user.hashed_password):
+            return None
+        return user
 
     @classmethod
     def get_usage_count(
@@ -233,11 +216,49 @@ class Usage(Base, BaseMixin):
         return query.all()
 
 
+class Users(Base, BaseMixin):
+    __tablename__ = "users"
+    __table_args__ = {"extend_existing": True}
+    username = Column(String(length=128), nullable=True)
+    email = Column(String(length=255), nullable=False)
+    hashed_password = Column(String(length=2000), nullable=True)
+    full_name = Column(String(length=128), nullable=True)
+    status = Column(Enum(StatusEnum), nullable=False, default="inactive")
+    is_superuser = Column(Boolean, nullable=False, default=False)
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
+
+
+class Logs(Base, BaseMixin):
+    __tablename__ = "logs"
+    __table_args__ = {"extend_existing": True}
+    url = Column(String(length=2000), nullable=False)
+    method = Column(String(length=255), nullable=False)
+    status_code = Column(String(length=255), nullable=False)
+    log_detail = Column(String(length=2000), nullable=True)
+    error_detail = Column(JSON, nullable=True)
+    client = Column(String(length=2000), nullable=True)
+    request_timestamp = Column(String(length=255), nullable=False)
+    response_timestamp = Column(String(length=255), nullable=False)
+    processed_time = Column(String(length=255), nullable=False)
+
+
+class Usage(Base, BaseMixin):
+    __tablename__ = "usage"
+    __table_args__ = {"extend_existing": True}
+    email = Column(String(length=255), nullable=False)
+    status_code = Column(Integer, nullable=False)
+
+
 def create_db_table() -> None:
     try:
         settings = get_settings()
         session = next(db.session())
-        # Base.metadata.create_all(db._engine)
+        Base.metadata.create_all(db._engine)
         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
     finally:

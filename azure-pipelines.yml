@@ -8,9 +8,6 @@ trigger:
 resources:
 - repo: self
 
-# variables:
-#   tag: '$(Build.BuildId)'
-
 stages:
 - stage: Build
   displayName: Build image
@@ -44,15 +41,6 @@ stages:
     - script: |
         git clone git@ssh.dev.azure.com:v3/textscope/Textscope/lovit
       displayName: 'Download submodule'
-    # - task: Docker@2
-    #   displayName: Build an serving image
-    #   inputs:
-    #     containerRegistryrepository: textscopeRegistry
-    #     command: build
-    #     dockerfile: './Dockerfile.bentoml'
-    #     # containerRegistry: textscopeRegistry
-    #     tags: |
-    #       ts-serving-0.0.1
     - task: Docker@2
       displayName: Build and push an serving image to container registry
       inputs:
@@ -60,7 +48,6 @@ stages:
         repository: textscoperegistry.azurecr.io/ts-serving
         buildContext: $(Build.Repository.LocalPath)
         dockerfile: './docker/production/Dockerfile.serving'
-        # containerRegistry: textscopeRegistry
         tags: |
           0.0.1
     - task: Docker@2
@@ -70,7 +57,6 @@ stages:
         repository: textscoperegistry.azurecr.io/ts-nginx
         buildContext: $(Build.Repository.LocalPath)
         dockerfile: './docker/Dockerfile.nginx'
-        # containerRegistry: textscopeRegistry
         tags: |
           0.0.1
     - task: Docker@2
@@ -80,45 +66,9 @@ stages:
         repository: textscoperegistry.azurecr.io/ts-web
         buildContext: $(Build.Repository.LocalPath)
         dockerfile: './docker/production/Dockerfile.web'
-        # containerRegistry: textscopeRegistry
         tags: |
           0.0.1
     - script: |
-          pip install pytest pytest-azurepipelines
-          pip install pytest-cov
-          pip install fastapi[all]
-          pip install sqlalchemy
-          pip install prometheusrock
-          pip install python-jose
-          pip install passlib
-          pip install loguru
-          pip install psycopg2-binary
+          pip install -r requirments-test.txt
           pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml tests
       displayName: 'pytest'
-    # - script: |
-    #       mv app/main.py ./main.py
-    #       python -m nuitka --module app --include-package=app
-    #       python -m nuitka main.py
-    #   displayName: 'convert python -> c using nuitka'
-    # - script: |
-    #       docker-compose up -d
-    #   displayName: 'run docker-compose'
-
-
-  # ./main.bin
-  # - stage: Testing
-  #   displayName: Testing web app
-  #   jobs:
-  #   - job: Build
-  #     displayName: Build
-  #     pool:
-  #       vmImage: ubuntu-latest
-  #     steps:
-
-  # - stage: Convert from python to c
-
-
-  # - task: PublishBuildArtifacts@1
-
-
-  

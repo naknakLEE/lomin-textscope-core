@@ -1,3 +1,5 @@
+from enum import Enum
+
 from datetime import datetime
 from typing import Optional, List
 from jose.utils import int_arr_to_long
@@ -31,14 +33,14 @@ class User(BaseModel):
     email: EmailStr
     username: Optional[str] = None
     full_name: Optional[str] = None
+    status: str = "inactive"
 
     class Config:
         orm_mode = True
 
 
 class UserInfo(User):
-    disabled: Optional[bool] = False
-    is_active: Optional[bool] = None
+    status: Optional[Enum] = None
     is_superuser: bool = False
     id: Optional[int] = None
 
@@ -56,8 +58,7 @@ class UserInDB(UserInfo):
 
 
 class UserUpdate(User):
-    disabled: Optional[bool] = None
-    is_active: Optional[bool] = None
+    status: Optional[Enum] = None
     is_superuser: bool = False
     password: str = False
     # created_at: Optional[datetime] = None

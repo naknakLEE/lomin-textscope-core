@@ -32,7 +32,7 @@ def test_create_user_new_email(
     response = client.post(
         f"/admin/users/create", json=data, headers=superuser_token_headers
     )
-    # print('\033[096m' + f"404 error: {response.json()}" + '\033[m')
+    print("\033[096m" + f"500 error: {response.json()}" + "\033[m")
     assert 200 <= response.status_code < 300
     created_user = response.json()
     user = Users.get(email=email)

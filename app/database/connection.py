@@ -1,4 +1,5 @@
 import logging
+import os
 
 from typing import Generator, Any
 from fastapi import FastAPI
@@ -6,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
+from sqlalchemy.pool import SingletonThreadPool
 
 from app.common.const import get_settings
 
@@ -26,11 +28,12 @@ class SQLAlchemy:
         echo = kwargs.setdefault("DB_ECHO", False)
 
         check_same_thread = {}
-        if settings.API_ENV is "test":
+        if os.environ["API_ENV"] == "test":
             check_same_thread = {"check_same_thread": False}
         self._engine = create_engine(
             database_url,
             connect_args=check_same_thread,
+            poolclass=SingletonThreadPool,
             echo=echo,
             pool_recycle=pool_recycle,
             pool_pre_ping=True,

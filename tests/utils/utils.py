@@ -1,11 +1,12 @@
-from os import access
 import random
 import string
-from typing import Dict
 
+from sqlalchemy.orm import Session
+from typing import Dict, Optional
 from fastapi.testclient import TestClient
 
 from app.common.const import get_settings
+from app.database.schema import Users
 
 
 settings = get_settings()
@@ -18,6 +19,14 @@ def random_lower_string() -> str:
 
 def random_email() -> str:
     return f"{random_lower_string()}@{random_lower_string()}.com"
+
+
+def check_superuser(user: Users) -> bool:
+    return user.is_superuser
+
+
+def check_status(user: Users) -> str:
+    return user.status.name
 
 
 def get_superuser_token_headers(client: TestClient) -> Dict[str, str]:

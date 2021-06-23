@@ -40,7 +40,9 @@ service_cfg = load_json(settings.SERVICE_CFG_PATH)["idcard"]["resources"]
 service_env = settings.SERVICE_ENV_PATH
 download_file_paths = {}
 for cfg in service_cfg:
-    download_file_paths[cfg["model_path"].split('/')[-1]] = path.join(settings.BASE_PATH, cfg["model_path"])
+    download_file_paths[cfg["model_path"].split("/")[-1]] = path.join(
+        settings.BASE_PATH, cfg["model_path"]
+    )
 download_file_paths[".env"] = service_env
 
 # Download blobs (model, env)

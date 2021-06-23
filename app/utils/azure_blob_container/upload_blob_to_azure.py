@@ -51,7 +51,7 @@ print("\033[96m" + f"\nUploading to Azure Storage as blob:" + "\033[m")
 for model_file_name, upload_file_path in upload_file_paths.items():
     print("\033[95m" + f"\t{model_file_name}" + "\033[m")
     blob_client = blob_service_client.get_blob_client(
-        container=container_name, blob=upload_file_path.split('/')[-1]
+        container=container_name, blob=upload_file_path.split("/")[-1]
     )
 
     # Upload the created file

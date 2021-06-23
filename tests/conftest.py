@@ -48,7 +48,7 @@ def normal_user_token_headers(client: TestClient, get_db: Session) -> Dict[str, 
     return authentication_token_from_email(
         client=client,
         email=fake_user_info["email"],
-        db=get_db,
+        get_db=get_db,
     )
 
 

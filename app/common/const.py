@@ -34,17 +34,13 @@ class Settings(BaseSettings):
     # BASE CONFIG
     DEVELOP: bool = True
     BASE_PATH: str = "."
-    API_ENV: str = "test"
-
-    # MiDDLEWARE CONFIG
-    EXCEPT_PATH_LIST: List[str] = ["/", "/openapi.json"]
-    EXCEPT_PATH_REGEX: str = "^(/docs|/redoc|/api/auth)"
 
     FAKE_SUPERUSER_INFORMATION: dict = {
         "username": "user",
         "full_name": "user",
         "email": "user@example.com",
         "password": "123456",
+        "status": "inactive",
         "is_superuser": True,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -54,6 +50,7 @@ class Settings(BaseSettings):
         "full_name": "garam",
         "email": "garam@example.com",
         "password": "123456",
+        "status": "inactive",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -63,6 +60,7 @@ class Settings(BaseSettings):
         "full_name": "tongo",
         "email": "tongo@example.com",
         "password": "123456",
+        "status": "inactive",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
