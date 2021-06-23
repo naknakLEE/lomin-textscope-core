@@ -46,7 +46,7 @@ def read_users(
 def create_user(
     *,
     session: Session = Depends(db.session),
-    user: models.UserRegister,
+    user: models.UserRegister = Body(..., example=models.UserInfo.schema()["example"]),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
@@ -95,7 +95,7 @@ def read_user_by_email(
 def update_user(
     *,
     session: Session = Depends(db.session),
-    user_in: UserUpdate = Depends(),
+    user_in: UserUpdate = Body(..., example=models.UserUpdate.schema()["example"]),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """

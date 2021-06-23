@@ -46,6 +46,15 @@ class UserInfo(User):
 
     class Config:
         orm_mode = True
+        schema_extra = {
+            "example": {
+                "email": "garam@example.com",
+                "username": "garam",
+                "full_name": "Garam Yoon",
+                "status": "inactive",
+                "password": "1q2w3e4r"
+            }
+        }
 
 
 class UserRegister(User):
@@ -63,6 +72,18 @@ class UserUpdate(User):
     password: str = False
     # created_at: Optional[datetime] = None
     # updated_at: Optional[datetime] = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "garam@example.com",
+                "username": "garam",
+                "full_name": "Garam Yoon",
+                "status": "inactive",
+                "is_superuser": "False",
+                "password": "1q2w3e4r"
+            }
+        }
 
 
 class UsersScheme(UserInfo):

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Optional, List, Dict
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, Body
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
@@ -36,7 +36,7 @@ async def read_users_me(
 def update_user_me(
     *,
     session: Session = Depends(db.session),
-    user_in: models.UserRegister,
+    user_in: models.UserRegister = Body(..., example=models.UserInfo.schema()["example"]),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """
