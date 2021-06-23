@@ -10,13 +10,14 @@ from app.database.connection import db
 from app.database.schema import Users, Usage
 from app.utils.auth import get_password_hash
 from app.errors import exceptions as ex
+from app.schemas import users_me_responses
 from app import models
 
 
 router = APIRouter()
 
 
-@router.get("/me", response_model=models.UserInfo)
+@router.get("/me", response_model=models.UserInfo, responses=users_me_responses)
 async def read_users_me(
     session: Session = Depends(db.session),
     current_user: dict = Depends(get_current_active_user),
@@ -31,7 +32,7 @@ async def read_users_me(
     return user_info
 
 
-@router.put("/me", response_model=models.UserInfo)
+@router.put("/me", response_model=models.UserInfo, responses=users_me_responses)
 def update_user_me(
     *,
     session: Session = Depends(db.session),

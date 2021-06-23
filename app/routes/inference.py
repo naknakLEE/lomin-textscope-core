@@ -1,4 +1,3 @@
-import requests
 import aiohttp
 import asyncio
 import json
@@ -14,40 +13,12 @@ from app.database.connection import db
 from app.utils.auth import get_current_active_user
 from app.common.const import get_settings
 from app.errors import exceptions as ex
+from app.schemas import inference_responses
 from app import models
 
 
 settings = get_settings()
 router = APIRouter()
-
-
-inference_responses = {
-    200: {
-        "description": "Item requested by ID",
-        "content": {
-            "application/json": {
-                "example": {
-                    "status": "1200",
-                    "minQlt": "00",
-                    "reliability": "0.367125",
-                    "docuType": "00",
-                    "ocrResult": {
-                        "tenantName": "홍길동",
-                        "tenantID": "200123-1234567",
-                        "memberNum": "5",
-                        "memberList": {
-                            "memberName": "심청이",
-                            "memberID": "510123-2234567",
-                            "memberRelation": "배우자",
-                            "status": "00",
-                        },
-                        "releaseData": "2021-02-10",
-                    },
-                }
-            }
-        },
-    }
-}
 
 
 @router.post(

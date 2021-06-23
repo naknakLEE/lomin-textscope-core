@@ -12,13 +12,14 @@ from app.common.const import get_settings
 from app.errors import exceptions as ex
 from app.database.connection import db
 from app.models import OAuth2PasswordRequestForm
+from app.schemas import auth_token_responses
 
 
 settings = get_settings()
 router = APIRouter()
 
 
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Token, responses=auth_token_responses)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(db.session),

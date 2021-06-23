@@ -12,6 +12,7 @@ from app.database.schema import Usage, Users, UserUpdate
 from app.utils.auth import get_password_hash
 from app.errors import exceptions as ex
 from app.common.const import get_settings
+from app.schemas import admin_users_responses
 from app import models
 
 
@@ -19,7 +20,9 @@ settings = get_settings()
 router = APIRouter()
 
 
-@router.get("/users", response_model=List[models.UserInfo])
+@router.get(
+    "/users", response_model=List[models.UserInfo], responses=admin_users_responses
+)
 def read_users(
     session: Session = Depends(db.session),
     skip: int = 0,
@@ -37,7 +40,9 @@ def read_users(
     return users
 
 
-@router.post("/users/create", response_model=models.UserInfo)
+@router.post(
+    "/users/create", response_model=models.UserInfo, responses=admin_users_responses
+)
 def create_user(
     *,
     session: Session = Depends(db.session),
@@ -60,7 +65,11 @@ def create_user(
     return created_user
 
 
-@router.get("/users/{user_email}", response_model=models.UserInfo)
+@router.get(
+    "/users/{user_email}",
+    response_model=models.UserInfo,
+    responses=admin_users_responses,
+)
 def read_user_by_email(
     user_email: EmailStr,
     current_user: models.UserInfo = Depends(get_current_active_user),
@@ -78,7 +87,11 @@ def read_user_by_email(
     return user
 
 
-@router.put("/users/{user_email}", response_model=models.UserInfo)
+@router.put(
+    "/users/{user_email}",
+    response_model=models.UserInfo,
+    responses=admin_users_responses,
+)
 def update_user(
     *,
     session: Session = Depends(db.session),
