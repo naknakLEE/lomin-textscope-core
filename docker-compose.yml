@@ -18,15 +18,16 @@ services:
     restart: always
   
   serving:
-    image: docker.lomin.ai/ts-serving:0.0.1
+    image: docker.lomin.ai/ts-gpu-serving:0.0.1
     build:
       context: ./docker/development
-      dockerfile: Dockerfile.bentoml
+      dockerfile: Dockerfile.gpu_serving
     container_name: serving
     ports: 
       - 5000:5000
     volumes:
       - ./:/workspace
+    runtime: nvidia
     #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
     tty: true
     depends_on: 
@@ -56,6 +57,25 @@ services:
     restart: unless-stopped
     # command: python /workspace/main.bin
 
+  pp:
+    image: docker.lomin.ai/ts-web:0.0.1
+    build:
+      context: ./docker/development
+      dockerfile: Dockerfile.fastapi
+    container_name: pp
+    ports: 
+      - 8080:8080
+    volumes:
+      - ./:/workspace
+    tty: true
+    depends_on: 
+      - mysql
+    networks:
+      our_net:
+          ipv4_address: ${PP_IP_ADDR}
+    restart: unless-stopped
+    # command: python /workspace/main.bin
+
   proxy:
     image: nginx:latest
     container_name: nginx
@@ -76,6 +96,20 @@ services:
   #   networks:
   #     our_net:
   #       ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+
+  # redis:
+  #   image: redis
+  #   container_name: redis${REDIS_IP_PORT}
+  #   command: redis-server --port ${REDIS_IP_PORT}
+  #   hostname: redis${REDIS_IP_PORT}
+  #   labels:
+  #     - "name=redis"
+  #     - "mode=standalone"
+  #   ports:
+  #     - ${REDIS_IP_PORT}:${REDIS_IP_PORT}
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${REDIS_IP_ADDR}
     
   hardware_telemetry:
     image: prom/node-exporter

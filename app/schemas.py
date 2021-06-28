@@ -1,6 +1,6 @@
 inference_responses = {
     200: {
-        "description": "OCR request",
+        "description": "Successful Response",
         "content": {
             "application/json": {
                 "example": {
@@ -29,7 +29,7 @@ inference_responses = {
 
 users_me_responses = {
     200: {
-        "description": "Search information",
+        "description": "Successful Response",
         "content": {
             "application/json": {
                 "example": {
@@ -48,7 +48,7 @@ users_me_responses = {
 # dict는 key 필요 -> 리스트는 표현하기 어려움
 # usage_me_responses = {
 #     200: {
-#         "description": "Search usage",
+#         "description": "Successful Response",
 #         "content": {
 #             "application/json": {
 #                 "example": {
@@ -67,7 +67,7 @@ users_me_responses = {
 
 auth_token_responses = {
     200: {
-        "description": "Create token",
+        "description": "Successful Response",
         "content": {
             "application/json": {
                 "example": {
@@ -82,7 +82,7 @@ auth_token_responses = {
 
 admin_users_responses = {
     200: {
-        "description": "Get multi user information",
+        "description": "Successful Response",
         "content": {
             "application/json": {
                 "example": {

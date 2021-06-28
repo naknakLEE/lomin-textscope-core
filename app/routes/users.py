@@ -36,7 +36,9 @@ async def read_users_me(
 def update_user_me(
     *,
     session: Session = Depends(db.session),
-    user_in: models.UserRegister = Body(..., example=models.UserInfo.schema()["example"]),
+    user_in: models.UserRegister = Body(
+        ..., example=models.UserInfo.schema()["example"]
+    ),
     current_user: models.UserInfo = Depends(get_current_active_user),
 ) -> Any:
     """

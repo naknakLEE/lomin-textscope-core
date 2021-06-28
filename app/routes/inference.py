@@ -8,6 +8,7 @@ import cv2
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from fastapi import Depends, File, UploadFile, APIRouter
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
@@ -23,7 +24,7 @@ from app import models
 settings = get_settings()
 router = APIRouter()
 
-serving_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+MODEL_SERVER_URL = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
@@ -66,7 +67,7 @@ files = {"image": ("test.jpg", img_bytes)}
 
 
 async def request(client):
-    response = await client.post(URL, files=files, timeout=300.0)
+    response = await client.post(URL, files=files, timeout=30.0)
     return response.text
 
 
@@ -94,24 +95,35 @@ async def inference(image: UploadFile = File(...)) -> Any:
     files = {"image": ("test.jpg", image_bytes)}
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(f"{serving_server_url}/detection", files=files, timeout=300.0)
-        result = response.json()
-        boxes = {"boxes": result["result"]}
-
-        response = await client.post(
-            f"{pp_server_url}/document/pp/detection",
-            json=boxes,
+        boundary_detection_response = await client.post(
+            f"{MODEL_SERVER_URL}/boundary_detection", files=files, timeout=30.0
         )
-        string = boxes["boxes"]
-
-        response = await client.post(
-            f"{serving_server_url}/recognition", json=string, timeout=300.0
+        boundary_data = boundary_detection_response.json()
+        kv_detection_response = await client.post(
+            f"{MODEL_SERVER_URL}/kv_detection", json=boundary_data, timeout=30.0
         )
-        string = {"string": result["result"]}
-
-        response = await client.post(
-            f"{pp_server_url}/document/pp/recognition", json=string, timeout=300.0
+        kv_detection_data = kv_detection_response.json()
+        detection_response = await client.post(
+            f"{MODEL_SERVER_URL}/recognition", json=kv_detection_data, timeout=30.0
         )
-        result = response.json()
+        result = detection_response.json()
+        # response = await client.post(f"{MODEL_SERVER_URL}/detection", files=files, timeout=30.0)
+        # boxes = {"boxes": result["result"]}
+
+        # response = await client.post(
+        #     f"{pp_server_url}/document/pp/detection",
+        #     json=boxes,
+        # )
+        # string = boxes["boxes"]
+
+        # response = await client.post(
+        #     f"{MODEL_SERVER_URL}/recognition", json=string, timeout=30.0
+        # )
+        # string = {"string": result["result"]}
+
+        # response = await client.post(
+        #     f"{pp_server_url}/document/pp/recognition", json=string, timeout=30.0
+        # )
+        # result = response.json()
 
     return result

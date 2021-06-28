@@ -5,7 +5,7 @@ pydantic[dotenv]==1.8.2
 pydantic[email]==1.8.2
 imageio==2.9.0
 onnx==1.9.0
-onnxruntime==1.8.0
+onnxruntime-gpu==1.8.0
 imutils==0.5.4
 loguru==0.5.3
 azure-storage-blob==12.8.1     
@@ -14,3 +14,10 @@ azure-storage-blob==12.8.1
 torch==1.8.1+cpu
 -f https://download.pytorch.org/whl/torch_stable.html
 torchvision==0.9.1+cpu
+
+
+
+fastapi==0.65.2
+passlib==1.7.4
+python_jose==3.3.0
+python_multipart==0.0.5

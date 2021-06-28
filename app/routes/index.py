@@ -1,20 +1,17 @@
-import aiohttp
 import requests
 import time
-import asyncio
-import numpy as np
-import base64
-import json
-import cv2
 
+from fastapi.responses import StreamingResponse
 from fastapi.datastructures import UploadFile
+from fastapi import Body
 from typing import Any
 from datetime import datetime
-from fastapi import APIRouter, Depends, File
+from fastapi import APIRouter, Depends, File, FastAPI
+from fastapi.testclient import TestClient
 from fastapi.requests import Request
 from sqlalchemy.orm import Session
-from fastapi.responses import JSONResponse
-from starlette.responses import Response
+from starlette.responses import Response, JSONResponse
+from fastapi.encoders import jsonable_encoder
 from inspect import currentframe as frame
 
 from app.database.connection import db
@@ -25,6 +22,8 @@ from app import models
 
 settings = get_settings()
 router = APIRouter()
+app = FastAPI()
+client = TestClient(app)
 
 
 # @router.get("/")
@@ -106,47 +105,25 @@ def check_status() -> Any:
     return Response(f"Textscope API ({status})")
 
 
-# @router.post("/pre_processing")
-# async def inference(file: UploadFile = File(...)) -> Any:
+@router.get("/start_stage")
+def check_status() -> Any:
+    # client.get("/stage_one")
+    return stage_one()
 
 
-#     serving_server_inference_url = (
-#         f"http://182.20.0.5:8000/post_processing"
-#     )
-
-#     start = time.time()
-#     image_data = await file.read()
-#     data={'file': image_data}
-#     print('\033[94m' + f"{type(image_data)}" + '\033[m')
-#     async with aiohttp.ClientSession() as session:
-#         async with session.post(
-#             serving_server_inference_url, data=data
-#         ) as response:
-#             result = await response.json()
-#             end = time.time()
-#             # print('\033[94m' + f"{np.array(result).shape}" + '\033[m')
-#             print('\033[94m' + f"total time: {end-start}" + '\033[m')
+# @router.get("/stage_one")
+def stage_one() -> Any:
+    # client.get("/stage_two")
+    return stage_two()
 
 
-# @router.post("/post_processing")
-# async def inference(file: UploadFile = File(...)) -> Any:
+# @router.get("/stage_two")
+def stage_two() -> Any:
+    # client.get("/stage_three")
+    return stage_three()
 
-#     image = await file.read()
-#     encoded_img = np.frombuffer(image, dtype=np.uint8)
-#     img = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
 
-#     # print('\033[94m' + f"{img.shape}" + '\033[m')
-#     encoded_img = cv2.imencode('.jpg', img)[1].tobytes()
-#     return encoded_img
-#     # return 1234
-#     # serving_server_inference_url = (
-#     #     f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference"
-#     # )
-
-#     # image_data = await file.read()
-#     # async with aiohttp.ClientSession() as session:
-#     #     async with session.post(
-#     #         serving_server_inference_url, data=image_data
-#     #     ) as response:
-#     #         result = await response.json()
-#     #         return models.InferenceResponse(ocrResult=result)
+# @router.get("/stage_three")
+def stage_three() -> Any:
+    json_compatible_item_data = jsonable_encoder("All stage completed")
+    return JSONResponse(content=json_compatible_item_data)

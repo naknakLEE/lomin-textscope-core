@@ -11,7 +11,7 @@ RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
 
 COPY ./ /workspace
 
-RUN pip3 install -r /workspace/requirments-serving.txt
+RUN pip3 install -r /workspace/requirments/requirments-serving.txt
 
 WORKDIR /workspace/lovit
 RUN python3 setup.py install && \

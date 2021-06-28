@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     MYSQL_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
+    REDIS_IP_ADDR: str
+    PP_IP_ADDR: str
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
@@ -30,6 +32,9 @@ class Settings(BaseSettings):
 
     # SERVING CONFIG
     SERVING_IP_PORT: int
+    REDIS_IP_PORT: int
+    WEB_IP_PORT: int
+    PP_IP_PORT: int
 
     # BASE CONFIG
     DEVELOP: bool = True

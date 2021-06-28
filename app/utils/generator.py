@@ -22,12 +22,6 @@ from app.errors import exceptions as ex
 settings = get_settings()
 
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="auth2/token",
-    scopes={"me": "Read information about the current user.", "items": "Read items."},
-)
-
-
 def create_app() -> FastAPI:
     app = FastAPI()
 
@@ -37,9 +31,7 @@ def create_app() -> FastAPI:
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 
-        app.add_middleware(
-            PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
-        )
+        app.add_middleware(PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True)
     elif settings.PROFILING_TOOL == "cProfile":
         from fastapi_cprofile.profiler import CProfileMiddleware
 
@@ -60,10 +52,10 @@ def create_app() -> FastAPI:
 
     app.add_route("/metrics", metrics_route)
 
-    app.include_router(index.router)
-    app.include_router(inference.router, tags=["inference"], prefix="/inference")
-    app.include_router(users.router, tags=["Users"], prefix="/users")
-    app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
-    app.include_router(admin.router, tags=["Admin"], prefix="/admin")
+    app.include_router(index.router, prefix="/v1")
+    app.include_router(inference.router, tags=["inference"], prefix="/v1/inference")
+    app.include_router(users.router, tags=["Users"], prefix="/v1/users")
+    app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
+    app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
 
     return app

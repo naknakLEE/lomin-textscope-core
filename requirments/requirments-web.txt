@@ -14,6 +14,7 @@ PyJWT==2.1.0
 aiohttp==3.7.4.post0
 prometheusrock==0.2.0      
 requests==2.25.1
+numpy==1.21.0
 
 # for development mode
 fastapi_cprofile==0.0.2      

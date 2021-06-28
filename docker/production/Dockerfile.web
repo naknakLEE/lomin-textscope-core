@@ -17,7 +17,7 @@ COPY ./ /tmp
 RUN mkdir /workspace && \
     mv /tmp/app /workspace/app && \
     mv /tmp/.env /workspace/.env && \
-    mv /tmp/requirments-web.txt /workspace/requirments-web.txt && \
+    mv /tmp/requirments/requirments-web.txt /workspace/requirments-web.txt && \
     rm -r /tmp
 
 RUN pip3 install -r /workspace/requirments-web.txt

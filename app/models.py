@@ -52,7 +52,7 @@ class UserInfo(User):
                 "username": "garam",
                 "full_name": "Garam Yoon",
                 "status": "inactive",
-                "password": "1q2w3e4r"
+                "password": "1q2w3e4r",
             }
         }
 
@@ -81,7 +81,7 @@ class UserUpdate(User):
                 "full_name": "Garam Yoon",
                 "status": "inactive",
                 "is_superuser": "False",
-                "password": "1q2w3e4r"
+                "password": "1q2w3e4r",
             }
         }
 
@@ -96,7 +96,7 @@ class Usage(BaseModel):
     created_at: datetime
     status_code: int
     # id: Optional[int] = None
-    email: str
+    email: EmailStr
 
     class Config:
         orm_mode = True
