@@ -75,9 +75,7 @@ def create_app() -> FastAPI:
 
     # app.include_router(index.router, tags=["Index"], prefix="/index")
     # app.include_router(inference.router, tags=["Inference"], prefix="/inference")
-    app.include_router(
-        document.router, tags=["Document"], prefix="/document"
-    )
+    app.include_router(document.router, tags=["Document"], prefix="/post_processing")
 
     return app
 

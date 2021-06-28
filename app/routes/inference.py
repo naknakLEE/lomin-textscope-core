@@ -25,7 +25,7 @@ settings = get_settings()
 router = APIRouter()
 
 MODEL_SERVER_URL = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
-pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
+PP_SERVER_URL = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
 @router.post(
@@ -51,10 +51,6 @@ async def inference(file: UploadFile = File(...)) -> Any:
         ) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
-
-
-# @router.post("/pipeline")
-# async def inference(image: UploadFile = File(...)) -> Any:
 
 
 API_ADDR = "v1/inference/pipeline"
@@ -94,40 +90,19 @@ async def achyncio_sleep():
 @router.post("/pipeline")
 async def inference(image: UploadFile = File(...)) -> Any:
     image_bytes = await image.read()
-    files = {"image": ("test.jpg", image_bytes)}
+    files = {"image": ("document_img.jpg", image_bytes)}
 
     async with httpx.AsyncClient() as client:
-        # boundary_detection_response = await client.post(
-        #     f"{MODEL_SERVER_URL}/boundary_detection", files=files, timeout=30.0
-        # )
-        # boundary_data = boundary_detection_response.json()
-        kv_detection_response = await client.post(
+        document_ocr_model_response = await client.post(
             f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=30.0
         )
-        kv_detection_data = kv_detection_response.json()
-        result = kv_detection_response.json()
+        document_ocr_result = document_ocr_model_response.json()[0]
 
-        # detection_response = await client.post(
-        #     f"{MODEL_SERVER_URL}/recognition", json=kv_detection_data, timeout=30.0
-        # )
-        # result = detection_response.json()
-        # response = await client.post(f"{MODEL_SERVER_URL}/detection", files=files, timeout=30.0)
-        # boxes = {"boxes": result["result"]}
-
-        # response = await client.post(
-        #     f"{pp_server_url}/document/pp/detection",
-        #     json=boxes,
-        # )
-        # string = boxes["boxes"]
-
-        # response = await client.post(
-        #     f"{MODEL_SERVER_URL}/recognition", json=string, timeout=30.0
-        # )
-        # string = {"string": result["result"]}
-
-        # response = await client.post(
-        #     f"{pp_server_url}/document/pp/recognition", json=string, timeout=30.0
-        # )
-        # result = response.json()
+        document_ocr_pp_response = await client.post(
+            f"{PP_SERVER_URL}/post_processing/document_ocr",
+            json=document_ocr_result,
+            timeout=30.0,
+        )
+        result = document_ocr_pp_response.json()
 
     return result

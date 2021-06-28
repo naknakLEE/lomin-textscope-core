@@ -37,21 +37,18 @@ from pp_server.app.database.connection import redis_cache
 settings = get_settings()
 router = APIRouter()
 # redis_cache = Redis(host=settings.REDIS_IP_ADDR, port=settings.REDIS_IP_PORT, db=0)
-serving_server_url = (
-    f"http://182.20.0.4:8080"
-)
-web_server_url = (
-    f"http://182.20.0.5:8000"
-)
+serving_server_url = f"http://182.20.0.4:8080"
+web_server_url = f"http://182.20.0.5:8000"
 
 app = FastAPI()
 
 client = TestClient(app)
 
+
 @router.post("/pipeline")
 async def inference(image: UploadFile = File(...)) -> Any:
     image_bytes = await image.read()
-    image = { "image": image_bytes }
+    image = {"image": image_bytes}
 
     # Detection
     async with aiohttp.ClientSession() as session:
@@ -70,7 +67,7 @@ async def inference(image: UploadFile = File(...)) -> Any:
             result = await response.json()
             boxes = result
             print("\033[94m" + f"{result}" + "\033[m")
-    
+
     # Recognition
     async with aiohttp.ClientSession() as session:
         async with session.post(

@@ -178,7 +178,6 @@ async def inference(file: UploadFile = File(...)) -> Any:
             # print('\033[94m' + f"total time: {end-start}" + '\033[m')
 
 
-
 @router.post("/stage_one")
 async def inference(image: UploadFile = File(...)) -> Any:
     image = await image.read()
@@ -186,6 +185,7 @@ async def inference(image: UploadFile = File(...)) -> Any:
     image = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
     print("\033[94m" + f"1: {image.shape}" + "\033[m")
     return image.shape
+
 
 @router.post("/stage_two")
 async def inference(boxes: List[int]) -> Any:
