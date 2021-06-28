@@ -5,26 +5,44 @@ import asyncio
 
 from fastapi import FastAPI, Request, Depends
 from fastapi import Depends, File, UploadFile, APIRouter
+
 # from fastapi.security import OAuth2PasswordBearer
 # from dataclasses import asdict
 # from prometheusrock import PrometheusMiddleware, metrics_route
 
 sys.path.append("/workspace")
-from pp_server.app.routes import postprocessing, inference
-from app.database.connection import db
-from app.common.config import config
-from app.common.const import get_settings
-from app.database.schema import create_db_table
-from app.middlewares.logging import LoggingMiddleware
-from app.middlewares.timeout_handling import TimeoutMiddleware
-from app.errors import exceptions as ex
+from pp_server.app.routes import document
+
+# from app.common.const import get_settings
+# from app.database.connection import db
+# from app.common.config import config
+# from app.database.schema import create_db_table
+# from app.middlewares.logging import LoggingMiddleware
+# from app.middlewares.timeout_handling import TimeoutMiddleware
+# from app.errors import exceptions as ex
 
 
-settings = get_settings()
+# settings = get_settings()
 
 
 def create_app() -> FastAPI:
     app = FastAPI()
+
+    # async def get_all():
+    #     return await redis_cache.keys("*")
+
+    # @app.on_event("startup")
+    # async def starup_event():
+    #     await redis_cache.init_cache()
+
+    # @app.on_event("shutdown")
+    # async def shutdown_event():
+    #     redis_cache.close()
+    #     await redis_cache.wait_closed()
+
+    # @app.get("/")
+    # async def redis_keys():
+    #     return await get_all()
 
     # db.init_app(app, **asdict(config()))
     # create_db_table()
@@ -55,8 +73,11 @@ def create_app() -> FastAPI:
 
     # app.add_route("/metrics", metrics_route)
 
-    app.include_router(inference.router, tags=["Inference"], prefix="/inference")
-    app.include_router(postprocessing.router, tags=["PostProcessing"], prefix="/postprocessing")
+    # app.include_router(index.router, tags=["Index"], prefix="/index")
+    # app.include_router(inference.router, tags=["Inference"], prefix="/inference")
+    app.include_router(
+        document.router, tags=["Document"], prefix="/document"
+    )
 
     return app
 
