@@ -46,7 +46,9 @@ async def inference(file: UploadFile = File(...)) -> Any:
 
     image_data = await file.read()
     async with aiohttp.ClientSession() as session:
-        async with session.post(serving_server_inference_url, data=image_data) as response:
+        async with session.post(
+            serving_server_inference_url, data=image_data
+        ) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
 

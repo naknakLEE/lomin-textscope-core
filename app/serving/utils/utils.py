@@ -958,7 +958,9 @@ def kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_s
         extra_info["size_after_resize_before_pad"][1],
         extra_info["size_after_resize_before_pad"][0],
     )
-    zvalid_boxes = revert_size(valid_boxes, current_size, original_size).astype(np.int32)
+    zvalid_boxes = revert_size(valid_boxes, current_size, original_size).astype(
+        np.int32
+    )
     lookup_table = infer_sess_map["kv_model"]["config"]["label_classes"]
     kv_classes = lookup_table[valid_labels]
 
