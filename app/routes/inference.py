@@ -100,7 +100,7 @@ async def inference(image: UploadFile = File(...)) -> Any:
         # )
         # boundary_data = boundary_detection_response.json()
         kv_detection_response = await client.post(
-            f"{MODEL_SERVER_URL}/detection", files=files, timeout=30.0
+            f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=30.0
         )
         kv_detection_data = kv_detection_response.json()
         result = kv_detection_response.json()
