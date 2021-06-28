@@ -95,18 +95,20 @@ async def inference(image: UploadFile = File(...)) -> Any:
     files = {"image": ("test.jpg", image_bytes)}
 
     async with httpx.AsyncClient() as client:
-        boundary_detection_response = await client.post(
-            f"{MODEL_SERVER_URL}/boundary_detection", files=files, timeout=30.0
-        )
-        boundary_data = boundary_detection_response.json()
+        # boundary_detection_response = await client.post(
+        #     f"{MODEL_SERVER_URL}/boundary_detection", files=files, timeout=30.0
+        # )
+        # boundary_data = boundary_detection_response.json()
         kv_detection_response = await client.post(
-            f"{MODEL_SERVER_URL}/kv_detection", json=boundary_data, timeout=30.0
+            f"{MODEL_SERVER_URL}/detection", files=files, timeout=30.0
         )
         kv_detection_data = kv_detection_response.json()
-        detection_response = await client.post(
-            f"{MODEL_SERVER_URL}/recognition", json=kv_detection_data, timeout=30.0
-        )
-        result = detection_response.json()
+        result = kv_detection_response.json()
+
+        # detection_response = await client.post(
+        #     f"{MODEL_SERVER_URL}/recognition", json=kv_detection_data, timeout=30.0
+        # )
+        # result = detection_response.json()
         # response = await client.post(f"{MODEL_SERVER_URL}/detection", files=files, timeout=30.0)
         # boxes = {"boxes": result["result"]}
 

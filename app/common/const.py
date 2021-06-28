@@ -84,7 +84,8 @@ class Settings(BaseSettings):
     OUTPUT_DEBUG: str = "outputs/debug"
 
     # SERVICE CONFIG
-    SERVICE_CFG_PATH: str = f"{BASE_PATH}/assets/textscope_id.json"
+    SERVICE_TYPE = "textscope_document"
+    SERVICE_CFG_PATH: str = f"{BASE_PATH}/assets/{SERVICE_TYPE}.json"
     SERVICE_ENV_PATH: str = f"{BASE_PATH}/.env"
 
     # OTHERS
@@ -126,7 +127,7 @@ class Settings(BaseSettings):
 
     ID_CROP_FIND: bool
     ID_CROP_FIND_NUM: int
-    ID_CROP_FIND_RATIO: float  # 1/sqrt(2)
+    # ID_CROP_FIND_RATIO: float  # 1/sqrt(2)
 
     ID_ROTATE_FIND: bool
     ID_ROTATE_ANGLE: List[int]
