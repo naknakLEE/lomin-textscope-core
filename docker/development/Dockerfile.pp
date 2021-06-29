@@ -20,6 +20,8 @@ WORKDIR /workspace/lovit
 RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
-RUN pip3 install soynlp
+RUN pip3 install soynlp && \
+    pip3 install loguru && \
+    pip3 install httpx
 
 WORKDIR /workspace

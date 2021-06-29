@@ -19,7 +19,7 @@ from app.errors import exceptions as ex
 settings = get_settings()
 
 
-timeout = 300.0
+timeout = 1.0
 loop = asyncio.get_event_loop()
 future = asyncio.wait_for(loop.run_in_executor(None, time.sleep, 2), timeout)
 

@@ -4,8 +4,8 @@ async def exception_handler(error: Exception):
     return error
 
 
-class APIException(Exception):
-    status_code: str
+class APIException():
+    status: str
     minQlt: str
     reliability: str
     docuType: str
@@ -15,102 +15,129 @@ class APIException(Exception):
     def __init__(
         self,
         *,
-        status_code: str = "0000",
-        minQlt: str = "000000",
-        reliability: str = None,
-        docuType: str = None,
-        ocrResult: str = None,
-        ex,
+        status: str = "9400",
+        minQlt: str = "00",
+        reliability: str = "",
+        docuType: str = "",
+        ocrResult: str = "",
     ) -> None:
-        self.status_code = status_code
+        self.status = status
         self.minQlt = minQlt
         self.reliability = reliability
         self.docuType = docuType
         self.docuType = docuType
         self.ocrResult = ocrResult
-        self.ex = ex
-        super().__init__(ex)
+        super().__init__()
 
 
 class successful(APIException):
     def __init__(self, reliability, docuType, ocrResult, ex: Exception = None) -> None:
         super().__init__(
-            status_code="1200",
+            status="1200",
             minQlt=f"00",
             reliability=reliability,
             docuType=docuType,
             ocrResult=ocrResult,
-            ex=ex,
         )
 
 
 class minQltException(APIException):
     def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
-            status_code="1400",
+            status="1400",
             minQlt=minQlt,
             reliability="",
             docuType="",
             ocrResult="",
-            ex=ex,
         )
 
 
 class serverException(APIException):
     def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
-            status_code="2400",
+            status="2400",
             minQlt=minQlt,
             reliability="",
             docuType="",
             ocrResult="",
-            ex=ex,
         )
 
 
 class inferenceResultException(APIException):
     def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
-            status_code="3400",
+            status="3400",
             minQlt=minQlt,
             reliability="",
             docuType="",
             ocrResult="",
-            ex=ex,
         )
 
 
 class serverTemplateException(APIException):
     def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
-            status_code="4400",
+            status="4400",
             minQlt=minQlt,
             reliability="",
             docuType="",
             ocrResult="",
-            ex=ex,
         )
 
 
 class inferenceReliabilityException(APIException):
     def __init__(self, minQlt, reliability, ex: Exception = None) -> None:
         super().__init__(
-            status_code="5400",
+            status="5400",
             minQlt=minQlt,
             reliability=reliability,
             docuType="",
             ocrResult="",
-            ex=ex,
         )
 
 
-class otherException(APIException):
+class ocrResultEmptyException(APIException):
     def __init__(self, minQlt, reliability, ex: Exception = None) -> None:
         super().__init__(
-            status_code="6400",
+            status="6400",
+            minQlt=minQlt,
+            reliability=reliability,
+            docuType="",
+            ocrResult="",
+        )
+
+
+class timeoutException(APIException):
+    def __init__(self, minQlt, description, ex: Exception = None) -> None:
+        super().__init__(
+            status="7400",
             minQlt=minQlt,
             reliability="",
             docuType="",
             ocrResult="",
-            ex=ex,
         )
+        self.description = description
+
+
+class parameterException(APIException):
+    def __init__(self, minQlt, description, ex: Exception = None) -> None:
+        super().__init__(
+            status="8400",
+            minQlt=minQlt,
+            reliability="",
+            docuType="",
+            ocrResult="",
+        )
+        self.description = description
+
+
+class otherException(APIException):
+    def __init__(self, minQlt, description, ex: Exception = None) -> None:
+        super().__init__(
+            status="9400",
+            minQlt=minQlt,
+            reliability="",
+            docuType="",
+            ocrResult="",
+        )
+        self.description = description

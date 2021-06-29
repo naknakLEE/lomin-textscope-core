@@ -90,16 +90,6 @@ async def achyncio_sleep():
 async def inference(image: UploadFile = File(...)) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
-    # json_compatible_files = jsonable_encoder(
-    #     {
-    #         "status": "0000",
-    #         "minQlt": "01",
-    #         "reliability": "0.345678",
-    #         "docuType": "01",
-    #         "ocrResult": "",
-    #     }
-    # )
-    # return JSONResponse(content=json_compatible_files)
 
     async with httpx.AsyncClient() as client:
         document_ocr_model_response = await client.post(
@@ -120,4 +110,13 @@ async def inference(image: UploadFile = File(...)) -> Any:
         )
         result = document_ocr_pp_response.json()
 
-    return result
+    json_compatible_files = jsonable_encoder(
+        {
+            "status": "0000",
+            "minQlt": "01",
+            "reliability": "0.345678",
+            "docuType": "01",
+            "ocrResult": result,
+        }
+    )
+    return JSONResponse(content=json_compatible_files)

@@ -76,6 +76,22 @@ services:
     restart: unless-stopped
     # command: python /workspace/main.bin
 
+  kakao_wrapper:
+    image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
+    build:
+      context: ./docker/development
+      dockerfile: Dockerfile.web
+    container_name: kakao_wrapper
+    ports: 
+      - 8090:8090
+    volumes:
+      - ./:/workspace
+    tty: true
+    networks:
+      our_net:
+          ipv4_address: ${KAKAO_WRAPPER_IP_ADDR}
+    restart: unless-stopped
+
   proxy:
     image: nginx:latest
     container_name: nginx

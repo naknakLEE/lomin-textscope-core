@@ -40,8 +40,7 @@ RUN pip3 install fastapi_profiler && \
 
 RUN apt-get install -y psmisc
 
-COPY ./app /workspace/app
-COPY ./.env /workspace
+COPY . /workspace
 
 WORKDIR /workspace
 # RUN mv app/main.py ./main.py && \
