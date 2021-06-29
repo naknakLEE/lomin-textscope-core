@@ -2,6 +2,11 @@ import numpy as np
 import time
 import torch
 import torchvision
+import onnx
+import onnxruntime
+import PIL
+import cv2
+import os
 
 from bentoml import env, artifacts, api, BentoService
 from bentoml.adapters import ImageInput
@@ -17,6 +22,7 @@ from app.serving.utils.utils import (
     convert_recognition_to_text,
     get_cropped_images,
     load_models,
+    deidentify_img,
 )
 
 
@@ -34,6 +40,7 @@ class MultiModelService(BentoService):
         self.infer_sess_map = dict()
         self.service_cfg = load_json(f"/workspace/assets/textscope_id.json")["idcard"]
         load_models(self.infer_sess_map, self.service_cfg)
+        self.detection_threshold = 0.5
 
     def detection_preprocessing(self, img_arr):
         start_t = time.time()
@@ -47,9 +54,7 @@ class MultiModelService(BentoService):
         for i in range(len(cropped_images)):
             extra_info = dict()
             for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
-                cropped_images[i], extra_info = _proc(
-                    cropped_images[i], extra_info=extra_info
-                )
+                cropped_images[i], extra_info = _proc(cropped_images[i], extra_info=extra_info)
             info_list.append(extra_info)
 
         cropped_images = np.stack(cropped_images)
@@ -65,16 +70,15 @@ class MultiModelService(BentoService):
         scores = scores.cpu().detach().numpy()
         labels = labels.cpu().detach().numpy()
 
-        # kv_score_threshold = float(settings.ID_KV_SCORE_TH)
-        kv_score_threshold = 0.5
-        valid_indicies = scores > kv_score_threshold
+        # detection_score_threshold = float(settings.ID_KV_SCORE_TH)
+        valid_indicies = scores > self.detection_threshold
         valid_scores = scores[valid_indicies]
         valid_boxes = boxes[valid_indicies]
         valid_labels = labels[valid_indicies]
         if len(valid_boxes) < 1:
             return None, None
         ind = np.lexsort((valid_boxes[:, 1], valid_boxes[:, 0]))
-        valid_boxes = valid_boxes[ind]
+        valid_boxes = valid_boxes[ind].astype(int)
         valid_scores = valid_scores[ind]
         valid_labels = valid_labels[ind]
 
@@ -98,54 +102,71 @@ class MultiModelService(BentoService):
 
         logger.info(f"KV inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
 
-        return (
-            cropped_images,
-            class_masks,
-            valid_boxes.astype(int),
-            valid_scores,
-            kv_classes,
-        )
+        return cropped_images, class_masks, valid_boxes, valid_scores, kv_classes
 
     def recognition_postprocessing(self, rec_preds, start_t):
         texts = convert_recognition_to_text(rec_preds)
         logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
         return texts
 
-    def recognition(
-        self, cropped_images, fixed_batch_size, rec_sess, class_masks, output_names
-    ):
-        rec_preds = []
-        for i in range(0, len(cropped_images), fixed_batch_size):
-            if (i + fixed_batch_size) < len(cropped_images):
-                end = i + fixed_batch_size
-            else:
-                end = len(cropped_images)
-            _cropped_images = cropped_images[i:end]
-            _class_masks = class_masks[i:end]
-            inputs = get_fixed_batch(fixed_batch_size, _cropped_images, _class_masks)
-            inputs = dict(
-                (rec_sess.get_inputs()[i].name, inpt) for i, inpt in enumerate(inputs)
-            )
-            results = rec_sess.run(output_names, inputs)
+    def to_numpy(self, tensor):
+        if tensor.requires_grad:
+            return tensor.detach().cpu().numpy()
+        else:
+            return tensor.cpu().numpy()
 
-            preds = results[0][: (end - i)]
-            rec_preds = (
-                np.concatenate([rec_preds, preds]) if len(rec_preds) > 0 else preds
-            )
-        return rec_preds
+    def recognition(self, cropped_images, fixed_batch_size, rec_sess, class_masks, output_names):
+
+        providers = [
+            (
+                "CUDAExecutionProvider",
+                {
+                    "device_id": 0,
+                },
+            ),
+            # 'CPUExecutionProvider',
+        ]
+        inputs = torch.from_numpy(cropped_images).to("cuda")
+        # output_path = "/workspace/assets/models/baseline_exp1_-epoch=2_acc=0.onnx"
+        # exported_model = onnx.load(output_path)
+        # onnx.checker.check_model(exported_model)
+        # ort_session = onnxruntime.InferenceSession(output_path, providers=providers)
+        # compute ONNX Runtime output prediction
+        ort_inputs = {
+            self.artifacts.recognition.get_inputs()[0].name: self.to_numpy(inputs),
+        }
+        ort_outs = self.artifacts.recognition.run(None, ort_inputs)
+        # ort_outs = ort_session.run(None, ort_inputs)
+        # np.testing.assert_allclose(self.to_numpy(torch_out), ort_outs[0], rtol=1e-03, atol=1e-05)
+        return ort_outs
 
     @api(input=ImageInput(), batch=False)
     def document_ocr(self, img):
+        img = cv2.resize(img, dsize=(2052, 2736), interpolation=cv2.INTER_AREA)
+
         img_tensor, start_t = self.detection_preprocessing(img)
         with torch.no_grad():
-            boxes, labels, scores, _ = self.artifacts.detection(img_tensor)
+            boxes, labels, scores, img_size = self.artifacts.detection(img_tensor)
+            # print(boxes)
+
         (
             cropped_images,
             class_masks,
-            kv_boxes,
-            kv_scores,
-            kv_classes,
+            detection_boxes,
+            detection_scores,
+            detection_classes,
         ) = self.detection_postprocessing(img, boxes, scores, labels, start_t)
+
+        print(f"boxes size: {np.array(detection_boxes).shape}")
+        self.savepath = f"/workspace/others/assets/deidentify_img_sg_{self.detection_threshold}.jpg"
+        info_save_dir = os.path.join(settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d"))
+        os.makedirs(info_save_dir, exist_ok=True)
+        info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
+        deidentify_img(img, detection_boxes, detection_classes, info_save_path)
+
+        # cv2.imwrite("/workspace/others/assets/bytes_to_document.png", img)
+
+        start_t = time.time()
 
         (
             cropped_images,
@@ -158,9 +179,10 @@ class MultiModelService(BentoService):
             cropped_images, fixed_batch_size, rec_sess, class_masks, output_names
         )
 
-        texts = self.recognition_postprocessing(rec_preds, start_t)
-
-        logger.debug(f"kv_boxes: {kv_boxes}")
-        logger.debug(f"kv_scores: {kv_scores}")
-
-        return [{"texts": texts}]
+        logger.info(f"Recognition inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
+        return {
+            "rec_preds": np.array(np.argmax(rec_preds[0], axis=-1)),
+            "scores": np.array(detection_scores),
+            "boxes": np.array(detection_boxes),
+            "img_size": np.array(img_size),
+        }

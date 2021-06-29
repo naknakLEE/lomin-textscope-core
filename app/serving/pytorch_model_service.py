@@ -58,7 +58,9 @@ class PytorchModelService(BentoService):
         tensor = torch.as_tensor(img).to(torch.device("cuda"))
         batch = torch.unsqueeze(tensor, 0).permute(0, 3, 1, 2)
         # batch = tensor.permute(2,0,1)
-        results = self.artifacts.net(batch)
+
+        with torch.no_grad():
+            results = self.artifacts.net(batch)
         # tensor = torch.as_tensor(imgs.astype(np.float32))
         # batch = torch.unsqueeze(tensor, 0).permute(0,3,1,2)
         # results = self.artifacts.net(batch)

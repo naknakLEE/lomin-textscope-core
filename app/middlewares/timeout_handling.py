@@ -19,7 +19,7 @@ from app.errors import exceptions as ex
 settings = get_settings()
 
 
-timeout = 30.0
+timeout = 300.0
 loop = asyncio.get_event_loop()
 future = asyncio.wait_for(loop.run_in_executor(None, time.sleep, 2), timeout)
 
@@ -46,9 +46,7 @@ future = asyncio.wait_for(loop.run_in_executor(None, time.sleep, 2), timeout)
 
 
 class TimeoutMiddleware(BaseHTTPMiddleware):
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         try:
             # return loop.run_until_complete(future)
             # with timeout(1):

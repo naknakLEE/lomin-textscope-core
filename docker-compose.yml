@@ -58,10 +58,10 @@ services:
     # command: python /workspace/main.bin
 
   pp:
-    image: docker.lomin.ai/ts-web:0.0.1
+    image: docker.lomin.ai/ts-pp:0.0.1
     build:
       context: ./docker/development
-      dockerfile: Dockerfile.fastapi
+      dockerfile: Dockerfile.pp
     container_name: pp
     ports: 
       - 8080:8080

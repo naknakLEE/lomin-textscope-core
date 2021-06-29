@@ -25,3 +25,17 @@ multi_model_service.pack("detection", detection_model)
 multi_model_service.pack("recognition", recognition_model)
 
 multi_model_service.save()
+
+
+#####################################################################
+
+# import cv2
+# import PIL
+# import numpy as np
+
+# image_dir = "/workspace/others/assets/01_0001.png"
+# img = PIL.Image.open(image_dir)
+# img = np.array(img)
+
+# texts = multi_model_service.document_ocr(img)
+# print("\033[95m" + f"{texts}" + "\033[m")

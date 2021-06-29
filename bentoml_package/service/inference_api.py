@@ -184,9 +184,7 @@ class InferenceAPI(object):
                                     http_status=500,
                                     err_msg=f"Exception happened in API function: {e}",
                                 )
-                        return [None] * sum(
-                            1 if t.batch is None else t.batch for t in tasks
-                        )
+                        return [None] * sum(1 if t.batch is None else t.batch for t in tasks)
                     else:
                         task = tasks
                         if not task.is_discarded:
@@ -208,15 +206,11 @@ class InferenceAPI(object):
         else:
             schema = self.input_adapter.custom_request_schema
 
-        if schema.get('application/json'):
-            schema.get('application/json')[
-                'example'
-            ] = self.input_adapter._http_input_example
+        if schema.get("application/json"):
+            schema.get("application/json")["example"] = self.input_adapter._http_input_example
         return schema
 
-    def _filter_tasks(
-        self, inf_tasks: Iterable[InferenceTask]
-    ) -> Iterator[InferenceTask]:
+    def _filter_tasks(self, inf_tasks: Iterable[InferenceTask]) -> Iterator[InferenceTask]:
         for task in inf_tasks:
             if task.is_discarded:
                 continue
@@ -297,7 +291,7 @@ class InferenceAPI(object):
         results = self.infer((inf_task,))
         result = next(iter(results))
         response = self.output_adapter.to_http_response(result)
-        response.headers['X-Request-Id'] = inf_task.task_id
+        response.headers["X-Request-Id"] = inf_task.task_id
         return response.to_flask_response()
 
     def handle_batch_request(self, requests: Sequence[HTTPRequest]):
@@ -309,7 +303,7 @@ class InferenceAPI(object):
             results = self.infer(inf_tasks)
             responses = tuple(map(self.output_adapter.to_http_response, results))
             for inf_task, response in zip(inf_tasks, responses):
-                response.headers['X-Request-Id'] = inf_task.task_id
+                response.headers["X-Request-Id"] = inf_task.task_id
             return responses
 
     def handle_cli(self, cli_args: Sequence[str]) -> int:

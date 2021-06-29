@@ -29,9 +29,7 @@ class EDocumentCatalog(DocumentCatalog):
     @classmethod
     def get_template(cls, doc_name, decipher=None):
         if decipher:
-            path = os.path.join(
-                cls.BASE_DIR, decipher.prefix + cls.MAP[doc_name]["template"]
-            )
+            path = os.path.join(cls.BASE_DIR, decipher.prefix + cls.MAP[doc_name]["template"])
             return decipher(path)
 
         with open(cls.get_template_path(doc_name)) as f:

@@ -619,12 +619,12 @@ def deidentify_img(img_arr, kv_boxes, kv_classes, savepath):
             )
 
     _img_arr = cv2.cvtColor(_img_arr, cv2.COLOR_BGR2RGB)
-    if settings.DE_ID_LIMIT_SIZE:
-        limit_size = settings.DE_ID_MAX_SIZE
-        image_max = max(_img_arr.shape)
-        resize_ratio = limit_size / float(image_max)
-        if resize_ratio < 1.0:
-            _img_arr = cv2.resize(_img_arr, None, fx=resize_ratio, fy=resize_ratio)
+    # if settings.DE_ID_LIMIT_SIZE:
+    #     limit_size = settings.DE_ID_MAX_SIZE
+    #     image_max = max(_img_arr.shape)
+    #     resize_ratio = limit_size / float(image_max)
+    #     if resize_ratio < 1.0:
+    #         _img_arr = cv2.resize(_img_arr, None, fx=resize_ratio, fy=resize_ratio)
     pwd = os.path.dirname(savepath)
     os.makedirs(pwd, exist_ok=True)
     cv2.imwrite(savepath, _img_arr)

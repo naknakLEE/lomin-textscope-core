@@ -112,9 +112,7 @@ class MultiModelService(BentoService):
                 logger.debug(
                     f"Erode and find: erosion_x={erosion_x}, erosion_y={erosion_y} / width={width}, height={height}"
                 )
-                img_arr = img_arr[
-                    erosion_y : height - erosion_y, erosion_x : width - erosion_x, :
-                ]
+                img_arr = img_arr[erosion_y : height - erosion_y, erosion_x : width - erosion_x, :]
                 (
                     boundary_box,
                     boundary_score,
@@ -167,9 +165,7 @@ class MultiModelService(BentoService):
                 kv_boxes, kv_scores, kv_classes, self.id_type
             )
 
-        kv_boxes, kv_scores, kv_classes = kv_postprocess_with_edge(
-            kv_boxes, kv_scores, kv_classes
-        )
+        kv_boxes, kv_scores, kv_classes = kv_postprocess_with_edge(kv_boxes, kv_scores, kv_classes)
 
         id_height, id_width = id_image_arr.shape[:2]
         if settings.ID_ADD_BACKUP_BOXES:
@@ -187,13 +183,9 @@ class MultiModelService(BentoService):
             deidentify_img(id_image_arr, kv_boxes, kv_classes, self.savepath)
 
         if settings.SAVE_ID_DEBUG_INFO and settings.ID_DEBUG_INFO_PATH is not None:
-            info_save_dir = os.path.join(
-                settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d")
-            )
+            info_save_dir = os.path.join(settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d"))
             os.makedirs(info_save_dir, exist_ok=True)
-            info_save_path = os.path.join(
-                info_save_dir, os.path.basename(self.savepath)
-            )
+            info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
             deidentify_img(id_image_arr, kv_boxes, kv_classes, info_save_path)
 
         class_masks = get_class_masks(kv_classes)
@@ -255,9 +247,7 @@ class MultiModelService(BentoService):
             except Exception as e:
                 boxes, labels, scores, keypoints = None, None, None, None
         else:
-            boxes, labels, scores = self.artifacts.boundary_detection.run(
-                output_names, inputs
-            )
+            boxes, labels, scores = self.artifacts.boundary_detection.run(output_names, inputs)
         if boxes is None:
             return None, None, None, None, False
 
@@ -339,9 +329,7 @@ class MultiModelService(BentoService):
         for i in range(len(cropped_images)):
             extra_info = dict()
             for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
-                cropped_images[i], extra_info = _proc(
-                    cropped_images[i], extra_info=extra_info
-                )
+                cropped_images[i], extra_info = _proc(cropped_images[i], extra_info=extra_info)
             info_list.append(extra_info)
 
         cropped_images = np.stack(cropped_images)
@@ -358,15 +346,11 @@ class MultiModelService(BentoService):
             _cropped_images = cropped_images[i:end]
             _class_masks = class_masks[i:end]
             inputs = get_fixed_batch(fixed_batch_size, _cropped_images, _class_masks)
-            inputs = dict(
-                (rec_sess.get_inputs()[i].name, inpt) for i, inpt in enumerate(inputs)
-            )
+            inputs = dict((rec_sess.get_inputs()[i].name, inpt) for i, inpt in enumerate(inputs))
             results = rec_sess.run(output_names, inputs)
 
             preds = results[0][: (end - i)]
-            rec_preds = (
-                np.concatenate([rec_preds, preds]) if len(rec_preds) > 0 else preds
-            )
+            rec_preds = np.concatenate([rec_preds, preds]) if len(rec_preds) > 0 else preds
 
         texts = convert_recognition_to_text(rec_preds)
         logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")

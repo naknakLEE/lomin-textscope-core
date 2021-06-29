@@ -8,6 +8,7 @@ import cv2
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from fastapi import Depends, File, UploadFile, APIRouter
+from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from starlette.responses import Response
@@ -46,9 +47,7 @@ async def inference(file: UploadFile = File(...)) -> Any:
 
     image_data = await file.read()
     async with aiohttp.ClientSession() as session:
-        async with session.post(
-            serving_server_inference_url, data=image_data
-        ) as response:
+        async with session.post(serving_server_inference_url, data=image_data) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
 
@@ -91,15 +90,31 @@ async def achyncio_sleep():
 async def inference(image: UploadFile = File(...)) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
+    # json_compatible_files = jsonable_encoder(
+    #     {
+    #         "status": "0000",
+    #         "minQlt": "01",
+    #         "reliability": "0.345678",
+    #         "docuType": "01",
+    #         "ocrResult": "",
+    #     }
+    # )
+    # return JSONResponse(content=json_compatible_files)
 
     async with httpx.AsyncClient() as client:
         document_ocr_model_response = await client.post(
-            f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=30.0
+            f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=300.0
         )
-        document_ocr_result = document_ocr_model_response.json()[0]
+        document_ocr_result = document_ocr_model_response.json()
 
+        # print("\033[95m" + f"{document_ocr_result}" + "\033[m")
+        # import numpy as np
+
+        # for key in document_ocr_result.keys():
+        #     print("\033[95m" + f"{np.array(document_ocr_result[key]).shape}" + "\033[m")
+        # return "end"
         document_ocr_pp_response = await client.post(
-            f"{PP_SERVER_URL}/post_processing/document_ocr",
+            f"{PP_SERVER_URL}/post_processing/postprocess_family_cert",
             json=document_ocr_result,
             timeout=30.0,
         )

@@ -1,11 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import torch
 import numpy as np
-from maskrcnn_benchmark.structures.segmentation_mask import SegmentationMask, PolygonList
-from maskrcnn_benchmark.structures.keypoint import PersonKeypoints, IdKeypoints
+
+# from maskrcnn_benchmark.structures.segmentation_mask import SegmentationMask, PolygonList
+# from maskrcnn_benchmark.structures.keypoint import PersonKeypoints, IdKeypoints
 
 from shapely.geometry import box, Polygon, MultiPolygon
 from shapely.ops import cascaded_union
+
 
 # transpose
 FLIP_LEFT_RIGHT = 0
@@ -24,17 +26,18 @@ class BoxList(object):
 
     def __init__(self, bbox, image_size, mode="xyxy"):
         device = bbox.device if isinstance(bbox, torch.Tensor) else torch.device("cpu")
-        
-        if not isinstance(bbox, torch.Tensor) or bbox.dtype != torch.float32 or bbox.device != device:
+
+        if (
+            not isinstance(bbox, torch.Tensor)
+            or bbox.dtype != torch.float32
+            or bbox.device != device
+        ):
             bbox = torch.as_tensor(bbox, dtype=torch.float32, device=device)
         if bbox.ndimension() != 2:
-            raise ValueError(
-                "bbox should have 2 dimensions, got {}".format(bbox.ndimension())
-            )
+            raise ValueError("bbox should have 2 dimensions, got {}".format(bbox.ndimension()))
         if bbox.size(-1) != 4:
             raise ValueError(
-                "last dimension of bbox should have a "
-                "size of 4, got {}".format(bbox.size(-1))
+                "last dimension of bbox should have a " "size of 4, got {}".format(bbox.size(-1))
             )
         if mode not in ("xyxy", "xywh"):
             raise ValueError("mode should be 'xyxy' or 'xywh'")
@@ -43,10 +46,10 @@ class BoxList(object):
         self.size = image_size  # (image_width, image_height)
         self.mode = mode
         self.extra_fields = {}
-        self.fields_resize = (SegmentationMask, PersonKeypoints, IdKeypoints)
-        self.fields_transpose = (SegmentationMask, PersonKeypoints, IdKeypoints)
-        self.fields_crop = (SegmentationMask, PersonKeypoints, IdKeypoints)
-        self.fields_clip = (SegmentationMask, IdKeypoints)
+        # self.fields_resize = (SegmentationMask, PersonKeypoints, IdKeypoints)
+        # self.fields_transpose = (SegmentationMask, PersonKeypoints, IdKeypoints)
+        # self.fields_crop = (SegmentationMask, PersonKeypoints, IdKeypoints)
+        # self.fields_clip = (SegmentationMask, IdKeypoints)
         self.safe_crop = {}
 
     def add_field(self, field, field_data):
@@ -54,8 +57,8 @@ class BoxList(object):
 
     def set_safe_crop(self, safe_area, outer_area):
         self.safe_crop = {
-            'safe_area': safe_area,
-            'outer_area': outer_area,
+            "safe_area": safe_area,
+            "outer_area": outer_area,
         }
 
     def get_field(self, field):
@@ -84,9 +87,7 @@ class BoxList(object):
             bbox = BoxList(bbox, self.size, mode=mode)
         else:
             TO_REMOVE = 1
-            bbox = torch.cat(
-                (xmin, ymin, xmax - xmin + TO_REMOVE, ymax - ymin + TO_REMOVE), dim=-1
-            )
+            bbox = torch.cat((xmin, ymin, xmax - xmin + TO_REMOVE, ymax - ymin + TO_REMOVE), dim=-1)
             bbox = BoxList(bbox, self.size, mode=mode)
         bbox._copy_extra_fields(self)
         return bbox
@@ -129,7 +130,7 @@ class BoxList(object):
                     v = v.resize(size, *args, **kwargs)
                 if k == "quads":
                     if len(v) > 0:
-                        v = v * ratio # N x 4 x 2
+                        v = v * ratio  # N x 4 x 2
                 bbox.add_field(k, v)
 
             return bbox
@@ -140,23 +141,34 @@ class BoxList(object):
         scaled_xmax = xmax * ratio_width
         scaled_ymin = ymin * ratio_height
         scaled_ymax = ymax * ratio_height
-        scaled_box = torch.cat(
-            (scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax), dim=-1
-        )
+        scaled_box = torch.cat((scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax), dim=-1)
 
         bbox = BoxList(scaled_box, size, mode="xyxy")
         if len(self.safe_crop) != 0:
             area_keys = self.safe_crop.keys()
-            for _area_name in ['safe_area', 'outer_area']:
+            for _area_name in ["safe_area", "outer_area"]:
                 if _area_name not in area_keys:
                     continue
-                self.safe_crop[_area_name][0::2] = (self.safe_crop[_area_name][0::2]*ratio_width).astype(np.int32)
-                self.safe_crop[_area_name][1::2] = (self.safe_crop[_area_name][1::2]*ratio_height).astype(np.int32)
-                self.safe_crop[_area_name][0::2] = np.clip(self.safe_crop[_area_name][0::2], 0, size[0]-1)
-                self.safe_crop[_area_name][1::2] = np.clip(self.safe_crop[_area_name][1::2], 0, size[1]-1)
-            if 'safe_area' in self.safe_crop and 'outer_area' in self.safe_crop and \
-                not self.safe_crop['outer_area'][3] >= self.safe_crop['safe_area'][3]:
-                import pdb; pdb.set_trace()
+                self.safe_crop[_area_name][0::2] = (
+                    self.safe_crop[_area_name][0::2] * ratio_width
+                ).astype(np.int32)
+                self.safe_crop[_area_name][1::2] = (
+                    self.safe_crop[_area_name][1::2] * ratio_height
+                ).astype(np.int32)
+                self.safe_crop[_area_name][0::2] = np.clip(
+                    self.safe_crop[_area_name][0::2], 0, size[0] - 1
+                )
+                self.safe_crop[_area_name][1::2] = np.clip(
+                    self.safe_crop[_area_name][1::2], 0, size[1] - 1
+                )
+            if (
+                "safe_area" in self.safe_crop
+                and "outer_area" in self.safe_crop
+                and not self.safe_crop["outer_area"][3] >= self.safe_crop["safe_area"][3]
+            ):
+                import pdb
+
+                pdb.set_trace()
             bbox.safe_crop = self.safe_crop
         # bbox._copy_extra_fields(self)
         for k, v in self.extra_fields.items():
@@ -165,12 +177,12 @@ class BoxList(object):
                 v = v.resize(size, *args, **kwargs)
             if k == "quads":
                 if len(v) > 0:
-                    v[:,:,0] = v[:,:,0] * ratio_width # N x 4 x 2
-                    v[:,:,1] = v[:,:,1] * ratio_height # N x 4 x 2
+                    v[:, :, 0] = v[:, :, 0] * ratio_width  # N x 4 x 2
+                    v[:, :, 1] = v[:, :, 1] * ratio_height  # N x 4 x 2
             bbox.add_field(k, v)
 
         return bbox.convert(self.mode)
-  
+
     def to(self, device):
         bbox = BoxList(self.bbox.to(device), self.size, self.mode)
         for k, v in self.extra_fields.items():
@@ -196,9 +208,10 @@ class BoxList(object):
             item = item.numpy()
         bbox = BoxList(self.bbox[item], self.size, self.mode)
         for k, v in self.extra_fields.items():
-            if isinstance(v, (torch.Tensor, SegmentationMask, PersonKeypoints, IdKeypoints)):
-                bbox.add_field(k, v[item])
-            elif isinstance(v, np.ndarray):
+            # if isinstance(v, (torch.Tensor, SegmentationMask, PersonKeypoints, IdKeypoints)):
+            #     bbox.add_field(k, v[item])
+            # el
+            if isinstance(v, np.ndarray):
                 bbox.add_field(k, v[item_np])
             elif isinstance(v, list):
                 # assert len(v) == len(item_np), "k:{}, v:{}, item_np:{}".format(k, len(v), len(item_np))
@@ -242,13 +255,13 @@ class BoxList(object):
         return bbox
 
     def merge_other_boxlist(self, boxlist):
-        assert boxlist.size == self.size
-        assert boxlist.mode == self.mode
+        # assert boxlist.size == self.size
+        # assert boxlist.mode == self.mode
         assert set(boxlist.fields()) == set(self.fields())
 
         merged_boxlist = BoxList(torch.cat((self.bbox, boxlist.bbox), dim=0), self.size, self.mode)
-        if len(self.safe_crop) != 0:
-            bbox.safe_crop = self.safe_crop
+        # if len(self.safe_crop) != 0:
+        #     bbox.safe_crop = self.safe_crop
         for k, v in self.extra_fields.items():
             if isinstance(v, torch.Tensor):
                 v_cat = torch.cat((v, boxlist.get_field(k)), dim=0)
@@ -256,14 +269,14 @@ class BoxList(object):
                 v_cat = np.concatenate((v, boxlist.get_field(k)), axis=0)
             elif isinstance(v, list):
                 v_cat = v + boxlist.get_field(k)
-            elif isinstance(v, SegmentationMask):
-                if isinstance(v.instances, PolygonList):
-                    v_cat = v
-                    v_cat.instances.polygons.extend(boxlist.get_field(k).instances.polygons)
-                else:
-                    raise NotImplementedError
-            elif isinstance (v, PersonKeypoints):
-                raise NotImplementedError
+            # elif isinstance(v, SegmentationMask):
+            #     if isinstance(v.instances, PolygonList):
+            #         v_cat = v
+            #         v_cat.instances.polygons.extend(boxlist.get_field(k).instances.polygons)
+            #     else:
+            #         raise NotImplementedError
+            # elif isinstance (v, PersonKeypoints):
+            #     raise NotImplementedError
             else:
                 raise NotImplementedError
             assert len(merged_boxlist) == len(v_cat)
