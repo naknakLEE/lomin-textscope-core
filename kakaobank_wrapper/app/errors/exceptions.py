@@ -4,7 +4,7 @@ async def exception_handler(error: Exception):
     return error
 
 
-class APIException():
+class APIException:
     status: str
     minQlt: str
     reliability: str
@@ -31,10 +31,10 @@ class APIException():
 
 
 class successful(APIException):
-    def __init__(self, reliability, docuType, ocrResult, ex: Exception = None) -> None:
+    def __init__(self, minQlt, reliability, docuType, ocrResult, ex: Exception = None) -> None:
         super().__init__(
             status="1200",
-            minQlt=f"00",
+            minQlt=minQlt,
             reliability=reliability,
             docuType=docuType,
             ocrResult=ocrResult,
@@ -42,13 +42,13 @@ class successful(APIException):
 
 
 class minQltException(APIException):
-    def __init__(self, minQlt, ex: Exception = None) -> None:
+    def __init__(self, minQlt, reliability, docuType, ocrResult, ex: Exception = None) -> None:
         super().__init__(
             status="1400",
             minQlt=minQlt,
-            reliability="",
-            docuType="",
-            ocrResult="",
+            reliability=reliability,
+            docuType=docuType,
+            ocrResult=ocrResult,
         )
 
 

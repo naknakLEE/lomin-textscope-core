@@ -145,6 +145,17 @@ class TimeoutException(APIException):
             status_code=StatusCode.HTTP_403,
             msg=f"timeout exception",
             detail="",
+            code="7400",
+            ex=ex,
+        )
+
+
+class InferenceServerException(APIException):
+    def __init__(self, ex: Exception = None) -> None:
+        super().__init__(
+            status_code=2400,
+            msg=f"timeout exception",
+            detail="",
             code=f"{'0'.zfill(4)}",
             ex=ex,
         )
