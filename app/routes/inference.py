@@ -86,10 +86,19 @@ async def achyncio_sleep():
     return "Complete"
 
 
+document_type_set = {
+    "D01": "rrtable",
+    "D02": "family_cert",
+    "D03": "basic_cert",
+    "D04": "regi_cert",
+}
+
+
 @router.post("/pipeline")
-async def inference(image: UploadFile = File(...)) -> Any:
+async def inference(edmisid: str, InbzDocClcd: str, InbzMgntNo: str, PwdCnt: str, image: UploadFile = File(...)) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
+    document_type = document_type_set[InbzDocClcd]
 
     async with httpx.AsyncClient() as client:
         document_ocr_model_response = await client.post(
@@ -97,25 +106,25 @@ async def inference(image: UploadFile = File(...)) -> Any:
         )
         document_ocr_result = document_ocr_model_response.json()
 
-        # print("\033[95m" + f"{document_ocr_result}" + "\033[m")
         # import numpy as np
 
         # for key in document_ocr_result.keys():
         #     print("\033[95m" + f"{np.array(document_ocr_result[key]).shape}" + "\033[m")
         # return "end"
         document_ocr_pp_response = await client.post(
-            f"{PP_SERVER_URL}/post_processing/postprocess_family_cert",
+            f"{PP_SERVER_URL}/post_processing/{document_type}",
             json=document_ocr_result,
             timeout=30.0,
         )
-        result = document_ocr_pp_response.json()
+        result = document_ocr_pp_response.json()["texts"]["values"]
 
     json_compatible_files = jsonable_encoder(
         {
-            "status": "0000",
+            "code": "1200",
+            "description": "",
             "minQlt": "01",
-            "reliability": "0.345678",
-            "docuType": "01",
+            "reliability": "1.0",
+            "docuType": InbzDocClcd,
             "ocrResult": result,
         }
     )

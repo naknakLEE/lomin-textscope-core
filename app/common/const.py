@@ -38,6 +38,7 @@ class Settings(BaseSettings):
 
     # BASE CONFIG
     DEVELOP: bool = True
+    API_ENV: str = "production"
     BASE_PATH: str = "."
 
     FAKE_SUPERUSER_INFORMATION: dict = {
@@ -100,6 +101,9 @@ class Settings(BaseSettings):
     ID_DEBUG_INFO_PATH: str = f"{BASE_PATH}/tmp/textscope/debug"
 
     # MODEL CONFIG
+    DOCUMENT_DETECTION_SCORE_THRETHOLD: float = 0.3
+    SAVE_DOCUMENT_VISULAIZATION_IMG: bool = True
+
     SAVE_UID: int = 1000
     SAVE_GID: int = 1000
     DE_ID_SAVE_PATH: str = f"{BASE_PATH}/inputs/image"
