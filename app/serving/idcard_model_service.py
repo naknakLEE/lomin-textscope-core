@@ -45,7 +45,7 @@ from app.serving.utils.utils import (
         OnnxModelArtifact("recognition"),
     ]
 )
-class MultiModelService(BentoService):
+class IdcardModelService(BentoService):
     def __init__(self):
         super().__init__()
         self.infer_sess_map = dict()

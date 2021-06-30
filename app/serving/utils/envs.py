@@ -27,6 +27,7 @@ log_dir_path = settings.LOG_DIR_PATH
 os.makedirs(log_dir_path, exist_ok=True)
 log_path = os.path.join(log_dir_path, "server.log")
 # logger.remove()
+
 logger.add(
     log_path,
     rotation=settings.LOG_ROTATION,

@@ -83,7 +83,7 @@ recognition_preprocess = build_preprocess()
         OnnxModelArtifact("recognition"),
     ]
 )
-class MultiModelService(BentoService):
+class DocumentModelService(BentoService):
     def __init__(self):
         super().__init__()
         self.infer_sess_map = dict()
