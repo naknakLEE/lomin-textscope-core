@@ -33,7 +33,7 @@ multi_model_service.save()
 #####################################################################
 
 
-image_dir = "/workspace/others/assets/01_0001.png"
+image_dir = f"{settings.BASE_PATH}/others/assets/01_0001.png"
 img = PIL.Image.open(image_dir)
 img = np.array(img)
 

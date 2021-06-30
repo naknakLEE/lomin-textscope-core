@@ -8,6 +8,8 @@ import PIL
 import cv2
 import os
 
+from PIL import Image, ImageOps
+from torchvision import transforms
 from bentoml import env, artifacts, api, BentoService
 from bentoml.adapters import ImageInput
 from bentoml.frameworks.onnx import OnnxModelArtifact
@@ -22,6 +24,55 @@ from app.serving.utils.utils import (
     load_models,
     deidentify_img,
 )
+
+
+class ResizeKeepRatioPad(object):
+    def __init__(self, height, width, interpolation=Image.BICUBIC):
+        self.height = height
+        self.width = width
+        self.interpolation = interpolation
+
+    def __call__(self, img: Image):
+        width, height = img.size
+        target_height = self.height
+        target_width = int(width * target_height / height)
+        x_padding = 0
+        if target_width > self.width:
+            target_width = self.width
+        else:
+            x_padding = self.width - target_width
+        if target_width == 0:
+            target_width += 1
+        img = img.resize((target_width, target_height), self.interpolation)
+        return ImageOps.expand(img, border=(0, 0, x_padding, 0), fill=(0, 0, 0))
+
+
+def build_preprocess():
+    transform_list = [ResizeKeepRatioPad(height=32, width=100)]
+    # TODO:Manage normalize params with cfg
+    transform_list += [transforms.ToTensor(), transforms.Normalize((0, 0, 0), (1, 1, 1))]
+    return transforms.Compose(transform_list) if len(transform_list) > 0 else None
+
+
+recognition_preprocess = build_preprocess()
+
+# def recognition_preprocessing(self, cropped_images):
+#         info_list = list()
+#         for i in range(len(cropped_images)):
+#             extra_info = dict()
+#             for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
+#                 cropped_images[i], extra_info = _proc(
+#                     cropped_images[i], extra_info=extra_info)
+#             info_list.append(extra_info)
+
+#         cropped_images = np.stack(cropped_images)
+#         cropped_images = cropped_images.astype(np.float32)
+#         cropped_images = torch.from_numpy(cropped_images).to("cuda")
+
+#         array = [recognition_preprocess(transforms.ToPILImage()(image))
+#                  for image in cropped_images]
+
+#         return torch.stack(array)
 
 
 @env(pip_packages=["torchvision"])
@@ -46,19 +97,33 @@ class MultiModelService(BentoService):
         img_arr = np.transpose(img_arr, (2, 0, 1))
         return torch.from_numpy(img_arr)
 
+    # def recognition_preprocessing(self, cropped_images):
+    #     info_list = list()
+    #     for i in range(len(cropped_images)):
+    #         extra_info = dict()
+    #         for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
+    #             cropped_images[i], extra_info = _proc(cropped_images[i], extra_info=extra_info)
+    #         info_list.append(extra_info)
+
+    #     cropped_images = np.stack(cropped_images)
+    #     cropped_images = cropped_images.astype(np.float32)
+
+    #     return cropped_images
     def recognition_preprocessing(self, cropped_images):
         info_list = list()
         for i in range(len(cropped_images)):
             extra_info = dict()
             for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
-                cropped_images[i], extra_info = _proc(
-                    cropped_images[i], extra_info=extra_info)
+                cropped_images[i], extra_info = _proc(cropped_images[i], extra_info=extra_info)
             info_list.append(extra_info)
 
         cropped_images = np.stack(cropped_images)
         cropped_images = cropped_images.astype(np.float32)
+        cropped_images = torch.from_numpy(cropped_images).to("cuda")
 
-        return cropped_images
+        array = [recognition_preprocess(transforms.ToPILImage()(image)) for image in cropped_images]
+
+        return torch.stack(array)
 
     def detection_postprocessing(self, img, boxes, scores, labels):
         boxes = boxes.cpu().detach().numpy()
@@ -98,7 +163,8 @@ class MultiModelService(BentoService):
             return tensor.cpu().numpy()
 
     def recognition(self, cropped_images):
-        inputs = torch.from_numpy(cropped_images).to("cuda")
+        # inputs = torch.from_numpy(cropped_images).to("cuda")
+        inputs = cropped_images
         ort_inputs = {
             self.artifacts.recognition.get_inputs()[0].name: self.to_numpy(inputs),
         }
@@ -109,8 +175,7 @@ class MultiModelService(BentoService):
         self.savepath = (
             f"{settings.BASE_PATH}/others/assets/deidentify_img_sg_{self.detection_threshold}.jpg"
         )
-        info_save_dir = os.path.join(
-            settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d"))
+        info_save_dir = os.path.join(settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d"))
         os.makedirs(info_save_dir, exist_ok=True)
         info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
         deidentify_img(img, detection_boxes, detection_classes, info_save_path)
@@ -138,13 +203,11 @@ class MultiModelService(BentoService):
             )
 
         recognition_start_time = time.time()
-        cropped_images = self.recognition_preprocessing(
-            detection_result["cropped_images"])
-        rec_logits = self.recognition(cropped_images)
-        from scipy.special import softmax
-
-        rec_probs = softmax(rec_logits, axis=-1)
-        rec_preds = np.argmax(rec_probs, axis=-1)
+        cropped_images = self.recognition_preprocessing(detection_result["cropped_images"])
+        recognition_result = self.recognition(cropped_images)
+        # from scipy.special import softmax
+        # rec_probs = softmax(rec_logits, axis=-1)
+        rec_preds = np.argmax(recognition_result, axis=-1)
         logger.info(
             f"Recognition processing time: \t{(time.time()-recognition_start_time) * 1000:.2f}ms"
         )
