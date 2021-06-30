@@ -1,0 +1,45 @@
+https://idenrai.tistory.com/223
+
+CREATE TYPE status_enum AS ENUM ('active', 'deleted', 'blocked')
+CREATE TYPE sns_enum AS ENUM ('FB', 'G', 'K', 'Email')
+
+create table users
+(
+    id              serial primary key,
+    username        varchar(128),
+    email           varchar(255) null,
+    hashed_password varchar(2000) null,
+    full_name       varchar(128) null,
+    updated_at      timestamp default CURRENT_TIMESTAMP not null,
+    created_at      timestamp default CURRENT_TIMESTAMP not null
+);
+
+
+create table errors
+(
+    id serial primary key,
+    url varchar(2000) null,
+    method varchar(255) null,
+    status_code varchar(255) null,
+    error_detail varchar(2000) null,
+    client varchar(2000) null,
+    processed_time varchar(255) null,
+    datetime_kr varchar(255) null,
+    created_at timestamp default CURRENT_TIMESTAMP not null
+);
+
+
+
+CREATE OR REPLACE FUNCTION update_time_and_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_trigger
+BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE PROCEDURE update_time_and_user();
+

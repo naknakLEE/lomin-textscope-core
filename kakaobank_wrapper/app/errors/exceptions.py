@@ -31,7 +31,9 @@ class APIException:
 
 
 class successful(APIException):
-    def __init__(self, minQlt, reliability, docuType, ocrResult, ex: Exception = None) -> None:
+    def __init__(
+        self, minQlt, reliability, docuType, ocrResult, ex: Exception = None
+    ) -> None:
         super().__init__(
             status="1200",
             minQlt=minQlt,
@@ -42,7 +44,9 @@ class successful(APIException):
 
 
 class minQltException(APIException):
-    def __init__(self, minQlt, reliability, docuType, ocrResult, ex: Exception = None) -> None:
+    def __init__(
+        self, minQlt, reliability, docuType, ocrResult, ex: Exception = None
+    ) -> None:
         super().__init__(
             status="1400",
             minQlt=minQlt,
@@ -124,6 +128,7 @@ class parameterException(APIException):
         super().__init__(
             status="8400",
             minQlt=minQlt,
+            description=description,
             reliability="",
             docuType="",
             ocrResult="",
