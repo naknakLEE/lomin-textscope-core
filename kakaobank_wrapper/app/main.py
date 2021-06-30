@@ -18,8 +18,8 @@ from fastapi.responses import JSONResponse
 from app.common.const import get_settings
 from app.common.config import config
 from kakaobank_wrapper.app.database.schema import create_db_table
-from app import models
 from kakaobank_wrapper.app.database.connection import db
+from app import models
 from kakaobank_wrapper.app.errors import exceptions as ex
 from kakaobank_wrapper.app.utils.parse import parse_kakaobank
 
@@ -44,8 +44,8 @@ DOCUMENT_TYPE_SET = {
 def create_app() -> FastAPI:
     app = FastAPI()
 
-    db.init_app(app, **asdict(config()))
-    create_db_table()
+    # db.init_app(app, **asdict(config()))
+    # create_db_table()
 
     return app
 
