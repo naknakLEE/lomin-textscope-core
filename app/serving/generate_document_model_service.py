@@ -10,7 +10,7 @@ from app.serving.utils.utils import load_json
 
 
 settings = get_settings()
-print("\033[95m" + f"{load_json(settings.SERVICE_CFG_PATH)}" + "\033[m")
+# print("\033[95m" + f"{load_json(settings.SERVICE_CFG_PATH)}" + "\033[m")
 service_cfg = load_json(settings.SERVICE_CFG_PATH)["document"]["resources"]
 model_path = {}
 for cfg in service_cfg:
