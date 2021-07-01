@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     }
 
     # LOGGER CONFIG
-    LOG_DIR_PATH: str = "logs/log"
+    LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"
@@ -81,8 +81,8 @@ class Settings(BaseSettings):
 
     # OUTPUT_IMG_CONFIG
     OUTPUT_IMG_SAVE: bool = True
-    OUTPUT_IMG_DIR: str = "outputs/image"
-    OUTPUT_DEBUG: str = "outputs/debug"
+    OUTPUT_IMG_DIR: str = f"{BASE_PATH}/outputs/image"
+    OUTPUT_DEBUG: str = f"{BASE_PATH}/outputs/debug"
 
     # SERVICE CONFIG
     SERVICE_TYPE = "textscope_document"
@@ -94,7 +94,7 @@ class Settings(BaseSettings):
     PYINSTRUMENT_RENDERER: str = "html"
 
     SAVE_INPUT_IMAGE: bool = False
-    INPUT_SAVE_PATH: str = "inputs/image"
+    INPUT_SAVE_PATH: str = f"{BASE_PATH}/inputs/image"
     SAVEPATH: str = f"{BASE_PATH}/outputs/idcard/test.png"
 
     SAVE_ID_DEBUG_INFO: bool = False

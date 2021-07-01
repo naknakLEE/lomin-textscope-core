@@ -71,7 +71,7 @@ async def api_logger(request: Request = None, response=None, error=None) -> None
             errorFunc=error_func,
             location="{} line in {}".format(str(error_line), error_file),
             raised=str(error.__class__.__name__),
-            msg=str(error.ex),
+            msg=str(error.exc),
             # traceback=traceback.format_exc()
         )
     # log_detail = response.__dict__ if response else None

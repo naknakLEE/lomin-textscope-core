@@ -9,6 +9,7 @@ from soynlp.hangle import jamo_levenshtein, decompose
 
 from pp_server.app.structures.keyvalue_dict import KVDict
 from pp_server.app.postprocess.family_cert import obj_to_kvdict
+
 # from .document_keywords import *
 from pp_server.app.postprocess.commons import BoxlistPostprocessor as PP
 
@@ -375,6 +376,6 @@ def postprocess_rrtable(pred, score_threshold, model_classes):
     for k, v in kv_dict.items():
         result_all_classes[k + "_value"] = v
 
-    result = obj_to_kvdict(result_all_classes)
-    return result, debug_dict
-    # return KVDict(result_all_classes, str), debug_dict
+    # result = obj_to_kvdict(result_all_classes)
+    # return result, debug_dict
+    return KVDict(result_all_classes, str), debug_dict

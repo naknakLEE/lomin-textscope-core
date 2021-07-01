@@ -10,3 +10,9 @@ tests/
 Nuitka
 others/
 outputs/
+
+# models
+*.pt
+*.pth
+*.onnx
+*.ts

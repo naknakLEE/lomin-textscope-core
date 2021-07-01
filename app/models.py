@@ -2,7 +2,6 @@ from enum import Enum
 
 from datetime import datetime
 from typing import Optional, List
-from jose.utils import int_arr_to_long
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
 from pydantic import Json
@@ -109,9 +108,7 @@ class UsageCount(BaseModel):
 
 
 class StatusResponse(BaseModel):
-    response: str = (
-        f"Textscope API (is_database_working: True, is_serving_server_working: True)"
-    )
+    response: str = f"Textscope API (is_database_working: True, is_serving_server_working: True)"
 
 
 class InferenceResponse(BaseModel):

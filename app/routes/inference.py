@@ -3,7 +3,6 @@ import asyncio
 import json
 import requests
 import httpx
-import cv2
 
 from datetime import datetime
 from typing import Dict, Any, List, Optional
@@ -52,38 +51,40 @@ async def inference(file: UploadFile = File(...)) -> Any:
             return models.InferenceResponse(ocrResult=result)
 
 
-API_ADDR = "v1/inference/pipeline"
-URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}/{API_ADDR}"
+# import cv2
 
-image_dir = "./others/assets/000000000000000IMG_4825.jpg"
-img = cv2.imread(image_dir)
-_, img_encoded = cv2.imencode(".jpg", img)
-img_bytes = img_encoded.tobytes()
+# API_ADDR = "v1/inference/pipeline"
+# URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}/{API_ADDR}"
 
-files = {"image": ("test.jpg", img_bytes)}
+# image_dir = "./others/assets/000000000000000IMG_4825.jpg"
+# img = cv2.imread(image_dir)
+# _, img_encoded = cv2.imencode(".jpg", img)
+# img_bytes = img_encoded.tobytes()
 
-
-async def request(client):
-    response = await client.post(URL, files=files, timeout=30.0)
-    return response.text
+# files = {"image": ("test.jpg", img_bytes)}
 
 
-async def task():
-    async with httpx.AsyncClient() as client:
-        tasks = [request(client) for _ in range(10)]
-        result = await asyncio.gather(*tasks)
-        print("\033[95m" + f"{result}" + "\033[m")
+# async def request(client):
+#     response = await client.post(URL, files=files, timeout=30.0)
+#     return response.text
 
 
-@router.get("/async_test")
-async def async_test():
-    await task()
+# async def task():
+#     async with httpx.AsyncClient() as client:
+#         tasks = [request(client) for _ in range(10)]
+#         result = await asyncio.gather(*tasks)
+#         print("\033[95m" + f"{result}" + "\033[m")
 
 
-@router.get("/get_asyncio_sleep")
-async def achyncio_sleep():
-    await asyncio.sleep(3)
-    return "Complete"
+# @router.get("/async_test")
+# async def async_test():
+#     await task()
+
+
+# @router.get("/get_asyncio_sleep")
+# async def achyncio_sleep():
+#     await asyncio.sleep(3)
+#     return "Complete"
 
 
 document_type_set = {
@@ -95,7 +96,9 @@ document_type_set = {
 
 
 @router.post("/pipeline")
-async def inference(edmisid: str, InbzDocClcd: str, InbzMgntNo: str, PwdCnt: str, image: UploadFile = File(...)) -> Any:
+async def inference(
+    edmisid: str, InbzDocClcd: str, InbzMgntNo: str, PwdCnt: str, image: UploadFile = File(...)
+) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
     document_type = document_type_set[InbzDocClcd]

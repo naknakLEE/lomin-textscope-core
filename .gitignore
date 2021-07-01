@@ -147,3 +147,4 @@ Nuitka
 *.png
 *.xml
 *.mar
+*.npy

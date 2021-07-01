@@ -39,6 +39,7 @@ router = APIRouter()
 #     texts = [_t[: _t.find("[s]")] for _t in texts]
 #     return texts
 
+
 @router.post("/idcard")
 async def idcard(data: dict = Body(...)) -> Any:
     asyncio.sleep(10)
@@ -77,8 +78,8 @@ async def basic_cert(data: dict = Body(...)) -> Any:
     boxlist = create_boxlist(data)
     result, debug_dic = postprocess_basic_cert(boxlist)
     # logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
-    # print("\033[95m" + f"texts: {result}, debug_dic: {debug_dic}" + "\033[m")
-    return {"texts": result, "debug_dic": debug_dic}
+    print("\033[95m" + f"texts: {result.values}, debug_dic: {debug_dic.values}" + "\033[m")
+    return {"texts": result}
 
 
 @router.post("/family_cert")
@@ -93,11 +94,12 @@ async def family_cert(data: dict = Body(...)) -> Any:
 @router.post("/rrtable")
 async def rrtable(data: dict = Body(...)) -> Any:
     boxlist = create_boxlist(data)
-    result, debug_dic = postprocess_rrtable(boxlist, 0.5, [])
-    # logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
-    print("\033[95m" + f"texts: {result}, debug_dic: {debug_dic}" + "\033[m")
 
-    return {"texts": result, "debug_dic": debug_dic}
+    result, debug_dic = postprocess_rrtable(boxlist, 0.5, [])
+    # logger.info(f"Rec inference time: \t{(time.time()) * 1000:.2f}ms")
+    print("\033[95m" + f"texts: {result.values}, debug_dic: {debug_dic.values}" + "\033[m")
+
+    return {"texts": result}
 
 
 @router.post("/regi_cert")
@@ -105,9 +107,8 @@ async def regi_cert(data: dict = Body(...)) -> Any:
     boxlist = create_boxlist(data)
     result, debug_dic = postprocess_regi_cert(boxlist)
     # logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
-    print("\033[95m"
-          + f"texts: {result.values}, debug_dic: {debug_dic.values}" + "\033[m")
-    return {"texts": result, "debug_dic": debug_dic}
+    print("\033[95m" + f"texts: {result.values}, debug_dic: {debug_dic.values}" + "\033[m")
+    return {"texts": result}
 
 
 # settings = get_settings()
