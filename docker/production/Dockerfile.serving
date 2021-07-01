@@ -18,6 +18,8 @@ RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
 
 WORKDIR /workspace
 RUN python3 app/utils/azure_blob_container/download_blob_to_local.py && \

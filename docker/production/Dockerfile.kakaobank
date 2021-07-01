@@ -1,0 +1,26 @@
+FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
+RUN apt-get install -y git
+
+COPY ./ /tmp
+
+WORKDIR /
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
+
+RUN mkdir /workspace && \
+    mv /tmp/kakaobank_wrapper /workspace/kakaobank_wrapper && \
+    mv /tmp/.env /workspace/.env && \
+    mv /tmp/requirments/requirments-kakaobank.txt /workspace/requirments-kakaobank.txt && \
+    rm -r /tmp
+
+RUN pip3 instll -r /workspace/requirments-kakaobank.txt
+
+WORKDIR /workspace
+RUN mv app/main.py ./main.py && \
+    python3 -m nuitka --module app --include-package=app && \
+    rm -r app 
+

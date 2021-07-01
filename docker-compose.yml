@@ -36,7 +36,8 @@ services:
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
-    # command: bentoml serve MultiModelService:latest
+    # command: bentoml serve DocumentModelService:latest
+    # command: bentoml serve IdcardModelService:latest
 
   web:
     image: docker.lomin.ai/ts-web:0.0.1
@@ -55,7 +56,7 @@ services:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
     restart: unless-stopped
-    # command: python /workspace/main.bin
+    # command: python3 ./main.bin
 
   pp:
     image: docker.lomin.ai/ts-pp:0.0.1
@@ -74,7 +75,7 @@ services:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
     restart: unless-stopped
-    # command: python /workspace/main.bin
+    # command: python ./main.bin
 
   kakao_wrapper:
     image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
@@ -91,6 +92,7 @@ services:
       our_net:
           ipv4_address: ${KAKAO_WRAPPER_IP_ADDR}
     restart: unless-stopped
+    # command: python ./main.bin
 
   proxy:
     image: nginx:latest
@@ -103,30 +105,16 @@ services:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
 
-  # gpu_telemetry:
-  #   image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
-  #   container_name: gpu_telemetry
-  #   ports:
-  #     - 9400:9400
-  #   runtime: nvidia
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+  gpu_telemetry:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+    container_name: gpu_telemetry
+    ports:
+      - 9400:9400
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
 
-  # redis:
-  #   image: redis
-  #   container_name: redis${REDIS_IP_PORT}
-  #   command: redis-server --port ${REDIS_IP_PORT}
-  #   hostname: redis${REDIS_IP_PORT}
-  #   labels:
-  #     - "name=redis"
-  #     - "mode=standalone"
-  #   ports:
-  #     - ${REDIS_IP_PORT}:${REDIS_IP_PORT}
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${REDIS_IP_ADDR}
-    
   hardware_telemetry:
     image: prom/node-exporter
     container_name: hardware_telemetry
@@ -166,17 +154,6 @@ services:
           ipv4_address: ${GRAFANA_IP_ADDR}
     restart: always
 
-  # postgres-exporter:
-  #   image: quay.io/prometheuscommunity/postgres-exporter
-  #   container_name: postgres-exporter
-  #   ports:
-  #     - 9187:9187
-  #   environment:
-  #     - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_IP_ADDR}/${POSTGRES_DB}?sslmode=disable
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${POSTGRES_EXPORTER_IP_ADDER}
-  #   restart: always
 
   mysql-exporter:
     image: prom/mysqld-exporter
@@ -192,28 +169,11 @@ services:
         ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
     restart: always
 
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-  #     PGADMIN_CONFIG_SERVER_MODE: 'False'
-  #   volumes:
-  #       - pgadmin:/root/.pgadmin
-  #   ports:
-  #     - "${PGADMIN_PORT:-5050}:80"
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${PGADMIN_IP_ADDR}
-  #   restart: unless-stopped
-
 volumes: 
   prometheus_data: {}
   grafana_data: {}
   pgdata: {}
   mysqldata: {}
-  # pgadmin: {}
 
 networks:
   our_net:
