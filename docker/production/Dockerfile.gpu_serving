@@ -1,0 +1,61 @@
+FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+RUN apt-get update && \
+    apt-get install -y git  && \
+    apt-get install wget && \
+    apt-get -y install python3-pip && \
+    apt-get -y install libgl1-mesa-glx libglib2.0-0
+
+RUN apt install -y libprotobuf-dev protobuf-compiler && \
+    apt-get -y install cmake
+
+WORKDIR /
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install --upgrade pip && \
+    pip3 install -r ./guides/quick-start/requirements.txt
+
+WORKDIR /bin
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
+    chmod 755 jq
+
+COPY ./ /tmp
+
+RUN mkdir /workspace && \
+    mv /tmp/app /workspace/app && \
+    mv /tmp/.env /workspace/.env && \
+    mv /tmp/lovit /workspace/lovit && \
+    mv /tmp/requirments/requirments-serving.txt /workspace/requirments-serving.txt && \
+    rm -r /tmp
+
+RUN pip3 install -r /workspace/requirments-serving.txt && \
+    pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+
+WORKDIR /workspace/lovit
+RUN python3 setup.py install && \
+    rm -r /workspace/lovit
+
+WORKDIR /workspace
+# RUN cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml
+# RUN python3 generate_document_model_service.py
+
+# WORKDIR /
+# RUN git clone https://github.com/Nuitka/Nuitka.git && \
+#     cd Nuitka && \
+#     python3 setup.py install
+
+# WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
+# RUN mkdir assets && \ 
+#     mv /workspace/assets/textscope_id.json ./assets/textscope_id.json && \
+#     mv /workspace/.env .env && \ 
+#     mv ./app/serving/document_model_service.py ./document_model_service.py && \
+#     python3 -m nuitka --module app --include-package=app && \
+#     python3 -m nuitka --module document_model_service.py
+
+# RUN rm -r /workspace/* /Nuitka
+
+# CMD ["bentoml", "serve-gunicorn", "DocumentModelService:latest"]

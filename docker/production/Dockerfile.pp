@@ -2,16 +2,16 @@ FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
-RUN apt-get install -y git  && \
-
+RUN apt-get install -y git
 
 COPY ./ /tmp
 
 RUN mkdir /workspace && \
     mv /tmp/lovit /workspace/lovit && \
     mv /tmp/app /workspace/app && \
+    mv /tmp/pp_server /workspace/pp_server && \
     mv /tmp/.env /workspace/.env && \
-    mv /tmp/requirments/requirments-web.txt /workspace/requirments-web.txt && \
+    mv /tmp/requirments/requirments-pp.txt /workspace/requirments-pp.txt && \
     rm -r /tmp
 
 RUN pip3 install -r /workspace/requirments-pp.txt

@@ -36,8 +36,8 @@ services:
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
-    # command: bentoml serve DocumentModelService:latest
-    # command: bentoml serve IdcardModelService:latest
+    # command: bentoml serve-gunicorn DocumentModelService:latest
+    # command: bentoml serve-gunicorn IdcardModelService:latest
 
   web:
     image: docker.lomin.ai/ts-web:0.0.1
