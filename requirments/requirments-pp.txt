@@ -2,7 +2,7 @@ fastapi==0.65.2
 uvicorn==0.14.0    
 python-multipart==0.0.5         
 python-dotenv==0.17.1     
-pydantic[email]==1.8.2      
+pydantic[email,dotenv]==1.8.2
 numpy==1.21.0
 httpx==0.18.2
 Shapely==1.8a1

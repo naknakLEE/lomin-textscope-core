@@ -2,7 +2,8 @@ FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
-RUN apt-get install -y git && \
+RUN apt-get update && \
+    apt-get install -y git && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0
 
 COPY ./ /tmp
@@ -14,7 +15,8 @@ RUN mkdir /workspace && \
     mv /tmp/requirments/requirments-kakaobank.txt /workspace/requirments-kakaobank.txt && \
     rm -r /tmp
 
-RUN pip3 install -r /workspace/requirments-kakaobank.txt
+RUN pip3 install --upgrade pip && \ 
+    pip3 install -r /workspace/requirments-kakaobank.txt
 
 WORKDIR /workspace
 # RUN git clone https://github.com/Nuitka/Nuitka.git && \

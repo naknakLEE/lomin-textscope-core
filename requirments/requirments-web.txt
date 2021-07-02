@@ -9,7 +9,7 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.5      
 cryptography==3.3.2      
 python-dotenv==0.17.1     
-pydantic[email]==1.8.2      
+pydantic[email,dotenv]==1.8.2
 PyJWT==2.1.0      
 aiohttp==3.7.4.post0
 prometheusrock==0.2.0      

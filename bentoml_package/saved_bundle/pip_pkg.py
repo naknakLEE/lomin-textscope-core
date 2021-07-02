@@ -120,18 +120,18 @@ class ModuleManager(object):
 
         self.searched_modules = {}
         self.zip_modules: Dict[str, zipimport.zipimporter] = {}
-        for m in pkgutil.iter_modules():
-            if m.name not in self.searched_modules:
-                if isinstance(m.module_finder, zipimport.zipimporter):
-                    logger.info(f"Detected zipimporter {m.module_finder}")
-                    path = m.module_finder.archive
-                    self.zip_modules[path] = m.module_finder
-                else:
-                    path = m.module_finder.path
-                is_local = self.is_local_path(path)
-                self.searched_modules[m.name] = ModuleInfo(
-                    m.name, path, is_local, m.ispkg
-                )
+        # for m in pkgutil.iter_modules():
+        #     if m.name not in self.searched_modules:
+        #         if isinstance(m.module_finder, zipimport.zipimporter):
+        #             logger.info(f"Detected zipimporter {m.module_finder}")
+        #             path = m.module_finder.archive
+        #             self.zip_modules[path] = m.module_finder
+        #         else:
+        #             path = m.module_finder.path
+        #         is_local = self.is_local_path(path)
+        #         self.searched_modules[m.name] = ModuleInfo(
+        #             m.name, path, is_local, m.ispkg
+        #         )
 
     def verify_pkg(self, pkg_req: Requirement):
         if pkg_req.name not in self.pip_pkg_map:

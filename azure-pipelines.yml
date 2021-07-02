@@ -1,74 +1,38 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+# -*- mode: python ; coding: utf-8 -*-
 
-trigger:
-- develop
 
-resources:
-- repo: self
+block_cipher = None
 
-stages:
-- stage: Build
-  displayName: Build image
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-    - task: DownloadSecureFile@1
-      name: security
-      displayName: 'Download .env'
-      inputs:
-        secureFile: '.env'
-    - script: |
-          echo Download $(security.secureFilePath) to the trusted CA directory...
-          sudo chown root:root $(security.secureFilePath)
-          sudo chmod a+r $(security.secureFilePath)
-          sudo mv $(security.secureFilePath) .
-          echo $(pwd)
-          echo $(ls)
-    - script: |
-        docker login textscoperegistry.azurecr.io --username $(username) --password $(password)
-      displayName: 'Login textscope azure container repository'
-    - task: InstallSSHKey@0
-      displayName: 'Install an SSH key'
-      inputs:
-        knownHostsEntry: 'SHA256:uQQZzJocI8jw3J7lhyaYCKkpstc=|WIGmnyxih3oUBSnv87LRdogHgUY= sw.lee@lomin.ai'
-        sshPublicKey: $(myPubKey)
-        sshKeySecureFile: 'id_rsa'
-    - script: |
-        git clone git@ssh.dev.azure.com:v3/textscope/Textscope/lovit
-      displayName: 'Download submodule'
-    - task: Docker@2
-      displayName: Build and push an serving image to container registry
-      inputs:
-        command: buildAndPush
-        repository: textscoperegistry.azurecr.io/ts-serving
-        buildContext: $(Build.Repository.LocalPath)
-        dockerfile: './docker/production/Dockerfile.serving'
-        tags: |
-          0.0.1
-    - task: Docker@2
-      displayName: Build and push an nginx image to container registry
-      inputs:
-        command: buildAndPush
-        repository: textscoperegistry.azurecr.io/ts-nginx
-        buildContext: $(Build.Repository.LocalPath)
-        dockerfile: './docker/Dockerfile.nginx'
-        tags: |
-          0.0.1
-    - task: Docker@2
-      displayName: Build and push an web image to container registry
-      inputs:
-        command: buildAndPush
-        repository: textscoperegistry.azurecr.io/ts-web
-        buildContext: $(Build.Repository.LocalPath)
-        dockerfile: './docker/production/Dockerfile.web'
-        tags: |
-          0.0.1
-    - script: |
-          pip install -r requirments/requirments-test.txt
-          pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml tests
-      displayName: 'pytest'
+
+a = Analysis(['app/serving/bento_cli.py'],
+             pathex=['dist/obf', '/workspace'],
+             binaries=[],
+             datas=[],
+             hiddenimports=['pythonjsonlogger','pythonjsonlogger.jsonlogger.JsonFormatter','pytransform'],
+             hookspath=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher,
+             noarchive=False)
+pyz = PYZ(a.pure, a.zipped_data,
+             cipher=block_cipher)
+exe = EXE(pyz,
+          a.scripts,
+          [],
+          exclude_binaries=True,
+          name='bento_cli',
+          debug=False,
+          bootloader_ignore_signals=False,
+          strip=False,
+          upx=True,
+          console=True )
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               upx_exclude=[],
+               name='bento_cli')
