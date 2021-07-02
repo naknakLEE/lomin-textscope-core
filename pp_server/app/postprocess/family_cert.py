@@ -62,7 +62,7 @@ def postprocess_family_cert(pred, score_thresh=0.5, *args):
 
     for i, text in enumerate(texts):
         for keyword in TARGET_KEYWORDS:
-            if keyword in text:
+            if keyword in text or (len(text) > 5 and levenshtein(keyword, text) < 2):
                 bbox = pred.bbox[i]
                 # keyword_map[keyword].append(bbox)
                 keyword_map[keyword].append({"bbox": bbox, "text": text})
