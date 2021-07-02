@@ -20,11 +20,7 @@ def _is_path_like(path):
 
 
 def _is_pytorch_lightning_model_file_like(path):
-    return (
-        _is_path_like(path)
-        and os.path.isfile(path)
-        and str(path).lower().endswith(".pt")
-    )
+    return _is_path_like(path) and os.path.isfile(path) and str(path).lower().endswith(".pt")
 
 
 class PytorchModelArtifact(BentoServiceArtifact):
@@ -117,10 +113,32 @@ class PytorchModelArtifact(BentoServiceArtifact):
             )
 
         # TorchScript Models are saved as zip files
-        if zipfile.is_zipfile(self._file_path(path)):
-            model = torch.jit.load(self._file_path(path))
-        else:
-            model = cloudpickle.load(open(self._file_path(path), 'rb'))
+        # if zipfile.is_zipfile(self._file_path(path)):
+        import io
+        from cryptography.fernet import Fernet
+
+        def read_file(path, key):
+            fernet = Fernet(key)
+            with open(path, "rb") as f:
+                data = f.read()
+            data = fernet.decrypt(data)
+            return data
+
+        def pth_solver(path, key):
+            data = read_file(path, key)
+            return io.BytesIO(data)
+
+        CRYPTO_KEY = b"s7smOzlG-OWQiMA3RIysQGa9OOgNTqbVvSghCp2svBQ="
+        CRYPTO_PREFIX = "enc_"
+
+        path = self._file_path(path)
+        print("\033[95m" + f"{path}" + "\033[m")
+        split_path = path.split("/")
+        model_path = os.path.join("/", *split_path[:-1], f"{CRYPTO_PREFIX}{split_path[-1]}")
+        saved_file = pth_solver(model_path, CRYPTO_KEY)
+        model = torch.jit.load(saved_file)
+        # else:
+        #     model = cloudpickle.load(open(self._file_path(path), "rb"))
 
         if not isinstance(model, torch.nn.Module):
             raise InvalidArgument(
@@ -141,7 +159,7 @@ class PytorchModelArtifact(BentoServiceArtifact):
             "BentoService definition file or manually add them via "
             "`@env(pip_packages=['torchvision'])` when defining a BentoService"
         )
-        env.add_pip_packages(['torch'])
+        env.add_pip_packages(["torch"])
 
     def get(self):
         return self._model
@@ -214,13 +232,12 @@ class PytorchLightningModelArtifact(BentoServiceArtifact):
         self._model_path = None
 
     def _saved_model_file_path(self, base_path):
-        return os.path.join(base_path, self.name + '.pt')
+        return os.path.join(base_path, self.name + ".pt")
 
     def pack(self, path_or_model, metadata=None):  # pylint:disable=arguments-differ
         if _is_pytorch_lightning_model_file_like(path_or_model):
             logger.info(
-                'PytorchLightningArtifact is packing a saved torchscript module '
-                'from path'
+                "PytorchLightningArtifact is packing a saved torchscript module " "from path"
             )
             self._model_path = path_or_model
         else:
@@ -229,18 +246,17 @@ class PytorchLightningModelArtifact(BentoServiceArtifact):
             except ImportError:
                 raise InvalidArgument(
                     '"pytorch_lightning.lightning.LightningModule" model is required '
-                    'to pack a PytorchLightningModelArtifact'
+                    "to pack a PytorchLightningModelArtifact"
                 )
             if isinstance(path_or_model, LightningModule):
                 logger.info(
-                    'PytorchLightningArtifact is packing a pytorch lightning '
-                    'model instance as torchscript module'
+                    "PytorchLightningArtifact is packing a pytorch lightning "
+                    "model instance as torchscript module"
                 )
                 self._model = path_or_model.to_torchscript()
             else:
                 raise InvalidArgument(
-                    'a LightningModule model is required to pack a '
-                    'PytorchLightningModelArtifact'
+                    "a LightningModule model is required to pack a " "PytorchLightningModelArtifact"
                 )
         return self
 
@@ -248,7 +264,7 @@ class PytorchLightningModelArtifact(BentoServiceArtifact):
         self._model = self._get_torch_script_model(self._saved_model_file_path(path))
 
     def set_dependencies(self, env: BentoServiceEnv):
-        env.add_pip_packages(['pytorch-lightning'])
+        env.add_pip_packages(["pytorch-lightning"])
 
     def get(self):
         if self._model is None:
@@ -273,7 +289,6 @@ class PytorchLightningModelArtifact(BentoServiceArtifact):
             from torch import jit
         except ImportError:
             raise MissingDependencyException(
-                '"torch" package is required for inference with '
-                'PytorchLightningModelArtifact'
+                '"torch" package is required for inference with ' "PytorchLightningModelArtifact"
             )
         return jit.load(model_path)

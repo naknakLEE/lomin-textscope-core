@@ -28,6 +28,7 @@ recognition_model = torch.jit.load(f"{model_path['recognition_model']}")
 # recognition_model = onnx.load(f"{model_path['recognition_model']}")
 document_model_service.pack("detection", detection_model)
 document_model_service.pack("recognition", recognition_model)
+document_model_service.set_version("2021-07.textscope")
 
 document_model_service.save()
 
