@@ -4,6 +4,7 @@ import cv2
 import torch
 import torchvision
 import onnx
+
 from os import path
 
 # from app.serving.multiple_model_service import DocumentModelService
@@ -23,7 +24,8 @@ for cfg in service_cfg:
 document_model_service = DocumentModelService()
 
 detection_model = torch.jit.load(f"{model_path['detection_model']}")
-recognition_model = onnx.load(f"{model_path['recognition_model']}")
+recognition_model = torch.jit.load(f"{model_path['recognition_model']}")
+# recognition_model = onnx.load(f"{model_path['recognition_model']}")
 document_model_service.pack("detection", detection_model)
 document_model_service.pack("recognition", recognition_model)
 
@@ -33,9 +35,9 @@ document_model_service.save()
 #####################################################################
 
 
-image_dir = f"{settings.BASE_PATH}/others/assets/basic_cert2.jpg"
-img = PIL.Image.open(image_dir)
-img = np.array(img)
+# image_dir = f"{settings.BASE_PATH}/others/assets/basic_cert2.jpg"
+# img = PIL.Image.open(image_dir)
+# img = np.array(img)
 
-texts = document_model_service.document_ocr(img)
+# texts = document_model_service.document_ocr(img)
 # print("\033[95m" + f"{texts}" + "\033[m")
