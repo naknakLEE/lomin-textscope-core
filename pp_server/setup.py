@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="app",
     version="1.0",
-    description="Textscopr repogitory",
+    description="Textscope post processing",
     author="Lomin",
     author_email="***@lomin.ai",
     install_requires=[],

@@ -1,7 +1,7 @@
 from typing import Optional
 from aioredis import Redis, create_redis_pool
 
-from app.common.const import get_settings
+from pp_server.app.common.const import get_settings
 
 
 settings = get_settings()

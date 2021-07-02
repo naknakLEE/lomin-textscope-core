@@ -5,7 +5,7 @@
             {
                 "type": "torchscript_model",
                 "name": "detection_model",
-                "model_path": "assets/document_detection/1/gocr_chshin_efficientdet_d4_210607_model_0169999_F1_93.ts",
+                "model_path": "assets/document_detection/1/gocr_chshin_efficientdet_d4_210607_model.ts",
                 "preprocess": [
                     {
                         "type": "resize",
@@ -49,7 +49,7 @@
             {
                 "type": "onnx_model",
                 "name": "recognition_model",
-                "model_path": "assets/recognizer/1/baseline_exp1_-epoch=2_acc=0.onnx",
+                "model_path": "assets/recognizer/1/general_200630_skjung_001_rec.onnx",
                 "batch_size": 9,
                 "preprocess": [
                     {

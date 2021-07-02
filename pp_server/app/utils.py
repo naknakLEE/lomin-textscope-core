@@ -11,8 +11,7 @@ from os import getcwd
 from collections import defaultdict
 from shapely.geometry import Polygon
 
-from app.serving.utils.catalogs import ELabelCatalog
-from app.common.const import get_settings
+from pp_server.app.common.const import get_settings
 
 
 settings = get_settings()
@@ -31,8 +30,7 @@ class AttnLabelConverter(object):
         self.max_text_length = max_text_length
 
     def encode(self, text):
-        codes = [self.dict["[BOS]"]] + [self.dict[char]
-                                        for char in text] + [self.dict["[EOS]"]]
+        codes = [self.dict["[BOS]"]] + [self.dict[char] for char in text] + [self.dict["[EOS]"]]
         return torch.tensor(np.array(codes), dtype=torch.long)
 
     def batch_encode(self, texts=[]):
@@ -46,7 +44,7 @@ class AttnLabelConverter(object):
         texts = []
         for label_arr in label_tensor:
             text = "".join([self.character[i] for i in label_arr])
-            text = text[:text.find("[EOS]")]
+            text = text[: text.find("[EOS]")]
             text = self.remove_token_pattern.sub("", text)
             texts.append(text)
         return texts
@@ -104,8 +102,7 @@ def mask_to_quadrangle(mask, mask_convex_hull=False, force_rect=False, allow_pol
     assert mask.dtype == torch.bool
     mask = mask.numpy().astype(np.uint8)
 
-    contours, hierarchy = cv2.findContours(
-        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # TODO: handle this
     # assert len(contours) > 0
     if len(contours) == 0:

@@ -15,11 +15,11 @@ from fastapi.responses import JSONResponse
 # from dataclasses import asdict
 # from prometheusrock import PrometheusMiddleware, metrics_route
 
-from app.common.const import get_settings
-from app.common.config import config
+from kakaobank_wrapper.app.common.const import get_settings
+from kakaobank_wrapper.app.common.config import config
 from kakaobank_wrapper.app.database.schema import create_db_table
 from kakaobank_wrapper.app.database.connection import db
-from app import models
+from kakaobank_wrapper.app import models
 from kakaobank_wrapper.app.errors import exceptions as ex
 from kakaobank_wrapper.app.utils.parse import parse_kakaobank
 
@@ -192,4 +192,5 @@ async def inference(
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)
+    # uvicorn.run("main:app", host="0.0.0.0", port=8090, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8090)

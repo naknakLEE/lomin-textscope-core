@@ -179,8 +179,25 @@ class DocumentModelService(BentoService):
         deidentify_img(img, detection_boxes, detection_classes, info_save_path)
         # cv2.imwrite("/workspace/others/assets/bytes_to_document.png", img)
 
+    def resize_func(self, img_arr, target_width=3200, target_height=2400, extra_info=None):
+        h, w = img_arr.shape[0:2]
+        ow, oh = target_width, target_height
+        _ow = int(w * (oh / h))
+        if _ow < oh:  # min aspect ratio 1
+            _ow = oh
+        if _ow > ow:  # limit max width
+            _ow = ow
+        ow = _ow
+        resized_arr = cv2.resize(img_arr, (ow, oh), interpolation=cv2.INTER_LINEAR)
+        _h, _w = resized_arr.shape[:2]
+        blank = np.zeros((target_height, target_width, 3), dtype=np.uint8)
+        blank[:_h, :_w, :] = resized_arr
+        return blank, extra_info
+
     @api(input=ImageInput(), batch=False)
     def document_ocr(self, img):
+        img, _ = self.resize_func(img)
+        print(img.shape)
         if settings.DEVELOP:
             img = cv2.resize(img, dsize=(2052, 2736), interpolation=cv2.INTER_AREA)
 
