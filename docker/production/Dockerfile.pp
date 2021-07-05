@@ -5,15 +5,11 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace"
 RUN apt-get update && \
     apt-get install -y git
 
-COPY ./ /tmp
-
-RUN mkdir /workspace && \
-    mv /tmp/lovit /workspace/lovit && \
-    mv /tmp/app /workspace/app && \
-    mv /tmp/pp_server /workspace/pp_server && \
-    mv /tmp/.env /workspace/.env && \
-    mv /tmp/requirments/requirments-pp.txt /workspace/requirments-pp.txt && \
-    rm -r /tmp
+COPY ./lovit /workspace/lovit
+COPY ./app /workspace/app
+COPY ./pp_server /workspace/pp_server
+COPY ./.env /workspace/.env
+COPY ./requirments/requirments-pp.txt /workspace/requirments-pp.txt
 
 RUN pip3 install --upgrade pip && \
     pip3 install -r /workspace/requirments-pp.txt

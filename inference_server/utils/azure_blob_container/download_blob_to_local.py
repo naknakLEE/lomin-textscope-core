@@ -32,7 +32,7 @@ def load_json(path):
     return json.loads(data)
 
 
-service_cfg = load_json(settings.SERVICE_CFG_PATH)["idcard"]["resources"]
+service_cfg = load_json(settings.SERVICE_CFG_PATH)["document"]["resources"]
 service_env = settings.SERVICE_ENV_PATH
 download_file_paths = {}
 for cfg in service_cfg:

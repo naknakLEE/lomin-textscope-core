@@ -1,7 +1,6 @@
 version: '2.3'
 
 services:
-
   mysql:
     image: mysql:8.0.25
     container_name: mysql
@@ -20,8 +19,8 @@ services:
   serving:
     image: docker.lomin.ai/ts-gpu-serving:0.0.1
     build:
-      context: ./docker/production
-      dockerfile: Dockerfile.gpu_serving
+      context: ./
+      dockerfile: docker/production/Dockerfile.gpu_serving
     container_name: serving
     ports: 
       - 5000:5000
@@ -42,8 +41,8 @@ services:
   web:
     image: docker.lomin.ai/ts-web:0.0.1
     build:
-      context: ./docker/production
-      dockerfile: Dockerfile.fastapi
+      context: ./
+      dockerfile: docker/production/Dockerfile.web
     container_name: web
     ports: 
       - 8000:8000
@@ -62,8 +61,8 @@ services:
   pp:
     image: docker.lomin.ai/ts-pp:0.0.1
     build:
-      context: ./docker/production
-      dockerfile: Dockerfile.pp
+      context: ./
+      dockerfile: docker/production/Dockerfile.pp
     container_name: pp
     ports: 
       - 8080:8080
@@ -82,8 +81,8 @@ services:
   kakao_wrapper:
     image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
     build:
-      context: ./docker/production
-      dockerfile: Dockerfile.web
+      context: ./
+      dockerfile: docker/production/Dockerfile.kakao_wrapper
     container_name: kakao_wrapper
     ports: 
       - 8090:8090
