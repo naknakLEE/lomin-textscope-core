@@ -10,9 +10,9 @@ from bentoml.adapters import ImageInput
 from bentoml.frameworks.onnx import OnnxModelArtifact
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
-from app.errors.exceptions import InferenceException
-from app.serving.utils.envs import settings, logger
-from app.serving.utils.utils import (
+from inference_server.errors.exceptions import InferenceException
+from inference_server.utils.envs import settings, logger
+from inference_server.utils.utils import (
     load_json,
     save_debug_img,
     deidentify_img,

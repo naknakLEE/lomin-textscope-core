@@ -4,50 +4,86 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    # # DOCKER SERVER ADDRESS
+    # POSTGRES_IP_ADDR: str
+    # MYSQL_IP_ADDR: str
+    # WEB_IP_ADDR: str
+    # SERVING_IP_ADDR: str
+    # REDIS_IP_ADDR: str
+    # PP_IP_ADDR: str
+
+    # # POSTGRESQL CONFIG
+    # POSTGRES_DB: str
+    # POSTGRES_USER: str
+    # POSTGRES_PASSWORD: str
+
+    # # MYSQL CONFIG
+    # MYSQL_ROOT_USER: str
+    # MYSQL_DB: str
+    # MYSQL_PASSWORD: str
+
+    # # AUTHORIZATION SETTING
+    # SECRET_KEY: str
+    # ALGORITHM: str
+    # ACCESS_TOKEN_EXPIRE_MINUTES: int
+
+    # # ACCESS KEY
+    # AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
+
+    # # SERVING CONFIG
+    # SERVING_IP_PORT: int
+    # REDIS_IP_PORT: int
+    # WEB_IP_PORT: int
+    # PP_IP_PORT: int
+
+    # # BASE CONFIG
+    # DEVELOP: bool = True
+    # API_ENV: str = "production"
+    # BASE_PATH: str = "."
     # DOCKER SERVER ADDRESS
-    POSTGRES_IP_ADDR: str
-    MYSQL_IP_ADDR: str
-    WEB_IP_ADDR: str
-    SERVING_IP_ADDR: str
-    REDIS_IP_ADDR: str
-    PP_IP_ADDR: str
+    KAKAO_WRAPPER_IP_ADDR = "182.20.0.19"
+    PP_IP_ADDR = "182.20.0.18"
+    REDIS_IP_ADDR = "182.20.0.17"
+    MYSQL_EXPORTER_IP_ADDR = "182.20.0.16"
+    MYSQL_IP_ADDR = "182.20.0.15"
+    NGINX_IP_ADDR = "182.20.0.14"
+    NODE_EXPORTER_IP_ADDR = "182.20.0.13"
+    DCGM_EXPORTER_IP_ADDR = "182.20.0.12"
+    POSTGRES_EXPORTER_IP_ADDER = "182.20.0.11"
+    GRAFANA_IP_ADDR = "182.20.0.10"
+    PROMETHEUS_IP_ADDR = "182.20.0.9"
+    PGADMIN_IP_ADDR = "182.20.0.8"
+    POSTGRES_IP_ADDR = "182.20.0.6"
+    WEB_IP_ADDR = "182.20.0.5"
+    SERVING_IP_ADDR = "182.20.0.4"
 
     # POSTGRESQL CONFIG
-    POSTGRES_DB: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
+    POSTGRES_DB = "test"
+    POSTGRES_USER = "admin"
+    POSTGRES_PASSWORD = "1q2w3e4r"
 
     # MYSQL CONFIG
-    MYSQL_ROOT_USER: str
-    MYSQL_DB: str
-    MYSQL_PASSWORD: str
+    MYSQL_ROOT_USER = "root"
+    MYSQL_DB = "admin"
+    MYSQL_PASSWORD = "1q2w3e4r"
 
     # AUTHORIZATION SETTING
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+    ALGORITHM = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES = 600
 
     # ACCESS KEY
-    AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
+    AZURE_STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=cs1100320013a1502d2;AccountKey=sl2JAk7SdA8Wf7/o1gIw5jfM0UaA+C5F16UfdDvkeC/9EE1CkhTSIRYoNdUBMy49Racupj9H/E+YnN6WKTYk0g==;EndpointSuffix=core.windows.net"
 
     # SERVING CONFIG
-    SERVING_IP_PORT: int
-    REDIS_IP_PORT: int
-    WEB_IP_PORT: int
-    PP_IP_PORT: int
+    SERVING_IP_PORT = 5000
+    WEB_IP_PORT = 8000
+    PP_IP_PORT = 8080
+    REDIS_IP_PORT = 6379
 
     # BASE CONFIG
-    DEVELOP: bool = True
-    API_ENV: str = "production"
-    BASE_PATH: str = "."
-
-    # KAKAOBANK_WRAPPER_CONFIG
-    DOCUMENT_TYPE_SET = {
-        "D01": "rrtable",
-        "D02": "family_cert",
-        "D03": "basic_cert",
-        "D04": "regi_cert",
-    }
+    DEVELOP = True
+    BASE_PATH = "."
 
     FAKE_SUPERUSER_INFORMATION: dict = {
         "username": "user",

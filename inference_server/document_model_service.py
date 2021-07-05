@@ -16,9 +16,9 @@ from bentoml.frameworks.pytorch import PytorchModelArtifact
 from lovit.preprocess import recognition
 from lovit.preprocess import aggamoto
 
-from app.errors.exceptions import InferenceException
-from app.serving.utils.envs import settings, logger
-from app.serving.utils.utils import (
+from inference_server.errors.exceptions import InferenceException
+from inference_server.utils.envs import settings, logger
+from inference_server.utils.utils import (
     load_json,
     convert_recognition_to_text,
     get_cropped_images,

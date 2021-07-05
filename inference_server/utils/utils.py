@@ -13,8 +13,8 @@ from collections import defaultdict
 from shapely.geometry import Polygon
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
-from app.serving.utils.envs import logger, settings
-from app.serving.utils.catalogs import ELabelCatalog, EDocumentCatalog
+from inference_server.utils.envs import logger, settings
+from inference_server.utils.catalogs import ELabelCatalog, EDocumentCatalog
 from app.errors.exceptions import InferenceException
 
 
@@ -81,9 +81,7 @@ def get_cropped_images(image, boxes):
 
 infinite_defaultdict = lambda: defaultdict(infinite_defaultdict)
 default_to_regular = (
-    lambda d: {k: default_to_regular(v) for k, v in d.items()}
-    if isinstance(d, defaultdict)
-    else d
+    lambda d: {k: default_to_regular(v) for k, v in d.items()} if isinstance(d, defaultdict) else d
 )
 
 
@@ -190,9 +188,7 @@ def build_resize(resize_cfg):
             tgt_aspect_ratio = ow / oh
             cut_ratio_th = 2.5
 
-            if (1.0 / cut_ratio_th < img_aspect_ratio) and (
-                cut_ratio_th > img_aspect_ratio
-            ):
+            if (1.0 / cut_ratio_th < img_aspect_ratio) and (cut_ratio_th > img_aspect_ratio):
                 #'keep_ratio+min0.5'
                 if img_aspect_ratio > tgt_aspect_ratio:
                     img_target_size = (ow, max(int((h * (ow / w))), oh // 2))
@@ -329,9 +325,7 @@ def build_pad_with_stride(pad_with_stride_cfg):
             max_size[1] = max_size[2]
         pad_img = np.zeros(max_size)
         pad_img[: img_arr.shape[0], : img_arr.shape[1], : img_arr.shape[2]] = img_arr
-        extra_info = {
-            "size_after_resize_before_pad": (img_arr.shape[1], img_arr.shape[2])
-        }
+        extra_info = {"size_after_resize_before_pad": (img_arr.shape[1], img_arr.shape[2])}
         return pad_img, extra_info
 
     return pad_with_stride
@@ -372,9 +366,7 @@ def mask_to_quad(mask, box, mask_threshold=0.5, force_rect=False, resize_ratio=5
             dsize=None,
             interpolation=cv2.INTER_CUBIC,
         )
-    contours, _ = cv2.findContours(
-        mask_pred, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-    )
+    contours, _ = cv2.findContours(mask_pred, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contour = np.concatenate(contours, 0)
     contour = cv2.convexHull(contour, False)
 
@@ -425,15 +417,9 @@ def mask_to_quad(mask, box, mask_threshold=0.5, force_rect=False, resize_ratio=5
         else:
             poly_marect = Polygon([(x, y) for x, y in zip(marect[:, 0], marect[:, 1])])
             poly_approx = Polygon([(x, y) for x, y in zip(approx[:, 0], approx[:, 1])])
-            poly_contour = Polygon(
-                [(x, y) for x, y in zip(contour[:, 0], contour[:, 1])]
-            )
+            poly_contour = Polygon([(x, y) for x, y in zip(contour[:, 0], contour[:, 1])])
 
-            if (
-                not poly_marect.is_valid
-                or not poly_approx.is_valid
-                or not poly_contour.is_valid
-            ):
+            if not poly_marect.is_valid or not poly_approx.is_valid or not poly_contour.is_valid:
                 quad = marect
             else:
                 inter_marect = poly_marect.intersection(poly_contour).area
@@ -483,9 +469,7 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
     for resource in resources:
         _type = resource["type"]
         _name = resource["name"]
-        _use_streamer = (
-            resource["use_streamer"] if "use_streamer" in resource else False
-        )
+        _use_streamer = resource["use_streamer"] if "use_streamer" in resource else False
         # _model_path = os.path.join(settings.BASE_PATH, resource['model_path']) if 'model_path' in resource else ''
         _batch_size = resource["batch_size"] if "batch_size" in resource else 1
         _max_latency = resource["max_latency"] if "max_latency" in resource else 0.1
@@ -542,10 +526,7 @@ def load_models(infer_sess_map: dict, service_cfg: dict, orb_matcher: dict = dic
             }
         elif _type == "orb_matcher":
             assert "config" in resource
-            assert (
-                "image_path" in resource["config"]
-                and len(resource["config"]["image_path"]) > 0
-            )
+            assert "image_path" in resource["config"] and len(resource["config"]["image_path"]) > 0
             _image_path = resource["config"]["image_path"]
             orb_matcher["image_path"] = _image_path
         else:
@@ -614,9 +595,7 @@ def deidentify_img(img_arr, kv_boxes, kv_classes, savepath):
             min_x, min_y, max_x, max_y = _box.tolist()
             width = max_x - min_x
             height = max_y - min_y
-            _img_arr = cv2.rectangle(
-                _img_arr, (min_x, min_y, width, height), (255, 0, 0), 3
-            )
+            _img_arr = cv2.rectangle(_img_arr, (min_x, min_y, width, height), (255, 0, 0), 3)
 
     _img_arr = cv2.cvtColor(_img_arr, cv2.COLOR_BGR2RGB)
     # if settings.DE_ID_LIMIT_SIZE:
@@ -650,9 +629,7 @@ def get_class_masks(kv_classes):
     for kv_class in kv_classes:
         mask = mask_generator(kv_class)
         mask = np.expand_dims(mask, axis=0)
-        class_masks = (
-            np.concatenate([class_masks, mask]) if class_masks is not None else mask
-        )
+        class_masks = np.concatenate([class_masks, mask]) if class_masks is not None else mask
     return class_masks
 
 
@@ -714,16 +691,12 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
             / 2
         )
 
-        ln_ar = (ln_boxes[:, 2] - ln_boxes[:, 0]) / (
-            ln_boxes[:, 3] - ln_boxes[:, 1]
-        )  # w/h
+        ln_ar = (ln_boxes[:, 2] - ln_boxes[:, 0]) / (ln_boxes[:, 3] - ln_boxes[:, 1])  # w/h
         long_ln_index = ln_ar.argmax()
         long_ln_ar = ln_ar[long_ln_index]
         if long_ln_ar <= 2:
             return kv_boxes, kv_scores, kv_classes
-        ln_distances = np.delete(
-            ln_centers - ln_centers[long_ln_index], long_ln_index, 0
-        )
+        ln_distances = np.delete(ln_centers - ln_centers[long_ln_index], long_ln_index, 0)
         unit_distance = np.abs(ln_distances).mean(axis=0) / 2
 
         new_box_class = "dlc_license_num"
@@ -741,9 +714,7 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
         new_box = np.expand_dims(new_box, axis=0).astype(np.int)
         new_box_score = np.expand_dims(new_box_score, axis=0)
         new_box_class = np.expand_dims(new_box_class, axis=0)
-        kv_boxes = np.concatenate(
-            [kv_boxes[:target_index], new_box, kv_boxes[target_index:]]
-        )
+        kv_boxes = np.concatenate([kv_boxes[:target_index], new_box, kv_boxes[target_index:]])
         kv_scores = np.concatenate(
             [kv_scores[:target_index], new_box_score, kv_scores[target_index:]]
         )
@@ -751,9 +722,7 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
             [kv_classes[:target_index], new_box_class, kv_classes[target_index:]]
         )
 
-        if (
-            long_ln_index == 1 and ln_box_count == 2
-        ):  # Missing first and last licenes_num
+        if long_ln_index == 1 and ln_box_count == 2:  # Missing first and last licenes_num
             new_box_class = "dlc_license_num"
             new_box_score = 0.5
             new_box = ln_boxes[0].astype(np.float)
@@ -763,9 +732,7 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
             new_box = np.expand_dims(new_box, axis=0).astype(np.int)
             new_box_score = np.expand_dims(new_box_score, axis=0)
             new_box_class = np.expand_dims(new_box_class, axis=0)
-            kv_boxes = np.concatenate(
-                [kv_boxes[:target_index], new_box, kv_boxes[target_index:]]
-            )
+            kv_boxes = np.concatenate([kv_boxes[:target_index], new_box, kv_boxes[target_index:]])
             kv_scores = np.concatenate(
                 [kv_scores[:target_index], new_box_score, kv_scores[target_index:]]
             )
@@ -803,9 +770,7 @@ def add_backup_boxes(kv_boxes, kv_scores, kv_classes, id_type, id_size):
         new_box = np.expand_dims(new_box, axis=0).astype(np.int)
         new_box_score = np.expand_dims(new_box_score, axis=0)
         new_box_class = np.expand_dims(new_box_class, axis=0)
-        kv_boxes = np.concatenate(
-            [kv_boxes[:target_index], new_box, kv_boxes[target_index:]]
-        )
+        kv_boxes = np.concatenate([kv_boxes[:target_index], new_box, kv_boxes[target_index:]])
         kv_scores = np.concatenate(
             [kv_scores[:target_index], new_box_score, kv_scores[target_index:]]
         )
@@ -826,9 +791,7 @@ def rectify_img(img_arr, H, angle_label, is_portrait=False):
 
 def if_use_keypoint(valid_keypoints, current_size, original_size):
     boundary_quad = valid_keypoints[0, :, :2]
-    boundary_quad = revert_size(boundary_quad, current_size, original_size).astype(
-        np.int32
-    )
+    boundary_quad = revert_size(boundary_quad, current_size, original_size).astype(np.int32)
     length_top_edge = np.linalg.norm(boundary_quad[0] - boundary_quad[1])
     length_right_edge = np.linalg.norm(boundary_quad[1] - boundary_quad[2])
     angle_label = check_angle_label(boundary_quad)
@@ -958,9 +921,7 @@ def kv_postprocess(scores, boxes, labels, extra_info, infer_sess_map, original_s
         extra_info["size_after_resize_before_pad"][1],
         extra_info["size_after_resize_before_pad"][0],
     )
-    zvalid_boxes = revert_size(valid_boxes, current_size, original_size).astype(
-        np.int32
-    )
+    zvalid_boxes = revert_size(valid_boxes, current_size, original_size).astype(np.int32)
     lookup_table = infer_sess_map["kv_model"]["config"]["label_classes"]
     kv_classes = lookup_table[valid_labels]
 

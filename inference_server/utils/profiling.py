@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 
-from app.common.const import get_settings
-from app.serving.generate_bentoml_multiple_model import multi_model_service
+from inference_server.common.const import get_settings
+from inference_server.generate_idcard_model_service import multi_model_service
 
 settings = get_settings()
 if settings.PROFILING_TOOL is not None:

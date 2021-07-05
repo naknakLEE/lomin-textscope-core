@@ -5,10 +5,10 @@ import PIL
 
 from os import path
 
-from app.common.const import get_settings
-from app.serving.utils.utils import load_json
-from app.serving.crypto.utils import encrypt_dir
-from app.serving.crypto.crypto import Crypto
+from inference_server.common.const import get_settings
+from inference_server.utils.utils import load_json
+from inference_server.crypto.utils import encrypt_dir
+from inference_server.crypto.crypto import Crypto
 
 settings = get_settings()
 service_cfg = load_json(settings.SERVICE_CFG_PATH)["document"]["resources"]
@@ -17,8 +17,8 @@ for cfg in service_cfg:
     model_path[cfg["name"]] = path.join(settings.BASE_PATH, cfg["model_path"])
 
 import os
-from app.serving.crypto.decipher import Decipher
-from app.serving.crypto.solver import pth_solver
+from inference_server.crypto.decipher import Decipher
+from inference_server.crypto.solver import pth_solver
 
 encrypt_path = (
     "/root/bentoml/repository/DocumentModelService/2021-07.textscope/DocumentModelService/artifacts"

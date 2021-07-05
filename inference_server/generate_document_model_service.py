@@ -7,10 +7,10 @@ import onnx
 
 from os import path
 
-# from app.serving.multiple_model_service import DocumentModelService
-from app.serving.document_model_service import DocumentModelService
-from app.common.const import get_settings
-from app.serving.utils.utils import load_json
+# from inference_server.multiple_model_service import DocumentModelService
+from inference_server.document_model_service import DocumentModelService
+from inference_server.common.const import get_settings
+from inference_server.utils.utils import load_json
 
 
 settings = get_settings()

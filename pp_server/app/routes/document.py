@@ -9,8 +9,8 @@ from fastapi import Body
 from typing import Any
 from fastapi import APIRouter
 
-from app.serving.utils.envs import logger
-from app.common.const import get_settings
+from inference_server.utils.envs import logger
+from pp_server.app.common.const import get_settings
 
 # from pp_server.app.postprocess import basic_cert, family_cert, regi_cert, rrtable
 from pp_server.app.postprocess import family_cert, basic_cert, rrtable, regi_cert

@@ -87,21 +87,13 @@ async def inference(file: UploadFile = File(...)) -> Any:
 #     return "Complete"
 
 
-document_type_set = {
-    "D01": "rrtable",
-    "D02": "family_cert",
-    "D03": "basic_cert",
-    "D04": "regi_cert",
-}
-
-
 @router.post("/pipeline")
 async def inference(
     edmisid: str, InbzDocClcd: str, InbzMgntNo: str, PwdCnt: str, image: UploadFile = File(...)
 ) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
-    document_type = document_type_set[InbzDocClcd]
+    document_type = settings.DOCUMENT_TYPE_SET[InbzDocClcd]
 
     async with httpx.AsyncClient() as client:
         document_ocr_model_response = await client.post(

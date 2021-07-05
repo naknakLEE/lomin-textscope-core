@@ -1,7 +1,7 @@
 import os
 from loguru import logger
 
-from app.common.const import get_settings
+from inference_server.common.const import get_settings
 
 settings = get_settings()
 
