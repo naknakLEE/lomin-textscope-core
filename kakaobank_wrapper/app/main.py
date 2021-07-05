@@ -1,14 +1,26 @@
 from fastapi.encoders import jsonable_encoder
+from pydantic.main import BaseModel
+from starlette.datastructures import FormData
 import uvicorn
 import os
 import asyncio
 import httpx
 
 from starlette.middleware.base import RequestResponseEndpoint, BaseHTTPMiddleware
-from typing import Any, List
+from typing import Any, List, Optional
 from dataclasses import asdict
-from fastapi import FastAPI, Request, Depends, Response
-from fastapi import Depends, File, UploadFile, APIRouter
+from fastapi import (
+    FastAPI,
+    Request,
+    Depends,
+    Response,
+    Form,
+    Depends,
+    File,
+    UploadFile,
+    APIRouter,
+    requests,
+)
 from fastapi.responses import JSONResponse
 
 # from fastapi.security import OAuth2PasswordBearer
@@ -145,19 +157,58 @@ class catch_exceptions_middleware(BaseHTTPMiddleware):
 app.add_middleware(catch_exceptions_middleware)
 
 
+def parse_multi_form(form):
+    data = {}
+    for url_k in form:
+        v = form[url_k]
+        ks = []
+        while url_k:
+            if "[" in url_k:
+                k, r = url_k.split("[", 1)
+                ks.append(k)
+                if r[0] == "]":
+                    ks.append("")
+                url_k = r.replace("]", "", 1)
+            else:
+                ks.append(url_k)
+                break
+        sub_data = data
+        for i, k in enumerate(ks):
+            if k.isdigit():
+                k = int(k)
+            if i + 1 < len(ks):
+                if not isinstance(sub_data, dict):
+                    break
+                if k in sub_data:
+                    sub_data = sub_data[k]
+                else:
+                    sub_data[k] = {}
+                    sub_data = sub_data[k]
+            else:
+                if isinstance(sub_data, dict):
+                    sub_data[k] = v
+
+    return data
+
+
 @app.post("/ocr", status_code=200)
 async def inference(
-    edmisid: str,
     InbzDocClcd: str,
     InbzMgntNo: str,
     PwdCnt: str,
-    files: List[UploadFile] = File(...),
+    request: Request,
 ) -> Any:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
+
+    form_data = await request.form()
+    form_data = parse_multi_form(form_data)
+
+    edmisid = form_data["edmisid"]
+    img_files = form_data["imgFiles"]
     data = {
         "edmisid": edmisid,
         "InbzDocClcd": InbzDocClcd,
@@ -166,7 +217,7 @@ async def inference(
     }
     results = list()
     async with httpx.AsyncClient() as client:
-        for file in files:
+        for file in img_files.values():
             file_bytes = await file.read()
             files = {"image": ("documment_img.jpg", file_bytes)}
             response = await client.post(
