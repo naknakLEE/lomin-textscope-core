@@ -2,10 +2,7 @@ import numpy as np
 import time
 import torch
 import torchvision
-
-# import onnx
-
-# import onnxruntime
+import lovit.preprocess.augmentation_impl as T
 import PIL
 import cv2
 import os
@@ -15,8 +12,9 @@ from torchvision import transforms
 from bentoml import env, artifacts, api, BentoService
 from bentoml.adapters import ImageInput
 
-# from bentoml.frameworks.onnx import OnnxModelArtifact
 from bentoml.frameworks.pytorch import PytorchModelArtifact
+from lovit.preprocess import recognition
+from lovit.preprocess import aggamoto
 
 from app.errors.exceptions import InferenceException
 from app.serving.utils.envs import settings, logger
@@ -29,61 +27,11 @@ from app.serving.utils.utils import (
 )
 
 
-class ResizeKeepRatioPad(object):
-    def __init__(self, height, width, interpolation=Image.BICUBIC):
-        self.height = height
-        self.width = width
-        self.interpolation = interpolation
-
-    def __call__(self, img: Image):
-        width, height = img.size
-        target_height = self.height
-        target_width = int(width * target_height / height)
-        x_padding = 0
-        if target_width > self.width:
-            target_width = self.width
-        else:
-            x_padding = self.width - target_width
-        if target_width == 0:
-            target_width += 1
-        img = img.resize((target_width, target_height), self.interpolation)
-        return ImageOps.expand(img, border=(0, 0, x_padding, 0), fill=(0, 0, 0))
-
-
-def build_preprocess():
-    transform_list = [ResizeKeepRatioPad(height=32, width=100)]
-    # TODO:Manage normalize params with cfg
-    transform_list += [transforms.ToTensor(), transforms.Normalize((0, 0, 0), (1, 1, 1))]
-    return transforms.Compose(transform_list) if len(transform_list) > 0 else None
-
-
-recognition_preprocess = build_preprocess()
-
-# def recognition_preprocessing(self, cropped_images):
-#         info_list = list()
-#         for i in range(len(cropped_images)):
-#             extra_info = dict()
-#             for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
-#                 cropped_images[i], extra_info = _proc(
-#                     cropped_images[i], extra_info=extra_info)
-#             info_list.append(extra_info)
-
-#         cropped_images = np.stack(cropped_images)
-#         cropped_images = cropped_images.astype(np.float32)
-#         cropped_images = torch.from_numpy(cropped_images).to("cuda")
-
-#         array = [recognition_preprocess(transforms.ToPILImage()(image))
-#                  for image in cropped_images]
-
-#         return torch.stack(array)
-
-
 @env(pip_packages=["torchvision"])
 @env(infer_pip_packages=True)
 @artifacts(
     [
         PytorchModelArtifact("detection"),
-        # OnnxModelArtifact("recognition"),
         PytorchModelArtifact("recognition"),
     ]
 )
@@ -96,26 +44,15 @@ class DocumentModelService(BentoService):
         self.detection_threshold = float(settings.DOCUMENT_DETECTION_SCORE_THRETHOLD)
         label_classes = self.service_cfg["resources"][1]["config"]["label_classes"]
         self.lookup_table = np.asarray(label_classes)
+        self.recognition_preprocess = recognition.build_preprocess()
 
     def detection_preprocessing(self, img_arr):
         img_arr = np.transpose(img_arr, (2, 0, 1))
         return torch.from_numpy(img_arr.copy())
 
-    # def recognition_preprocessing(self, cropped_images):
-    #     info_list = list()
-    #     for i in range(len(cropped_images)):
-    #         extra_info = dict()
-    #         for _proc in self.infer_sess_map["recognition_model"]["preprocess"]:
-    #             cropped_images[i], extra_info = _proc(cropped_images[i], extra_info=extra_info)
-    #         info_list.append(extra_info)
-
-    #     cropped_images = np.stack(cropped_images)
-    #     cropped_images = cropped_images.astype(np.float32)
-
-    #     return cropped_images
     def recognition_preprocessing(self, cropped_images):
         cropped_images = [
-            recognition_preprocess(Image.fromarray(cropped_image))
+            self.recognition_preprocess(Image.fromarray(cropped_image))
             for cropped_image in cropped_images
         ]
 
@@ -123,7 +60,9 @@ class DocumentModelService(BentoService):
         cropped_images = cropped_images.astype(np.float32)
         cropped_images = torch.from_numpy(cropped_images).to("cuda")
 
-        array = [recognition_preprocess(transforms.ToPILImage()(image)) for image in cropped_images]
+        array = [
+            self.recognition_preprocess(transforms.ToPILImage()(image)) for image in cropped_images
+        ]
 
         return torch.stack(array)
 
@@ -165,19 +104,9 @@ class DocumentModelService(BentoService):
             return tensor.cpu().numpy()
 
     def recognition(self, cropped_images):
-        # inputs = torch.from_numpy(cropped_images).to("cuda")
-
-        # inputs = cropped_images
-        # ort_inputs = {
-        #     self.artifacts.recognition.get_inputs()[0].name: self.to_numpy(inputs),
-        # }
-        # ort_outs = self.artifacts.recognition.run(None, ort_inputs)[0]
-        # return ort_outs
-
         inputs = cropped_images
         with torch.no_grad():
             ort_outs = self.artifacts.recognition(inputs.half().to("cuda"))
-        # print("\033[95m" + f"{ort_outs}" + "\033[m")
         return self.to_numpy(ort_outs)
 
     def detection_result_visualization(self, img, detection_boxes, detection_classes):
@@ -192,17 +121,9 @@ class DocumentModelService(BentoService):
 
     @api(input=ImageInput(), batch=False)
     def document_ocr(self, img):
-        # print(img.shape)
-        from lovit.preprocess.aggamoto import preprocess_image
-        import lovit.preprocess.augmentation_impl as T
-
-        if True:
-            # 3000, 3000, 3200
-            transforms = [T.ResizeShortestEdge([3000, 3000], 3200)]
-        else:
-            transforms = None
-        img = preprocess_image(img, transforms)
-        print(img.shape)
+        # settings.INPUT.MIN_SIZE_TEST, settings.INPUT.MIN_SIZE_TEST], settings.INPUT.MAX_SIZE_TEST
+        transforms = [T.ResizeShortestEdge([3000, 3000], 3200)]
+        img = aggamoto.preprocess_image(img, transforms)
 
         detection_start_time = time.time()
         img_tensor = self.detection_preprocessing(img)
@@ -221,11 +142,8 @@ class DocumentModelService(BentoService):
             )
 
         recognition_start_time = time.time()
-        # np.save(f"{settings.BASE_PATH}/assets/cropped_images", detection_result["cropped_images"])
         cropped_images = self.recognition_preprocessing(detection_result["cropped_images"])
         recognition_result = self.recognition(cropped_images)
-        # from scipy.special import softmax
-        # rec_probs = softmax(rec_logits, axis=-1)
         rec_preds = np.argmax(recognition_result, axis=-1)
         logger.info(
             f"Recognition processing time: \t{(time.time()-recognition_start_time) * 1000:.2f}ms"
