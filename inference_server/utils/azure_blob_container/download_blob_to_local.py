@@ -4,7 +4,7 @@ import json
 from azure.storage.blob import BlobServiceClient, __version__
 from os import path
 
-from app.common.const import get_settings
+from inference_server.common.const import get_settings
 
 
 settings = get_settings()
@@ -13,11 +13,7 @@ container_name = "textscope"
 
 
 try:
-    print(
-        "\033[96m"
-        + f"Azure Blob Storage v {__version__} - Python quickstart sample"
-        + "\033[m"
-    )
+    print("\033[96m" + f"Azure Blob Storage v {__version__} - Python quickstart sample" + "\033[m")
 except Exception as ex:
     print("Exception:")
     print(ex)
