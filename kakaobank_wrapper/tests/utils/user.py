@@ -1,21 +1,8 @@
 from typing import Dict
-
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from app.common.const import get_settings
-from app.models import User, UserUpdate, UserInDB
-from app.database.schema import Users
-from tests.utils.utils import random_email, random_lower_string
-from app.utils.auth import get_password_hash
 
 
-settings = get_settings()
-
-
-def user_authentication(
-    *, client: TestClient, email: str, password: str
-) -> Dict[str, str]:
+def user_authentication(*, client: TestClient, email: str, password: str) -> Dict[str, str]:
     data = {"email": email, "password": password}
 
     r = client.post("/auth/token", data=data)
@@ -24,28 +11,3 @@ def user_authentication(
     auth_token = response["access_token"]
     headers = {"Authorization": f"Bearer {auth_token}"}
     return headers
-
-
-def create_random_user(get_db: Session) -> User:
-    email = random_email()
-    password = random_lower_string()
-    user = Users.create(get_db, email=email, password=password)
-    return user
-
-
-def authentication_token_from_email(
-    *, client: TestClient, email: str, get_db: Session
-) -> Dict[str, str]:
-    password = random_lower_string()
-    user = Users.get(email=email)
-    del user.id, user.updated_at, user.created_at, user._sa_instance_state
-    user_in = UserInDB(**user.__dict__, password=password)
-    if not user:
-        user = Users.create(
-            get_db, username=user.username, email=email, password=password
-        )
-    else:
-        user = Users.update(get_db, db_obj=user, obj_in=user_in)
-        user = Users.get(email=email)
-
-    return user_authentication(client=client, email=email, password=password)

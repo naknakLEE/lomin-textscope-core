@@ -5,20 +5,19 @@ from sqlalchemy.orm import Session
 from typing import Dict, Optional
 from fastapi.testclient import TestClient
 
-from app.common.const import get_settings
-from app.database.schema import Users
+from kakaobank_wrapper.app.common.const import get_settings
 
 
 settings = get_settings()
-fake_super_user_info = settings.FAKE_SUPERUSER_INFORMATION
-
-
-def random_lower_string() -> str:
-    return "".join(random.choices(string.ascii_lowercase, k=32))
-
-
-def random_email() -> str:
-    return f"{random_lower_string()}@{random_lower_string()}.com"
+fake_super_user_info = {
+    "username": "user",
+    "full_name": "user",
+    "email": "user@example.com",
+    "password": "123456",
+    "status": "inactive",
+    "is_superuser": True,
+    "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+}
 
 
 def get_superuser_token_headers(client: TestClient) -> Dict[str, str]:
