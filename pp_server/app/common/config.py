@@ -3,7 +3,7 @@ import os
 from typing import Any
 from dataclasses import dataclass
 from os import path
-from app.common.const import get_settings
+from pp_server.app.common.const import get_settings
 
 
 settings = get_settings()

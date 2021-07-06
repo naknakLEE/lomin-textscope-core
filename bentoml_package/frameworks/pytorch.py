@@ -114,25 +114,12 @@ class PytorchModelArtifact(BentoServiceArtifact):
 
         # TorchScript Models are saved as zip files
         # if zipfile.is_zipfile(self._file_path(path)):
-        import io
-        from cryptography.fernet import Fernet
+        from lovit.crypto.solver import pth_solver
 
-        def read_file(path, key):
-            fernet = Fernet(key)
-            with open(path, "rb") as f:
-                data = f.read()
-            data = fernet.decrypt(data)
-            return data
-
-        def pth_solver(path, key):
-            data = read_file(path, key)
-            return io.BytesIO(data)
-
-        CRYPTO_KEY = b"s7smOzlG-OWQiMA3RIysQGa9OOgNTqbVvSghCp2svBQ="
-        CRYPTO_PREFIX = "enc_"
+        CRYPTO_KEY = os.environ["CRYPTO_KEY"]
+        CRYPTO_PREFIX = os.environ["CRYPTO_PREFIX"]
 
         path = self._file_path(path)
-        print("\033[95m" + f"{path}" + "\033[m")
         split_path = path.split("/")
         model_path = os.path.join("/", *split_path[:-1], f"{CRYPTO_PREFIX}{split_path[-1]}")
         saved_file = pth_solver(model_path, CRYPTO_KEY)

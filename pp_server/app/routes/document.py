@@ -9,10 +9,7 @@ from fastapi import Body
 from typing import Any
 from fastapi import APIRouter
 
-from inference_server.utils.envs import logger
 from pp_server.app.common.const import get_settings
-
-# from pp_server.app.postprocess import basic_cert, family_cert, regi_cert, rrtable
 from pp_server.app.postprocess import family_cert, basic_cert, rrtable, regi_cert
 from pp_server.app.structures.bounding_box import BoxList
 from pp_server.app.utils import convert_recognition_to_text
@@ -47,7 +44,7 @@ async def idcard(data: dict = Body(...)) -> Any:
     start_t = data["start_t"]
     print(f"rec_preds: {rec_preds.shape}")
     result = convert_recognition_to_text(rec_preds)
-    logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
+    print(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
     return {"texts": result}
 
 

@@ -1,5 +1,10 @@
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
 
+ARG BUNDLE_PATH="/root/bentoml/repository/DocumentModelService/2021-07.textscope/DocumentModelService/"
+ARG BENTOML_PACKAGE_PATH="/usr/local/lib/python3.6/dist-packages/bentoml"
+ARG MODEL_TYPE="document"
+ARG MODEL_SERVICE="document_model_service"
+
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -29,7 +34,7 @@ COPY ./inference_server /workspace/inference_server
 COPY ./.env /workspace/.env
 COPY ./lovit /workspace/lovit
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
-
+COPY ./assets/textscope_${MODEL_TYPE}.json /workspace/assets/textscope_{MODEL_TYPE}.json
 
 RUN pip3 install -r /workspace/requirments-serving.txt
 
@@ -38,27 +43,32 @@ RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
 WORKDIR /workspace
-# RUN python3 inference_server/utils/azure_blob_container/download_blob_to_local.py && \
-#     cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml && \
-#     python3 inference_server/generate_document_model_service.py
+RUN python3 inference_server/utils/azure_blob_container/download_blob_to_local.py && \
+    python3 inference_server/generate_${MODEL_SERVICE}.py
 
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
 
-# RUN cp -r bentoml_package/* /usr/local/lib/python3.8/dist-packages/bentoml
-# RUN python3 generate_document_model_service.py
+WORKDIR ${BENTOML_PACKAGE_PATH}
+RUN cp /workspace/bentoml_package/frameworks/pytorch.py /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.py &&  \
+    pyarmor obfuscate --restrict 0 --no-cross-protection --package-runtime 0 pytorch.py && \
+    cd dist && \
+    python3 -m nuitka --module pytorch.py && \
+    rm ..pytorch.py pytorch.py && \
+    mv * ../ && \
+    cd .. && \
+    cp /workspace/bentoml_package/saved_bundle/pip_pkg.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/pip_pkg.py
 
-# WORKDIR /
-# RUN git clone https://github.com/Nuitka/Nuitka.git && \
-#     cd Nuitka && \
-#     python3 setup.py install
+WORKDIR ${BUNDLE_PATH}
+RUN mkdir assets && \ 
+    mv /workspace/assets/textscope_document.json ./assets/textscope_document.json && \
+    mv /workspace/.env .env && \ 
+    mv ./inference_server/${MODEL_SERVICE}.py ./${MODEL_SERVICE}.py && \
+    python3 -m nuitka --module app --include-package=app && \
+    python3 -m nuitka --module ${MODEL_SERVICE}.py
 
-# WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
-# RUN mkdir assets && \ 
-#     mv /workspace/assets/textscope_id.json ./assets/textscope_id.json && \
-#     mv /workspace/.env .env && \ 
-#     mv ./app/serving/document_model_service.py ./document_model_service.py && \
-#     python3 -m nuitka --module app --include-package=app && \
-#     python3 -m nuitka --module document_model_service.py
-
-# RUN rm -r /workspace/* /Nuitka
+RUN rm -r /workspace/* ${BUNDLE_PATH}/app ${BUNDLE_PATH}/${MODEL_SERVICE}.py 
 
 # CMD ["bentoml", "serve-gunicorn", "DocumentModelService:latest"]
+# cp _pytransform.so pytransform.py /workspace/

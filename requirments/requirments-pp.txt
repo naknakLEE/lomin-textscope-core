@@ -11,6 +11,8 @@ pdf2image==1.16.0
 tifffile==2021.6.14
 soynlp==0.0.493
 loguru==0.5.3
+pyarmor==6.7.3
+PyInstaller==4.3
 
 -f https://download.pytorch.org/whl/torch_stable.html
 torch==1.8.1+cpu

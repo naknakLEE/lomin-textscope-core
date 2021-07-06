@@ -18,13 +18,18 @@ WORKDIR /workspace/lovit
 RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
+
 WORKDIR /workspace
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
 
-# WORKDIR /workspace
-# RUN git clone https://github.com/Nuitka/Nuitka.git && \
-#     cd Nuitka && \
-#     python3 setup.py install
+RUN mv pp_server/app/main.py ./main.py && \
+    python3 -m nuitka --module pp_server --include-package=pp_server
 
-# RUN mv pp_server/app/main.py ./main.py && \
-#     python3 -m nuitka --module pp_server --include-package=pp_server && \
-#     rm -r pp_server Nuitka
+RUN rm -r pp_server Nuitka
+
+# WORKDIR /workspace/pp_server/app
+# RUN mkdir -p  soynlp/noun && \
+#     cp -r /usr/local/lib/python3.8/dist-packages/soynlp/noun/ /workspace/pp_server/app/dist/main/soynlp/
+

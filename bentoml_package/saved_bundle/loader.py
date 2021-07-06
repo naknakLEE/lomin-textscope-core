@@ -184,10 +184,10 @@ def load_bento_service_class(bundle_path):
     
     # Remove bundle_path from sys.path to avoid import naming conflicts
     sys.path.append(bundle_path)
-    from MultiModelService.multiple_model_service import MultiModelService
+    from DocumentModelService.document_model_service import DocumentModelService
     sys.path.remove(bundle_path)
 
-    model_service_class = MultiModelService
+    model_service_class = DocumentModelService
     # Set _bento_service_bundle_path, where BentoService will load its artifacts
     model_service_class._bento_service_bundle_path = bundle_path
     # Set cls._version, service instance can access it via svc.version

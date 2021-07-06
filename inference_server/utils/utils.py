@@ -4,7 +4,6 @@ import numpy as np
 import json
 import os
 import sys
-import onnxruntime as rt
 import time
 
 from collections import defaultdict
