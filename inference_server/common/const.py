@@ -22,11 +22,6 @@ class Settings(BaseSettings):
     MYSQL_DB: str
     MYSQL_PASSWORD: str
 
-    # AUTHORIZATION SETTING
-    SECRET_KEY: str
-    ALGORITHM: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int
-
     # ACCESS KEY
     AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
 
@@ -40,36 +35,6 @@ class Settings(BaseSettings):
     DEVELOP: bool = True
     API_ENV: str = "production"
     BASE_PATH: str = "."
-
-    FAKE_SUPERUSER_INFORMATION: dict = {
-        "username": "user",
-        "full_name": "user",
-        "email": "user@example.com",
-        "password": "123456",
-        "status": "inactive",
-        "is_superuser": True,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
-    FAKE_USER_INFORMATION: dict = {
-        "username": "garam",
-        "full_name": "garam",
-        "email": "garam@example.com",
-        "password": "123456",
-        "status": "inactive",
-        "is_superuser": False,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
-    FAKE_USER_INFORMATION2: dict = {
-        "username": "tongo",
-        "full_name": "tongo",
-        "email": "tongo@example.com",
-        "password": "123456",
-        "status": "inactive",
-        "is_superuser": False,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"
@@ -140,7 +105,7 @@ class Settings(BaseSettings):
 
     RESPONSE_LOG = True
 
-    DECIPHER = False
+    DECIPHER = True
 
     class Config:
         env_file = ".env"
