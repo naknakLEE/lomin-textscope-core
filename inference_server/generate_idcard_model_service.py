@@ -1,3 +1,4 @@
+from lovit.postprocess import idcard
 import onnx
 from os import path
 
@@ -23,14 +24,19 @@ recognition_model = onnx.load(f"{model_path['recognition_model']}")
 idcard_model_service.pack("boundary_detection", boundary_detection_model)
 idcard_model_service.pack("kv_detection", kv_detection_model)
 idcard_model_service.pack("recognition", recognition_model)
-idcard_model_service.set_version("2021-06.textscope")
+# idcard_model_service.set_version("2021-06.textscope")
 
 # Save the prediction service to disk for model serving
 idcard_model_service.save()
 # idcard_model_service.save_to_dir('/root/bentoml/repository/IdcardModelService')
 
 
+############################ for debugging ############################
+
+# import PIL
 # import numpy as np
-# import cv2
-# img = np.expand_dims(cv2.imread("/workspace/others/assets/000000000000000IMG_4831.jpg"), axis=0)
+
+# image_dir = f"{settings.BASE_PATH}/others/assets/000000000000000IMG_4825.jpg"
+# img = PIL.Image.open(image_dir)
+# img = np.array(img)
 # idcard_model_service.inference(img)

@@ -12,6 +12,7 @@ from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
 from inference_server.errors.exceptions import InferenceException
 from inference_server.utils.envs import settings, logger
+from inference_server.utils.parse import parse_results
 from inference_server.utils.utils import (
     load_json,
     save_debug_img,
@@ -53,7 +54,7 @@ class IdcardModelService(BentoService):
         load_models(self.infer_sess_map, self.service_cfg)
 
         self.save_output_img = True
-        self.id_type = None
+        self.id_type = "RRC"
         self.savepath = settings.SAVEPATH
 
     @api(input=ImageInput(), batch=True)
@@ -191,6 +192,18 @@ class IdcardModelService(BentoService):
         class_masks = get_class_masks(kv_classes)
         texts = self._rec_infer(cropped_images, class_masks)
 
+        results = parse_results(
+            kv_boxes,
+            kv_scores,
+            kv_classes,
+            texts,
+            boundary_box,
+            boundary_score,
+            self.id_type,
+            self.savepath,
+            response_log,
+        )
+
         # TO DEBUG OUTPUT OF INFERENCE
         if self.save_output_img and self.savepath is not None:
             # if self.save_output_img and self.savepath is not None and settings.DEVELOP and settings.ID_DRAW_BBOX_IMG:
@@ -208,7 +221,7 @@ class IdcardModelService(BentoService):
         logger.debug(f"kv_scores: {kv_scores}")
         logger.debug(f"kv_classes: {kv_classes}")
 
-        return [{"response_log": response_log, "texts": texts}]
+        return [results]
 
     def _boundary_infer(self, img_arr):
         start_t = time.time()
@@ -287,32 +300,12 @@ class IdcardModelService(BentoService):
         for _proc in self.infer_sess_map["kv_model"]["preprocess"]:
             img_arr, extra_info = _proc(img_arr, extra_info=extra_info)
 
-        # img_arr = np.transpose(img_arr, (1,2,0))
-        # img_arr = cv2.resize(img_arr.astype(np.uint8), dsize=(2400,3200), interpolation=cv2.INTER_AREA)
-        # img_arr = np.transpose(img_arr, (2,0,1))
-        # inputs = {
-        #     '0': img_arr.astype(np.uint8)
-        # }
         inputs = {"images": np.expand_dims(img_arr.astype(np.float32), axis=0)}
 
-        # model_input_names = self.artifacts.kv_detection.get_inputs()
-        # print('\033[95m' + f"{model_input_names[0]}" + '\033[m')
-
-        # print('\033[95m' + f"{input_names[0].name}" + '\033[m')
-        # output_names = self.infer_sess_map['kv_model']['output_names']
         output_names = [_.name for _ in self.artifacts.kv_detection.get_outputs()]
         print("\033[95m" + f"{output_names}" + "\033[m")
-        # exit()
         boxes, labels, scores = self.artifacts.kv_detection.run(output_names, inputs)
-        # print('\033[95m' + f"{boxes.shape}" + '\033[m')
-        # print('\033[95m' + f"{labels.shape}" + '\033[m')
-        # print('\033[95m' + f"{scores.shape}" + '\033[m')
-        # mask = scores > 0.5
-        # boxes = boxes[mask]
-        # scores = scores[mask]
-        # labels = labels[mask]
-        # print('\033[95m' + f"{_.shape}" + '\033[m')
-        # print('\033[95m' + f"{scores.shape}" + '\033[m')
+
         valid_scores, valid_boxes, kv_classes = kv_postprocess(
             scores, boxes, labels, extra_info, self.infer_sess_map, original_size
         )
