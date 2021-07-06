@@ -14,7 +14,7 @@ from lovit.utils.converter import CharacterMaskGenerator, build_converter
 
 from inference_server.utils.envs import logger, settings
 from inference_server.utils.catalogs import ELabelCatalog, EDocumentCatalog
-from app.errors.exceptions import InferenceException
+from inference_server.errors.exceptions import InferenceException
 
 
 characters = ELabelCatalog.get(

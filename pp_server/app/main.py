@@ -6,6 +6,8 @@ import asyncio
 from fastapi import FastAPI, Request, Depends
 from fastapi import Depends, File, UploadFile, APIRouter
 
+from pp_server.app.common.const import get_settings
+
 # from fastapi.security import OAuth2PasswordBearer
 # from dataclasses import asdict
 # from prometheusrock import PrometheusMiddleware, metrics_route
@@ -22,7 +24,7 @@ from pp_server.app.routes import document
 # from app.errors import exceptions as ex
 
 
-# settings = get_settings()
+settings = get_settings()
 
 
 def create_app() -> FastAPI:
@@ -84,4 +86,7 @@ def create_app() -> FastAPI:
 app = create_app()
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    if settings.DEVELOP:
+        uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    else:
+        uvicorn.run(app, host="0.0.0.0", port=8000)

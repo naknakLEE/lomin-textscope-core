@@ -24,9 +24,10 @@ RUN git clone https://github.com/Nuitka/Nuitka.git && \
     python3 setup.py install
 
 RUN mv pp_server/app/main.py ./main.py && \
-    python3 -m nuitka --module pp_server --include-package=pp_server
+    python3 -m nuitka --module pp_server --include-package=pp_server && \
+    python3 -m nuitka main.py
 
-RUN rm -r pp_server Nuitka
+RUN rm -r pp_server Nuitka main.py
 
 # WORKDIR /workspace/pp_server/app
 # RUN mkdir -p  soynlp/noun && \
