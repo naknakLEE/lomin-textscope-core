@@ -53,11 +53,11 @@ async def inference(file: UploadFile = File(...)) -> Any:
 
 @router.post("/pipeline")
 async def inference(
-    edmisid: str, InbzDocClcd: str, InbzMgntNo: str, PwdCnt: str, image: UploadFile = File(...)
+    edmisId: str, lnbzDocClcd: str, lnbzMgntNo: str, PwdNo: str, image: UploadFile = File(...)
 ) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
-    document_type = settings.DOCUMENT_TYPE_SET[InbzDocClcd]
+    document_type = settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
 
     async with httpx.AsyncClient() as client:
         document_ocr_model_response = await client.post(
@@ -78,7 +78,7 @@ async def inference(
             "description": "",
             "minQlt": "01",
             "reliability": "1.0",
-            "docuType": InbzDocClcd,
+            "docuType": lnbzDocClcd,
             "ocrResult": result,
         }
     )

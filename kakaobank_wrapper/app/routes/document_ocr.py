@@ -19,9 +19,9 @@ TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 @router.post("/ocr", status_code=200)
 async def inference(
-    InbzDocClcd: str,
-    InbzMgntNo: str,
-    PwdCnt: str,
+    lnbzDocClcd: str,
+    lnbzMgntNo: str,
+    pwdNo: str,
     request: Request,
 ) -> Any:
     """
@@ -33,13 +33,13 @@ async def inference(
     form_data = await request.form()
     form_data = parse_multi_form(form_data)
 
-    edmisid = form_data["edmisid"]
+    edmisId = form_data["edmisId"]
     img_files = form_data["imgFiles"]
     data = {
-        "edmisid": edmisid,
-        "InbzDocClcd": InbzDocClcd,
-        "InbzMgntNo": InbzMgntNo,
-        "PwdCnt": PwdCnt,
+        "edmisId": edmisId,
+        "lnbzDocClcd": lnbzDocClcd,
+        "lnbzMgntNo": lnbzMgntNo,
+        "pwdNo": pwdNo,
     }
     results = list()
     async with httpx.AsyncClient() as client:
@@ -61,7 +61,7 @@ async def inference(
                 results.append(models.InferenceResponse(**result))
             else:
                 result["ocrResult"] = parse_kakaobank(
-                    result["ocrResult"], settings.DOCUMENT_TYPE_SET[InbzDocClcd]
+                    result["ocrResult"], settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
                 )
                 result = response_handler(**result)
                 results.append(models.InferenceResponse(**result))
