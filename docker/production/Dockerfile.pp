@@ -6,7 +6,6 @@ RUN apt-get update && \
     apt-get install -y git
 
 COPY ./lovit /workspace/lovit
-COPY ./app /workspace/app
 COPY ./pp_server /workspace/pp_server
 COPY ./.env /workspace/.env
 COPY ./requirments/requirments-pp.txt /workspace/requirments-pp.txt

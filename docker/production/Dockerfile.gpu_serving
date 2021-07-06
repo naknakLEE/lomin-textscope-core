@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
 
 ARG BUNDLE_PATH="/root/bentoml/repository/DocumentModelService/2021-07.textscope/DocumentModelService/"
-ARG BENTOML_PACKAGE_PATH="/usr/local/lib/python3.6/dist-packages/bentoml"
+ARG BENTOML_PACKAGE_PATH="/usr/local/lib/python3.6/dist-packages/bentoml/frameworks"
 ARG MODEL_TYPE="document"
 ARG MODEL_SERVICE="document_model_service"
 
@@ -31,10 +31,12 @@ RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
 RUN pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 
 COPY ./inference_server /workspace/inference_server
-COPY ./.env /workspace/.env
+COPY ./bentoml_package /workspace/bentoml_package
 COPY ./lovit /workspace/lovit
+COPY ./.env /workspace/.env
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
-COPY ./assets/textscope_${MODEL_TYPE}.json /workspace/assets/textscope_{MODEL_TYPE}.json
+COPY ./assets/textscope_${MODEL_TYPE}.json /workspace/assets/textscope_${MODEL_TYPE}.json
+COPY ./assets/textscope_id.json /workspace/assets/textscope_id.json
 
 RUN pip3 install -r /workspace/requirments-serving.txt
 
@@ -51,24 +53,28 @@ RUN git clone https://github.com/Nuitka/Nuitka.git && \
     python3 setup.py install
 
 WORKDIR ${BENTOML_PACKAGE_PATH}
-RUN cp /workspace/bentoml_package/frameworks/pytorch.py /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.py &&  \
-    pyarmor obfuscate --restrict 0 --no-cross-protection --package-runtime 0 pytorch.py && \
+RUN pyarmor obfuscate --restrict 0 --no-cross-protection --package-runtime 0 pytorch.py && \
     cd dist && \
     python3 -m nuitka --module pytorch.py && \
-    rm ..pytorch.py pytorch.py && \
+    rm -r ../pytorch.py pytorch.py && \
     mv * ../ && \
     cd .. && \
+    cp _pytransform.so pytransform.py ${BUNDLE_PATH}/ && \
+    touch __init__.py && \
+    cp /workspace/bentoml_package/saved_bundle/loader.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/loader.py && \
     cp /workspace/bentoml_package/saved_bundle/pip_pkg.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/pip_pkg.py
 
 WORKDIR ${BUNDLE_PATH}
 RUN mkdir assets && \ 
-    mv /workspace/assets/textscope_document.json ./assets/textscope_document.json && \
+    # mv /workspace/assets/*.json ./assets/ && \
     mv /workspace/.env .env && \ 
     mv ./inference_server/${MODEL_SERVICE}.py ./${MODEL_SERVICE}.py && \
-    python3 -m nuitka --module app --include-package=app && \
+    python3 -m nuitka --module inference_server --include-package=inference_server && \
     python3 -m nuitka --module ${MODEL_SERVICE}.py
 
-RUN rm -r /workspace/* ${BUNDLE_PATH}/app ${BUNDLE_PATH}/${MODEL_SERVICE}.py 
+RUN rm -r /workspace/* ${BUNDLE_PATH}/inference_server ${BUNDLE_PATH}/${MODEL_SERVICE}.py && \
+    rm -r ${BENTOML_PACKAGE_PATH}/__pycache__ ${BENTOML_PACKAGE_PATH}/__init__.py
 
 # CMD ["bentoml", "serve-gunicorn", "DocumentModelService:latest"]
 # cp _pytransform.so pytransform.py /workspace/
+# cp /workspace/bentoml_package/saved_bundle/loader.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/loader.py
