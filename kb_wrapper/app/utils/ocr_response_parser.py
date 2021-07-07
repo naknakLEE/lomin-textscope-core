@@ -1,3 +1,4 @@
+from typing import Any
 from kb_wrapper.app.common.const import get_settings
 from kb_wrapper.app.errors import exceptions as ex
 from kb_wrapper.app import models
@@ -5,36 +6,30 @@ from kb_wrapper.app import models
 
 settings = get_settings()
 parameter_error_set = settings.PARAMETER_ERROR_SET
-reverse_document_type_set = settings.reverse_document_type_set
+kv_type_set = settings.kv_type_set
 
 
-def set_ocr_response(ocr_result: models.OcrResult):
-    doc_type = ocr_result["doc_type"]
-    if doc_type == "사업자등록증":
-        ...
-    elif doc_type == "고유번호증":
-        ...
-    elif doc_type == "통장사본":
-        ...
-    elif doc_type == "주민등록증" or doc_type == "재외국민등록증":
-        ...
-    elif doc_type == "운전면허증":
-        ...
-    elif doc_type == "외국인등록증" or doc_type == "외국국적동포거소신고증" or doc_type == "영주증":
-        ...
-    elif doc_type == "여권":
-        ...
-    elif doc_type == "법인등기사항전부증명서":
-        ...
-    elif doc_type == "인감증명서":
-        ...
+def check_item_included(kv, items) -> bool:
+    for item in items:
+        if item in kv:
+            return True
+    return False
 
 
-def response_handler(args: models.ResponseHandlerParameter):
+def set_ocr_response(ocr_result: models.OcrResult) -> Any:
+    kv = ocr_result["kv"]
+    for key, values in kv_type_set:
+        if check_item_included(kv, values):
+            kv_model = getattr(models, key)
+            return kv_model(**kv)
+    return None
+
+
+def response_handler(args: models.ResponseHandlerParameter) -> dict:
     if args.status >= 1000 and args.status <= 1400:
         result = models.SuccessfulResponse(
             code=args.status,
-            ocr_result=args.ocrResult,
+            ocr_result=set_ocr_response(args.ocrResult),
             request_id=args.request_id,
             request_at=args.request_at,
             response_id=args.response_id,
