@@ -13,6 +13,21 @@ class OcrResult(BaseModel):
     kv: Optional[dict] = None
 
 
+class ReponseHandlerParameter(BaseModel):
+    status: int
+    description: str = ""
+    docuType: str = ""
+    ocrResult: dict = {}
+    msg: str = ""
+    detail: str = ""
+    status_code: str = ""
+    exc: Exception = None
+    request_id: str
+    request_at: str
+    response_id: str
+    response_time: str
+
+
 class SuccessfulResponse(BaseModel):
     code: str
     request_id: str

@@ -30,28 +30,6 @@ class APIException:
         super().__init__()
 
 
-class successful(APIException):
-    def __init__(self, minQlt, reliability, docuType, ocrResult, ex: Exception = None) -> None:
-        super().__init__(
-            status="1200",
-            minQlt=minQlt,
-            reliability=reliability,
-            docuType=docuType,
-            ocrResult=ocrResult,
-        )
-
-
-class minQltException(APIException):
-    def __init__(self, minQlt, reliability, docuType, ocrResult, ex: Exception = None) -> None:
-        super().__init__(
-            status="1400",
-            minQlt=minQlt,
-            reliability=reliability,
-            docuType=docuType,
-            ocrResult=ocrResult,
-        )
-
-
 class serverException(APIException):
     def __init__(self, minQlt, ex: Exception = None) -> None:
         super().__init__(
@@ -80,28 +58,6 @@ class serverTemplateException(APIException):
             status="4400",
             minQlt=minQlt,
             reliability="",
-            docuType="",
-            ocrResult="",
-        )
-
-
-class inferenceReliabilityException(APIException):
-    def __init__(self, minQlt, reliability, ex: Exception = None) -> None:
-        super().__init__(
-            status="5400",
-            minQlt=minQlt,
-            reliability=reliability,
-            docuType="",
-            ocrResult="",
-        )
-
-
-class ocrResultEmptyException(APIException):
-    def __init__(self, minQlt, reliability, ex: Exception = None) -> None:
-        super().__init__(
-            status="6400",
-            minQlt=minQlt,
-            reliability=reliability,
             docuType="",
             ocrResult="",
         )
