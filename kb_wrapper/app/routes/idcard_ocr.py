@@ -38,7 +38,7 @@ async def check_status() -> JSONResponse:
     except Exception:
         is_serving_server_working = "False"
 
-    return Response(content={"message": "onwroking"})
+    return JSONResponse(content=jsonable_encoder({"message": "onwroking"}))
     status = f"is_serving_server_working: {is_serving_server_working}"
     return JSONResponse(f"Textscope API ({status})")
 
@@ -55,11 +55,11 @@ async def upload_data(file: UploadFile = File(...)) -> Any:
     image = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
     current_time = time.time()
     cv2.imwrite(f"/textscope/upload/{current_time}.jpg", image)
-    return Response(content={"message": "File upload successful"})
-    return Response(content={"message": "File upload failes"})
+    return JSONResponse(content=jsonable_encoder({"message": "File upload successful"}))
+    return JSONResponse(content=jsonable_encoder({"message": "File upload failes"}))
 
 
-@router.post("/ocr/all", response_model=models.StatusResponse)
+@router.post("/ocr/all")
 async def upload_data(
     request_id: str = Form(...),
     image_path: str = Form(...),
@@ -70,14 +70,16 @@ async def upload_data(
     - request_id, image_path는 /ocr/kv 요청과 동일합니다.
     - /ocr/all 요청은 문서의 전체 페이지가 아니라 특정 페이지만을 인식하는 것을 가정합니다. page 값은 어떤 페이지를 인식할지 정의합니다.
     """
+
     data = {
         "image_path": image_path,
         "request_id": request_id,
+        "doc_type": "None",
         "page": page,
     }
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{TEXTSCOPE_SERVER_URL}/v1/inference/kb/idcard",
+            f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
             data=data,
             timeout=300.0,
         )
@@ -89,7 +91,7 @@ async def upload_data(
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
-@router.get("/ocr/kb", response_model=models.GeneralOcrResponse)
+@router.post("/ocr/kb", response_model=models.GeneralOcrResponse)
 async def inference(
     image_path: str = Form(...),
     request_id: str = Form(...),
@@ -106,17 +108,26 @@ async def inference(
         "image_path": image_path,
         "request_id": request_id,
         "doc_type": doc_type,
+        "page": "None",
     }
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{TEXTSCOPE_SERVER_URL}/v1/inference/kb/idcard",
+            f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
             data=data,
             timeout=300.0,
         )
         result = response.json()
         result["status"] = int(result["code"])
         del result["code"]
-        result = response_handler(**result)
+
+        ###################### dummy data ######################
+        result["image_height"] = 2400
+        result["image_width"] = 3200
+        result["num_instances"] = 3
+        result["page"] = 1
+        result["result"] = [{}]
+        #########################################################
+        # result = response_handler(**result)
         return models.GeneralOcrResponse(**result)
 
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))
