@@ -116,7 +116,9 @@ class IdcardModelService(BentoService):
         # img_arr = expand_size(to_wide(img))
         if type(imgs) == list:
             imgs = imgs[0]
-        img_arr = expand_size(to_wide(imgs))
+        # to_wide - 멀쩡한 사진을 돌려...
+        # img_arr = expand_size(to_wide(imgs))
+        img_arr = expand_size(imgs)
         cv2.imwrite("test.jpg", to_wide(imgs))
         use_full_img = False
 

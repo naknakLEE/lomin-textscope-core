@@ -18,16 +18,14 @@ settings = get_settings()
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         try:
             request.state.req_time = datetime.utcnow()
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
             request.state.db = next(db.session())
-            request.state.email = None
+            request.state.email = "none@none.none"
             headers = request.headers
             ip = (
                 headers["x-forwarded-for"]

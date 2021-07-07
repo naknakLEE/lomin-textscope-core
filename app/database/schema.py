@@ -123,19 +123,18 @@ class BaseMixin:
         return obj
 
     @classmethod
-    def create_usage(cls, session: Session, auto_commit=True, **kwargs) -> ModelType:
+    def create_log(cls, session: Session, auto_commit=True, **kwargs) -> Optional[ModelType]:
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
             if col_name in kwargs:
                 setattr(obj, col_name, kwargs.get(col_name))
-        user = User(email=obj.email)
         session.add(obj)
         session.flush()
         if auto_commit:
             session.commit()
         # session.refresh(obj)
-        return user
+        return obj
 
     @classmethod
     def authenticate(cls, get_db: Session, *, email: str, password: str) -> Optional[User]:
