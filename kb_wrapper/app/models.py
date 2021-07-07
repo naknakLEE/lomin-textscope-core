@@ -6,15 +6,8 @@ class StatusResponse(BaseModel):
     response: str = f"Textscope API (is_database_working: True, is_serving_server_working: True)"
 
 
-class OcrResult(BaseModel):
-    page: str
-    status_code: str
-    doc_type: str
-    kv: Optional[dict] = None
-
-
 class ResponseHandlerParameter(BaseModel):
-    status: int
+    status_code: int
     description: str = ""
     docuType: str = ""
     ocrResult: dict = {}
@@ -37,17 +30,17 @@ class GeneralOcrResponse(BaseModel):
 
 
 class SuccessfulResponse(BaseModel):
-    code: str
+    status_code: str
     request_id: str
     request_at: str
     response_at: str
     response_at: str
     response_time: str
-    ocr_result: List[OcrResult]
+    ocr_result: List
 
 
 class ParameterError(BaseModel):
-    code: str
+    status_code: str
     error_message: str
 
 

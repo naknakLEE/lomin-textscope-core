@@ -11,8 +11,7 @@ def PIL2array(img):
 
 FRAMES = []
 FIRST_SIZE = None
-OUT_NAME = "/workspace/others/assets/tiff_register/test.tiff"
-
+OUT_NAME = "/workspace/others/assets/tiff_register/generation_multipagetiff.tiff"
 filelist = glob.glob("/workspace/others/assets/tiff_register/*.png")
 
 for fn in filelist:
@@ -25,8 +24,15 @@ for fn in filelist:
     else:
         print("Discard:", fn, img.size, "<>", FIRST_SIZE)
 
+
+print("Frames:", len(FRAMES))
 print("Writing", len(FRAMES), "frames to", OUT_NAME)
 with tifffile.TiffWriter(OUT_NAME) as tiff:
     for img in FRAMES:
-        tiff.save(PIL2array(img), compress=6)
+        tiff.write(PIL2array(img), photometric="rgb")
+
+with tifffile.TiffFile(OUT_NAME) as tif:
+    for page in tif.pages:
+        print(page.shape)
+
 print("Done")

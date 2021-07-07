@@ -1,9 +1,13 @@
+from re import L
 import httpx
 import requests
 import cv2
 import time
 import numpy as np
+import os
 
+from datetime import datetime
+from pytz import timezone
 from typing import Any
 from fastapi import Request, APIRouter, Form, File, UploadFile
 from fastapi.encoders import jsonable_encoder
@@ -77,16 +81,35 @@ async def upload_data(
         "doc_type": "None",
         "page": page,
     }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
-            data=data,
-            timeout=300.0,
+
+    if not os.path.isfile(image_path):
+        return JSONResponse(
+            content={
+                "status_code": "2100",
+                "error_message": "이미지 파일이 경로에 존재하지 않음",
+            }
         )
-        result = response.json()
-        result["status"] = int(result["code"])
-        del result["code"]
-        return models.GeneralOcrResponse(**result)
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
+                data=data,
+                timeout=300.0,
+            )
+            result = response.json()
+            result["status_code"] = int(result["code"])
+            del result["code"]
+            return models.GeneralOcrResponse(**result)
+        except:
+            return JSONResponse(
+                content=jsonable_encoder(
+                    {
+                        "status_code": "3000",
+                        "error_message": "알 수 없는 서버 내부 에러 발생",
+                    }
+                )
+            )
 
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
@@ -103,21 +126,46 @@ async def inference(
     - `image_path`는 인식 대상 문서가 저장된 절대경로입니다.
     - doc_type은 전문으로부터 확인된 각 페이지별 문서 종류입니다. Array로 주어지는 이 값의 요소들은 문서 종류별로 정의된 코드 값입니다.
     """
+
     data = {
         "image_path": image_path,
         "request_id": request_id,
         "doc_type": doc_type,
         "page": "None",
     }
+
+    if not os.path.isfile(image_path):
+        return JSONResponse(
+            content={
+                "status_code": "2100",
+                "error_message": "이미지 파일이 경로에 존재하지 않음",
+            }
+        )
+
+    request_at = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
     async with httpx.AsyncClient() as client:
+        # try:
         response = await client.post(
             f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
             data=data,
             timeout=300.0,
         )
+        response_at = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
         result = response.json()
-        result["status"] = int(result["code"])
+        result["request_at"] = request_at
+        result["response_at"] = response_at
+        result["request_id"] = request_id
+        result["status_code"] = int(result["code"])
         del result["code"]
         # result = response_handler(**result)
         return response_handler(**result)
+    # except Exception as e:
+    #     return JSONResponse(
+    #         content=jsonable_encoder(
+    #             {
+    #                 "status_code": "3000",
+    #                 "error_message": "알 수 없는 서버 내부 에러 발생",
+    #             }
+    #         )
+    #     )
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))

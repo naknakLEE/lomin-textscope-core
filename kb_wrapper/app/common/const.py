@@ -129,7 +129,7 @@ class Settings(BaseSettings):
     }
 
     KV_TYPE_SET = {
-        "사업자등록증": [
+        "BusinessRegistration": [
             "cbr_regnum_business",
             "cbr_regnum_corp",
             "cbr_name",
@@ -138,23 +138,23 @@ class Settings(BaseSettings):
             "cbr_work_type",
             "cbr_work_cond",
         ],
-        "고유번호증": [
+        "UniqueNumber": [
             "cun_regnum_business",
             "cun_name",
             "cun_address_business",
         ],
-        "통장사본": [
+        "CopyOfPassbook": [
             "bb_account_num",
             "bb_account_holder",
             "bb_bank",
         ],
-        "주민등록증": [
+        "ResidentRegistrationCardAndOverseasNationalRegistrationCard": [
             "rrc_title",
             "rrc_name",
             "rrc_regnum",
             "rrc_issue_date",
         ],
-        "운전면허증": [
+        "DriverLicense": [
             "dlc_title",
             "dlc_name",
             "dlc_regnum",

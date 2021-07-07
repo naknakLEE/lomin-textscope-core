@@ -2,6 +2,9 @@ import uvicorn
 import os
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 
 from kb_wrapper.app.common.const import get_settings
 from kb_wrapper.app.middlewares.catch_exception import CatchExceptionMiddleware
@@ -17,6 +20,18 @@ def create_app() -> FastAPI:
     # create_db_table()
     app.add_middleware(CatchExceptionMiddleware)
     app.include_router(idcard_ocr.router, tags=["Document ocr"])
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request, exc):
+        return JSONResponse(
+            status_code=200,
+            content=jsonable_encoder(
+                {
+                    "status_code": 2000,
+                    "error_message": "파라미터가 누락됨",
+                }
+            ),
+        )
 
     return app
 
