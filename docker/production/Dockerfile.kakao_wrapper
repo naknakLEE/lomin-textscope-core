@@ -7,7 +7,6 @@ RUN apt-get update && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0
 
 COPY ./kakaobank_wrapper /workspace/kakaobank_wrapper
-COPY ./app /workspace/app
 COPY ./.env /workspace/.env
 COPY ./requirments/requirments-kakaobank.txt /workspace/requirments-kakaobank.txt
 

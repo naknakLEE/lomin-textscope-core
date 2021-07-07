@@ -61,13 +61,13 @@ async def tiff_idcard_inference(
     """
     serving_server_inference_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 
-    # data = {
-    #     "image_path": image_path,
-    #     "request_id": request_id,
-    #     "doc_type": doc_type,
-    #     "page": page,
-    # }
-    # json_data = jsonable_encoder(data)
+    data = {
+        "image_path": image_path,
+        "request_id": request_id,
+        "doc_type": doc_type,
+        "page": page,
+    }
+    json_data = jsonable_encoder(data)
     # async with aiohttp.ClientSession() as session:
     #     request_api = "tiff_inference"
     #     if json_data["page"] == "None":
@@ -82,10 +82,6 @@ async def tiff_idcard_inference(
     if page == "None":
         result = {
             "code": "1000",
-            "request_id": "550e8400-e29b-41d4-a716-446655440000",
-            "request_at": "2021-06-30 20:48:23 KST",
-            "response_at": "2021-06-30 20:48:23 KST",
-            "response_time": "0.578",
             "ocr_result": [
                 {"page": "1", "status_code": "100", "doc_type": "신청서"},
                 {"page": "2", "status_code": "100", "doc_type": "가맹점가입신청서"},
@@ -94,6 +90,41 @@ async def tiff_idcard_inference(
                     "status_code": "100",
                     "doc_type": "사업자등록증",
                     "kv": {"cbr_business_num": "754-87-00942", "other keys": "other values"},
+                },
+                {
+                    "page": "3",
+                    "status_code": "100",
+                    "doc_type": "주민등록증",
+                    "kv": {
+                        "rrc_title": "주민등록증",
+                        "rrc_name": "홍길동",
+                        "rrc_regnum": "123456-1234567",
+                        "rrc_issue_date": "2021.06.30",
+                    },
+                },
+                {
+                    "page": "3",
+                    "status_code": "100",
+                    "doc_type": "운전면허증",
+                    "kv": {
+                        "dlc_title": "주민등록증",
+                        "dlc_name": "홍길동",
+                        "dlc_regnum": "123456-1234567",
+                        "dlc_issue_date": "2021.06.30",
+                        "dlc_license_num": "01-123456-10",
+                        "dlc_exp_date": "2022.06.30",
+                    },
+                },
+                {
+                    "page": "3",
+                    "status_code": "100",
+                    "doc_type": "주민등록증",
+                    "kv": {
+                        "arc_title": "주민등록증",
+                        "arc_name": "홍길동",
+                        "arc_regnum": "123456-1234567",
+                        "arc_issue_date": "2021.06.30",
+                    },
                 },
             ],
         }

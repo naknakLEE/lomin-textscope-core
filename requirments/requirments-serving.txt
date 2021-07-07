@@ -14,4 +14,5 @@ pyarmor==6.7.3
 
 # for tiff
 pdf2image==1.16.0
-imagecodecs==2021.6.8
+imagecodecs==2020.5.30
+tifffile==2020.9.3

@@ -651,9 +651,10 @@ def get_fixed_batch(batch_size, *inputs):
 
 def to_wide(img_arr):
     height, width = img_arr.shape[:2]
-    img_aspect_ratio = width / height
-    if img_aspect_ratio < 1:
-        return cv2.rotate(img_arr, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    # 멀쩡한 사진을 돌려...
+    # img_aspect_ratio = width / height
+    # if img_aspect_ratio < 1:
+    #     return cv2.rotate(img_arr, cv2.ROTATE_90_COUNTERCLOCKWISE)
     return img_arr
 
 

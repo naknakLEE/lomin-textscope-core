@@ -6,6 +6,7 @@ import ast
 import os
 import imutils
 import cv2
+import imutils
 
 from PIL import Image
 from datetime import datetime
@@ -66,25 +67,19 @@ class IdcardModelService(BentoService):
     def tiff_inference_all(self, inputs):
         data = inputs[0]
         tiff_pages = read_all_tiff_pages(data["image_path"])
-
-        tiff_doc_type = [type_ for type_ in data["doc_type"].split('\\"')[1:-1] if type_ != ", "]
-        print("\033[96m" + f"{tiff_doc_type}" + "\033[0m")
-        results = []
-        for tiff_page, tiff_doctype in zip(tiff_pages, tiff_doc_type):
-            if tiff_doctype != "TT":
-                continue
-            print("\033[96m" + f"{np.array(tiff_page).shape}" + "\033[0m")
-            print("\033[96m" + f"{tiff_doctype}" + "\033[0m")
-            tiff_page.save(f"test.jpg")
-            # for i, tiff_page in enumerate(tiff_pages):
-            np_image = np.expand_dims(tiff_page, axis=0)
+        # tiff_doc_type = [type_ for type_ in data["doc_type"].split('\\"')[1:-1] if type_ != ", "]
+        tiff_doc_type = data["doc_type"]
+        results = {}
+        for i, (tiff_page, tiff_doctype) in enumerate(zip(tiff_pages, tiff_doc_type)):
+            # if i >= 5: break
+            np_image = np.array(tiff_page)
             try:
-                result = self.inference(np_image)
-            except Error:
+                result = self.inference(np_image)[0]["result"]
+            except:
                 result = None
             # + id_type 정보
-            results.append(result)
-        return results
+            results[i] = result
+        return [results]
 
     @api(input=JsonInput(), batch=True)
     def tiff_inference(self, inputs):
@@ -119,7 +114,10 @@ class IdcardModelService(BentoService):
         # image_dir = '/workspace/others/assets/000000000000000IMG_4831.jpg'
         # img = cv2.imread(image_dir)
         # img_arr = expand_size(to_wide(img))
-        img_arr = expand_size(to_wide(imgs[0]))
+        if type(imgs) == list:
+            imgs = imgs[0]
+        img_arr = expand_size(to_wide(imgs))
+        cv2.imwrite("test.jpg", to_wide(imgs))
         use_full_img = False
 
         (
@@ -225,14 +223,15 @@ class IdcardModelService(BentoService):
             kv_boxes, kv_scores, kv_classes = add_backup_boxes(*inputs)
 
         cropped_images = get_cropped_images(id_image_arr, kv_boxes)
+        self.savepath = f"/workspace/outputs/idcard/test_{time.time()}.jpg"
         if self.save_output_img and self.savepath is not None:
             deidentify_img(id_image_arr, kv_boxes, kv_classes, self.savepath)
 
-        if settings.SAVE_ID_DEBUG_INFO and settings.ID_DEBUG_INFO_PATH is not None:
-            info_save_dir = os.path.join(settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d"))
-            os.makedirs(info_save_dir, exist_ok=True)
-            info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
-            deidentify_img(id_image_arr, kv_boxes, kv_classes, info_save_path)
+        # if settings.SAVE_ID_DEBUG_INFO and settings.ID_DEBUG_INFO_PATH is not None:
+        #     info_save_dir = os.path.join(settings.ID_DEBUG_INFO_PATH, time.strftime("%Y%m%d"))
+        #     os.makedirs(info_save_dir, exist_ok=True)
+        #     info_save_path = os.path.join(info_save_dir, os.path.basename(self.savepath))
+        #     deidentify_img(id_image_arr, kv_boxes, kv_classes, info_save_path)
 
         class_masks = get_class_masks(kv_classes)
         texts = self._rec_infer(cropped_images, class_masks)

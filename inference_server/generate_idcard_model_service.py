@@ -41,5 +41,35 @@ from inference_server.utils.utils import read_all_tiff_pages
 # img = PIL.Image.open(image_dir)
 # img = np.array(img)
 # idcard_model_service.inference(img)
-# image_path = "/workspace/others/assets/tif_test.tif"
-# idcard_model_service.tiff_inference_all([{"image_path": image_path}])
+
+data = {
+    "image_path": "/workspace/others/assets/generation_multipagetiff.tiff",
+    "request_id": "sdfasfdasdf",
+    "doc_type": [
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "ZZ",
+        "A3",
+        "A1",
+        "A1",
+        "A1",
+        "TT",
+        "A1",
+        "A7",
+        "E2",
+        "EZ",
+        "EZ",
+        "EZ",
+        "EZ",
+        "EZ",
+    ],
+}
+image_path = "/workspace/others/assets/tif_test.tif"
+result = idcard_model_service.tiff_inference_all([data])
+print("result", result)
