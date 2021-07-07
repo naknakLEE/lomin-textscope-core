@@ -91,7 +91,7 @@ async def upload_data(
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
-@router.post("/ocr/kb")
+@router.post("/ocr/kv")
 async def inference(
     image_path: str = Form(...),
     request_id: str = Form(...),
