@@ -28,6 +28,14 @@ class ReponseHandlerParameter(BaseModel):
     response_time: str
 
 
+class GeneralOcrResponse(BaseModel):
+    image_height: int
+    image_width: int
+    num_instances: int
+    page: int
+    result: List[dict]
+
+
 class SuccessfulResponse(BaseModel):
     code: str
     request_id: str

@@ -16,7 +16,7 @@ def create_app() -> FastAPI:
     # db.init_app(app, **asdict(config()))
     # create_db_table()
     app.add_middleware(CatchExceptionMiddleware)
-    app.include_router(idcard_ocr.router, tags=["Document ocr"], prefix="/ocr")
+    app.include_router(idcard_ocr.router, tags=["Document ocr"])
 
     return app
 

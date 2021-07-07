@@ -1,9 +1,13 @@
 import httpx
+import requests
+import cv2
+import time
+import numpy as np
 
 from typing import Any
-from fastapi import Request, APIRouter, Form
+from fastapi import Request, APIRouter, Form, File, UploadFile
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from kb_wrapper.app import models
 from kb_wrapper.app.errors import exceptions as ex
@@ -18,24 +22,59 @@ settings = get_settings()
 TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
-@router.post("/kb", status_code=200)
-async def inference(
-    image_path: str = Form(...),
-    request_id: str = Form(...),
-    doc_type: str = Form(...),
-) -> Any:
+@router.get("/status", response_model=models.StatusResponse)
+async def check_status() -> JSONResponse:
     """
-    ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
-    입력 데이터: 토큰, ocr에 사용할 파일 <br/>
-    응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
+    - 서비스의 상태를 모니터링합니다.
+    - Textscope API가 정상적으로 작동하고 있는 경우 200 status code와 함께 "on working" 메세지를 반환합니다.
+    """
+    try:
+        serving_server_status_check_url = (
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/healthz"
+        )
+        response = requests.get(serving_server_status_check_url)
+        assert response.status_code == 200
+        is_serving_server_working = "True"
+    except Exception:
+        is_serving_server_working = "False"
+
+    return Response(content={"message": "onwroking"})
+    status = f"is_serving_server_working: {is_serving_server_working}"
+    return JSONResponse(f"Textscope API ({status})")
+
+
+@router.put("/upload")
+async def upload_data(file: UploadFile = File(...)) -> Any:
+    """
+    - 개발시 원격으로 로민 API를 호출할 때 파일을 업로드합니다. 고객사의 운영환경 서버에는 파일이 이미 존재하겠지만 테스트시에는 직접 준비해야 하므로, 이 API는 개발시에 파일이 존재하도록 만들어주는 역할을 합니다.
+    - 파일 업로드 경로는 미리 협의된 위치에 된다고 가정합니다. 개발시에는 컨테이너 내부 경로 /textscope/upload 라고 가정하겠습니다.
     """
 
+    byte_image_data = await file.read()
+    encoded_img = np.frombuffer(byte_image_data, dtype=np.uint8)
+    image = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
+    current_time = time.time()
+    cv2.imwrite(f"/textscope/upload/{current_time}.jpg", image)
+    return Response(content={"message": "File upload successful"})
+    return Response(content={"message": "File upload failes"})
+
+
+@router.post("/ocr/all", response_model=models.StatusResponse)
+async def upload_data(
+    request_id: str = Form(...),
+    image_path: str = Form(...),
+    page: str = Form(...),
+) -> Any:
+    """
+    - /ocr/kv 요청에서 원하는 값을 얻지 못한 경우 /ocr/all 경로로 추가인식 요청을 통해 전문을 인식할 수 있습니다.
+    - request_id, image_path는 /ocr/kv 요청과 동일합니다.
+    - /ocr/all 요청은 문서의 전체 페이지가 아니라 특정 페이지만을 인식하는 것을 가정합니다. page 값은 어떤 페이지를 인식할지 정의합니다.
+    """
     data = {
         "image_path": image_path,
         "request_id": request_id,
-        "doc_type": doc_type,
+        "page": page,
     }
-    results = list()
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{TEXTSCOPE_SERVER_URL}/v1/inference/kb/idcard",
@@ -43,11 +82,41 @@ async def inference(
             timeout=300.0,
         )
         result = response.json()
-        # print("\033[95m" + f"{result}" + "\033[m")
         result["status"] = int(result["code"])
         del result["code"]
-        if result["status"] <= 2000:
-            result["ocrResult"] = parse_kakaobank(result["ocrResult"])
+        return response_handler(**result)
+
+    # return JSONResponse(status_code=200, content=jsonable_encoder(result))
+
+
+@router.get("/ocr/kb", response_model=models.GeneralOcrResponse)
+async def inference(
+    image_path: str = Form(...),
+    request_id: str = Form(...),
+    doc_type: str = Form(...),
+) -> Any:
+    """
+    - 멀티페이지 tiff 이미지의 모든 페이지에 대하여 주요 정보(key-value)를 추출합니다.
+    - `request_id`는 모든 개별 요청이 갖는 unique한 값입니다. 각각의 요청이 항상 서로 다른 request_id를 가지게 하도록 하기 위하여 이 값에는 요청시의 timestamp, 파일의 체크섬 등이 포함될 수 있습니다.
+    - `image_path`는 인식 대상 문서가 저장된 절대경로입니다.
+    - doc_type은 전문으로부터 확인된 각 페이지별 문서 종류입니다. Array로 주어지는 이 값의 요소들은 문서 종류별로 정의된 코드 값입니다.
+    """
+
+    data = {
+        "image_path": image_path,
+        "request_id": request_id,
+        "doc_type": doc_type,
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{TEXTSCOPE_SERVER_URL}/v1/inference/kb/idcard",
+            data=data,
+            timeout=300.0,
+        )
+        result = response.json()
+        result["status"] = int(result["code"])
+        del result["code"]
         result = response_handler(**result)
-        results.append(models.SuccessfulResponse(**result))
-    return JSONResponse(status_code=200, content=jsonable_encoder(results))
+        return models.GeneralOcrResponse(**result)
+
+    # return JSONResponse(status_code=200, content=jsonable_encoder(result))
