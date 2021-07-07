@@ -5,6 +5,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
+    KAKAO_WRAPPER_IP_ADDR: str
     POSTGRES_IP_ADDR: str
     MYSQL_IP_ADDR: str
     WEB_IP_ADDR: str
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str
 
     # SERVING CONFIG
+    KAKAO_WRAPPER_IP_PORT: int
     SERVING_IP_PORT: int
     REDIS_IP_PORT: int
     WEB_IP_PORT: int

@@ -22,7 +22,7 @@ settings = get_settings()
 TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
-@router.get("/status", response_model=models.StatusResponse)
+@router.get("/status")
 async def check_status() -> JSONResponse:
     """
     - 서비스의 상태를 모니터링합니다.
@@ -86,16 +86,16 @@ async def upload_data(
         result = response.json()
         result["status"] = int(result["code"])
         del result["code"]
-        return response_handler(**result)
+        return models.GeneralOcrResponse(**result)
 
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
-@router.post("/ocr/kb", response_model=models.GeneralOcrResponse)
+@router.post("/ocr/kb")
 async def inference(
     image_path: str = Form(...),
     request_id: str = Form(...),
-    doc_type: str = Form(...),
+    doc_type=Form(...),
 ) -> Any:
     """
     - 멀티페이지 tiff 이미지의 모든 페이지에 대하여 주요 정보(key-value)를 추출합니다.
@@ -103,7 +103,6 @@ async def inference(
     - `image_path`는 인식 대상 문서가 저장된 절대경로입니다.
     - doc_type은 전문으로부터 확인된 각 페이지별 문서 종류입니다. Array로 주어지는 이 값의 요소들은 문서 종류별로 정의된 코드 값입니다.
     """
-
     data = {
         "image_path": image_path,
         "request_id": request_id,
@@ -119,15 +118,6 @@ async def inference(
         result = response.json()
         result["status"] = int(result["code"])
         del result["code"]
-
-        ###################### dummy data ######################
-        result["image_height"] = 2400
-        result["image_width"] = 3200
-        result["num_instances"] = 3
-        result["page"] = 1
-        result["result"] = [{}]
-        #########################################################
         # result = response_handler(**result)
-        return models.GeneralOcrResponse(**result)
-
+        return response_handler(**result)
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))

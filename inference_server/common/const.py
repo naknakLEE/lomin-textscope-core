@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     FILE_MAX_BYTE: int = 1024 * 1024
     BACKUP_COUNT: int = 100000000
 
+    # CRTPTO CONFIG
+    CRYPTO_PREFIX: str = "enc_"
+    CRYPTO_KEY: str = b"s7smOzlG-OWQiMA3RIysQGa9OOgNTqbVvSghCp2svBQ="
+
     # OUTPUT_IMG_CONFIG
     OUTPUT_IMG_SAVE: bool = True
     OUTPUT_IMG_DIR: str = f"{BASE_PATH}/outputs/image"
@@ -105,7 +109,7 @@ class Settings(BaseSettings):
 
     RESPONSE_LOG = True
 
-    DECIPHER = True
+    DECIPHER = False
 
     class Config:
         env_file = ".env"

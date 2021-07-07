@@ -1,12 +1,16 @@
+from configparser import Error
 import numpy as np
 import time
+import json
+import ast
 import os
 import imutils
 import cv2
 
+from PIL import Image
 from datetime import datetime
 from bentoml import env, artifacts, api, BentoService
-from bentoml.adapters import ImageInput
+from bentoml.adapters import ImageInput, JsonInput
 from bentoml.frameworks.onnx import OnnxModelArtifact
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail
 
@@ -34,6 +38,7 @@ from inference_server.utils.utils import (
     kv_postprocess_with_edge,
     get_cropped_images,
     load_models,
+    read_all_tiff_pages,
 )
 
 
@@ -56,6 +61,46 @@ class IdcardModelService(BentoService):
         self.save_output_img = True
         self.id_type = "RRC"
         self.savepath = settings.SAVEPATH
+
+    @api(input=JsonInput(), batch=True)
+    def tiff_inference_all(self, inputs):
+        data = inputs[0]
+        tiff_pages = read_all_tiff_pages(data["image_path"])
+
+        tiff_doc_type = [type_ for type_ in data["doc_type"].split('\\"')[1:-1] if type_ != ", "]
+        print("\033[96m" + f"{tiff_doc_type}" + "\033[0m")
+        results = []
+        for tiff_page, tiff_doctype in zip(tiff_pages, tiff_doc_type):
+            if tiff_doctype != "TT":
+                continue
+            print("\033[96m" + f"{np.array(tiff_page).shape}" + "\033[0m")
+            print("\033[96m" + f"{tiff_doctype}" + "\033[0m")
+            tiff_page.save(f"test.jpg")
+            # for i, tiff_page in enumerate(tiff_pages):
+            np_image = np.expand_dims(tiff_page, axis=0)
+            try:
+                result = self.inference(np_image)
+            except Error:
+                result = None
+            # + id_type 정보
+            results.append(result)
+        return results
+
+    @api(input=JsonInput(), batch=True)
+    def tiff_inference(self, inputs):
+        data = inputs[0]
+        tiff_doctype = json.loads(inputs["doctype"])
+        tiff_pages = read_all_tiff_pages(data["image_path"])
+        results = []
+        for tiff_page, tiff_doctype in zip(tiff_pages, tiff_doctype):
+            np_image = np.expand_dims(tiff_page, axis=0)
+            try:
+                result = self.inference(np_image)
+            except Error:
+                result = None
+            # + id_type 정보
+            results.append(result)
+        return results
 
     @api(input=ImageInput(), batch=True)
     def inference(self, imgs):
@@ -303,7 +348,6 @@ class IdcardModelService(BentoService):
         inputs = {"images": np.expand_dims(img_arr.astype(np.float32), axis=0)}
 
         output_names = [_.name for _ in self.artifacts.kv_detection.get_outputs()]
-        print("\033[95m" + f"{output_names}" + "\033[m")
         boxes, labels, scores = self.artifacts.kv_detection.run(output_names, inputs)
 
         valid_scores, valid_boxes, kv_classes = kv_postprocess(

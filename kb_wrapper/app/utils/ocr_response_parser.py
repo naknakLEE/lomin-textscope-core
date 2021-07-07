@@ -30,10 +30,11 @@ def response_handler(
     status: int,
     description: str = "",
     docuType: str = "",
-    ocrResult: dict = {},
+    ocr_result: dict = {},
     msg: str = "",
     request_id: str = "",
     request_at: str = "",
+    response_at: str = "",
     response_id: str = "",
     response_time: str = "",
     detail: str = "",
@@ -43,9 +44,10 @@ def response_handler(
     if status >= 1000 and status <= 1400:
         result = models.SuccessfulResponse(
             code=status,
-            ocr_result=set_ocr_response(ocrResult),
+            ocr_result=set_ocr_response(ocr_result) if "kv" in ocr_result else ocr_result,
             request_id=request_id,
             request_at=request_at,
+            response_at=response_at,
             response_id=response_id,
             response_time=response_time,
         )

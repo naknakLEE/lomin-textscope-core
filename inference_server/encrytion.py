@@ -12,7 +12,7 @@ for cfg in service_cfg:
     model_path[cfg["name"]] = path.join(settings.BASE_PATH, cfg["model_path"])
 
 
-encrypt_path = "/workspace/assets/document_detection"
+encrypt_path = "/workspace/assets/id_kv"
 
 crypto = Crypto()
 key = settings.CRYPTO_KEY  # key = crypto.generate_key()

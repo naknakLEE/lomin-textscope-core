@@ -41,6 +41,7 @@ class SuccessfulResponse(BaseModel):
     request_id: str
     request_at: str
     response_at: str
+    response_at: str
     response_time: str
     ocr_result: List[OcrResult]
 

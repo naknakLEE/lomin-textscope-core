@@ -41,10 +41,6 @@ class Settings(BaseSettings):
     API_ENV: str = "production"
     BASE_PATH: str = "."
 
-    # CRTPTO CONFIG
-    CRYPTO_PREFIX: str = "enc_"
-    CRYPTO_KEY: str = b"s7smOzlG-OWQiMA3RIysQGa9OOgNTqbVvSghCp2svBQ="
-
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
     PYINSTRUMENT_RENDERER: str = "html"

@@ -1,3 +1,4 @@
+import pdf2image
 import cv2
 import math
 import numpy as np
@@ -7,10 +8,12 @@ import sys
 import time
 
 from collections import defaultdict
+from PIL import Image
 
 # from service_streamer import ThreadedStreamer
 from shapely.geometry import Polygon
 from lovit.utils.converter import CharacterMaskGenerator, build_converter
+import tifffile
 
 from inference_server.utils.envs import logger, settings
 from inference_server.utils.catalogs import ELabelCatalog, EDocumentCatalog
@@ -989,3 +992,44 @@ def kv_postprocess_with_edge(kv_boxes, kv_scores, kv_classes):
     kv_classes = kv_classes[~short_edges]
 
     return kv_boxes, kv_scores, kv_classes
+
+
+def read_all_tiff_pages(img_path, target_page=-1):
+    images = []
+    page_count = 0
+    while True:  # we don't know how many page in tif file
+        try:
+            image = tifffile.imread(img_path, key=page_count)
+            if image.dtype == np.bool:
+                image = (image * 255).astype(np.uint8)
+            else:
+                image = image.astype(np.uint8)
+            images.append(Image.fromarray(image))
+            page_count += 1
+            if page_count == target_page:
+                break
+        except:  # Out of index
+            break
+    return images
+
+
+def read_pillow(image_path, page=1):
+    ext = os.path.splitext(image_path)[-1].lower()
+    if ext in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
+        cv2_img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        pil_image = Image.fromarray(cv2_img[:, :, ::-1])
+    elif ext in [".tif", ".tiff"]:
+        try:
+            all_pages = read_all_tiff_pages(image_path, target_page=page)
+            pil_image = all_pages[page - 1]
+        except:
+            logger.error(f"Cannot read {image_path}")
+            return None
+    elif ext in [".pdf"]:
+        pages = pdf2image.convert_from_path(image_path)
+        pil_image = pages[page - 1]
+    else:
+        logger.error(f"{image_path} is not supported!")
+        return None
+    pil_image = pil_image.convert("RGB")
+    return pil_image

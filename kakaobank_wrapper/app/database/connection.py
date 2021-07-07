@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import SingletonThreadPool
 
-from app.common.const import get_settings
+from kakaobank_wrapper.app.common.const import get_settings
 
 
 settings = get_settings()
@@ -38,9 +38,7 @@ class SQLAlchemy:
             pool_pre_ping=True,
             # pool_size=30,
         )
-        self._session = sessionmaker(
-            autocommit=False, autoflush=False, bind=self._engine
-        )
+        self._session = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
 
         @app.on_event("startup")
         def startup() -> None:

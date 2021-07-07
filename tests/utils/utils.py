@@ -10,7 +10,15 @@ from app.database.schema import Users
 
 
 settings = get_settings()
-fake_super_user_info = settings.FAKE_SUPERUSER_INFORMATION
+fake_super_user_info = {
+    "username": "garam",
+    "full_name": "garam",
+    "email": "garam@example.com",
+    "password": "123456",
+    "status": "inactive",
+    "is_superuser": False,
+    "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+}
 
 
 def random_lower_string() -> str:

@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from kakaobank_wrapper.app.common.const import get_settings
+from kakaobank_wrapper.app.errors import exceptions as ex
 from kakaobank_wrapper.app import models
 from kakaobank_wrapper.app.utils.ocr_result_parser import parse_kakaobank
 from kakaobank_wrapper.app.utils.ocr_response_parser import response_handler
@@ -35,6 +36,12 @@ async def inference(
 
     edmisId = form_data["edmisId"]
     img_files = form_data["imgFiles"]
+    if len(edmisId) != len(img_files):
+        result = response_handler(
+            status=8400, description="Different number of edmisId and imgFiles"
+        )
+        return JSONResponse(status_code=200, content=jsonable_encoder(result))
+
     data = {
         "edmisId": edmisId,
         "lnbzDocClcd": lnbzDocClcd,

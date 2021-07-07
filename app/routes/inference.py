@@ -1,22 +1,14 @@
 import aiohttp
-import asyncio
-import json
-import requests
 import httpx
 
-from datetime import datetime
 from typing import Dict, Any, List, Optional
-from fastapi import Depends, File, UploadFile, APIRouter
+from fastapi import Depends, File, UploadFile, APIRouter, Form
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import Session
-from starlette.responses import Response
 
-from app.database.schema import Usage
 from app.database.connection import db
 from app.utils.auth import get_current_active_user
 from app.common.const import get_settings
-from app.errors import exceptions as ex
 from app.schemas import inference_responses
 from app import models
 
@@ -49,6 +41,75 @@ async def inference(file: UploadFile = File(...)) -> Any:
         async with session.post(serving_server_inference_url, data=image_data) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
+
+
+@router.post(
+    "/tiff/idcard",
+    dependencies=[Depends(db.session)],
+    responses=inference_responses,
+)
+async def tiff_idcard_inference(
+    image_path: str = Form(...),
+    request_id: str = Form(...),
+    doc_type: str = Form(...),
+    page: str = Form(...),
+) -> Any:
+    """
+    ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
+    입력 데이터: 토큰, ocr에 사용할 파일 <br/>
+    응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
+    """
+    serving_server_inference_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+
+    # data = {
+    #     "image_path": image_path,
+    #     "request_id": request_id,
+    #     "doc_type": doc_type,
+    #     "page": page,
+    # }
+    # json_data = jsonable_encoder(data)
+    # async with aiohttp.ClientSession() as session:
+    #     request_api = "tiff_inference"
+    #     if json_data["page"] == "None":
+    #         request_api = "tiff_inference_all"
+    #     async with session.post(
+    #         f"{serving_server_inference_url}/{request_api}", json=json_data
+    #     ) as response:
+    #         result = await response.json()
+    #         # return models.InferenceResponse(ocrResult=result)
+    #         return result
+
+    if page == "None":
+        result = {
+            "code": "1000",
+            "request_id": "550e8400-e29b-41d4-a716-446655440000",
+            "request_at": "2021-06-30 20:48:23 KST",
+            "response_at": "2021-06-30 20:48:23 KST",
+            "response_time": "0.578",
+            "ocr_result": [
+                {"page": "1", "status_code": "100", "doc_type": "신청서"},
+                {"page": "2", "status_code": "100", "doc_type": "가맹점가입신청서"},
+                {
+                    "page": "3",
+                    "status_code": "100",
+                    "doc_type": "사업자등록증",
+                    "kv": {"cbr_business_num": "754-87-00942", "other keys": "other values"},
+                },
+            ],
+        }
+    else:
+        result = {
+            "code": 1000,
+            "image_height": 1756,
+            "image_width": 1239,
+            "num_instances": 2,
+            "page": 1,
+            "result": [
+                {"bbox": [94, 17, 141, 40], "scores": 0.9995675683021545, "texts": "사람"},
+                {"bbox": [154, 17, 195, 40], "scores": 0.9995211362838745, "texts": "중심"},
+            ],
+        }
+    return result
 
 
 @router.post("/pipeline")

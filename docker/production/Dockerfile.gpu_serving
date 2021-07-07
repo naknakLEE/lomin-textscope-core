@@ -53,7 +53,8 @@ RUN git clone https://github.com/Nuitka/Nuitka.git && \
     python3 setup.py install
 
 WORKDIR ${BENTOML_PACKAGE_PATH}
-RUN pyarmor obfuscate --restrict 0 --no-cross-protection --package-runtime 0 pytorch.py && \
+RUN cp /workspace/bentoml_package/frameworks/pytorch.py /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.py && \
+    pyarmor obfuscate --restrict 0 --no-cross-protection --package-runtime 0 pytorch.py && \
     cd dist && \
     python3 -m nuitka --module pytorch.py && \
     rm -r ../pytorch.py pytorch.py && \

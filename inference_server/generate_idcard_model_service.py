@@ -33,10 +33,13 @@ idcard_model_service.save()
 
 ############################ for debugging ############################
 
-# import PIL
-# import numpy as np
+import PIL
+import numpy as np
+from inference_server.utils.utils import read_all_tiff_pages
 
 # image_dir = f"{settings.BASE_PATH}/others/assets/000000000000000IMG_4825.jpg"
 # img = PIL.Image.open(image_dir)
 # img = np.array(img)
 # idcard_model_service.inference(img)
+# image_path = "/workspace/others/assets/tif_test.tif"
+# idcard_model_service.tiff_inference_all([{"image_path": image_path}])

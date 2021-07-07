@@ -5,7 +5,7 @@
             {
                 "type": "torchscript_model",
                 "name": "detection_model",
-                "model_path": "assets/document_detection/1/gocr_chshin_efficientdet_d4_210607_model.ts",
+                "model_path": "assets/document_detection/1/gocr_chshin_efficientdet_d4_210607_model_0169999_F1_93.ts",
                 "preprocess": [
                     {
                         "type": "resize",
