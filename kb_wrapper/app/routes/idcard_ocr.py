@@ -5,6 +5,7 @@ import cv2
 import time
 import numpy as np
 import os
+import sys
 
 from datetime import datetime
 from pytz import timezone
@@ -12,6 +13,7 @@ from typing import Any
 from fastapi import Request, APIRouter, Form, File, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
+from loguru import logger
 
 from kb_wrapper.app import models
 from kb_wrapper.app.errors import exceptions as ex
@@ -102,6 +104,7 @@ async def upload_data(
             del result["code"]
             return models.GeneralOcrResponse(**result)
         except:
+            logger.debug(f"Unexpected error: {sys.exc_info()}")
             return JSONResponse(
                 content=jsonable_encoder(
                     {
@@ -144,28 +147,29 @@ async def inference(
 
     request_at = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
     async with httpx.AsyncClient() as client:
-        # try:
-        response = await client.post(
-            f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
-            data=data,
-            timeout=300.0,
-        )
-        response_at = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
-        result = response.json()
-        result["request_at"] = request_at
-        result["response_at"] = response_at
-        result["request_id"] = request_id
-        result["status_code"] = int(result["code"])
-        del result["code"]
-        # result = response_handler(**result)
-        return response_handler(**result)
-    # except Exception as e:
-    #     return JSONResponse(
-    #         content=jsonable_encoder(
-    #             {
-    #                 "status_code": "3000",
-    #                 "error_message": "알 수 없는 서버 내부 에러 발생",
-    #             }
-    #         )
-    #     )
-    # return JSONResponse(status_code=200, content=jsonable_encoder(result))
+        try:
+            response = await client.post(
+                f"{TEXTSCOPE_SERVER_URL}/v1/inference/tiff/idcard",
+                data=data,
+                timeout=300.0,
+            )
+            response_at = datetime.now(timezone("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
+            result = response.json()
+            result["request_at"] = request_at
+            result["response_at"] = response_at
+            result["request_id"] = request_id
+            result["status_code"] = int(result["code"])
+            del result["code"]
+            # result = response_handler(**result)
+            return response_handler(**result)
+        except:
+            logger.debug(f"Unexpected error: {sys.exc_info()}")
+            return JSONResponse(
+                content=jsonable_encoder(
+                    {
+                        "status_code": "3000",
+                        "error_message": "알 수 없는 서버 내부 에러 발생",
+                    }
+                )
+            )
+        return JSONResponse(status_code=200, content=jsonable_encoder(result))
