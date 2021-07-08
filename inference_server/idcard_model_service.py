@@ -41,6 +41,7 @@ from inference_server.utils.utils import (
     load_models,
     read_all_tiff_pages,
     read_tiff_page,
+    read_pillow,
 )
 
 
@@ -86,14 +87,15 @@ class IdcardModelService(BentoService):
     @api(input=JsonInput(), batch=True)
     def tiff_inference(self, inputs):
         data = inputs[0]
-        tiff_page = read_tiff_page(data["image_path"], data["page"])[0]
-        np_image = np.array(tiff_page.asarray())
+        tiff_page = read_pillow(data["image_path"], int(data["page"]))
+        np_image = np.array(tiff_page)
         try:
             result = self.inference(np_image)[0]
         except:
             result = {"boxes": [], "scores": [], "texts": []}
-        result["image_height"] = np_image.shape[0]
-        result["image_width"] = np_image.shape[1]
+        width, height = tiff_page.size
+        result["image_height"] = width
+        result["image_width"] = height
         result["num_instances"] = len(result["boxes"])
         result["page"] = data["page"]
         return [result]
@@ -250,8 +252,11 @@ class IdcardModelService(BentoService):
             self.savepath,
             response_log,
         )
+        # settings.INCLUDE_KV_BOXES
         results["boxes"] = kv_boxes
+        # settings.INCLUDE_KV_SCORES
         results["scores"] = kv_scores
+        # settings.INCLUDE_KV_TEXTS
         results["texts"] = texts
 
         # TO DEBUG OUTPUT OF INFERENCE
