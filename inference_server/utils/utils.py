@@ -650,7 +650,7 @@ def get_fixed_batch(batch_size, *inputs):
 
 
 def to_wide(img_arr):
-    height, width = img_arr.shape[:2] 
+    height, width = img_arr.shape[:2]
     img_aspect_ratio = width / height
     if img_aspect_ratio < 1:
         return cv2.rotate(img_arr, cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -1011,6 +1011,11 @@ def read_all_tiff_pages(img_path, target_page=-1):
         except:  # Out of index
             break
     return images
+
+
+def read_tiff_page(img_path, target_page=0):
+    with tifffile.TiffFile(img_path) as tif:
+        return tif.pages[target_page]
 
 
 def read_pillow(image_path, page=1):

@@ -171,8 +171,20 @@ async def upload_data(
                 timeout=300.0,
             )
             result = response.json()
+            logger.debug(f"result check: {result}")
+            result.update(result["ocr_result"])
             result["status_code"] = int(result["code"])
-            del result["code"]
+            inference_result = list()
+            for box, score, text in zip(result["boxes"], result["scores"], result["texts"]):
+                inference_result.append(
+                    {
+                        "bbox": box,
+                        "scores": score,  # 왜 scores인지?
+                        "text": text,
+                    }
+                )
+            result["result"] = inference_result
+            del result["code"], result["ocr_result"]
             return models.GeneralOcrResponse(**result)
         except:
             logger.debug(f"Unexpected error: {sys.exc_info()}")
@@ -239,7 +251,6 @@ def set_kv_values(ocr_result: dict) -> dict:
 
 def postprocess_ocr_results(ocr_result: dict) -> List:
     ocr_result = set_kv_values(ocr_result)
-
     response_ocr_results = list()
     for i, result in enumerate(ocr_result.values()):
         page = str(i + 1)

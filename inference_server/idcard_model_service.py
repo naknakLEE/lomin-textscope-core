@@ -40,6 +40,7 @@ from inference_server.utils.utils import (
     get_cropped_images,
     load_models,
     read_all_tiff_pages,
+    read_tiff_page,
 )
 
 
@@ -85,18 +86,17 @@ class IdcardModelService(BentoService):
     @api(input=JsonInput(), batch=True)
     def tiff_inference(self, inputs):
         data = inputs[0]
-        tiff_doctype = json.loads(inputs["doctype"])
-        tiff_pages = read_all_tiff_pages(data["image_path"])
-        results = []
-        for tiff_page, tiff_doctype in zip(tiff_pages, tiff_doctype):
-            np_image = np.expand_dims(tiff_page, axis=0)
-            try:
-                result = self.inference(np_image)
-            except Error:
-                result = None
-            # + id_type 정보
-            results.append(result)
-        return results
+        tiff_page = read_tiff_page(data["image_path"], data["page"])[0]
+        np_image = np.array(tiff_page.asarray())
+        try:
+            result = self.inference(np_image)[0]
+        except:
+            result = {"boxes": [], "scores": [], "texts": []}
+        result["image_height"] = np_image.shape[0]
+        result["image_width"] = np_image.shape[1]
+        result["num_instances"] = len(result["boxes"])
+        result["page"] = data["page"]
+        return [result]
 
     @api(input=ImageInput(), batch=True)
     def inference(self, imgs):
@@ -250,6 +250,9 @@ class IdcardModelService(BentoService):
             self.savepath,
             response_log,
         )
+        results["boxes"] = kv_boxes
+        results["scores"] = kv_scores
+        results["texts"] = texts
 
         # TO DEBUG OUTPUT OF INFERENCE
         if self.save_output_img and self.savepath is not None:
