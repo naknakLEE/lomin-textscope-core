@@ -148,10 +148,11 @@ async def upload_data(
 
 
 def postprocess_ocr_results(ocr_result: dict) -> List:
-    logger.debug(f"Results: {ocr_result}")
     for values in ocr_result.values():
         if len(values) <= 1:
             continue
+        if "expiration_date" in values:
+            values["exp_data"] = values.pop("expiration_date")
         values["regnum"] = values.pop("id")
         values["kv"] = {
             "name": values["name"],
@@ -161,7 +162,6 @@ def postprocess_ocr_results(ocr_result: dict) -> List:
         if "expiration_date" in values:
             values["kv"]["expiration_date"] = values["expiration_date"]
         if "dlc_license_num" in values:
-            prefix = "dlc"
             values["kv"]["dlc_license_num"] = values["dlc_license_num"]
             for key in DRIVER_LICENSE_KEY:
                 if key[4:] in values["kv"] or key in values["kv"]:
@@ -179,13 +179,16 @@ def postprocess_ocr_results(ocr_result: dict) -> List:
         doc_type = doc_type_set[result["doc_type"]]
         response_ocr_result = {"page": page, "status_code": status_code, "doc_type": doc_type}
         if "kv" in result:
-            # if result["doc_type"] == "ZZ":
-            #     {
-            #         "title": "주민등록증",
-            #         "name": result["name"],
-            #         "regnum": result["regnum"],
-            #         "issue_date": result["issue_date"],
-            #     }
+            if "name" in result["kv"] and result["kv"]["name"] == "":
+                for key in REGISTRATION_SET_KEY:
+                    if key[4:] in result["kv"] or key in result["kv"]:
+                        if key in result["kv"]:
+                            result["kv"][key] = result["kv"].pop(key)
+                        elif key not in result["kv"]:
+                            result["kv"][key] = result["kv"].pop(key[4:])
+                    else:
+                        result["kv"][key] = ""
+
             response_ocr_result["kv"] = result["kv"]
         response_ocr_results.append(response_ocr_result)
     return response_ocr_results
