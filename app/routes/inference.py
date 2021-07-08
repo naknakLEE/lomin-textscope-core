@@ -70,9 +70,21 @@ async def tiff_idcard_inference(
     }
     json_data = jsonable_encoder(data)
     async with aiohttp.ClientSession() as session:
-        request_api = "tiff_inference"
-        if json_data["page"] == "None":
-            request_api = "tiff_inference_all"
+        request_api = "tiff_inference_all"
+        if json_data["page"] != "None":
+            # below return line enable if not set "tiff_inference"
+            return {
+                "code": 1000,
+                "image_height": 1756,
+                "image_width": 1239,
+                "num_instances": 2,
+                "page": 1,
+                "result": [
+                    {"bbox": [94, 17, 141, 40], "scores": 0.9995675683021545, "texts": "사람"},
+                    {"bbox": [154, 17, 195, 40], "scores": 0.9995211362838745, "texts": "중심"},
+                ],
+            }
+            request_api = "tiff_inference"
         async with session.post(
             f"{serving_server_inference_url}/{request_api}", json=json_data
         ) as response:
