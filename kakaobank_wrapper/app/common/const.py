@@ -39,8 +39,8 @@ class Settings(BaseSettings):
     DOCUMENT_TYPE_SET = {
         "D01": "rrtable",
         "D02": "family_cert",
-        "D03": "basic_cert",
-        "D04": "regi_cert",
+        "D53": "basic_cert",
+        "D54": "regi_cert",
     }
 
     # LOGGER CONFIG

@@ -28,29 +28,29 @@ class StatusEnum(enum.Enum):
 class ResultClsEnum(enum.Enum):
     D01 = 1
     D02 = 2
-    D03 = 3
-    D04 = 4
+    D53 = 3
+    D54 = 4
 
 
 class ReCogYnEnum(enum.Enum):
     D01 = 1
     D02 = 2
-    D03 = 3
-    D04 = 4
+    D53 = 3
+    D54 = 4
 
 
 class ErrorCodeEnum(enum.Enum):
     D01 = 1
     D02 = 2
-    D03 = 3
-    D04 = 4
+    D53 = 3
+    D54 = 4
 
 
 class ModelTypeEnum(enum.Enum):
     D01 = 1
     D02 = 2
-    D03 = 3
-    D04 = 4
+    D53 = 3
+    D54 = 4
 
 
 class BaseMixin:
