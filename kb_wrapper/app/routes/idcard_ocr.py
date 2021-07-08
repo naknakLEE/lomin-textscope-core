@@ -29,6 +29,34 @@ doc_type_set = settings.DOCUMENT_TYPE_SET
 TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
+REGISTRATION_SET_KEY = [
+    "rrc_title",
+    "rrc_name",
+    "rrc_regnum",
+    "rrc_issue_date",
+]
+DRIVER_LICENSE_KEY = [
+    "dlc_title",
+    "dlc_name",
+    "dlc_regnum",
+    "dlc_issue_date",
+    "dlc_license_num",
+    "dlc_exp_date",
+]
+FOREIGNER_SET_KEY = [
+    "arc_title",
+    "arc_name",
+    "arc_regnum",
+    "arc_issue_date",
+]
+PASSPORT_KEY = [
+    "pp_title",
+    "pp_name",
+    "pp_regnum",
+    "pp_issue_date",
+]
+
+
 @router.get("/status")
 async def check_status() -> JSONResponse:
     """
@@ -135,10 +163,14 @@ def postprocess_ocr_results(ocr_result: dict) -> List:
         if "dlc_license_num" in values:
             prefix = "dlc"
             values["kv"]["dlc_license_num"] = values["dlc_license_num"]
-            kv_keys = set(values["kv"].keys())
-            for key in kv_keys:
-                if key[:3] != prefix:
-                    values["kv"][f"{prefix}_{key}"] = values["kv"].pop(key)
+            for key in DRIVER_LICENSE_KEY:
+                if key[4:] in values["kv"] or key in values["kv"]:
+                    if key in values["kv"]:
+                        values["kv"][key] = values["kv"].pop(key)
+                    elif key not in values["kv"]:
+                        values["kv"][key] = values["kv"].pop(key[4:])
+                else:
+                    values["kv"][key] = ""
 
     response_ocr_results = list()
     for i, result in enumerate(ocr_result.values()):
@@ -147,6 +179,13 @@ def postprocess_ocr_results(ocr_result: dict) -> List:
         doc_type = doc_type_set[result["doc_type"]]
         response_ocr_result = {"page": page, "status_code": status_code, "doc_type": doc_type}
         if "kv" in result:
+            # if result["doc_type"] == "ZZ":
+            #     {
+            #         "title": "주민등록증",
+            #         "name": result["name"],
+            #         "regnum": result["regnum"],
+            #         "issue_date": result["issue_date"],
+            #     }
             response_ocr_result["kv"] = result["kv"]
         response_ocr_results.append(response_ocr_result)
     return response_ocr_results
