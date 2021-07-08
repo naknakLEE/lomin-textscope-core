@@ -5,6 +5,7 @@ from typing import Dict, Any, List, Optional
 from fastapi import Depends, File, UploadFile, APIRouter, Form
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from loguru import logger
 
 from app.database.connection import db
 from app.utils.auth import get_current_active_user
@@ -68,16 +69,15 @@ async def tiff_idcard_inference(
         "page": page,
     }
     json_data = jsonable_encoder(data)
-    # async with aiohttp.ClientSession() as session:
-    #     request_api = "tiff_inference"
-    #     if json_data["page"] == "None":
-    #         request_api = "tiff_inference_all"
-    #     async with session.post(
-    #         f"{serving_server_inference_url}/{request_api}", json=json_data
-    #     ) as response:
-    #         result = await response.json()
-    #         # return models.InferenceResponse(ocrResult=result)
-    #         return result
+    async with aiohttp.ClientSession() as session:
+        request_api = "tiff_inference"
+        if json_data["page"] == "None":
+            request_api = "tiff_inference_all"
+        async with session.post(
+            f"{serving_server_inference_url}/{request_api}", json=json_data
+        ) as response:
+            results = await response.json()
+            return {"code": "1000", "ocr_result": results}
 
     if page == "None":
         result = {

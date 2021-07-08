@@ -1,4 +1,3 @@
-from re import L
 import httpx
 import requests
 import cv2
@@ -6,10 +5,11 @@ import time
 import numpy as np
 import os
 import sys
+import traceback
 
 from datetime import datetime
 from pytz import timezone
-from typing import Any
+from typing import Any, List
 from fastapi import Request, APIRouter, Form, File, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
@@ -25,6 +25,7 @@ from kb_wrapper.app.utils.ocr_response_parser import response_handler
 
 router = APIRouter()
 settings = get_settings()
+doc_type_set = settings.DOCUMENT_TYPE_SET
 TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
@@ -105,6 +106,7 @@ async def upload_data(
             return models.GeneralOcrResponse(**result)
         except:
             logger.debug(f"Unexpected error: {sys.exc_info()}")
+            logger.debug(traceback.print_exc())
             return JSONResponse(
                 content=jsonable_encoder(
                     {
@@ -115,6 +117,39 @@ async def upload_data(
             )
 
     # return JSONResponse(status_code=200, content=jsonable_encoder(result))
+
+
+def postprocess_ocr_results(ocr_result: dict) -> List:
+    logger.debug(f"Results: {ocr_result}")
+    for values in ocr_result.values():
+        if len(values) <= 1:
+            continue
+        values["regnum"] = values.pop("id")
+        values["kv"] = {
+            "name": values["name"],
+            "regnum": values["regnum"],
+            "issue_date": values["issue_date"],
+        }
+        if "expiration_date" in values:
+            values["kv"]["expiration_date"] = values["expiration_date"]
+        if "dlc_license_num" in values:
+            prefix = "dlc"
+            values["kv"]["dlc_license_num"] = values["dlc_license_num"]
+            kv_keys = set(values["kv"].keys())
+            for key in kv_keys:
+                if key[:3] != prefix:
+                    values["kv"][f"{prefix}_{key}"] = values["kv"].pop(key)
+
+    response_ocr_results = list()
+    for i, result in enumerate(ocr_result.values()):
+        page = str(i + 1)
+        status_code = 100 if len(result) > 1 else 400
+        doc_type = doc_type_set[result["doc_type"]]
+        response_ocr_result = {"page": page, "status_code": status_code, "doc_type": doc_type}
+        if "kv" in result:
+            response_ocr_result["kv"] = result["kv"]
+        response_ocr_results.append(response_ocr_result)
+    return response_ocr_results
 
 
 @router.post("/ocr/kv")
@@ -158,12 +193,14 @@ async def inference(
             result["request_at"] = request_at
             result["response_at"] = response_at
             result["request_id"] = request_id
+            result["ocr_result"] = postprocess_ocr_results(result["ocr_result"])
             result["status_code"] = int(result["code"])
             del result["code"]
-            # result = response_handler(**result)
             return response_handler(**result)
         except:
             logger.debug(f"Unexpected error: {sys.exc_info()}")
+            logger.debug(traceback.print_exc())
+
             return JSONResponse(
                 content=jsonable_encoder(
                     {

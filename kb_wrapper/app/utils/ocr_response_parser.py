@@ -1,4 +1,6 @@
 from typing import Any, List
+from loguru import logger
+
 from kb_wrapper.app.common.const import get_settings
 from kb_wrapper.app.errors import exceptions as ex
 from kb_wrapper.app import models
@@ -7,6 +9,7 @@ from kb_wrapper.app import models
 settings = get_settings()
 parameter_error_set = settings.PARAMETER_ERROR_SET
 kv_type_set = settings.KV_TYPE_SET
+doc_type_set = settings.DOCUMENT_TYPE_SET
 
 
 def check_item_included(kv, items) -> bool:
@@ -16,10 +19,20 @@ def check_item_included(kv, items) -> bool:
     return False
 
 
-def set_ocr_response(ocr_results: models.ResponseHandlerParameter, doc_types: List) -> Any:
-    for ocr_result, doc_type in zip(ocr_results, doc_types):
-        for ocr_result in "kv":
+def get_kv_type(kv) -> Any:
+    for key, values in kv_type_set.items():
+        for value in values:
+            if value in kv:
+                return key
+    return None
+
+
+def set_ocr_response(ocr_results: List) -> Any:
+    for ocr_result in ocr_results:
+        if "kv" in ocr_result:
+            doc_type = get_kv_type(ocr_result["kv"])
             ocr_result["kv"] = getattr(models, doc_type)(**ocr_result["kv"])
+            logger.debug(ocr_result)
     return ocr_results
 
 
@@ -27,7 +40,7 @@ def set_ocr_response(ocr_results: models.ResponseHandlerParameter, doc_types: Li
 def response_handler(
     status_code: int,
     description: str = "",
-    ocr_result: dict = {},
+    ocr_result: List = [],
     msg: str = "",
     request_id: str = "",
     request_at: str = "",
@@ -37,9 +50,8 @@ def response_handler(
     detail: str = "",
     status_code_code: str = "",
     exc: Exception = None,
-    doc_type: List = "",
 ) -> dict:
-    ocr_result = set_ocr_response(ocr_result, doc_type) if "kv" in ocr_result else ocr_result
+    # ocr_result = set_ocr_response(ocr_result)
     if status_code >= 1000 and status_code <= 1400:
         result = models.SuccessfulResponse(
             status_code=status_code,

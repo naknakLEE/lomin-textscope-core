@@ -67,8 +67,8 @@ class IdcardModelService(BentoService):
     def tiff_inference_all(self, inputs):
         data = inputs[0]
         tiff_pages = read_all_tiff_pages(data["image_path"])
-        # tiff_doc_type = [type_ for type_ in data["doc_type"].split('\\"')[1:-1] if type_ != ", "]
-        tiff_doc_type = data["doc_type"]
+        tiff_doc_type = [type_ for type_ in data["doc_type"].split('\\"')[1:-1] if type_ != ", "]
+        # tiff_doc_type = data["doc_type"]
         results = {}
         for i, (tiff_page, tiff_doctype) in enumerate(zip(tiff_pages, tiff_doc_type)):
             # if i >= 5: break
@@ -76,7 +76,8 @@ class IdcardModelService(BentoService):
             try:
                 result = self.inference(np_image)[0]["result"]
             except:
-                result = None
+                result = {}
+            result["doc_type"] = tiff_doctype
             # + id_type 정보
             results[i] = result
         return [results]
