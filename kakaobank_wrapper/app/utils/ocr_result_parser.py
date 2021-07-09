@@ -84,7 +84,9 @@ def parse_kakaobank(kv_result, kv_mode):
 
 
 def apply_rrtable_result(rrtable_result, kv_result):
-    rrtable_result["releaseDate"] = kv_result["issuedate"] if "issuedate" in kv_result else ""
+    rrtable_result["releaseDate"] = (
+        kv_result["issuedate"] if "issuedate" in kv_result else ""
+    )
     repetition = kv_result["repetition"] if "repetition" in kv_result else []
     rrtable_result["memberNum"] = len(repetition)
     for repeat in repetition:
@@ -94,7 +96,11 @@ def apply_rrtable_result(rrtable_result, kv_result):
         if category == "본인":
             rrtable_result["tenantName"] = name
             rrtable_result["tenantID"] = regnum
-        member_dict = {"memberName": name, "memberID": regnum, "memberRelation": category}
+        member_dict = {
+            "memberName": name,
+            "memberID": regnum,
+            "memberRelation": category,
+        }
         rrtable_result["memberList"].append(member_dict)
 
 
@@ -120,8 +126,12 @@ def apply_family_cert_result(fam_cert_result, kv_result):
 
 
 def apply_regi_cert_result(regi_cert_result, kv_result):
-    regi_cert_result["realID"] = kv_result["estate_num"] if "estate_num" in kv_result else ""
-    regi_cert_result["regID"] = kv_result["serial_num"] if "serial_num" in kv_result else ""
+    regi_cert_result["realID"] = (
+        kv_result["estate_num"] if "estate_num" in kv_result else ""
+    )
+    regi_cert_result["regID"] = (
+        kv_result["serial_num"] if "serial_num" in kv_result else ""
+    )
     passwords = sorted(kv_result["passwords"]) if "passwords" in kv_result else []
     for pwd in passwords:
         try:
@@ -140,7 +150,9 @@ def apply_basic_cert_result(basic_cert_result, kv_result):
     # 보류
     # basic_cert_result['authStatus'] = kv_result['is_parent'] if 'is_parent' in kv_result else ''
     # basic_cert_result['relation'] = kv_result['relation'] if 'relation' in kv_result else ''
-    basic_cert_result["releaseDate"] = kv_result["issue_date"] if "issue_date" in kv_result else ""
+    basic_cert_result["releaseDate"] = (
+        kv_result["issue_date"] if "issue_date" in kv_result else ""
+    )
 
 
 def find_rotated_angle(original_image):
@@ -224,11 +236,15 @@ def apply_exif_img(image):
             elif orientation == 4:
                 image = image.transpose(Image.FLIP_TOP_BOTTOM)
             elif orientation == 5:
-                image = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.ROTATE_90)
+                image = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(
+                    Image.ROTATE_90
+                )
             elif orientation == 6:
                 image = image.transpose(Image.ROTATE_270)
             elif orientation == 7:
-                image = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.ROTATE_270)
+                image = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(
+                    Image.ROTATE_270
+                )
             elif orientation == 8:
                 image = image.transpose(Image.ROTATE_90)
         return image
@@ -259,13 +275,17 @@ def export_to_json(results_all, dir_src, dir_dst, imglist):
     for result_all, imgname in zip(results_all, imglist):
         filename = os.path.splitext(os.path.basename(imgname))[0]
         preds = result_all["result"]
-        rot_angle = result_all["angle_to_rotate"] if "angle_to_rotate" in result_all else 0
+        rot_angle = (
+            result_all["angle_to_rotate"] if "angle_to_rotate" in result_all else 0
+        )
         via_ann = result_to_via(preds, dir_src, imgname, rot_angle)
         via_anns.update(via_ann)
         if "result_kv" in result_all:
             result_kv = result_all["result_kv"]
             result_kv = {_["key"]: _["value"] for _ in result_kv}
-            with open(os.path.join(dir_dst, f"{filename}_kv.json"), "w", encoding="utf8") as f:
+            with open(
+                os.path.join(dir_dst, f"{filename}_kv.json"), "w", encoding="utf8"
+            ) as f:
                 json.dump(result_kv, f, ensure_ascii=False, indent=4)
     with open(os.path.join(dir_dst, "demo_result.json"), "w", encoding="utf8") as f:
         json.dump(via_anns, f, ensure_ascii=False, indent=4)

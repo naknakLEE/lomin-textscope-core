@@ -2,7 +2,9 @@ from typing import Dict
 from fastapi.testclient import TestClient
 
 
-def user_authentication(*, client: TestClient, email: str, password: str) -> Dict[str, str]:
+def user_authentication(
+    *, client: TestClient, email: str, password: str
+) -> Dict[str, str]:
     data = {"email": email, "password": password}
 
     r = client.post("/auth/token", data=data)

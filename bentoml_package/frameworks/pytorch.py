@@ -11,6 +11,7 @@ from bentoml.exceptions import (
 from bentoml.service.artifacts import BentoServiceArtifact
 from bentoml.service.env import BentoServiceEnv
 from bentoml.utils import cloudpickle
+from lovit.crypto.solver import pth_solver
 
 logger = logging.getLogger(__name__)
 
@@ -114,10 +115,8 @@ class PytorchModelArtifact(BentoServiceArtifact):
 
         # TorchScript Models are saved as zip files
         # if zipfile.is_zipfile(self._file_path(path)):
-        from lovit.crypto.solver import pth_solver
-
-        CRYPTO_KEY = os.environ["CRYPTO_KEY"]
-        CRYPTO_PREFIX = os.environ["CRYPTO_PREFIX"]
+        CRYPTO_KEY = b"s7smOzlG-OWQiMA3RIysQGa9OOgNTqbVvSghCp2svBQ="
+        CRYPTO_PREFIX = "enc_"
 
         path = self._file_path(path)
         split_path = path.split("/")

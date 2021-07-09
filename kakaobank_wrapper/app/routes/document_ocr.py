@@ -34,23 +34,23 @@ async def inference(
     form_data = await request.form()
     form_data = parse_multi_form(form_data)
 
-    edmisId = form_data["edmisId"]
+    edmisIds = form_data["edmisId"]
     img_files = form_data["imgFiles"]
-    if len(edmisId) != len(img_files):
+    if len(edmisIds) != len(img_files):
         result = response_handler(
             status=8400, description="Different number of edmisId and imgFiles"
         )
         return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
     data = {
-        "edmisId": edmisId,
         "lnbzDocClcd": lnbzDocClcd,
         "lnbzMgntNo": lnbzMgntNo,
         "pwdNo": pwdNo,
     }
     results = list()
     async with httpx.AsyncClient() as client:
-        for file in img_files.values():
+        for file, edmisId in zip(img_files.values(), edmisIds):
+            data["edmisId"] = edmisId
             file_bytes = await file.read()
             files = {"image": ("documment_img.jpg", file_bytes)}
             response = await client.post(

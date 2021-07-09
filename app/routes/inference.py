@@ -83,7 +83,7 @@ async def tiff_idcard_inference(
 
 @router.post("/pipeline")
 async def inference(
-    edmisId: str, lnbzDocClcd: str, lnbzMgntNo: str, PwdNo: str, image: UploadFile = File(...)
+    edmisId: str, lnbzDocClcd: str, lnbzMgntNo: str, pwdNo: str, image: UploadFile = File(...)
 ) -> Any:
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}

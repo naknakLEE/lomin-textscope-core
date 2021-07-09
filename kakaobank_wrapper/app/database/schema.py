@@ -58,7 +58,9 @@ class BaseMixin:
 
     def all_columns(self) -> List:
         return [
-            c for c in self.__table__.columns if c.primary_key is False and c.name != "created_at"
+            c
+            for c in self.__table__.columns
+            if c.primary_key is False and c.name != "created_at"
         ]
 
 
@@ -114,7 +116,9 @@ class JDO_OCRSY_H(Base, BaseMixin):
     __table_args__ = {"extend_existing": True}
     SYS_REL_ID = Column(Integer, primary_key=True, nullable=False)
     qID = Column(BIGINT, ForeignKey("JDO_MNQLT_H.qID"), nullable=True)
-    EDMS_ID = Column(String(length=45), ForeignKey("JDO_MNQLT_H.EDMS_ID"), nullable=True)
+    EDMS_ID = Column(
+        String(length=45), ForeignKey("JDO_MNQLT_H.EDMS_ID"), nullable=True
+    )
     START_DTTM = Column(DateTime, nullable=True, default="inactive")
     END_DTTM = Column(DateTime, nullable=True, default=True)
     TIME = Column(
@@ -137,7 +141,9 @@ class JDO_MODRP_H(Base, BaseMixin):
     __table_args__ = {"extend_existing": True}
     OPER_ID = Column(Integer, primary_key=True, nullable=False)
     SYS_REL_ID = Column(Integer, ForeignKey("JDO_OCRSY_H.SYS_REL_ID"), nullable=True)
-    EDMS_ID = Column(String(length=45), ForeignKey("JDO_OCRSY_H.EDMS_ID"), nullable=True)
+    EDMS_ID = Column(
+        String(length=45), ForeignKey("JDO_OCRSY_H.EDMS_ID"), nullable=True
+    )
     mID = Column(Integer, ForeignKey("JDO_MODRP_L.mID"), nullable=True)
     SERVICE_NAME = Column(String(length=100), nullable=True, default="inactive")
     END_DTTM = Column(DateTime, nullable=True, default=True)
@@ -159,7 +165,9 @@ class JDO_KEYVA_H(Base, BaseMixin):
     __table_args__ = {"extend_existing": True}
     OBJ_ID = Column(Integer, primary_key=True, nullable=False)
     OPER_ID = Column(Integer, ForeignKey("JDO_MODRP_H.OPER_ID"), nullable=True)
-    EDMS_ID = Column(String(length=45), ForeignKey("JDO_MODRP_H.EDMS_ID"), nullable=True)
+    EDMS_ID = Column(
+        String(length=45), ForeignKey("JDO_MODRP_H.EDMS_ID"), nullable=True
+    )
     SERVICE_NAME = Column(String(length=100), nullable=True)
     SAVE_TIME = Column(DateTime, nullable=True, default="inactive")
     LOG_DIR = Column(String(length=100), nullable=True, default=True)

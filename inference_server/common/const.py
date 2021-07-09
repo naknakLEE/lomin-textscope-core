@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     OUTPUT_DEBUG: str = f"{BASE_PATH}/outputs/debug"
 
     # SERVICE CONFIG
-    SERVICE_TYPE = "textscope_id"
+    SERVICE_TYPE = "textscope_document"
     SERVICE_CFG_PATH: str = f"{BASE_PATH}/assets/{SERVICE_TYPE}.json"
     SERVICE_ENV_PATH: str = f"{BASE_PATH}/.env"
 

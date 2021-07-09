@@ -19,6 +19,7 @@ from app.common.const import get_settings
 from app.database.schema import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
+from app.middlewares.exception_handler import validation_exception_handler
 from app.errors import exceptions as ex
 
 
@@ -51,20 +52,7 @@ def create_app() -> FastAPI:
     else:
         pass
 
-    @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request, exc):
-        return JSONResponse(
-            status_code=400,
-            content=jsonable_encoder(
-                {
-                    "status_code": 400,
-                    "msg": "bad request",
-                    "detail": "",
-                    "code": "7400",
-                    "exc": exc,
-                }
-            ),
-        )
+    app.exception_handler(RequestValidationError, validation_exception_handler)
 
     app.add_middleware(TimeoutMiddleware)
     app.add_middleware(LoggingMiddleware)
@@ -86,6 +74,6 @@ app = create_app()
 
 if __name__ == "__main__":
     if settings.DEVELOP:
-        uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+        uvicorn.run(app="main:app", host="0.0.0.0", port=8000, reload=True)
     else:
-        uvicorn.run(app, host="0.0.0.0", port=8000)
+        uvicorn.run(app=app, host="0.0.0.0", port=8000)

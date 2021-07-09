@@ -1,6 +1,6 @@
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
 
-ARG BUNDLE_PATH="/root/bentoml/repository/DocumentModelService/2021-07.textscope/DocumentModelService/"
+ARG BUNDLE_PATH="/root/bentoml/repository/DocumentModelService/v1/DocumentModelService/"
 ARG BENTOML_PACKAGE_PATH="/usr/local/lib/python3.6/dist-packages/bentoml/frameworks"
 ARG MODEL_TYPE="document"
 ARG MODEL_SERVICE="document_model_service"
