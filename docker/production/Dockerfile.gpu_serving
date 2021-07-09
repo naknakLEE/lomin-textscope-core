@@ -67,7 +67,7 @@ RUN cp /workspace/bentoml_package/frameworks/pytorch.py /usr/local/lib/python3.6
 
 WORKDIR ${BUNDLE_PATH}
 RUN mkdir assets && \ 
-    # mv /workspace/assets/*.json ./assets/ && \
+    mv /workspace/assets/*.json ./assets/ && \
     mv /workspace/.env .env && \ 
     mv ./inference_server/${MODEL_SERVICE}.py ./${MODEL_SERVICE}.py && \
     python3 -m nuitka --module inference_server --include-package=inference_server && \

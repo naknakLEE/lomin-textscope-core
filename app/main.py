@@ -52,7 +52,7 @@ def create_app() -> FastAPI:
     else:
         pass
 
-    app.exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(RuntimeError, validation_exception_handler)
 
     app.add_middleware(TimeoutMiddleware)
     app.add_middleware(LoggingMiddleware)

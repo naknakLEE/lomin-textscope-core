@@ -12,11 +12,11 @@ for cfg in service_cfg:
     model_path[cfg["name"]] = path.join(settings.BASE_PATH, cfg["model_path"])
 
 
-encrypt_path = "/workspace/assets/id_kv"
+encrypt_path = "/root/bentoml/repository/DocumentModelService/v1/DocumentModelService/artifacts"
 
 crypto = Crypto()
 key = settings.CRYPTO_KEY  # key = crypto.generate_key()
-encrypt_dir(encrypt_path, key=key, prefix=settings.CRYPTO_PREFIX, filter=None, remove=False)
+encrypt_dir(encrypt_path, key=key, prefix=settings.CRYPTO_PREFIX, filter=None, remove=True)
 
 
 # detection_model = torch.jit.load(f"{model_path['detection_model']}")
