@@ -1,7 +1,7 @@
 from kakaobank_wrapper.app.errors import exceptions as ex
 
 
-def response_handler(
+async def response_handler(
     status: int,
     minQlt: str = "",
     description: str = "",
@@ -33,9 +33,7 @@ def response_handler(
         result = ex.serverTemplateException(minQlt=minQlt)
         "문서종류가 상이"
     elif status == 5400:
-        result = ex.inferenceReliabilityException(
-            minQlt=minQlt, reliability=reliability
-        )
+        result = ex.inferenceReliabilityException(minQlt=minQlt, reliability=reliability)
         "인식결과 신뢰도 낮음"
     elif status == 6400:
         result = ex.ocrResultEmptyException(minQlt=minQlt, reliability=reliability)

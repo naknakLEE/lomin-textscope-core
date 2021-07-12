@@ -1,7 +1,7 @@
 import http
 import httpx
 
-from typing import Any, Optional
+from typing import Any, Optional, List
 from fastapi import Request, APIRouter
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -21,7 +21,7 @@ settings = get_settings()
 TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
-async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str):
+async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str) -> None:
     if lnbzDocClcd == "D53" and pwdNo == None:
         result = response_handler(
             status=8400, minQlt="00", description="D53 required parameter not included"
@@ -29,7 +29,7 @@ async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str):
         return HTTPException(status_code=200, detail=result)
 
 
-async def get_ocr_request_data(request: Request):
+async def get_ocr_request_data(request: Request) -> List[dict]:
     form_data = await request.form()
     form_data = parse_multi_form(form_data)
 
@@ -46,8 +46,20 @@ async def get_ocr_request_data(request: Request):
             status=4400, description="Different number of edmisId and imgFiles", minQlt="00"
         )
         return HTTPException(status_code=200, detail=result)
+    return [edmisIds, img_files]
 
-    return edmisIds, img_files
+
+async def parse_response(result: dict, lnbzDocClcd: str) -> dict:
+    result["status"] = int(result["code"])
+    del result["code"]
+    if result["status"] >= 1400:
+        result = await response_handler(**result)
+    else:
+        result["ocrResult"] = parse_kakaobank(
+            result["ocrResult"], settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
+        )
+        result = await response_handler(**result)
+    return result
 
 
 @router.post("/ocr", status_code=200)
@@ -76,7 +88,7 @@ async def inference(
         for file, edmisId in zip(img_files.values(), edmisIds):
             data["edmisId"] = edmisId
             file_bytes = await file.read()
-            files = {"image": ("documment_img.jpg", file_bytes)}
+            files = {"image": file_bytes}
             response = await client.post(
                 f"{TEXTSCOPE_SERVER_URL}/v1/inference/pipeline",
                 files=files,
@@ -84,16 +96,6 @@ async def inference(
                 timeout=30.0,
             )
             result = response.json()
-            print("\033[95m" + f"{result}" + "\033[m")
-            result["status"] = int(result["code"])
-            del result["code"]
-            if result["status"] >= 1400:
-                result = response_handler(**result)
-                results.append(models.InferenceResponse(**result))
-            else:
-                result["ocrResult"] = parse_kakaobank(
-                    result["ocrResult"], settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
-                )
-                result = response_handler(**result)
-                results.append(models.InferenceResponse(**result))
+            parse_result = await parse_response(result, lnbzDocClcd)
+            results.append(parse_result)
     return JSONResponse(status_code=200, content=jsonable_encoder(results))
