@@ -184,6 +184,74 @@ class Settings(BaseSettings):
         ],
     }
 
+    DOC_CODE_SET = {
+        # 운전면허증 + 주민등록증, 우선 랜덤으로 추출할까?
+        "REGISTRATION_SET_KEY": [
+            "L1",
+            "L3",
+            "R6",
+            "W2",
+        ],
+        # 외국인등록증 + 외국국적동포거소신고증 +영주증
+        "FOREIGNER_SET_KEY": ["J6"],
+        # 여권
+        "PASSPORT_KEY": ["J5"],
+    }
+
+    DOC_KEY_SET = {
+        "REGISTRATION_SET_KEY": [
+            "rrc_title",
+            "rrc_name",
+            "rrc_regnum",
+            "rrc_issue_date",
+        ],
+        "DRIVER_LICENSE_KEY": [
+            "dlc_title",
+            "dlc_name",
+            "dlc_regnum",
+            "dlc_issue_date",
+            "dlc_license_num",
+            "dlc_exp_date",
+        ],
+        "FOREIGNER_SET_KEY": [
+            "arc_title",
+            "arc_name",
+            "arc_regnum",
+            "arc_issue_date",
+        ],
+        "PASSPORT_KEY": [
+            "pp_title",
+            "pp_name",
+            "pp_regnum",
+            "pp_issue_date",
+        ],
+        "BusinessRegistration": [
+            "cbr_regnum_business"
+            "cbr_regnum_corp"
+            "cbr_name"
+            "cbr_address_business"
+            "cbr_address_headquarter"
+            "cbr_work_type"
+            "cbr_work_cond"
+        ],
+        "UniqueNumber": ["cun_regnum_business" "cun_name" "cun_address_business"],
+        "CopyOfPassbook": ["bb_account_num" "bb_account_holder" "bb_bank"],
+        "ResidentRegistrationCardAndOverseasNationalRegistrationCard": [
+            "rrc_title" "rrc_name" "rrc_regnum" "rrc_issue_date"
+        ],
+        "DriverLicense": [
+            "dlc_title" "dlc_name" "dlc_regnum" "dlc_issue_date" "dlc_license_num" "dlc_exp_date"
+        ],
+        "AlienRegistrationCardAndForeignNationalityResidenceReportAndPermanentResidenceCard": [
+            "arc_title" "arc_name" "arc_regnum" "arc_issue_date"
+        ],
+        "Passport": ["pp_title" "pp_name" "pp_regnum" "pp_issue_date"],
+        "CertificateOfAllCorporateRegistrationDetails": [
+            "ccr_title" "ccr_issue_date" "ccr_num_pages" "ccr_issued_stock"
+        ],
+        "SealCertificate": ["crs_issue_date"],
+    }
+
     # LOGGER CONFIG
     LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"
     LOG_ROTATION: str = "1MB"

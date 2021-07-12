@@ -29,74 +29,8 @@ doc_type_set = settings.DOCUMENT_TYPE_SET
 TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
-DOC_TYPE_SET = {
-    # 운전면허증 + 주민등록증, 우선 랜덤으로 추출할까?
-    "REGISTRATION_SET_KEY": [
-        "L1",
-        "L3",
-        "R6",
-        "W2",
-    ],
-    # 외국인등록증 + 외국국적동포거소신고증 +영주증
-    "FOREIGNER_SET_KEY": ["J6"],
-    # 여권
-    "PASSPORT_KEY": ["J5"],
-}
-
-
-DOC_KEY_SET = {
-    "REGISTRATION_SET_KEY": [
-        "rrc_title",
-        "rrc_name",
-        "rrc_regnum",
-        "rrc_issue_date",
-    ],
-    "DRIVER_LICENSE_KEY": [
-        "dlc_title",
-        "dlc_name",
-        "dlc_regnum",
-        "dlc_issue_date",
-        "dlc_license_num",
-        "dlc_exp_date",
-    ],
-    "FOREIGNER_SET_KEY": [
-        "arc_title",
-        "arc_name",
-        "arc_regnum",
-        "arc_issue_date",
-    ],
-    "PASSPORT_KEY": [
-        "pp_title",
-        "pp_name",
-        "pp_regnum",
-        "pp_issue_date",
-    ],
-    "BusinessRegistration": [
-        "cbr_regnum_business"
-        "cbr_regnum_corp"
-        "cbr_name"
-        "cbr_address_business"
-        "cbr_address_headquarter"
-        "cbr_work_type"
-        "cbr_work_cond"
-    ],
-    "UniqueNumber": ["cun_regnum_business" "cun_name" "cun_address_business"],
-    "CopyOfPassbook": ["bb_account_num" "bb_account_holder" "bb_bank"],
-    "ResidentRegistrationCardAndOverseasNationalRegistrationCard": [
-        "rrc_title" "rrc_name" "rrc_regnum" "rrc_issue_date"
-    ],
-    "DriverLicense": [
-        "dlc_title" "dlc_name" "dlc_regnum" "dlc_issue_date" "dlc_license_num" "dlc_exp_date"
-    ],
-    "AlienRegistrationCardAndForeignNationalityResidenceReportAndPermanentResidenceCard": [
-        "arc_title" "arc_name" "arc_regnum" "arc_issue_date"
-    ],
-    "Passport": ["pp_title" "pp_name" "pp_regnum" "pp_issue_date"],
-    "CertificateOfAllCorporateRegistrationDetails": [
-        "ccr_title" "ccr_issue_date" "ccr_num_pages" "ccr_issued_stock"
-    ],
-    "SealCertificate": ["crs_issue_date"],
-}
+doc_code_set = settings.DOC_CODE_SET
+doc_key_set = settings.DOC_KEY_SET
 
 
 @router.get("/status")
@@ -204,10 +138,10 @@ async def upload_data(
 def get_doc_type_using_doc_code(values: dict, doc_code: str):
     # inference 결과로 doc_key_set 못찾으면 doc_code를 이용해 탐색
     if "dlc_license_num" in values["kv"]:
-        return DOC_KEY_SET["DRIVER_LICENSE_KEY"]
-    for key, values in DOC_TYPE_SET.items():
+        return doc_key_set["DRIVER_LICENSE_KEY"]
+    for key, values in doc_code_set.items():
         if doc_code in values:
-            return DOC_KEY_SET[key]
+            return doc_key_set[key]
     return None
 
 
@@ -215,7 +149,7 @@ def set_kv_schmea_according_to_doc_type(values: dict, doc_key: str) -> dict:
     doc_keys = get_doc_type_using_doc_code(values, doc_key)
     # below 2 line enable if not set all doc_type in doc_key_set
     if doc_keys is None:
-        doc_keys = DOC_KEY_SET["REGISTRATION_SET_KEY"]
+        doc_keys = doc_key_set["REGISTRATION_SET_KEY"]
     prefix = "".join([doc_keys[0].split("_")[0], "_"])
     prefix_len = len(prefix)
     for key in doc_keys:
