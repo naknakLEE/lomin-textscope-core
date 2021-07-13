@@ -1,7 +1,7 @@
 import aiohttp
 import httpx
 
-from typing import Dict, Any, List, Optional
+from typing import Any
 from fastapi import Depends, File, UploadFile, APIRouter, Form
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -100,16 +100,27 @@ async def inference(
             json=document_ocr_result,
             timeout=30.0,
         )
-        result = document_ocr_pp_response.json()["texts"]["values"]
+        result = document_ocr_pp_response.json()["texts"]
 
-    json_compatible_files = jsonable_encoder(
-        {
-            "code": "1200",
-            "description": "",
-            "minQlt": "01",
-            "reliability": "1.0",
-            "docuType": lnbzDocClcd,
-            "ocrResult": result,
-        }
-    )
-    return JSONResponse(content=json_compatible_files)
+    if result == None:
+        response = jsonable_encoder(
+            {
+                "code": "3400",
+                "minQlt": "00",
+                "reliability": "",
+                "docuType": "",
+                "ocrResult": "",
+            }
+        )
+    else:
+        response = jsonable_encoder(
+            {
+                "code": "1200",
+                "description": "",
+                "minQlt": "01",
+                "reliability": "1.0",
+                "docuType": lnbzDocClcd,
+                "ocrResult": result["values"],
+            }
+        )
+    return JSONResponse(content=response)

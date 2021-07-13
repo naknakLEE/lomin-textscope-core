@@ -96,14 +96,14 @@ async def inference(
             file_bytes = await file.read()
             files = {"image": file_bytes}
             response = await client.post(
-                f"{textscope_server_url}/v12/inference/pipeline",
+                f"{textscope_server_url}/v1/inference/pipeline",
                 files=files,
                 params=data,
                 timeout=30.0,
             )
             result = response.json()
             parse_result = await parse_response(result, lnbzDocClcd)
-            if parse_result.get("status") >= 2000:
+            if int(parse_result.get("status")) >= 2000:
                 raise HTTPException(status_code=200, detail=parse_result)
             results.append(parse_result)
     return JSONResponse(status_code=200, content=jsonable_encoder(results))

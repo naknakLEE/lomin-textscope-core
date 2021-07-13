@@ -3,18 +3,33 @@ from PIL import Image
 import numpy as np
 import cv2
 import torch
-import copy
 import re
 import os
 
 from os import getcwd
+from loguru import logger
 from collections import defaultdict
 from shapely.geometry import Polygon
 
 from pp_server.app.common.const import get_settings
+from pp_server.app.structures.bounding_box import BoxList
 
 
 settings = get_settings()
+
+
+def create_boxlist(data):
+    for attr in data:
+        if attr == "rec_preds":
+            logger.info(np.array(data[attr]))
+        else:
+            logger.info(np.array(data[attr]))
+    texts = convert_recognition_to_text(np.array(data["rec_preds"]))
+    boxlist = BoxList(np.array(data["boxes"]), np.array(data["img_size"]))
+    logger.info(f"texts: {texts}")
+    boxlist.add_field("scores", np.array(data["scores"]))
+    boxlist.add_field("texts", texts)
+    return boxlist
 
 
 class AttnLabelConverter(object):
