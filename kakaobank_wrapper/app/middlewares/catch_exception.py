@@ -1,12 +1,12 @@
-from fastapi.encoders import jsonable_encoder
 import httpx
 import traceback
 import sys
 
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from fastapi import Request, Response
-from fastapi.responses import JSONResponse
 from loguru import logger
+from fastapi import Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from kakaobank_wrapper.app.utils.ocr_response_parser import response_handler
 

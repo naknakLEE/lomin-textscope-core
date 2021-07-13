@@ -3,6 +3,7 @@ import pytest
 
 from typing import Dict
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from kakaobank_wrapper.app.main import create_app
 from tests.utils.utils import get_superuser_token_headers

@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     BASE_PATH: str = "."
 
     # KAKAOBANK_WRAPPER_CONFIG
+    DOCUMENT_TYPE_LIST = ["D01", "D02", "D53", "D54"]
+
     DOCUMENT_TYPE_SET = {
         "D01": "rrtable",
         "D02": "family_cert",
