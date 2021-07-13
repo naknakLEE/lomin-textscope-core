@@ -1,6 +1,6 @@
 from typing import Dict
 from fastapi.testclient import TestClient
-from loguru import logger
+from kakaobank_wrapper.app.utils.logging import logger
 
 from kakaobank_wrapper.app.common.const import get_settings
 

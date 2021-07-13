@@ -4,9 +4,9 @@ from typing import Any, Optional, List, Dict
 from fastapi import Request, APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from loguru import logger
 
 from kakaobank_wrapper.app import models
+from kakaobank_wrapper.app.utils.logging import logger
 from kakaobank_wrapper.app.errors import exceptions as ex
 from kakaobank_wrapper.app.common.const import get_settings
 from kakaobank_wrapper.app.utils.request_form_parser import parse_multi_form

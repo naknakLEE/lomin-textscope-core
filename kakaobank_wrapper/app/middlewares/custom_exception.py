@@ -1,8 +1,8 @@
-from loguru import logger
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
+from kakaobank_wrapper.app.utils.logging import logger
 from kakaobank_wrapper.app.errors import exceptions as ex
 
 

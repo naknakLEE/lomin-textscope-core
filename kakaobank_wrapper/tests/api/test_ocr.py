@@ -3,11 +3,11 @@ import pytest
 import asyncio
 
 from typing import Dict, List
-from loguru import logger
 from httpx import AsyncClient
 from fastapi.testclient import TestClient
 from fastapi.applications import FastAPI
 
+from kakaobank_wrapper.app.utils.logging import logger
 from kakaobank_wrapper.app.common.const import get_settings
 from kakaobank_wrapper.app.errors import exceptions as ex
 from kakaobank_wrapper.tests.utils.utils import (

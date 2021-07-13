@@ -3,17 +3,18 @@ import cv2
 import os
 import tifffile
 import pdf2image
-from loguru import logger
+import json
+import numpy as np
+
 from PIL import Image
 from collections import OrderedDict
-import numpy as np
 from skimage.color import rgb2gray
 from skimage.transform import hough_line, hough_line_peaks
 from scipy.stats import mode
 from skimage.filters import threshold_otsu, sobel
 from copy import deepcopy
-from loguru import logger
-import json
+
+from kakaobank_wrapper.app.utils.logging import logger
 
 RRTABLE_TEMPLATE = {
     "tenantName": "",  # 차주한글이름
