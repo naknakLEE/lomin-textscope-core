@@ -1,9 +1,9 @@
 import http
-import json
 import httpx
 
-from typing import Any, Optional, Dict
-from fastapi import Request, APIRouter
+from typing import Any, Optional, List, Dict
+from fastapi import Request, APIRouter, HTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import PlainTextResponse, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -12,7 +12,8 @@ from loguru import logger
 from kakaobank_wrapper.app import models
 from kakaobank_wrapper.app.errors import exceptions as ex
 from kakaobank_wrapper.app.common.const import get_settings
-from kakaobank_wrapper.app.errors.exceptions import HTTPException
+
+
 from kakaobank_wrapper.app.utils.request_parser import parse_multi_form
 from kakaobank_wrapper.app.utils.ocr_result_parser import parse_kakaobank
 from kakaobank_wrapper.app.utils.ocr_response_parser import response_handler
@@ -23,16 +24,15 @@ settings = get_settings()
 textscope_server_url = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
-async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str) -> Any:
+async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str) -> None:
     if lnbzDocClcd == "D53" and pwdNo == None:
         result = await response_handler(
             status=8400, minQlt="00", description="D53 required parameter not included"
         )
-        return HTTPException(status_code=200, detail=result)
-    return None
+        raise HTTPException(status_code=200, detail=result)
 
 
-async def get_ocr_request_data(request: Request) -> Any:
+async def get_ocr_request_data(request: Request) -> List[dict]:
     form_data = await request.form()
     form_data = await parse_multi_form(form_data)
 
@@ -40,7 +40,7 @@ async def get_ocr_request_data(request: Request) -> Any:
         result = await response_handler(
             status=4400, description="edmisId or imgFiles is not found", minQlt="00"
         )
-        return result
+        raise HTTPException(status_code=200, detail=result)
 
     edmisIds = form_data["edmisId"]
     img_files = form_data["imgFiles"]
@@ -48,11 +48,11 @@ async def get_ocr_request_data(request: Request) -> Any:
         result = await response_handler(
             status=4400, description="Different number of edmisId and imgFiles", minQlt="00"
         )
-        return result
+        raise HTTPException(status_code=200, detail=result)
     return [edmisIds, img_files]
 
 
-async def parse_response(result: Dict, lnbzDocClcd: str) -> Dict:
+async def parse_response(result: dict, lnbzDocClcd: str) -> dict:
     result["status"] = int(result["code"])
     del result["code"]
     if result["status"] >= 1400:
@@ -78,13 +78,8 @@ async def inference(
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
 
-    result = await check_D53_document_required_params(lnbzDocClcd, pwdNo)
-    if result is not None:
-        return JSONResponse(status_code=200, content=jsonable_encoder(result))
-    result = await get_ocr_request_data(request)
-    if "status" in result:
-        return JSONResponse(status_code=200, content=jsonable_encoder(result))
-    edmisIds, img_files = result
+    await check_D53_document_required_params(lnbzDocClcd, pwdNo)
+    edmisIds, img_files = await get_ocr_request_data(request)
 
     data = {
         "lnbzDocClcd": lnbzDocClcd,
