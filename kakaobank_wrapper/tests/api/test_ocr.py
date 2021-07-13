@@ -1,4 +1,3 @@
-import cv2
 import time
 import pytest
 import asyncio
@@ -55,25 +54,25 @@ def test_successful_response(client: TestClient):
         )
 
 
-# 1400
-# not implemented yet
-def test_minQlt_error(client: TestClient):
-    ...
+# # 1400
+# # not implemented yet
+# def test_minQlt_error(client: TestClient):
+#     ...
 
 
 # 2400
 def test_ocr_server_no_response(client: TestClient):
-    response = client.post("not_exist_url", params=default_data, files=default_files)
+    response = client.post("api/v1/no_response_test", params=default_data, files=default_files)
     result = response.json()
     logger.debug(result)
     assert response.status_code == 200
     assert compare_dictionary_match(result, vars(ex.serverException(minQlt="00")))
 
 
-# 3400
-# not implemented yet
-def test_abnormal_ocr_results(client: TestClient):
-    ...
+# # 3400
+# # not implemented yet
+# def test_abnormal_ocr_results(client: TestClient):
+#     ...
 
 
 # 4400
@@ -108,10 +107,10 @@ def test_request_form_error(client: TestClient):
     assert compare_dictionary_match(params_value_error_results, parameter_exception_dict)
 
 
-# 5400
-# not implemented yet
-def test_low_reliability_error(client: TestClient):
-    ...
+# # 5400
+# # not implemented yet
+# def test_low_reliability_error(client: TestClient):
+#     ...
 
 
 # 6400
@@ -140,20 +139,23 @@ async def task(count: int, app: FastAPI) -> List[Dict]:
     async with AsyncClient(app=app, base_url=kakaobank_wrapper_base_url) as client:
         tasks = [request(client) for _ in range(count)]
         results = await asyncio.gather(*tasks)
-        logger.debug(f"Results: {results}")
-        logger.debug(f"Results length: {len(results)}")
         return results
 
 
 # 7400
+# Many requests are required for a 30 second timeout
 @pytest.mark.asyncio
 async def test_timeout_error(app: FastAPI):
-    results = await task(count=5, app=app)
-    timeout_error_count = 0
+    results = await task(count=30, app=app)
+    status_set = list()
     for result in results:
-        if result.get("status") == "7400":
-            timeout_error_count += 1
-    assert timeout_error_count > 0
+        logger.debug(result)
+        if type(result) == list:
+            for per_image_result in result:
+                status_set.append(per_image_result.get("status"))
+        elif type(result) == dict:
+            status_set.append(result.get("status"))
+    assert sum([True if status == "7400" else False for status in status_set]) > 0
 
 
 """
@@ -207,13 +209,13 @@ def test_required_parameter_not_included_error(client: TestClient):
     assert compare_dictionary_match(params_value_error_results, parameter_exception_dict)
 
 
-# 9400
-# 발생할 가능성은?
-def test_unexpected_error(client: TestClient):
-    ...
+# # 9400
+# # 발생할 가능성은?
+# def test_unexpected_error(client: TestClient):
+#     ...
 
 
-# 8400
-# 토큰을 같이 넣을까?
-def test_authentication_error(client: TestClient):
-    ...
+# # 8400
+# # 토큰을 같이 넣을까?
+# def test_authentication_error(client: TestClient):
+#     ...

@@ -103,7 +103,45 @@ async def inference(
             )
             result = response.json()
             parse_result = await parse_response(result, lnbzDocClcd)
-            if int(parse_result.get("status")) >= 2000:
-                raise HTTPException(status_code=200, detail=parse_result)
+            results.append(parse_result)
+    return JSONResponse(status_code=200, content=jsonable_encoder(results))
+
+
+@router.post("/no_response_test", status_code=200)
+async def inference(
+    request: Request,
+    lnbzDocClcd: str,
+    lnbzMgntNo: str,
+    pwdNo: Optional[str] = None,
+) -> Any:
+    """
+    ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
+    입력 데이터: 토큰, ocr에 사용할 파일 <br/>
+    응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
+    """
+
+    await check_document_required_params(lnbzDocClcd, pwdNo)
+    edmisIds, img_files = await get_ocr_request_data(request)
+
+    data = {
+        "lnbzDocClcd": lnbzDocClcd,
+        "lnbzMgntNo": lnbzMgntNo,
+        "pwdNo": pwdNo,
+    }
+    results = list()
+    async with httpx.AsyncClient() as client:
+        for file, edmisId in zip(img_files.values(), edmisIds):
+            data["edmisId"] = edmisId
+            file_bytes = await file.read()
+            files = {"image": file_bytes}
+            response = await client.post(
+                f"{textscope_server_url}/dummy",
+                files=files,
+                params=data,
+                timeout=30.0,
+            )
+            result = response.json()
+            logger.debug(result)
+            parse_result = await parse_response(result, lnbzDocClcd)
             results.append(parse_result)
     return JSONResponse(status_code=200, content=jsonable_encoder(results))
