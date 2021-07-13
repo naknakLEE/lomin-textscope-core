@@ -64,4 +64,4 @@ async def response_handler(
     elif status == 503:
         result = ex.otherException(minQlt=minQlt, description=description)
         "service unavailable"
-    return result.__dict__
+    return vars(result)

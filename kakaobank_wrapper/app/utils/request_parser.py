@@ -1,4 +1,4 @@
-def parse_multi_form(form):
+async def parse_multi_form(form):
     data = {}
     for url_k in form:
         v = form[url_k]

@@ -1,61 +1,64 @@
 import http
+import json
 import httpx
 
-from typing import Any, Optional, List
+from typing import Any, Optional, Dict
 from fastapi import Request, APIRouter
+from starlette.responses import PlainTextResponse, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from kakaobank_wrapper.app.common.const import get_settings
-from kakaobank_wrapper.app.errors import exceptions as ex
-from kakaobank_wrapper.app.errors.exceptions import HTTPException
 from kakaobank_wrapper.app import models
+from kakaobank_wrapper.app.errors import exceptions as ex
+from kakaobank_wrapper.app.common.const import get_settings
+from kakaobank_wrapper.app.errors.exceptions import HTTPException
+from kakaobank_wrapper.app.utils.request_parser import parse_multi_form
 from kakaobank_wrapper.app.utils.ocr_result_parser import parse_kakaobank
 from kakaobank_wrapper.app.utils.ocr_response_parser import response_handler
-from kakaobank_wrapper.app.utils.request_parser import parse_multi_form
 
 
 router = APIRouter()
 settings = get_settings()
-TEXTSCOPE_SERVER_URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
+textscope_server_url = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}"
 
 
-async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str) -> None:
+async def check_D53_document_required_params(lnbzDocClcd: str, pwdNo: str) -> Any:
     if lnbzDocClcd == "D53" and pwdNo == None:
-        result = response_handler(
+        result = await response_handler(
             status=8400, minQlt="00", description="D53 required parameter not included"
         )
         return HTTPException(status_code=200, detail=result)
+    return None
 
 
-async def get_ocr_request_data(request: Request) -> List[dict]:
+async def get_ocr_request_data(request: Request) -> Any:
     form_data = await request.form()
-    form_data = parse_multi_form(form_data)
+    form_data = await parse_multi_form(form_data)
 
     if "edmisId" not in form_data or "imgFiles" not in form_data:
-        result = response_handler(
+        result = await response_handler(
             status=4400, description="edmisId or imgFiles is not found", minQlt="00"
         )
-        raise HTTPException(status_code=200, detail=result)
+        return result
 
     edmisIds = form_data["edmisId"]
     img_files = form_data["imgFiles"]
     if len(edmisIds) != len(img_files):
-        result = response_handler(
+        result = await response_handler(
             status=4400, description="Different number of edmisId and imgFiles", minQlt="00"
         )
-        return HTTPException(status_code=200, detail=result)
+        return result
     return [edmisIds, img_files]
 
 
-async def parse_response(result: dict, lnbzDocClcd: str) -> dict:
+async def parse_response(result: Dict, lnbzDocClcd: str) -> Dict:
     result["status"] = int(result["code"])
     del result["code"]
     if result["status"] >= 1400:
         result = await response_handler(**result)
     else:
-        result["ocrResult"] = parse_kakaobank(
+        result["ocrResult"] = await parse_kakaobank(
             result["ocrResult"], settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
         )
         result = await response_handler(**result)
@@ -75,8 +78,13 @@ async def inference(
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
 
-    await check_D53_document_required_params(lnbzDocClcd, pwdNo)
-    edmisIds, img_files = await get_ocr_request_data(request)
+    result = await check_D53_document_required_params(lnbzDocClcd, pwdNo)
+    if result is not None:
+        return JSONResponse(status_code=200, content=jsonable_encoder(result))
+    result = await get_ocr_request_data(request)
+    if "status" in result:
+        return JSONResponse(status_code=200, content=jsonable_encoder(result))
+    edmisIds, img_files = result
 
     data = {
         "lnbzDocClcd": lnbzDocClcd,
@@ -90,7 +98,7 @@ async def inference(
             file_bytes = await file.read()
             files = {"image": file_bytes}
             response = await client.post(
-                f"{TEXTSCOPE_SERVER_URL}/v1/inference/pipeline",
+                f"{textscope_server_url}/v1/inference/pipeline",
                 files=files,
                 params=data,
                 timeout=30.0,
