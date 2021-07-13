@@ -13,10 +13,11 @@ from typing import Any, List
 from fastapi import Request, APIRouter, Form, File, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
-from loguru import logger
+
 
 from kb_wrapper.app import models
 from kb_wrapper.app.errors import exceptions as ex
+from kb_wrapper.app.utils.logging import logger
 from kb_wrapper.app.common.const import get_settings
 from kb_wrapper.app.utils.request_parser import parse_multi_form
 from kb_wrapper.app.utils.ocr_result_parser import parse_kakaobank

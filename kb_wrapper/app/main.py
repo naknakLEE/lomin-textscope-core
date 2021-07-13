@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 
 from kb_wrapper.app.common.const import get_settings
-from kb_wrapper.app.middlewares.catch_exception import CatchExceptionMiddleware
+from kb_wrapper.app.middlewares.logging import LoggingMiddleware
 from kb_wrapper.app.routes import idcard_ocr
 
 
@@ -18,7 +18,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     # db.init_app(app, **asdict(config()))
     # create_db_table()
-    app.add_middleware(CatchExceptionMiddleware)
+    app.add_middleware(LoggingMiddleware)
     app.include_router(idcard_ocr.router, tags=["Document ocr"])
 
     @app.exception_handler(RequestValidationError)

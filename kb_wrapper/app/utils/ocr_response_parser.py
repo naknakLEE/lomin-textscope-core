@@ -1,6 +1,6 @@
 from typing import Any, List
-from loguru import logger
 
+from kb_wrapper.app.utils.logging import logger
 from kb_wrapper.app.common.const import get_settings
 from kb_wrapper.app.errors import exceptions as ex
 from kb_wrapper.app import models
