@@ -2,6 +2,7 @@ import uvicorn
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from loguru import logger
 from requests.sessions import Request
 from starlette.responses import JSONResponse
@@ -9,7 +10,10 @@ from starlette.responses import JSONResponse
 from kakaobank_wrapper.app.routes import document_ocr
 from kakaobank_wrapper.app.common.const import get_settings
 from kakaobank_wrapper.app.middlewares.catch_exception import CatchExceptionMiddleware
-from kakaobank_wrapper.app.middlewares.custom_exception import CustomHTTPException
+from kakaobank_wrapper.app.middlewares.custom_exception import (
+    http_exception_handler,
+    validation_exception_handler,
+)
 
 # from kakaobank_wrapper.app.errors.exceptions import HTTPException
 from fastapi.responses import PlainTextResponse
@@ -23,7 +27,8 @@ def create_app() -> FastAPI:
     # db.init_app(app, **asdict(config()))
     # create_db_table()
     app.add_middleware(CatchExceptionMiddleware)
-    app.add_exception_handler(HTTPException, CustomHTTPException)
+    app.add_exception_handler(HTTPException, http_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.include_router(document_ocr.router, tags=["Document ocr"], prefix="/api/v1")
 
     return app
@@ -31,11 +36,6 @@ def create_app() -> FastAPI:
 
 os.environ["API_ENV"] = "production"
 app = create_app()
-
-
-@app.get("/testapi/v1")
-async def GetTestException():
-    raise HTTPException(status_code="200", detail={})
 
 
 if __name__ == "__main__":

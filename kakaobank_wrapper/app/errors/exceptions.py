@@ -1,27 +1,7 @@
-import http
-
-
 async def exception_handler(error: Exception):
     if not isinstance(error, APIException):
         error = APIException(ex=error, detail=str(error))
     return error
-
-
-class HTTPException(Exception):
-    def __init__(self, status_code: int, detail: str = None) -> None:
-        self.status_code = status_code
-        self.detail = detail
-
-
-# class HTTPException(StarletteHTTPException):
-#     def __init__(
-#         self,
-#         status_code: int,
-#         detail: Any = None,
-#         headers: Optional[Dict[str, Any]] = None,
-#     ) -> None:
-#         super().__init__(status_code=status_code, detail=detail)
-#         self.headers = headers
 
 
 class APIException:
@@ -144,7 +124,6 @@ class parameterException(APIException):
         super().__init__(
             status="8400",
             minQlt=minQlt,
-            description=description,
             reliability="",
             docuType="",
             ocrResult="",
