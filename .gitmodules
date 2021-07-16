@@ -1,3 +1,6 @@
 [submodule "lovit"]
 	path = lovit
 	url = git@ssh.dev.azure.com:v3/textscope/Textscope/lovit
+[submodule "kakaobank_wrapper"]
+	path = kakaobank_wrapper
+	url = git@ssh.dev.azure.com:v3/textscope/Textscope/kakaobank_wrapper
