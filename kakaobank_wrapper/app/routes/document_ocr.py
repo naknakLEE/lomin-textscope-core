@@ -54,7 +54,9 @@ async def get_ocr_request_data(request: Request) -> List[Dict]:
 
 
 async def parse_response(result: Dict, lnbzDocClcd: str) -> Dict:
-    if "code" not in result:  # Invalid return if code is not include in response
+    if (
+        "code" not in result or result.get("code") == "500"
+    ):  # Invalid return if code is not include in response
         raise HTTPException(status_code=200, detail=vars(ex.serverException(minQlt="00")))
     result["status"] = int(result["code"])
     del result["code"]
@@ -68,7 +70,7 @@ async def parse_response(result: Dict, lnbzDocClcd: str) -> Dict:
     return result
 
 
-@router.post("/ocr", status_code=200)
+@router.post("/ocr", response_model=models.InferenceResponse, status_code=200)
 async def inference(
     request: Request,
     lnbzDocClcd: str,
@@ -95,6 +97,7 @@ async def inference(
             data["edmisId"] = edmisId
             file_bytes = await file.read()
             files = {"image": file_bytes}
+
             response = await client.post(
                 f"{textscope_server_url}/v1/inference/pipeline",
                 files=files,
@@ -115,7 +118,7 @@ async def inference(
     pwdNo: Optional[str] = None,
 ) -> Any:
     """
-    ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
+    ### 테스트코드에서 사용하기 위한 API로 존재하지 않는 경로에 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """

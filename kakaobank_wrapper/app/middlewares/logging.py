@@ -1,18 +1,17 @@
-import httpx
-import traceback
-import sys
 import json
 import time
+import httpx
+import traceback
 
 from datetime import datetime
 from fastapi import Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from kakaobank_wrapper.app.utils.logging import logger
-from kakaobank_wrapper.app.errors.exceptions import exception_handler
 from kakaobank_wrapper.app.utils.ocr_response_parser import response_handler
+from kakaobank_wrapper.app.database.schema import Logs
+from kakaobank_wrapper.app.database.connection import db
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -22,6 +21,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
+            request.state.db = next(db.session())
             headers = request.headers
             ip = (
                 headers["x-forwarded-for"]
@@ -60,6 +60,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             # error = await exception_handler(exc)
             await api_logger(request=request, error=response)
             response = JSONResponse(status_code=200, content=response)
+        finally:
+            request.state.db.close()
 
         return response
 
@@ -93,7 +95,7 @@ async def api_logger(request: Request = None, response=None, error=None) -> None
         response_timestamp=str(time.time()),
         processed_time=str(processed_time),
     )
-    # Logs.create_log(request.state.db, auto_commit=True, **log_dict)
+    Logs.create_log(request.state.db, auto_commit=True, **log_dict)
     if error and int(response.get("status")) >= 2000:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
     else:

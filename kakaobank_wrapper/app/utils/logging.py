@@ -1,6 +1,6 @@
 import os
-import logging
 
+from fastapi.logger import logger as logging
 from loguru import logger
 from kakaobank_wrapper.app.common.const import get_settings
 
