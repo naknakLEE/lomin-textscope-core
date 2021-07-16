@@ -19,8 +19,6 @@ def boxlist_iou(boxlist1, boxlist2, divide_by_area2=False, return_all=False):
     Reference:
       https://github.com/chainer/chainercv/blob/master/chainercv/utils/bbox/bbox_iou.py
     """
-    print("\033[95m" + f"{boxlist2.size}" + "\033[m")
-    print("\033[95m" + f"{boxlist1.size}" + "\033[m")
     # assert all(
     #     x != y for x, y in zip(boxlist1.size, boxlist2.size)
     # ), "boxlists should have same image size, got {}, {}".format(

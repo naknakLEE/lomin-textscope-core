@@ -8,7 +8,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
     ports: 
-      - 3307:3306
+      - 8051:3306
     volumes:
       - mysqldata:/var/lib/mysql
     networks:
@@ -23,7 +23,7 @@ services:
       dockerfile: docker/production/Dockerfile.gpu_serving
     container_name: serving
     ports: 
-      - 5000:5000
+      - 8052:5000
     volumes:
       - ./:/workspace
     runtime: nvidia
@@ -85,7 +85,7 @@ services:
       dockerfile: docker/production/Dockerfile.kakao_wrapper
     container_name: kakao_wrapper
     ports: 
-      - 8090:8090
+      - 8050:8090
     volumes:
       - ./:/workspace
     tty: true
@@ -149,7 +149,7 @@ services:
     volumes: 
       - grafana_data:/var/lib/grafana
     ports:
-      - 3000:3000
+      - 8053:3000
     networks:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}

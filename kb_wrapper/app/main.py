@@ -2,6 +2,7 @@ import uvicorn
 import os
 
 from fastapi import FastAPI
+from dataclasses import asdict
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -9,6 +10,9 @@ from fastapi.exceptions import RequestValidationError
 from kb_wrapper.app.common.const import get_settings
 from kb_wrapper.app.middlewares.logging import LoggingMiddleware
 from kb_wrapper.app.routes import idcard_ocr
+from kb_wrapper.app.common.config import config
+from kb_wrapper.app.database.connection import db
+from kb_wrapper.app.database.schema import create_db_table
 
 
 settings = get_settings()
@@ -16,8 +20,10 @@ settings = get_settings()
 
 def create_app() -> FastAPI:
     app = FastAPI()
-    # db.init_app(app, **asdict(config()))
-    # create_db_table()
+
+    db.init_app(app, **asdict(config()))
+    create_db_table()
+
     app.add_middleware(LoggingMiddleware)
     app.include_router(idcard_ocr.router, tags=["Document ocr"])
 

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # MYSQL CONFIG
     MYSQL_ROOT_USER: str
-    MYSQL_DB: str
+    INFERENCE_SERVER_MYSQL_DB: str
     MYSQL_PASSWORD: str
 
     # ACCESS KEY

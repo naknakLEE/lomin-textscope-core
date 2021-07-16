@@ -8,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import SingletonThreadPool
+from sqlalchemy_utils.functions import database_exists, create_database
 
 from kb_wrapper.app.common.const import get_settings
 
@@ -24,6 +25,8 @@ class SQLAlchemy:
 
     def init_app(self, app: FastAPI, **kwargs) -> None:
         database_url = kwargs.get("DB_URL")
+        if not database_exists(database_url):
+            create_database(database_url)
         pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
         echo = kwargs.setdefault("DB_ECHO", False)
 

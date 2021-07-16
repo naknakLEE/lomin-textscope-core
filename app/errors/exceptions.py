@@ -25,7 +25,7 @@ class APIException(Exception):
         self,
         *,
         status_code: int = StatusCode.HTTP_500,
-        code: str = "8400",
+        code: str = "500",
         msg: str = None,
         detail: str = None,
         exc: Exception = None,
@@ -39,9 +39,7 @@ class APIException(Exception):
 
 
 class InferenceException(APIException):
-    def __init__(
-        self, code: str = None, message: str = None, exc: Exception = None
-    ) -> None:
+    def __init__(self, code: str = None, message: str = None, exc: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_416,
             code=f"{code}",

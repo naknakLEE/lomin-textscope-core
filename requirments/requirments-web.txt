@@ -16,6 +16,7 @@ prometheusrock==0.2.0
 requests==2.25.1
 numpy==1.21.0
 httpx==0.18.2
+sqlalchemy-utils==0.37.8
 
 # for development mode
 fastapi_cprofile==0.0.2      
