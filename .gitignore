@@ -149,8 +149,12 @@ Nuitka
 *.mar
 *.npy
 
+# security
+pyarmor*
+
 
 # other repo
 kbcard_wrapper
 kakaobank_wrapper
 bentoml_package
+bentoml_textscope
