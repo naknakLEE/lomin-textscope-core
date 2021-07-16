@@ -148,3 +148,9 @@ Nuitka
 *.xml
 *.mar
 *.npy
+
+
+# other repo
+kbcard_wrapper
+kakaobank_wrapper
+bentoml_package
