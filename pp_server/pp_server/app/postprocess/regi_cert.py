@@ -13,9 +13,10 @@ from pp_server.app.postprocess.commons import _get_iou_y, _get_iou_x, BoxlistPos
 ESTATE_NUM_KEYWORD = "부동산고유번호"
 SERIAL_NUM_KEYWORD = "일련번호"
 UPPER_BOUNDARY_KEYWORDS = ["비밀번호", "일련번호", "등기원인및일자"]
-PERSONAL_INFO_KEYWORDS = ("권리자", "(주민)등록번호")
+PERSONAL_INFO_KEYWORDS = ("권리자", "등록번호")
 BOTTOM_KEYWORDS = ("주소", "부동산고유번호", "부동산소재", "접수일자", "등기목적", "등기원인및일자")
 PADDING_FACTOR = (0.2, 2.5, 0.5, 0.5)
+TARGET_KEYWORDS = PERSONAL_INFO_KEYWORDS + BOTTOM_KEYWORDS
 
 
 def get_keyword_index(preds, KEYWORD, priority="upper"):
@@ -23,7 +24,7 @@ def get_keyword_index(preds, KEYWORD, priority="upper"):
     priority : upper / bottom / right / left
     """
     texts = preds.get_field("texts")
-    edit_distances = [jamo_levenshtein(text, KEYWORD) for text in texts]
+    edit_distances = [jamo_levenshtein(text.split(")")[-1], KEYWORD) for text in texts]
     min_indices = np.where(edit_distances == np.min(edit_distances))[0]
     if len(min_indices) == 1:
         return min_indices[0]
@@ -95,17 +96,12 @@ def get_estate_num(preds):
         filter_mask = (y_iou_score > 0) * (text_filter)
 
         if np.sum(filter_mask) == 0:
-            text_filter = np.array(
-                [True if re.search("\d{4}-", text) else False for text in texts]
-            )
+            text_filter = np.array([True if re.search("\d{4}-", text) else False for text in texts])
             filter_mask = (y_iou_score > 0) * (text_filter)
 
         if np.sum(filter_mask) == 0:
             filter_mask = np.array(
-                [
-                    True if re.search("\d{4}-\d{4}-\d{6}", text) else False
-                    for text in texts
-                ]
+                [True if re.search("\d{4}-\d{4}-\d{6}", text) else False for text in texts]
             )
 
         if np.sum(filter_mask) == 0:
@@ -139,10 +135,7 @@ def get_serial_num(preds):
     try:
         texts = np.array(preds.get_field("texts"))
         text_filter = np.array(
-            [
-                True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                for text in texts
-            ]
+            [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
         )
 
         serial_num = ""
@@ -160,10 +153,7 @@ def get_serial_num(preds):
 
         if np.sum(filter_mask) == 0:
             filter_mask = np.array(
-                [
-                    True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                    for text in texts
-                ]
+                [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
             )
 
         if np.sum(filter_mask) == 0:
@@ -182,10 +172,7 @@ def get_serial_num(preds):
         serial_num = ""
         texts = np.array(preds.get_field("texts"))
         text_filter = np.array(
-            [
-                True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                for text in texts
-            ]
+            [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
         )
         candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
 
@@ -208,14 +195,12 @@ def get_indices(texts, KEYWORDS):
 
 def get_upper_boundary(texts, preds):
     upper_indices = [
-        get_keyword_index(preds, KEYWORD, priority="upper")
-        for KEYWORD in UPPER_BOUNDARY_KEYWORDS
+        get_keyword_index(preds, KEYWORD, priority="upper") for KEYWORD in UPPER_BOUNDARY_KEYWORDS
     ]
     upper_boundary = [preds.bbox[index, 1] for index in upper_indices]
     upper_boundary = sorted(upper_boundary, reverse=True)
 
     return upper_boundary
-
 
 
 def get_person_info_bottom_boundary(keyword_map, bottom_keywords):
@@ -246,13 +231,9 @@ def get_bottom_boundary(preds):
 
 
 def get_resident_registration_number(preds):
-    pwd_candidates = preds.copy_with_fields(
-        list(preds.extra_fields.keys()), skip_missing=False
-    )
+    pwd_candidates = preds.copy_with_fields(list(preds.extra_fields.keys()), skip_missing=False)
     texts = pwd_candidates.get_field("texts")
-    text_filter = np.array(
-        [True if re.match("[0-9]{6}-", text) else False for text in texts]
-    )
+    text_filter = np.array([True if re.match("[0-9]{6}-", text) else False for text in texts])
     pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
     try:
         pwd_numbers = min(50, np.sum(text_filter))
@@ -260,9 +241,7 @@ def get_resident_registration_number(preds):
 
         for upper_boundary in upper_boundaries:
             _pwd_candidates = pwd_candidates[
-                torch.tensor(
-                    pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool
-                )
+                torch.tensor(pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool)
             ]
             # ==가 아니라 >= 사용해야하는거 아닌가?
             if len(_pwd_candidates) == pwd_numbers:
@@ -294,16 +273,10 @@ def get_resident_registration_number(preds):
     return password_texts
 
 
-
 def get_rightful_person(preds):
     try:
         texts = np.array(preds.get_field("texts"))
-        text_filter = np.array(
-            [
-                True if re.findall("[가-힇]{3}", text) else False
-                for text in texts
-            ]
-        )
+        text_filter = np.array([True if re.findall("[가-힇]{3}", text) else False for text in texts])
 
         serial_num = ""
         keyword_index = get_keyword_index(preds, SERIAL_NUM_KEYWORD, priority="upper")
@@ -320,10 +293,7 @@ def get_rightful_person(preds):
 
         if np.sum(filter_mask) == 0:
             filter_mask = np.array(
-                [
-                    True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                    for text in texts
-                ]
+                [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
             )
 
         if np.sum(filter_mask) == 0:
@@ -342,10 +312,7 @@ def get_rightful_person(preds):
         serial_num = ""
         texts = np.array(preds.get_field("texts"))
         text_filter = np.array(
-            [
-                True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                for text in texts
-            ]
+            [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
         )
         candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
 
@@ -355,13 +322,9 @@ def get_rightful_person(preds):
 
 
 def get_passwords(preds):
-    pwd_candidates = preds.copy_with_fields(
-        list(preds.extra_fields.keys()), skip_missing=False
-    )
+    pwd_candidates = preds.copy_with_fields(list(preds.extra_fields.keys()), skip_missing=False)
     texts = pwd_candidates.get_field("texts")
-    text_filter = np.array(
-        [True if re.match("\d{2}-\d{4}", text) else False for text in texts]
-    )
+    text_filter = np.array([True if re.match("\d{2}-\d{4}", text) else False for text in texts])
     pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
     try:
         pwd_numbers = min(50, np.sum(text_filter))
@@ -369,9 +332,7 @@ def get_passwords(preds):
 
         for upper_boundary in upper_boundaries:
             _pwd_candidates = pwd_candidates[
-                torch.tensor(
-                    pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool
-                )
+                torch.tensor(pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool)
             ]
             # ==가 아니라 >= 사용해야하는거 아닌가?
             if len(_pwd_candidates) == pwd_numbers:
@@ -410,6 +371,7 @@ def bbox_vcmp(b0, b1):
 def bbox_hcmp(b0, b1):
     return b0["bbox"][0] - b1["bbox"][0]
 
+
 def merge_line(boxlist):
     bboxes = boxlist.bbox
     texts = boxlist.get_field("texts")
@@ -442,6 +404,7 @@ def find_line_and_merge(bbox, target_boxlist):
     line_boxlist = target_boxlist[y_iou_mask]
     return line_boxlist, merge_line(line_boxlist)
 
+
 def find_values(
     boundary_bbox,
     pred,
@@ -461,26 +424,31 @@ def find_values(
 
     t_mask = bboxes[:, 0] > boundary_bbox[2]
     b_mask = (
-        bboxes[:, 3] < max_y
+        bboxes[:, 1] < max_y
         if max_y is not None
         else torch.ones((bboxes.size(0),), dtype=torch.bool)
     )
     target_mask = t_mask & x_iou_mask & b_mask
 
-    if target_mask.sum() > 0:
-        target_boxlist = pred[target_mask]
+    target_boxlist = pred[target_mask]
+    if target_mask.sum() == 0:
+        return None
+
+    if keyword == "등록번호":
+        boxlist_texts = target_boxlist.extra_fields.get("texts")
+        pasted_text = "".join(boxlist_texts)
+        resident_registration_number = re.findall("[\d]{6}-[\d]*", pasted_text)[0]
+        return resident_registration_number
+    else:
         closest_bbox_idx = None
         for i, bbox in enumerate(target_boxlist.bbox):
-            if (
-                closest_bbox_idx is None
-                or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]
-            ):
+            if closest_bbox_idx is None or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]:
                 closest_bbox_idx = i
 
         bbox = target_boxlist.bbox[closest_bbox_idx]
         _, (bbox, value) = find_line_and_merge(bbox, target_boxlist)
 
-    return value
+        return value
     # else:
     #     max_y = None
 
@@ -521,9 +489,6 @@ def get_longest_bvs(kbv_dict):
     return longest_bvs
 
 
-
-
-
 def get_personal_info(pred, keyword_map, bottom_keywords):
     debug_dic = OrderedDict()
     bb = get_person_info_bottom_boundary(keyword_map, bottom_keywords)
@@ -536,7 +501,7 @@ def get_personal_info(pred, keyword_map, bottom_keywords):
         kbv_dict[keyword] = []
         for i in range(len(keyword_map[keyword])):
             target = keyword_map[keyword][i]["bbox"]
-            max_y = None if i == 0 else bb["bbox"][1]
+            max_y = None if bb is None else bb["bbox"][1]
             width = target[2] - target[0]
             height = target[2] - target[0]
             # boundary_bbox = np.array(
@@ -561,9 +526,33 @@ def get_personal_info(pred, keyword_map, bottom_keywords):
     return kbv_dict
 
 
+def to_numpy(tensor):
+    if tensor.requires_grad:
+        return tensor.detach().cpu().numpy()
+    else:
+        return tensor.cpu().numpy()
+
+
+def save_debug_img(kv_boxes, savepath):
+    kv_boxes = to_numpy(kv_boxes).astype(int)
+    import cv2
+
+    img_arr = cv2.imread("/workspace/bentoml_textscope/1626769155.7656195.jpg")
+    _img_arr = img_arr[:, :, ::-1].copy()
+    for _box in kv_boxes:
+        min_x, min_y, max_x, max_y = _box.tolist()
+        width = max_x - min_x
+        height = max_y - min_y
+        cv2.rectangle(_img_arr, (min_x, min_y, width, height), (255, 0, 0), 1)
+    _img_arr = cv2.cvtColor(_img_arr, cv2.COLOR_BGR2RGB)
+    cv2.imwrite(savepath, _img_arr)
+
 
 def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
+    predictions = PP.remove_overlapped_box(predictions)
+    predictions = predictions[predictions.get_field("scores") > score_thresh]
     predictions = PP.sort_tblr(predictions)
+    # save_debug_img(predictions.bbox, "./test.jpg")
     if isinstance(predictions.bbox, torch.Tensor):
         predictions.bbox = copy.deepcopy(predictions.bbox.numpy())
 
@@ -575,14 +564,20 @@ def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
 
     pred = predictions[predictions.get_field("scores") > score_thresh]
     keyword_map = {}
-    for keyword in PERSONAL_INFO_KEYWORDS:
+    for keyword in TARGET_KEYWORDS:
         keyword_map[keyword] = []
 
     texts = pred.get_field("texts")
 
     for i, text in enumerate(texts):
+        for keyword in BOTTOM_KEYWORDS:
+            if keyword in text:
+                bbox = pred.bbox[i]
+                keyword_map[keyword].append({"bbox": bbox, "text": text})
+
+    for i, text in enumerate(texts):
         for keyword in PERSONAL_INFO_KEYWORDS:
-            if keyword in text or (len(text) > 5 and levenshtein(keyword, text) < 2):
+            if keyword in text or (len(text) > 5 and levenshtein(keyword, text) < 3):
                 bbox = pred.bbox[i]
                 # keyword_map[keyword].append(bbox)
                 keyword_map[keyword].append({"bbox": bbox, "text": text})
@@ -596,18 +591,15 @@ def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
             keyword_map[keyword] = box_dic
 
     try:
-        personal_info = get_personal_info(
-            pred, keyword_map, BOTTOM_KEYWORDS
-        )
+        personal_info = get_personal_info(pred, keyword_map, BOTTOM_KEYWORDS)
     except:
         personal_info = []
         personal_info_debug = {}
 
-
     for k, v in personal_info.items():
-        if k == "권리자":
+        if k == "권리자" and len(v) > 0:
             personal_info[k] = "".join(re.findall("[가-힇]", v))
-        elif k == "(주민)등록번호":
+        elif k == "등록번호" and len(v) > 0:
             personal_info[k] = "".join(re.findall("[\d-]", v))
 
     result = {}
@@ -615,7 +607,7 @@ def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
     result.update({"serial_num": serial_num})
     result.update({"passwords": pwd_texts})
     result.update({"rightful_person": personal_info["권리자"]})
-    result.update({"resident_registration_number": personal_info["(주민)등록번호"]})
+    result.update({"resident_registration_number": personal_info["등록번호"]})
 
     result_all_classes = {}
 
