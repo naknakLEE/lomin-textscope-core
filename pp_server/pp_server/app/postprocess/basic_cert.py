@@ -1,3 +1,5 @@
+import enum
+import copy
 from functools import cmp_to_key
 import torch
 import numpy as np
@@ -22,6 +24,8 @@ from pp_server.app.postprocess.family_cert import (
 )
 
 
+
+PERSONAL_INFO_KEYWORDS = ("구분", "성명", "출생연월일", "주민등록번호")
 PERSONAL_INFO_KEYWORDS = ("구분", "성명", "출생연월일", "주민등록번호")
 DATE_WILDCARD_KEYWORDS = (
     "출생년월일",
@@ -87,6 +91,45 @@ def filter_pred(pred):
     return filter_pred
 
 
+
+def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
+    value = list()
+    try:
+        bboxes = pred.bbox
+        if isinstance(bboxes, torch.Tensor):
+            bboxes = bboxes.numpy()
+
+        edit_distances = [
+            jamo_levenshtein(keyword, text) / len(keyword) for text in texts
+        ]
+
+        key_index = np.argmin(edit_distances)
+
+        ## There is no similar word with keyword!
+        if edit_distances[key_index] > 0.2:
+            return ""
+        key_bbox = bboxes[key_index]
+        x0, y0, x1, y1 = key_bbox
+
+        right_mask = torch.tensor(pred.bbox[:, 0] > ((x0 + x1) / 2), dtype=torch.bool)
+        right_pred = pred[right_mask]
+        right_bboxes = bboxes[right_mask.numpy()]
+
+        y_iou_score = _get_iou_y(np.expand_dims(key_bbox, 0), right_bboxes)
+        valid_value = y_iou_score[0]>threshold
+        valid_index = [i for i, value in enumerate(valid_value) if value]
+        value_num = len(valid_index) if value_num > len(valid_index) else value_num
+        valid_index = valid_index[:value_num]
+        
+        for index in valid_index:
+            value.append(right_pred.get_field("texts")[index])
+            
+        # value_idx = np.argsort(y_iou_score[0])[-2:]
+    except:
+        pass
+
+    return value
+
 def get_right_value(pred, texts, keyword):
     try:
         bboxes = pred.bbox
@@ -123,15 +166,34 @@ def get_right_value(pred, texts, keyword):
 
     return value
 
+def split_parental_authority_value(parent_relation, parental_authority):
+    # 이름과 관계 분리
+    assert len(parent_relation) == 2
+    copy_parent_relation = copy.deepcopy(parent_relation)
+    for i, value in enumerate(copy_parent_relation):
+        if len(value) == 1:
+            parental_authority["relation"] = parent_relation.pop(i)
+            break
+    parental_authority["authName"] = parent_relation[0]
+    return parental_authority
+
+
+
 
 def get_parental_authority(pred):
     texts = pred.get_field("texts")
     texts = _remove_invalid_characters(_remove_others_in_text(texts))
 
-    parent_relation = get_right_value(pred, texts, "친권자")
-    parent_regnum_key = get_right_value(pred, texts, "친권자의주민등록번호")
-
-    return parent_relation, parent_regnum_key
+    parent_relation = get_multiple_right_value(pred, texts, "친권자")
+    if len(parent_relation) == 0:
+        parent_relation = get_multiple_right_value(pred, texts, "친권행사자")
+    parental_authority = {
+        "authName": "",
+        "relation": "",
+    }
+    if len(parent_relation) == 2:
+        parental_authority = split_parental_authority_value(parent_relation, parental_authority) 
+    return parental_authority
 
 
 def parse_personal_info(personal_info):
@@ -208,7 +270,8 @@ def postprocess_basic_cert(pred, score_thresh=0.5, *args):
         issue_date = ""
         issuedate_debug = {}
 
-    parent_relation, parent_regnum = get_parental_authority(pred)
+    parental_authority = get_parental_authority(pred)
+    get_parental_authority
 
     debug_dic.update(personal_info_debug)
     debug_dic.update(issuedate_debug)
@@ -226,8 +289,9 @@ def postprocess_basic_cert(pred, score_thresh=0.5, *args):
     result.update({"name": name})
     result.update({"regnum": regnum})
     result.update({"issue_date": issue_date})
-    result.update({"relation": parent_relation})
-    result.update({"is_parent": parent_regnum})
+    result.update({"authStatus": "Y" if len(parental_authority["relation"]) else "N"})
+    result.update({"relation": parental_authority["relation"]})
+    result.update({"authName": parental_authority["authName"]})
 
     result = obj_to_kvdict(result)
     return result, debug_dic

@@ -85,11 +85,20 @@ async def regi_cert(data: dict = Body(...)) -> Any:
 
 ############################## for debugging ##############################
 
-with open("/workspace/assets/boxlist_data.pickle", "rb") as fr:
-    saved_data = pickle.load(fr)
-boxlist = create_boxlist(saved_data)
-result, debug_dic = postprocess_regi_cert(boxlist)
-logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
+
+
+
+# with open("/workspace/assets/basic_cert_boxlist_data.pickle", "rb") as fr:
+#     saved_data = pickle.load(fr)
+# boxlist = create_boxlist(saved_data)
+# result, debug_dic = postprocess_basic_cert(boxlist)
+# logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
+
+# with open("/workspace/assets/boxlist_data.pickle", "rb") as fr:
+#     saved_data = pickle.load(fr)
+# boxlist = create_boxlist(saved_data)
+# result, debug_dic = postprocess_regi_cert(boxlist)
+# logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
 
 
 
