@@ -113,8 +113,12 @@ def _resize_quads(quads, prediction, mask_size=(28, 28)):
     assert len(quads) == len(prediction)
     quads = [q.astype(dtype=np.float32) for q in quads]
     bboxes = prediction.bbox.numpy().astype(dtype=np.int32)
-    box_ws = (bboxes[:, 2] - bboxes[:, 0] - 1).astype(dtype=np.int32) / (mask_size[0] - 1)
-    box_hs = (bboxes[:, 3] - bboxes[:, 1] - 1).astype(dtype=np.int32) / (mask_size[1] - 1)
+    box_ws = (bboxes[:, 2] - bboxes[:, 0] - 1).astype(dtype=np.int32) / (
+        mask_size[0] - 1
+    )
+    box_hs = (bboxes[:, 3] - bboxes[:, 1] - 1).astype(dtype=np.int32) / (
+        mask_size[1] - 1
+    )
 
     im_w, im_h = prediction.size
     new_quads = list()
@@ -217,17 +221,21 @@ def _get_line_number(boxlist, iou_threshold=0.25, x_weight=0.75):
         no_line_index[top_instance_index] = False
         behind_top_index = x_min[top_instance_index] <= x_min
         iou_y_top = iou_y[top_instance_index]
-        same_line_index = np.where((iou_y_top > iou_threshold) & behind_top_index)[0].tolist()
+        same_line_index = np.where((iou_y_top > iou_threshold) & behind_top_index)[
+            0
+        ].tolist()
         while len(same_line_index) > 0:
             index = same_line_index.pop(0)
             if no_line_index[index]:
                 lines[index] = line_index
                 iou_y_top = iou_y[index]
                 behind_top_index = x_min[index] < x_min
-                sub_same_line_index = np.where((iou_y_top > iou_threshold) & behind_top_index)[
-                    0
-                ].tolist()
-                same_line_index += list(set(sub_same_line_index) - set(same_line_index + [index]))
+                sub_same_line_index = np.where(
+                    (iou_y_top > iou_threshold) & behind_top_index
+                )[0].tolist()
+                same_line_index += list(
+                    set(sub_same_line_index) - set(same_line_index + [index])
+                )
         line_index += 1
 
     unique_lines = list(set(lines))
@@ -345,7 +353,9 @@ class BoxlistPostprocessor:
     def decode_text(boxlist, converter, remove_others=False):
         """decode texts from e2e prediction"""
         text_tensors = boxlist.get_field("trans")
-        batch_max_length = torch.IntTensor([text_tensors[0].shape[0]] * len(text_tensors))
+        batch_max_length = torch.IntTensor(
+            [text_tensors[0].shape[0]] * len(text_tensors)
+        )
         decoded_texts = converter.decode(torch.stack(text_tensors), batch_max_length)
         decoded_texts = [trans[: trans.find("[s]")] for trans in decoded_texts]
         if remove_others:
@@ -357,7 +367,9 @@ class BoxlistPostprocessor:
     def decode_text_rec(boxlist, converter, remove_others=False):
         """decode texts from prediction of recognition model"""
         text_tensors = boxlist.get_field("pred").unsqueeze(0).type(torch.int32)
-        decoded_texts = converter.decode(text_tensors, torch.tensor([text_tensors.shape[1]]))
+        decoded_texts = converter.decode(
+            text_tensors, torch.tensor([text_tensors.shape[1]])
+        )
         decoded_texts = [trans[: trans.find("[s]")] for trans in decoded_texts]
         if remove_others:
             decoded_texts = _remove_others_in_text(decoded_texts)
@@ -376,7 +388,8 @@ class BoxlistPostprocessor:
     def filter_invalid_polygons(boxlist):
         quads = boxlist.get_field("quads")
         polygons = [
-            Polygon([(x.item(), y.item()) for x, y in zip(q[:, 0], q[:, 1])]) for q in quads
+            Polygon([(x.item(), y.item()) for x, y in zip(q[:, 0], q[:, 1])])
+            for q in quads
         ]
         boxlist.add_field("polygons", polygons)
 

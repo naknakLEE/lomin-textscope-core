@@ -5,7 +5,11 @@ import re
 from collections import OrderedDict
 from soynlp.hangle import levenshtein
 
-from pp_server.app.postprocess.commons import _get_iou_x, _get_iou_y, BoxlistPostprocessor as PP
+from pp_server.app.postprocess.commons import (
+    _get_iou_x,
+    _get_iou_y,
+    BoxlistPostprocessor as PP,
+)
 from pp_server.app.structures.keyvalue_dict import KVDict
 
 TITLE_KEYWORDS = (
@@ -21,7 +25,16 @@ TITLE_KEYWORDS = (
     "가족관계증명서(특정",
 )
 PERSONAL_INFO_KEYWORDS = ("구분", "성명", "출생연월일", "주민등록번호")
-DATE_WILDCARD_KEYWORDS = ("출생년월일", "중생연월일", "충생연월일", "충생년월일", "출상년월일", "중앙연월일", "순생연월일", "중상연월일")
+DATE_WILDCARD_KEYWORDS = (
+    "출생년월일",
+    "중생연월일",
+    "충생연월일",
+    "충생년월일",
+    "출상년월일",
+    "중앙연월일",
+    "순생연월일",
+    "중상연월일",
+)
 DATE_KEYWORDS = ("년", "월", "일")
 PADDING_FACTOR = (0.2, 2.5, 0.5, 0.5)
 
@@ -70,7 +83,11 @@ def postprocess_family_cert(pred, score_thresh=0.5, *args):
                 for wildcard in DATE_WILDCARD_KEYWORDS + (keyword,):
                     # print("\033[95m" + f"wildcard: {wildcard}" + "\033[m")
                     # print("\033[95m" + f"text: {text}" + "\033[m")
-                    if len(text) > 4 and wildcard in text or levenshtein(wildcard, text) < 3:
+                    if (
+                        len(text) > 4
+                        and wildcard in text
+                        or levenshtein(wildcard, text) < 3
+                    ):
                         bbox = pred.bbox[i]
                         # keyword_map[keyword].append(bbox)
                         keyword_map[keyword].append({"bbox": bbox, "text": text})
@@ -85,7 +102,9 @@ def postprocess_family_cert(pred, score_thresh=0.5, *args):
             keyword_map[keyword] = box_dic
 
     try:
-        personal_info, personal_info_debug = get_personal_info(pred, keyword_map, BOTTOM_KEYWORDS)
+        personal_info, personal_info_debug = get_personal_info(
+            pred, keyword_map, BOTTOM_KEYWORDS
+        )
     except:
         personal_info = []
         personal_info_debug = {}
@@ -183,7 +202,10 @@ def get_issue_date(pred, keyword_map, bottom_keywords):
         closest_bbox_idx = None
         texts = target_boxlist.get_field("texts")
         for i, bbox in enumerate(target_boxlist.bbox):
-            if closest_bbox_idx is None or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]:
+            if (
+                closest_bbox_idx is None
+                or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]
+            ):
                 closest_bbox_idx = i
 
         if closest_bbox_idx == None:
@@ -227,7 +249,14 @@ def get_title(pred):
 
 
 def find_values(
-    boundary_bbox, pred, debug_dic, keyword, idx, max_y=None, x_iou_thres=0.25, is_name=False
+    boundary_bbox,
+    pred,
+    debug_dic,
+    keyword,
+    idx,
+    max_y=None,
+    x_iou_thres=0.25,
+    is_name=False,
 ):
     bboxes = pred.bbox
 
@@ -250,7 +279,10 @@ def find_values(
         target_boxlist = pred[target_mask]
         closest_bbox_idx = None
         for i, bbox in enumerate(target_boxlist.bbox):
-            if closest_bbox_idx is None or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]:
+            if (
+                closest_bbox_idx is None
+                or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]
+            ):
                 closest_bbox_idx = i
 
         bbox = target_boxlist.bbox[closest_bbox_idx]
@@ -285,7 +317,14 @@ def find_values(
     else:
         boundary_bbox = np.array(bbox)
     return values + find_values(
-        boundary_bbox, pred, debug_dic, keyword, (idx[0], idx[1] + 1), max_y, x_iou_thres, is_name
+        boundary_bbox,
+        pred,
+        debug_dic,
+        keyword,
+        (idx[0], idx[1] + 1),
+        max_y,
+        x_iou_thres,
+        is_name,
     )
 
 
@@ -359,7 +398,9 @@ def find_personal_info_group(kbv_dict):
                 left_bbox = birth_bboxes[birth_box_idx]
             else:
                 left_bbox = base_bbox
-            y_iou_score = _get_iou_y(left_bbox[None, :], target_bboxes, divide_by_area2=True)
+            y_iou_score = _get_iou_y(
+                left_bbox[None, :], target_bboxes, divide_by_area2=True
+            )
             y_iou_mask = y_iou_score > 0.2
             if isinstance(y_iou_mask, np.ndarray):
                 y_iou_mask = torch.tensor(y_iou_mask)
@@ -438,7 +479,9 @@ def validate_parent(kbv_dict):
                 "부" if match_target_idx == 1 else "모",
             )
 
-            gubun_bvs = gubun_bvs[:match_target_idx] + [item] + gubun_bvs[match_target_idx:]
+            gubun_bvs = (
+                gubun_bvs[:match_target_idx] + [item] + gubun_bvs[match_target_idx:]
+            )
         return gubun_bvs
     else:
         all_gubun_keys = [_[1] for _ in gubun_bvs]
@@ -451,10 +494,12 @@ def validate_parent(kbv_dict):
             gubun_self_bbox = [np.array(_[0]) for _ in gubun_bvs if _[1] == "본인"][0]
             gubun_spouse_bbox = [np.array(_[0]) for _ in gubun_bvs if _[1] == "배우자"][0]
             gubun_father_bbox = [
-                interpolate(a, b, ip_father) for a, b in zip(gubun_self_bbox, gubun_spouse_bbox)
+                interpolate(a, b, ip_father)
+                for a, b in zip(gubun_self_bbox, gubun_spouse_bbox)
             ]
             gubun_mother_bbox = [
-                interpolate(a, b, ip_mother) for a, b in zip(gubun_self_bbox, gubun_spouse_bbox)
+                interpolate(a, b, ip_mother)
+                for a, b in zip(gubun_self_bbox, gubun_spouse_bbox)
             ]
             item_father = ([torch.tensor(_) for _ in gubun_father_bbox], "부")
             item_mother = ([torch.tensor(_) for _ in gubun_mother_bbox], "모")

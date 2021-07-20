@@ -34,10 +34,13 @@ class BoxList(object):
         ):
             bbox = torch.as_tensor(bbox, dtype=torch.float32, device=device)
         if bbox.ndimension() != 2:
-            raise ValueError("bbox should have 2 dimensions, got {}".format(bbox.ndimension()))
+            raise ValueError(
+                "bbox should have 2 dimensions, got {}".format(bbox.ndimension())
+            )
         if bbox.size(-1) != 4:
             raise ValueError(
-                "last dimension of bbox should have a " "size of 4, got {}".format(bbox.size(-1))
+                "last dimension of bbox should have a "
+                "size of 4, got {}".format(bbox.size(-1))
             )
         if mode not in ("xyxy", "xywh"):
             raise ValueError("mode should be 'xyxy' or 'xywh'")
@@ -87,7 +90,9 @@ class BoxList(object):
             bbox = BoxList(bbox, self.size, mode=mode)
         else:
             TO_REMOVE = 1
-            bbox = torch.cat((xmin, ymin, xmax - xmin + TO_REMOVE, ymax - ymin + TO_REMOVE), dim=-1)
+            bbox = torch.cat(
+                (xmin, ymin, xmax - xmin + TO_REMOVE, ymax - ymin + TO_REMOVE), dim=-1
+            )
             bbox = BoxList(bbox, self.size, mode=mode)
         bbox._copy_extra_fields(self)
         return bbox
@@ -141,7 +146,9 @@ class BoxList(object):
         scaled_xmax = xmax * ratio_width
         scaled_ymin = ymin * ratio_height
         scaled_ymax = ymax * ratio_height
-        scaled_box = torch.cat((scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax), dim=-1)
+        scaled_box = torch.cat(
+            (scaled_xmin, scaled_ymin, scaled_xmax, scaled_ymax), dim=-1
+        )
 
         bbox = BoxList(scaled_box, size, mode="xyxy")
         if len(self.safe_crop) != 0:
@@ -164,7 +171,8 @@ class BoxList(object):
             if (
                 "safe_area" in self.safe_crop
                 and "outer_area" in self.safe_crop
-                and not self.safe_crop["outer_area"][3] >= self.safe_crop["safe_area"][3]
+                and not self.safe_crop["outer_area"][3]
+                >= self.safe_crop["safe_area"][3]
             ):
                 import pdb
 
@@ -233,7 +241,9 @@ class BoxList(object):
         box = self.bbox
         if self.mode == "xyxy":
             TO_REMOVE = 1
-            area = (box[:, 2] - box[:, 0] + TO_REMOVE) * (box[:, 3] - box[:, 1] + TO_REMOVE)
+            area = (box[:, 2] - box[:, 0] + TO_REMOVE) * (
+                box[:, 3] - box[:, 1] + TO_REMOVE
+            )
         elif self.mode == "xywh":
             area = box[:, 2] * box[:, 3]
         else:
@@ -259,7 +269,9 @@ class BoxList(object):
         # assert boxlist.mode == self.mode
         assert set(boxlist.fields()) == set(self.fields())
 
-        merged_boxlist = BoxList(torch.cat((self.bbox, boxlist.bbox), dim=0), self.size, self.mode)
+        merged_boxlist = BoxList(
+            torch.cat((self.bbox, boxlist.bbox), dim=0), self.size, self.mode
+        )
         # if len(self.safe_crop) != 0:
         #     bbox.safe_crop = self.safe_crop
         for k, v in self.extra_fields.items():

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="app",
+    name="pp_server",
     version="1.0",
     description="Textscope post processing",
     author="Lomin",
@@ -9,7 +9,7 @@ setup(
     install_requires=[],
     packages=find_packages(),
     python_requires=">=3",
-    package_data={"app": []},
+    package_data={"pp_server": []},
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",

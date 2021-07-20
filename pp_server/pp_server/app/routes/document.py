@@ -3,6 +3,7 @@ import asyncio
 import numpy as np
 import sys
 import traceback
+import pickle
 
 from loguru import logger
 from fastapi import Body
@@ -11,14 +12,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter
 
 from pp_server.app.common.const import get_settings
-from pp_server.app.postprocess import family_cert, basic_cert, rrtable, regi_cert
-from pp_server.app.utils import create_boxlist
+from pp_server.app.postprocess.family_cert import postprocess_family_cert
+from pp_server.app.postprocess.basic_cert import postprocess_basic_cert
+from pp_server.app.postprocess.rrtable import postprocess_rrtable
+from pp_server.app.postprocess.regi_cert import postprocess_regi_cert
+from pp_server.app.utils.utils import create_boxlist
 
-
-postprocess_basic_cert = basic_cert.postprocess_basic_cert
-postprocess_family_cert = family_cert.postprocess_family_cert
-postprocess_regi_cert = regi_cert.postprocess_regi_cert
-postprocess_rrtable = rrtable.postprocess_rrtable
 
 
 settings = get_settings()
@@ -85,6 +84,23 @@ async def regi_cert(data: dict = Body(...)) -> Any:
 
 
 ############################## for debugging ##############################
+
+with open("/workspace/assets/boxlist_data.pickle", "rb") as fr:
+    saved_data = pickle.load(fr)
+boxlist = create_boxlist(saved_data)
+result, debug_dic = postprocess_regi_cert(boxlist)
+logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
+
+
+
+# with open("/workspace/assets/family_cert_boxlist_data.pickle", "rb") as fr:
+#     saved_data = pickle.load(fr)
+# boxlist = create_boxlist(saved_data)
+# result, debug_dic = postprocess_family_cert(boxlist)
+# logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
+
+
+
 # settings = get_settings()
 # MODEL_SERVER_URL = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 # PP_SERVER_URL = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"

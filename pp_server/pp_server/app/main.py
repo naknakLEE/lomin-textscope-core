@@ -1,8 +1,11 @@
+import os
 import uvicorn
 
 from pp_server.app.common.const import get_settings
 from pp_server.app.utils.create_app import app_generator
 
+
+os.environ["API_ENV"] = "production"
 settings = get_settings()
 app = app_generator()
 args = {

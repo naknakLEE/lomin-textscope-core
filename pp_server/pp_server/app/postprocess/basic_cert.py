@@ -4,8 +4,15 @@ import numpy as np
 import re
 from collections import OrderedDict
 from soynlp.hangle import jamo_levenshtein, levenshtein
-from pp_server.app.postprocess.commons import _get_iou_x, _get_iou_y, BoxlistPostprocessor as PP
-from pp_server.app.postprocess.commons import _remove_invalid_characters, _remove_others_in_text
+from pp_server.app.postprocess.commons import (
+    _get_iou_x,
+    _get_iou_y,
+    BoxlistPostprocessor as PP,
+)
+from pp_server.app.postprocess.commons import (
+    _remove_invalid_characters,
+    _remove_others_in_text,
+)
 from pp_server.app.postprocess.family_cert import (
     get_personal_info,
     get_issue_date,
@@ -16,7 +23,16 @@ from pp_server.app.postprocess.family_cert import (
 
 
 PERSONAL_INFO_KEYWORDS = ("구분", "성명", "출생연월일", "주민등록번호")
-DATE_WILDCARD_KEYWORDS = ("출생년월일", "중생연월일", "충생연월일", "충생년월일", "출상년월일", "중앙연월일", "순생연월일", "중상연월일")
+DATE_WILDCARD_KEYWORDS = (
+    "출생년월일",
+    "중생연월일",
+    "충생연월일",
+    "충생년월일",
+    "출상년월일",
+    "중앙연월일",
+    "순생연월일",
+    "중상연월일",
+)
 
 PADDING_FACTOR = (0.2, 2.5, 0.5, 0.5)
 
@@ -77,7 +93,9 @@ def get_right_value(pred, texts, keyword):
         if isinstance(bboxes, torch.Tensor):
             bboxes = bboxes.numpy()
 
-        edit_distances = [jamo_levenshtein(keyword, text) / len(keyword) for text in texts]
+        edit_distances = [
+            jamo_levenshtein(keyword, text) / len(keyword) for text in texts
+        ]
 
         key_index = np.argmin(edit_distances)
 
@@ -94,7 +112,11 @@ def get_right_value(pred, texts, keyword):
         y_iou_score = _get_iou_y(np.expand_dims(key_bbox, 0), right_bboxes)
 
         value_idx = np.argmax(y_iou_score[0])
-        value = right_pred.get_field("texts")[value_idx] if y_iou_score[0][value_idx] > 0.5 else ""
+        value = (
+            right_pred.get_field("texts")[value_idx]
+            if y_iou_score[0][value_idx] > 0.5
+            else ""
+        )
 
     except:
         value = ""
@@ -155,7 +177,11 @@ def postprocess_basic_cert(pred, score_thresh=0.5, *args):
                 keyword_map[keyword].append({"bbox": bbox, "text": text})
             elif keyword == PERSONAL_INFO_KEYWORDS[2]:  # dirty code
                 for wildcard in DATE_WILDCARD_KEYWORDS + (keyword,):
-                    if len(text) > 4 and wildcard in text or levenshtein(wildcard, text) < 3:
+                    if (
+                        len(text) > 4
+                        and wildcard in text
+                        or levenshtein(wildcard, text) < 3
+                    ):
                         bbox = filtered_pred.bbox[i]
                         keyword_map[keyword].append({"bbox": bbox, "text": text})
                         break

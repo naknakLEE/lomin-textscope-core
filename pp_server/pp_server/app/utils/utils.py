@@ -1,11 +1,12 @@
 import PIL
-from PIL import Image
+import pickle
 import numpy as np
 import cv2
 import torch
 import re
 import os
 
+from PIL import Image
 from os import getcwd
 from loguru import logger
 from collections import defaultdict
@@ -29,6 +30,9 @@ def create_boxlist(data):
     logger.info(f"texts: {texts}")
     boxlist.add_field("scores", np.array(data["scores"]))
     boxlist.add_field("texts", texts)
+
+    with open(f"/workspace/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
+        pickle.dump(data, fw)
     return boxlist
 
 
