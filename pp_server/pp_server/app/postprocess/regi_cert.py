@@ -13,7 +13,7 @@ from pp_server.app.postprocess.commons import _get_iou_y, _get_iou_x, BoxlistPos
 ESTATE_NUM_KEYWORD = "부동산고유번호"
 SERIAL_NUM_KEYWORD = "일련번호"
 UPPER_BOUNDARY_KEYWORDS = ["비밀번호", "일련번호", "등기원인및일자"]
-PERSONAL_INFO_KEYWORDS = ("권리자", "등록번호")
+PERSONAL_INFO_KEYWORDS = ("등록번호", "혥횷횷혥")
 BOTTOM_KEYWORDS = ("주소", "부동산고유번호", "부동산소재", "접수일자", "등기목적", "등기원인및일자")
 PADDING_FACTOR = (0.2, 2.5, 0.5, 0.5)
 TARGET_KEYWORDS = PERSONAL_INFO_KEYWORDS + BOTTOM_KEYWORDS
@@ -405,20 +405,18 @@ def find_line_and_merge(bbox, target_boxlist):
     return line_boxlist, merge_line(line_boxlist)
 
 
-def find_values(
-    boundary_bbox,
-    pred,
-    debug_dic,
-    keyword,
-    idx,
-    max_y=None,
-    x_iou_thres=0.25,
-    is_name=False,
-):
-    bboxes = pred.bbox
+"""
+min_y = pred.bbox[keyword_index][1].tolist()
+for bottom in pred.bbox[:,1].tolist():
+    if bottom < min_y:
+        min_y = bottom
+pred.bbox[keyword_index][1] > 
+"""
 
-    keyword_index = get_keyword_index(pred, keyword, priority="upper")
-    x_iou_scores = _get_iou_y(pred.bbox[np.array([keyword_index])], pred.bbox)[0]
+
+def get_target_mask(boundary_bbox, pred, max_y, x_iou_thres, bbox):
+    bboxes = pred.bbox
+    x_iou_scores = _get_iou_y(bbox, pred.bbox)[0]
     x_iou_mask = x_iou_scores > x_iou_thres
     x_iou_mask = torch.squeeze(x_iou_mask, dim=0)
 
@@ -434,51 +432,84 @@ def find_values(
     if target_mask.sum() == 0:
         return None
 
+    return target_mask, target_boxlist
+
+
+def cal_find_value(keyword, target_boxlist):
     if keyword == "등록번호":
         boxlist_texts = target_boxlist.extra_fields.get("texts")
         pasted_text = "".join(boxlist_texts)
-        resident_registration_number = re.findall("[\d]{6}-[\d]*", pasted_text)[0]
+        resident_registration_number = "".join(re.findall("[\d-]", pasted_text))
+        if len(resident_registration_number) == 0:
+            resident_registration_number = ""
         return resident_registration_number
-    else:
-        closest_bbox_idx = None
-        for i, bbox in enumerate(target_boxlist.bbox):
-            if closest_bbox_idx is None or bbox[1] < target_boxlist.bbox[closest_bbox_idx][1]:
-                closest_bbox_idx = i
+    elif keyword == "권리자":
+        boxlist_texts = target_boxlist.extra_fields.get("texts")
+        pasted_text = "".join(boxlist_texts)
+        right_holder = "".join(re.findall("[가-힇]", pasted_text))
+        return right_holder
 
-        bbox = target_boxlist.bbox[closest_bbox_idx]
-        _, (bbox, value) = find_line_and_merge(bbox, target_boxlist)
 
-        return value
-    # else:
-    #     max_y = None
+def get_right_holder_keyword_index(pred, keyword_index, x_iou_thres=0.5):
+    # x_iou 구해서 가능성 있는 값 중에 박스 선택하도록 수정 필요
+    x_iou_scores = _get_iou_x(pred.bbox[np.array([keyword_index])], pred.bbox)[0]
+    x_iou_mask = x_iou_scores > x_iou_thres
+    x_iou_mask = torch.squeeze(x_iou_mask, dim=0)
 
-    # if len(values) > 0:
-    #     debug_dic.update(
-    #         {
-    #             "%s_%d_%d"
-    #             % (keyword, idx[0], idx[1]): [
-    #                 {"bbox": value[0], "text": value[1]} for value in values
-    #             ]
-    #         }
-    #     )
+    keyword_position = pred.bbox[keyword_index]
+    margin_x = (keyword_position[2] - keyword_position[0]) * 0.2
+    min_x = keyword_position[0] - margin_x
+    max_x = keyword_position[2] + margin_x
+    margin_y = (keyword_position[3] - keyword_position[1]) * 0.5
+    max_y = keyword_position[1] + margin_y
 
-    # if max_y is None:
-    #     return values
+    target_x = min_x
+    target_index = -1
+    for i, position in enumerate(pred.bbox.tolist()):
+        if (
+            position[1] < max_y
+            and position[3] > target_x
+            and (min_x < position[0] and max_x > position[2])
+            and keyword_position != position
+        ):
+            target_x = position[3]
+            target_index = i
+    return target_index
 
-    # if is_name:
-    #     boundary_bbox = np.array([boundary_bbox[0], bbox[1], boundary_bbox[2], bbox[3]])
-    # else:
-    #     boundary_bbox = np.array(bbox)
-    # return values + find_values(
-    #     boundary_bbox,
-    #     pred,
-    #     debug_dic,
-    #     keyword,
-    #     (idx[0], idx[1] + 1),
-    #     max_y,
-    #     x_iou_thres,
-    #     is_name,
-    # )
+
+def find_values(
+    boundary_bbox,
+    pred,
+    keyword,
+    max_y=None,
+    x_iou_thres=0.25,
+):
+    resident_registration_number = ""
+    right_holder = ""
+
+    keyword_index = get_keyword_index(pred, keyword, priority="upper")
+    resident_registration_number_bbox = pred.bbox[np.array([keyword_index])]
+    target_mask, target_boxlist = get_target_mask(
+        boundary_bbox, pred, max_y, x_iou_thres, resident_registration_number_bbox
+    )
+    if target_mask.sum() > 0:
+        resident_registration_number = cal_find_value("등록번호", target_boxlist)
+
+    bbox = pred.bbox[keyword_index]
+    margin_y = (bbox[3] - bbox[1]) * 0.7
+    right_holder_bbox = torch.tensor(
+        [np.array([bbox[0], bbox[1] - margin_y, bbox[2], bbox[3] - margin_y])]
+    )
+    target_mask, target_boxlist = get_target_mask(
+        boundary_bbox, pred, max_y, x_iou_thres, right_holder_bbox
+    )
+    if target_mask.sum() > 0:
+        right_holder = cal_find_value("권리자", target_boxlist)
+
+    return {
+        "resident_registration_number": resident_registration_number,
+        "right_holder": right_holder,
+    }
 
 
 def get_longest_bvs(kbv_dict):
@@ -494,7 +525,7 @@ def get_personal_info(pred, keyword_map, bottom_keywords):
     bb = get_person_info_bottom_boundary(keyword_map, bottom_keywords)
 
     kbv_dict = {}
-    for keyword, padding in zip(PERSONAL_INFO_KEYWORDS, PADDING_FACTOR):
+    for keyword in PERSONAL_INFO_KEYWORDS:
         if keyword not in keyword_map:
             continue
 
@@ -502,26 +533,14 @@ def get_personal_info(pred, keyword_map, bottom_keywords):
         for i in range(len(keyword_map[keyword])):
             target = keyword_map[keyword][i]["bbox"]
             max_y = None if bb is None else bb["bbox"][1]
-            width = target[2] - target[0]
-            height = target[2] - target[0]
-            # boundary_bbox = np.array(
-            #     [
-            #         target[0] - width / 2 * padding,
-            #         target[1],
-            #         target[2] + width / 2 * padding,
-            #         target[3],
-            #     ]
-            # )
             boundary_bbox = target
             bvs = find_values(
                 boundary_bbox,
                 pred,
-                debug_dic=debug_dic,
                 keyword=keyword,
-                idx=(i, 0),
                 max_y=max_y,
             )
-            kbv_dict[keyword] = bvs
+            kbv_dict.update(bvs)
 
     return kbv_dict
 
@@ -594,20 +613,13 @@ def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
         personal_info = get_personal_info(pred, keyword_map, BOTTOM_KEYWORDS)
     except:
         personal_info = []
-        personal_info_debug = {}
-
-    for k, v in personal_info.items():
-        if k == "권리자" and len(v) > 0:
-            personal_info[k] = "".join(re.findall("[가-힇]", v))
-        elif k == "등록번호" and len(v) > 0:
-            personal_info[k] = "".join(re.findall("[\d-]", v))
 
     result = {}
     result.update({"estate_num": estate_num})
     result.update({"serial_num": serial_num})
     result.update({"passwords": pwd_texts})
-    result.update({"rightful_person": personal_info["권리자"]})
-    result.update({"resident_registration_number": personal_info["등록번호"]})
+    result.update({"rightful_person": personal_info["right_holder"]})
+    result.update({"resident_registration_number": personal_info["resident_registration_number"]})
 
     result_all_classes = {}
 
