@@ -1,4 +1,4 @@
-FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu20.04
+FROM textscoperegistry.azurecr.io/opencv_base_image:ubuntu18.04
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
