@@ -17,14 +17,27 @@ services:
     restart: always
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
+    image: docker.lomin.ai/ts-gpu-serving:0.0.1
     build:
       context: ./
-      dockerfile: docker/development/Dockerfile.gpu_serving
+      dockerfile: docker/production/Dockerfile.gpu_serving
+      args:
+        USER: ${USER}
+        BUNDLE_PATH: ${BUNDLE_PATH}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        MODEL_TYPE: ${MODEL_TYPE}
+        MODEL_SERVICE: ${MODEL_SERVICE}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
     container_name: serving
     ports: 
-      - 5000:5000
+      - 8052:5000
     volumes:
+      - ./logs:/workspace/logs
+      - /home/shinuk/.ssh:/root/.ssh:ro
       - ./:/workspace
     runtime: nvidia
     #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
@@ -35,18 +48,27 @@ services:
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
+    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn .
     # command: bentoml serve-gunicorn DocumentModelService:latest
     # command: bentoml serve-gunicorn IdcardModelService:latest
 
   web:
-    image: docker.lomin.ai/ts-web-dev:0.0.1
+    image: docker.lomin.ai/ts-web:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.web
+      args:
+        USER: ${USER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
     container_name: web
     ports: 
       - 8000:8000
     volumes:
+      - ./logs:/workspace/logs
       - ./:/workspace
     tty: true
     depends_on: 
@@ -59,14 +81,23 @@ services:
     # command: python3 app/main.py
 
   pp:
-    image: docker.lomin.ai/ts-pp-dev:0.0.1
+    image: docker.lomin.ai/ts-pp:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
+      args:
+        USER: ${USER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
     container_name: pp
     ports: 
       - 8080:8080
     volumes:
+      - ./logs:/workspace/logs
+      - /home/shinuk/.ssh:/root/.ssh:ro
       - ./:/workspace
     tty: true
     depends_on: 
@@ -78,20 +109,29 @@ services:
     # command: python pp_server/dist/main/main
     # command: python pp_server/app/main.py
 
-  kakao_wrapper:
-    image: docker.lomin.ai/ts-kakao_wrapper-dev:0.0.1
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper:0.0.1
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.kakao_wrapper
-    container_name: kakao_wrapper
+      dockerfile: docker/production/Dockerfile.wrapper
+      args:
+        USER: ${USER}
+        CUSTOMER: kakaobank
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
+    container_name: wrapper
     ports: 
       - 8050:8090
     volumes:
+      - ./logs:/workspace/logs
       - ./:/workspace
     tty: true
     networks:
       our_net:
-          ipv4_address: ${KAKAO_WRAPPER_IP_ADDR}
+          ipv4_address: ${WRAPPER_IP_ADDR}
     restart: unless-stopped
     # command: python kakaobank_wrapper/dist/main/main
 
@@ -128,9 +168,6 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    depends_on: 
-      - web
-      # - serving
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -149,7 +186,7 @@ services:
     volumes: 
       - grafana_data:/var/lib/grafana
     ports:
-      - 3000:3000
+      - 8053:3000
     networks:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}

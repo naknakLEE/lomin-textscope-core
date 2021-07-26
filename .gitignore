@@ -154,6 +154,7 @@ Nuitka
 # security
 pyarmor*
 *.hvc
+linuxenv
 
 
 

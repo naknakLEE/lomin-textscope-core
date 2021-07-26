@@ -21,6 +21,17 @@ services:
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.gpu_serving
+      args:
+        USER: ${USER}
+        BUNDLE_PATH: /workspace/bentoml_textscope/DocumentModelService/DocumentModelService
+        PYTHON_VERSION: 3.6
+        MODEL_TYPE: document
+        MODEL_SERVICE: document_model_service
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
     container_name: serving
     ports: 
       - 8052:5000
@@ -35,6 +46,7 @@ services:
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
+    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn ./DocumentModelService
     # command: bentoml serve-gunicorn DocumentModelService:latest
     # command: bentoml serve-gunicorn IdcardModelService:latest
 
@@ -43,6 +55,13 @@ services:
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.web
+      args:
+        USER: ${USER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
     container_name: web
     ports: 
       - 8000:8000
@@ -63,6 +82,13 @@ services:
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
+      args:
+        USER: ${USER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
     container_name: pp
     ports: 
       - 8080:8080
@@ -78,12 +104,20 @@ services:
     # command: python pp_server/dist/main/main
     # command: python pp_server/app/main.py
 
-  kakao_wrapper:
-    image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper:0.0.1
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.kakao_wrapper
-    container_name: kakao_wrapper
+      dockerfile: docker/production/Dockerfile.wrapper
+      args:
+        USER: ${USER}
+        CUSTOMER: kakaobank
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
+    container_name: wrapper
     ports: 
       - 8050:8090
     volumes:
@@ -91,7 +125,7 @@ services:
     tty: true
     networks:
       our_net:
-          ipv4_address: ${KAKAO_WRAPPER_IP_ADDR}
+          ipv4_address: ${WRAPPER_IP_ADDR}
     restart: unless-stopped
     # command: python kakaobank_wrapper/dist/main/main
 
@@ -125,35 +159,32 @@ services:
       our_net:
         ipv4_address: ${NODE_EXPORTER_IP_ADDR}
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    depends_on: 
-      - web
-      # - serving
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - 9090:9090
-    networks:
-      our_net:
-          ipv4_address: ${PROMETHEUS_IP_ADDR}
-    restart: always
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   ports:
+  #     - 9090:9090
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${PROMETHEUS_IP_ADDR}
+  #   restart: always
     
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    depends_on: 
-      - prometheus
-    volumes: 
-      - grafana_data:/var/lib/grafana
-    ports:
-      - 8053:3000
-    networks:
-      our_net:
-          ipv4_address: ${GRAFANA_IP_ADDR}
-    restart: always
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   depends_on: 
+  #     - prometheus
+  #   volumes: 
+  #     - grafana_data:/var/lib/grafana
+  #   ports:
+  #     - 8053:3000
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${GRAFANA_IP_ADDR}
+  #   restart: always
 
 
   mysql-exporter:
