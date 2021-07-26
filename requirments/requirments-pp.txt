@@ -1,0 +1,22 @@
+fastapi==0.65.2
+uvicorn==0.14.0    
+python-multipart==0.0.5         
+python-dotenv==0.17.1     
+pydantic[email,dotenv]==1.8.2
+numpy==1.21.0
+httpx==0.18.2
+Shapely==1.8a1
+scikit-image==0.18.2
+pdf2image==1.16.0
+tifffile==2021.6.14
+soynlp==0.0.493
+loguru==0.5.3
+pyarmor==6.7.3
+PyInstaller==4.3
+sqlalchemy-utils==0.37.8
+mysqlclient==2.0.3
+
+-f https://download.pytorch.org/whl/torch_stable.html
+torch==1.8.1+cpu
+-f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.9.1+cpu

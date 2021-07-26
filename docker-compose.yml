@@ -1,0 +1,183 @@
+version: '2.3'
+
+services:
+  mysql:
+    image: mysql:8.0.25
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
+    ports: 
+      - 8051:3306
+    volumes:
+      - mysqldata:/var/lib/mysql
+    networks:
+      our_net:
+          ipv4_address: ${MYSQL_IP_ADDR}
+    restart: always
+  
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving:0.0.1
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.gpu_serving
+    container_name: serving
+    ports: 
+      - 8052:5000
+    volumes:
+      - ./:/workspace
+    runtime: nvidia
+    #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    tty: true
+    depends_on: 
+      - mysql
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_IP_ADDR}
+    # command: bentoml serve-gunicorn DocumentModelService:latest
+    # command: bentoml serve-gunicorn IdcardModelService:latest
+
+  web:
+    image: docker.lomin.ai/ts-web:0.0.1
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.web
+    container_name: web
+    ports: 
+      - 8000:8000
+    volumes:
+      - ./:/workspace
+    tty: true
+    depends_on: 
+      - mysql
+    networks:
+      our_net:
+          ipv4_address: ${WEB_IP_ADDR}
+    restart: unless-stopped
+    # command: python3 dist/main/main
+    # command: python3 app/main.py
+
+  pp:
+    image: docker.lomin.ai/ts-pp:0.0.1
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.pp
+    container_name: pp
+    ports: 
+      - 8080:8080
+    volumes:
+      - ./:/workspace
+    tty: true
+    depends_on: 
+      - mysql
+    networks:
+      our_net:
+          ipv4_address: ${PP_IP_ADDR}
+    restart: unless-stopped
+    # command: python pp_server/dist/main/main
+    # command: python pp_server/app/main.py
+
+  kakao_wrapper:
+    image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.kakao_wrapper
+    container_name: kakao_wrapper
+    ports: 
+      - 8050:8090
+    volumes:
+      - ./:/workspace
+    tty: true
+    networks:
+      our_net:
+          ipv4_address: ${KAKAO_WRAPPER_IP_ADDR}
+    restart: unless-stopped
+    # command: python kakaobank_wrapper/dist/main/main
+
+  proxy:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_IP_ADDR}
+
+  gpu_telemetry:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+    container_name: gpu_telemetry
+    ports:
+      - 9400:9400
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+
+  hardware_telemetry:
+    image: prom/node-exporter
+    container_name: hardware_telemetry
+    ports:
+      - 9100:9100
+    networks:
+      our_net:
+        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    depends_on: 
+      - web
+      # - serving
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - 9090:9090
+    networks:
+      our_net:
+          ipv4_address: ${PROMETHEUS_IP_ADDR}
+    restart: always
+    
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    depends_on: 
+      - prometheus
+    volumes: 
+      - grafana_data:/var/lib/grafana
+    ports:
+      - 8053:3000
+    networks:
+      our_net:
+          ipv4_address: ${GRAFANA_IP_ADDR}
+    restart: always
+
+
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    container_name: mysqld-exporter
+    ports:
+      - 9104:9104
+    environment:
+      - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+    cap_add:
+      - SYS_NICE
+    networks:
+      our_net:
+        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+    restart: always
+
+volumes: 
+  prometheus_data: {}
+  grafana_data: {}
+  pgdata: {}
+  mysqldata: {}
+
+networks:
+  our_net:
+    ipam:
+      config:
+        - subnet: 182.20.0.0/24

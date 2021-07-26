@@ -1,0 +1,79 @@
+{
+    "document": {
+        "type": "streamer_id",
+        "resources": [
+            {
+                "type": "torchscript_model",
+                "name": "detection_model",
+                "model_path": "assets/document_detection/1/gocr_chshin_efficientdet_d4_210607_model_0169999_F1_93.ts",
+                "preprocess": [
+                    {
+                        "type": "resize",
+                        "resize_mode": "keep_ratio",
+                        "min_size": 320,
+                        "max_size": 384
+                    },
+                    {
+                        "type": "norm_std",
+                        "mean": [
+                            102.9801,
+                            115.9465,
+                            122.7717
+                        ],
+                        "std": [
+                            1,
+                            1,
+                            1
+                        ]
+                    },
+                    {
+                        "type": "pad_with_stride",
+                        "stride": 32
+                    }
+                ],
+                "config": {
+                    "label_classes": [
+                        "bg",
+                        "arc_nationality",
+                        "arc_visa",
+                        "dlc_license_num",
+                        "dlc_license_region",
+                        "dlc_serial_num",
+                        "expiration_date",
+                        "id",
+                        "issue_date",
+                        "name"
+                    ]
+                }
+            },
+            {
+                "type": "onnx_model",
+                "name": "recognition_model",
+                "model_path": "assets/recognizer/1/general_200702_skjung_001_rec.ts",
+                "batch_size": 9,
+                "preprocess": [
+                    {
+                        "type": "resize",
+                        "resize_mode": "horizontal_padding",
+                        "width": 128,
+                        "height": 32
+                    },
+                    {
+                        "type": "norm_std",
+                        "mode": "n1p1",
+                        "mean": [
+                            0.5,
+                            0.5,
+                            0.5
+                        ],
+                        "std": [
+                            0.5,
+                            0.5,
+                            0.5
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

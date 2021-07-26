@@ -1,0 +1,18 @@
+bentoml==0.12.1
+typing==3.7.4.3
+pydantic[email,dotenv]==1.8.2
+imageio==2.9.0
+onnx==1.9.0
+onnxruntime-gpu==1.8.0
+imutils==0.5.4
+loguru==0.5.3
+azure-storage-blob==12.8.1     
+scikit-build==0.11.1
+opencv-python==4.5.2.54
+fvcore==0.1.5.post20210630
+pyarmor==6.7.3
+
+# for tiff
+pdf2image==1.16.0
+imagecodecs==2020.5.30
+tifffile==2020.9.3

@@ -1,0 +1,46 @@
+FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
+
+ARG BUNDLE_PATH="/root/bentoml/repository/DocumentModelService/v1/DocumentModelService/"
+ARG BENTOML_PACKAGE_PATH="/usr/local/lib/python3.6/dist-packages/bentoml/frameworks"
+ARG MODEL_TYPE="document"
+ARG MODEL_SERVICE="document_model_service"
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+RUN apt-get update && \
+    apt-get install nano && \
+    apt-get install -y git  && \
+    apt-get install wget && \
+    apt-get -y install python3-pip && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
+    apt-get -y install libgl1-mesa-glx libglib2.0-0
+
+RUN apt install -y libprotobuf-dev protobuf-compiler && \
+    apt-get -y install cmake
+
+WORKDIR /
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install --upgrade pip && \
+    pip3 install -r ./guides/quick-start/requirements.txt
+
+WORKDIR /bin
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
+    chmod 755 jq
+
+COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
+COPY ./lovit /workspace/lovit
+
+RUN pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+RUN pip3 install -r /workspace/requirments-serving.txt
+
+WORKDIR /workspace
+RUN cd lovit &&\ 
+    python3 setup.py install
+
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
+
