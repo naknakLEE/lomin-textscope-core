@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     BACKUP_COUNT: int = 100000000
 
     class Config:
-        env_file = ".env"
+        env_file = "/workspace/.env"
 
 
 @lru_cache()
