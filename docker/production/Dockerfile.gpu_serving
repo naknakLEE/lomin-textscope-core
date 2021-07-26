@@ -1,10 +1,18 @@
-FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
+ARG UBUNTU_VERSION
 
-ARG BUNDLE_PATH="/root/bentoml/repository/DocumentModelService/v1/DocumentModelService/"
-ARG BENTOML_PACKAGE_PATH="/usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks"
-ARG PYTHON_VERSION="3.6"
-ARG MODEL_TYPE="document"
-ARG MODEL_SERVICE="document_model_service"
+FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
+
+ARG PYTHON_VERSION
+ARG MODEL_TYPE
+ARG MODEL_SERVICE
+ARG BASE_PATH
+ARG LINUX_ENV_PATH
+ARG DEMOMA_PATH
+ARG SO_EXTENTION
+ARG USER
+ARG BUNDLE_PATH
+ARG BENTOML_PACKAGE_PATH=/usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks
+ARG APP_NAME=bentoml_textscope
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 ENV LC_ALL=C.UTF-8
@@ -20,25 +28,30 @@ RUN apt-get update && \
 RUN apt install -y libprotobuf-dev protobuf-compiler && \
     apt-get -y install cmake
 
-WORKDIR /
+RUN rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
 RUN git clone http://github.com/bentoml/bentoml && \
     cd bentoml && \
     pip3 install --upgrade pip && \
     pip3 install -r ./guides/quick-start/requirements.txt
 
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
+
+# for bento dockerization
 WORKDIR /bin
 RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
     chmod 755 jq
 
 RUN pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 
-COPY ./inference_server /workspace/inference_server
-COPY ./bentoml_package/bentoml_package /workspace/bentoml_package
+COPY ./${APP_NAME} /workspace/${APP_NAME}
+COPY ./assets/thales/ /workspace/assets/thales
 COPY ./lovit /workspace/lovit
 COPY ./.env /workspace/.env
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
-COPY ./assets/textscope_${MODEL_TYPE}.json /workspace/assets/textscope_${MODEL_TYPE}.json
-COPY ./assets/textscope_id.json /workspace/assets/textscope_id.json
 
 RUN pip3 install -r /workspace/requirments-serving.txt
 
@@ -46,38 +59,34 @@ WORKDIR /workspace/lovit
 RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
-WORKDIR /workspace
-RUN python3 inference_server/utils/azure_blob_container/download_blob_to_local.py && \
-    python3 inference_server/generate_${MODEL_SERVICE}.py
+# AWS 이전 예정
+# WORKDIR /workspace
+# RUN python3 ${APP_NAME}/utils/azure_blob_container/download_blob_to_local.py && \
+#     python3 ${APP_NAME}/generate_${MODEL_SERVICE}.py
 
-RUN git clone https://github.com/Nuitka/Nuitka.git && \
-    cd Nuitka && \
-    python3 setup.py install
+WORKDIR /workspace/${APP_NAME}
+RUN python3 bentoml_textscope/generate_document_model_service.py 
 
-WORKDIR ${BENTOML_PACKAGE_PATH}
-RUN cp /workspace/bentoml_package/frameworks/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
-    pyarmor obfuscate --restrict 0 --no-cross-protection --package-runtime 0 pytorch.py && \
-    cd dist && \
+WORKDIR /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
+RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
     python3 -m nuitka --module pytorch.py && \
-    rm -r ../pytorch.py pytorch.py && \
-    mv * ../ && \
-    cd .. && \
-    cp _pytransform.so pytransform.py ${BUNDLE_PATH}/ && \
-    touch __init__.py && \
-    cp /workspace/bentoml_package/saved_bundle/loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py && \
-    cp /workspace/bentoml_package/saved_bundle/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py
+    rm -r pytorch.py pytorch.build __pycache__ && \
+    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pytorch.${SO_EXTENTION} pytorch.${SO_EXTENTION} && \
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py && \
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py
 
 WORKDIR ${BUNDLE_PATH}
-RUN mkdir assets && \ 
-    mv /workspace/assets/*.json ./assets/ && \
-    mv /workspace/.env .env && \ 
-    mv ./inference_server/${MODEL_SERVICE}.py ./${MODEL_SERVICE}.py && \
-    python3 -m nuitka --module inference_server --include-package=inference_server && \
-    python3 -m nuitka --module ${MODEL_SERVICE}.py
+RUN python3 /workspace/bentoml_textscope/bentoml_textscope/encrytion.py && \
+    python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME} && \
+    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
 
-RUN rm -r /workspace/* ${BUNDLE_PATH}/inference_server ${BUNDLE_PATH}/${MODEL_SERVICE}.py && \
-    rm -r ${BENTOML_PACKAGE_PATH}/__pycache__ ${BENTOML_PACKAGE_PATH}/__init__.py
+RUN rm -r /workspace/bentoml /workspace/assets /workspace/Nuitka && \
+    rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/requirments-serving.txt && \
+    rm -r ${BUNDLE_PATH}/${APP_NAME} ${BUNDLE_PATH}/${APP_NAME}.build 
 
-# CMD ["bentoml", "serve-gunicorn", "DocumentModelService:latest"]
-# cp _pytransform.so pytransform.py /workspace/
-# cp /workspace/bentoml_package/saved_bundle/loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py
+# root 권한 제거
+# RUN groupadd -r ${USER} && useradd --no-log-init -r -g ${USER} ${USER}
+# USER ${USER}
+
+# 바로 서비스 실행하도록
+# ENTRYPOINT ["BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml", "bentoml", "serve-gunicorn", "."]

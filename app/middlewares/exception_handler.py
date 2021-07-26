@@ -3,7 +3,9 @@ from starlette.responses import JSONResponse
 from fastapi import Request
 
 
-async def validation_exception_handler(request: Request, exc: RuntimeError) -> JSONResponse:
+async def validation_exception_handler(
+    request: Request, exc: RuntimeError
+) -> JSONResponse:
     return JSONResponse(
         status_code=400,
         content=jsonable_encoder(

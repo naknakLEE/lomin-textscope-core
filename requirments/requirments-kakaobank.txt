@@ -6,9 +6,9 @@ sqlalchemy==1.3.24
 loguru==0.5.3
 python-multipart==0.0.5      
 opencv-python==4.5.2.54
-tifffile==2021.6.14
+tifffile==2020.9.3
 pdf2image==1.16.0
-scikit-image==0.18.2
+scikit-image==0.17.2
 sqlalchemy-utils==0.37.8
 mysqlclient==2.0.3
 

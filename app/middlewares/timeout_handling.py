@@ -46,7 +46,9 @@ future = asyncio.wait_for(loop.run_in_executor(None, time.sleep, 2), timeout)
 
 
 class TimeoutMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         try:
             # return loop.run_until_complete(future)
             # with timeout(1):

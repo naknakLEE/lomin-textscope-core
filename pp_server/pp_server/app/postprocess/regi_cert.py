@@ -273,53 +273,6 @@ def get_resident_registration_number(preds):
     return password_texts
 
 
-def get_rightful_person(preds):
-    try:
-        texts = np.array(preds.get_field("texts"))
-        text_filter = np.array([True if re.findall("[가-힇]{3}", text) else False for text in texts])
-
-        serial_num = ""
-        keyword_index = get_keyword_index(preds, SERIAL_NUM_KEYWORD, priority="upper")
-        y_iou_score = _get_iou_y(preds.bbox[np.array([keyword_index])], preds.bbox)[0]
-
-        y_iou_score[keyword_index] = 0
-        filter_mask = (y_iou_score > 0) * (text_filter)
-
-        if np.sum(filter_mask) == 0:
-            text_filter = np.array(
-                [True if re.search("[A-Z]{4}", text) else False for text in texts]
-            )
-            filter_mask = (y_iou_score > 0) * (text_filter)
-
-        if np.sum(filter_mask) == 0:
-            filter_mask = np.array(
-                [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
-            )
-
-        if np.sum(filter_mask) == 0:
-            filter_mask = np.array(
-                [True if re.search("[A-Z]{4}", text) else False for text in texts]
-            )
-
-        candidates = preds[torch.tensor(filter_mask, dtype=torch.bool)]
-
-        if len(candidates) > 0:
-            candidates_text = candidates.get_field("texts")
-            max_idx = np.argmax(y_iou_score[filter_mask])
-            serial_num = candidates_text[max_idx]
-
-    except:
-        serial_num = ""
-        texts = np.array(preds.get_field("texts"))
-        text_filter = np.array(
-            [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
-        )
-        candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
-
-        if len(candidates) > 0:
-            candidates_text = candidates.get_field("texts")
-            serial_num = candidates_text[0]
-
 
 def get_passwords(preds):
     pwd_candidates = preds.copy_with_fields(list(preds.extra_fields.keys()), skip_missing=False)
@@ -437,6 +390,17 @@ def get_target_mask(boundary_bbox, pred, max_y, x_iou_thres, bbox):
 
 def cal_find_value(keyword, target_boxlist):
     if keyword == "등록번호":
+        closest_bbox_idx = None
+        texts = target_boxlist.get_field("texts")
+        for i, bbox in enumerate(target_boxlist.bbox):
+            if (
+                closest_bbox_idx is None
+                or "".join(re.findall("[\d-]{6}", target_boxlist.extra_fields.get("texts")[closest_bbox_idx]))
+            ):
+                closest_bbox_idx = i
+
+        bbox = target_boxlist.bbox[closest_bbox_idx]
+        line_boxlist, (bbox, value) = find_line_and_merge(bbox, target_boxlist)
         boxlist_texts = target_boxlist.extra_fields.get("texts")
         pasted_text = "".join(boxlist_texts)
         resident_registration_number = "".join(re.findall("[\d-]", pasted_text))
@@ -444,37 +408,21 @@ def cal_find_value(keyword, target_boxlist):
             resident_registration_number = ""
         return resident_registration_number
     elif keyword == "권리자":
+        closest_bbox_idx = None
+        texts = target_boxlist.get_field("texts")
+        for i, bbox in enumerate(target_boxlist.bbox):
+            if (
+                closest_bbox_idx is None
+                or bbox[0] < target_boxlist.bbox[closest_bbox_idx][0]
+            ):
+                closest_bbox_idx = i
+
+        bbox = target_boxlist.bbox[closest_bbox_idx]
+        line_boxlist, (bbox, value) = find_line_and_merge(bbox, target_boxlist)
         boxlist_texts = target_boxlist.extra_fields.get("texts")
         pasted_text = "".join(boxlist_texts)
         right_holder = "".join(re.findall("[가-힇]", pasted_text))
         return right_holder
-
-
-def get_right_holder_keyword_index(pred, keyword_index, x_iou_thres=0.5):
-    # x_iou 구해서 가능성 있는 값 중에 박스 선택하도록 수정 필요
-    x_iou_scores = _get_iou_x(pred.bbox[np.array([keyword_index])], pred.bbox)[0]
-    x_iou_mask = x_iou_scores > x_iou_thres
-    x_iou_mask = torch.squeeze(x_iou_mask, dim=0)
-
-    keyword_position = pred.bbox[keyword_index]
-    margin_x = (keyword_position[2] - keyword_position[0]) * 0.2
-    min_x = keyword_position[0] - margin_x
-    max_x = keyword_position[2] + margin_x
-    margin_y = (keyword_position[3] - keyword_position[1]) * 0.5
-    max_y = keyword_position[1] + margin_y
-
-    target_x = min_x
-    target_index = -1
-    for i, position in enumerate(pred.bbox.tolist()):
-        if (
-            position[1] < max_y
-            and position[3] > target_x
-            and (min_x < position[0] and max_x > position[2])
-            and keyword_position != position
-        ):
-            target_x = position[3]
-            target_index = i
-    return target_index
 
 
 def find_values(

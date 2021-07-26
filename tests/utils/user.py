@@ -12,7 +12,9 @@ from tests.utils.utils import random_email, random_lower_string
 settings = get_settings()
 
 
-def user_authentication(*, client: TestClient, email: str, password: str) -> Dict[str, str]:
+def user_authentication(
+    *, client: TestClient, email: str, password: str
+) -> Dict[str, str]:
     data = {"email": email, "password": password}
 
     r = client.post("/auth/token", data=data)
@@ -31,7 +33,9 @@ def authentication_token_from_email(
     del user.id, user.updated_at, user.created_at, user._sa_instance_state
     user_in = UserInDB(**user.__dict__, password=password)
     if not user:
-        user = Users.create(get_db, username=user.username, email=email, password=password)
+        user = Users.create(
+            get_db, username=user.username, email=email, password=password
+        )
     else:
         user = Users.update(get_db, db_obj=user, obj_in=user_in)
         user = Users.get(email=email)

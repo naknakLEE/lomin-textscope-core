@@ -7,10 +7,10 @@ onnxruntime-gpu==1.8.0
 imutils==0.5.4
 loguru==0.5.3
 azure-storage-blob==12.8.1     
-scikit-build==0.11.1
 opencv-python==4.5.2.54
 fvcore==0.1.5.post20210630
 pyarmor==6.7.3
+scikit-image==0.17.2
 
 # for tiff
 pdf2image==1.16.0

@@ -18,7 +18,9 @@ settings = get_settings()
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         try:
             request.state.req_time = datetime.utcnow()
             request.state.start = time.time()

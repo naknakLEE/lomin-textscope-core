@@ -92,6 +92,8 @@ def filter_pred(pred):
 
 
 
+
+
 def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
     value = list()
     try:
@@ -118,11 +120,11 @@ def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
         y_iou_score = _get_iou_y(np.expand_dims(key_bbox, 0), right_bboxes)
         valid_value = y_iou_score[0]>threshold
         valid_index = [i for i, value in enumerate(valid_value) if value]
-        value_num = len(valid_index) if value_num > len(valid_index) else value_num
-        valid_index = valid_index[:value_num]
+        # value_num = len(valid_index) if value_num > len(valid_index) else value_num
+        # valid_index = valid_index[:value_num]
         
         for index in valid_index:
-            value.append(right_pred.get_field("texts")[index])
+            value.append({"text": right_pred.get_field("texts")[index], "bbox":right_pred.bbox[np.array([index])]})
             
         # value_idx = np.argsort(y_iou_score[0])[-2:]
     except:
@@ -168,30 +170,66 @@ def get_right_value(pred, texts, keyword):
 
 def split_parental_authority_value(parent_relation, parental_authority):
     # 이름과 관계 분리
-    assert len(parent_relation) == 2
+    assert len(parent_relation) >= 2
     copy_parent_relation = copy.deepcopy(parent_relation)
     for i, value in enumerate(copy_parent_relation):
-        if len(value) == 1:
-            parental_authority["relation"] = parent_relation.pop(i)
+        if len(value["text"]) == 1:
+            relation = parent_relation.pop(i)
+            parental_authority["relation"] = relation["text"]
+            relation_x = relation["bbox"][0][2]
             break
-    parental_authority["authName"] = parent_relation[0]
+    for value in parent_relation:
+        if value["bbox"][0][0] > relation_x:
+            parental_authority["authName"] = value["text"]
     return parental_authority
 
 
+
+def get_target_mask(pred, x_iou_thres, bbox):
+    # bboxes = pred.bbox
+    x_iou_scores = _get_iou_y(bbox, pred.bbox)[0]
+    x_iou_mask = x_iou_scores > x_iou_thres
+    x_iou_mask = torch.squeeze(x_iou_mask, dim=0)
+
+    # t_mask = bboxes[:, 0] > boundary_bbox[2]
+
+    # b_mask = (
+    #     bboxes[:, 1] < max_y
+    #     if max_y is not None
+    #     else torch.ones((bboxes.size(0),), dtype=torch.bool)
+    # )
+    # target_mask = t_mask & x_iou_mask & b_mask
+    target_mask = x_iou_mask
+
+    target_boxlist = pred[target_mask]
+    if target_mask.sum() == 0:
+        return None
+
+    return target_mask, target_boxlist
 
 
 def get_parental_authority(pred):
     texts = pred.get_field("texts")
     texts = _remove_invalid_characters(_remove_others_in_text(texts))
 
-    parent_relation = get_multiple_right_value(pred, texts, "친권자")
-    if len(parent_relation) == 0:
-        parent_relation = get_multiple_right_value(pred, texts, "친권행사자")
     parental_authority = {
         "authName": "",
         "relation": "",
     }
-    if len(parent_relation) == 2:
+    # box_index_list = list()
+    # for i, bbox in enumerate(pred.bbox):
+    #     if bbox[1] > 1908 - 50 and bbox[3] < 1958 + 50:
+    #         box_index_list.append(i)
+
+    parent_relation = get_multiple_right_value(pred, texts, "친권자")
+    if len(parent_relation) == 0:
+        parent_relation = get_multiple_right_value(pred, texts, "친권행사자")
+    if len(parent_relation) == 1:
+        parental_authority["authName"] = parent_relation[0]["text"]
+        target_mask, target_boxlist = get_target_mask(
+            pred, x_iou_thres=0.1, bbox=parent_relation[0]["bbox"]
+        )
+    elif len(parent_relation) >= 2:
         parental_authority = split_parental_authority_value(parent_relation, parental_authority) 
     return parental_authority
 
@@ -212,12 +250,38 @@ def parse_personal_info(personal_info):
     return name, regnum
 
 
-def postprocess_basic_cert(pred, score_thresh=0.5, *args):
+
+
+def to_numpy(tensor):
+    if tensor.requires_grad:
+        return tensor.detach().cpu().numpy()
+    else:
+        return tensor.cpu().numpy()
+
+
+def save_debug_img(kv_boxes, savepath):
+    kv_boxes = to_numpy(kv_boxes).astype(int)
+    import cv2
+
+    img_arr = cv2.imread("/workspace/bentoml_textscope/rotated_img.jpg")
+    _img_arr = img_arr[:, :, ::-1].copy()
+    for _box in kv_boxes:
+        min_x, min_y, max_x, max_y = _box.tolist()
+        width = max_x - min_x
+        height = max_y - min_y
+        cv2.rectangle(_img_arr, (min_x, min_y, width, height), (255, 0, 0), 3)
+    _img_arr = cv2.cvtColor(_img_arr, cv2.COLOR_BGR2RGB)
+    cv2.imwrite(savepath, _img_arr)
+
+
+def postprocess_basic_cert(pred, score_thresh=0.3, *args):
     debug_dic = OrderedDict()
-    pred = PP.remove_overlapped_box(pred)
+    pred = PP.remove_overlapped_box(pred, iou_thresh=0.85)
     pred = pred[pred.get_field("scores") > score_thresh]
 
-    filtered_pred = filter_pred(pred)
+    # filtered_pred = filter_pred(pred)
+    filtered_pred = pred
+    save_debug_img(filtered_pred.bbox, "./test.jpg")
 
     keyword_map = {}
     for keyword in TARGET_KEYWORDS:
@@ -271,7 +335,6 @@ def postprocess_basic_cert(pred, score_thresh=0.5, *args):
         issuedate_debug = {}
 
     parental_authority = get_parental_authority(pred)
-    get_parental_authority
 
     debug_dic.update(personal_info_debug)
     debug_dic.update(issuedate_debug)

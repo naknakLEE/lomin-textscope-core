@@ -17,13 +17,13 @@ services:
     restart: always
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:0.0.1
+    image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.gpu_serving
+      dockerfile: docker/development/Dockerfile.gpu_serving
     container_name: serving
     ports: 
-      - 8052:5000
+      - 5000:5000
     volumes:
       - ./:/workspace
     runtime: nvidia
@@ -39,7 +39,7 @@ services:
     # command: bentoml serve-gunicorn IdcardModelService:latest
 
   web:
-    image: docker.lomin.ai/ts-web:0.0.1
+    image: docker.lomin.ai/ts-web-dev:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.web
@@ -59,7 +59,7 @@ services:
     # command: python3 app/main.py
 
   pp:
-    image: docker.lomin.ai/ts-pp:0.0.1
+    image: docker.lomin.ai/ts-pp-dev:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
@@ -79,7 +79,7 @@ services:
     # command: python pp_server/app/main.py
 
   kakao_wrapper:
-    image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
+    image: docker.lomin.ai/ts-kakao_wrapper-dev:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.kakao_wrapper
@@ -149,7 +149,7 @@ services:
     volumes: 
       - grafana_data:/var/lib/grafana
     ports:
-      - 8053:3000
+      - 3000:3000
     networks:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}

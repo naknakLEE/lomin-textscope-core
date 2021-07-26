@@ -35,7 +35,9 @@ def app_generator() -> FastAPI:
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 
-        app.add_middleware(PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True)
+        app.add_middleware(
+            PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
+        )
     elif settings.PROFILING_TOOL == "cProfile":
         from fastapi_cprofile.profiler import CProfileMiddleware
 

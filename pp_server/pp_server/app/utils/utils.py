@@ -25,13 +25,14 @@ def create_boxlist(data):
     #         logger.info(np.array(data[attr]))
     #     else:
     #         logger.info(np.array(data[attr]))
+    logger.debug(data["boxes"])
     texts = convert_recognition_to_text(np.array(data["rec_preds"]))
     boxlist = BoxList(np.array(data["boxes"]), np.array(data["img_size"]))
     logger.info(f"texts: {texts}")
     boxlist.add_field("scores", np.array(data["scores"]))
     boxlist.add_field("texts", texts)
 
-    with open(f"/workspace/assets/regi_cert_boxlist_data.pickle", "wb") as fw:
+    with open(f"/workspace/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
         pickle.dump(data, fw)
     return boxlist
 

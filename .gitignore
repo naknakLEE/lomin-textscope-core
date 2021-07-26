@@ -140,6 +140,7 @@ app.*
 Nuitka
 *.bin
 *.build
+*.pyi
 
 # data
 *.jpg
@@ -148,9 +149,12 @@ Nuitka
 *.xml
 *.mar
 *.npy
+*.pickle
 
 # security
 pyarmor*
+*.hvc
+
 
 
 # # other repo

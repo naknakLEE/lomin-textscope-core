@@ -54,7 +54,9 @@ class BaseMixin:
 
     def all_columns(self) -> List:
         return [
-            c for c in self.__table__.columns if c.primary_key is False and c.name != "created_at"
+            c
+            for c in self.__table__.columns
+            if c.primary_key is False and c.name != "created_at"
         ]
 
     @classmethod
@@ -73,7 +75,9 @@ class BaseMixin:
         return query.first()
 
     @classmethod
-    def get_multi(cls, session: Session, skip: int = 0, limit: int = 100) -> Optional[ModelType]:
+    def get_multi(
+        cls, session: Session, skip: int = 0, limit: int = 100
+    ) -> Optional[ModelType]:
         query = session.query(cls).offset(skip).limit(limit)
         return query.all()
 
@@ -104,7 +108,9 @@ class BaseMixin:
         return user
 
     @classmethod
-    def create(cls, session: Session, auto_commit=True, **kwargs) -> Optional[ModelType]:
+    def create(
+        cls, session: Session, auto_commit=True, **kwargs
+    ) -> Optional[ModelType]:
         is_exist = cls.get_by_email(session, email=kwargs["email"])
         if is_exist:
             return "This user already exist"
@@ -123,7 +129,9 @@ class BaseMixin:
         return obj
 
     @classmethod
-    def create_log(cls, session: Session, auto_commit=True, **kwargs) -> Optional[ModelType]:
+    def create_log(
+        cls, session: Session, auto_commit=True, **kwargs
+    ) -> Optional[ModelType]:
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
@@ -137,7 +145,9 @@ class BaseMixin:
         return obj
 
     @classmethod
-    def authenticate(cls, get_db: Session, *, email: str, password: str) -> Optional[User]:
+    def authenticate(
+        cls, get_db: Session, *, email: str, password: str
+    ) -> Optional[User]:
         user = cls.get_by_email(get_db, email=email)
         if not user:
             return None
@@ -163,14 +173,20 @@ class BaseMixin:
             query = session.query(func.count(cls.email))
 
         if start_time is not None and end_time is not None:
-            query = query.filter(and_(cls.created_at <= end_time, cls.created_at >= start_time))
+            query = query.filter(
+                and_(cls.created_at <= end_time, cls.created_at >= start_time)
+            )
         elif start_time is not None:
             query = query.filter(cls.created_at >= start_time)
         elif end_time is not None:
             query = query.filter(cls.created_at <= end_time)
 
-        success_response = query.filter(and_(cls.status_code < 300, cls.status_code >= 200))
-        failed_response = query.filter(or_(cls.status_code >= 300, cls.status_code < 200))
+        success_response = query.filter(
+            and_(cls.status_code < 300, cls.status_code >= 200)
+        )
+        failed_response = query.filter(
+            or_(cls.status_code >= 300, cls.status_code < 200)
+        )
         return {
             "success_response": success_response.all(),
             "failed_response": failed_response.all(),
@@ -188,7 +204,9 @@ class BaseMixin:
     ) -> Optional[ModelType]:
         query = session.query(cls)
         if start_time is not None and end_time is not None:
-            query = query.filter(and_(cls.created_at <= end_time, cls.created_at >= start_time))
+            query = query.filter(
+                and_(cls.created_at <= end_time, cls.created_at >= start_time)
+            )
         elif start_time is not None:
             query = query.filter(cls.created_at >= start_time)
         elif end_time is not None:
