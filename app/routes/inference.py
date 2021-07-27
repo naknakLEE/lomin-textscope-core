@@ -112,7 +112,7 @@ async def inference(
                 "code": "3400",
                 "minQlt": "00",
                 "reliability": "",
-                "docuType": "",
+                "lnbzDocClcd": "",
                 "ocrResult": "",
             }
         )
@@ -123,7 +123,7 @@ async def inference(
                 "description": "",
                 "minQlt": "01",
                 "reliability": "1.0",
-                "docuType": lnbzDocClcd,
+                "lnbzDocClcd": lnbzDocClcd,
                 "ocrResult": result["values"],
             }
         )

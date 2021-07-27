@@ -7,7 +7,7 @@ inference_responses = {
                     "status": "1200",
                     "minQlt": "00",
                     "reliability": "0.367125",
-                    "docuType": "00",
+                    "lnbzDocClcd": "00",
                     "ocrResult": {
                         "tenantName": "홍길동",
                         "tenantID": "200123-1234567",

@@ -1,4 +1,3 @@
-import PIL
 import pickle
 import numpy as np
 import cv2
@@ -6,7 +5,6 @@ import torch
 import re
 import os
 
-from PIL import Image
 from os import getcwd
 from loguru import logger
 from collections import defaultdict
@@ -20,11 +18,6 @@ settings = get_settings()
 
 
 def create_boxlist(data):
-    # for attr in data:
-    #     if attr == "rec_preds":
-    #         logger.info(np.array(data[attr]))
-    #     else:
-    #         logger.info(np.array(data[attr]))
     logger.debug(data["boxes"])
     texts = convert_recognition_to_text(np.array(data["rec_preds"]))
     boxlist = BoxList(np.array(data["boxes"]), np.array(data["img_size"]))
@@ -32,8 +25,9 @@ def create_boxlist(data):
     boxlist.add_field("scores", np.array(data["scores"]))
     boxlist.add_field("texts", texts)
 
-    with open(f"/workspace/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
-        pickle.dump(data, fw)
+    if settings.DEBUG:
+        with open(f"/workspace/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
+            pickle.dump(data, fw)
     return boxlist
 
 

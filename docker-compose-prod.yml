@@ -47,7 +47,7 @@ services:
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
-    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn .
+    # BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn .
     # command: bentoml serve-gunicorn DocumentModelService:latest
     # command: bentoml serve-gunicorn IdcardModelService:latest
 

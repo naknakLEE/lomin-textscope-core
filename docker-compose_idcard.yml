@@ -78,12 +78,12 @@ services:
     # command: python pp_server/dist/main/main
     # command: python pp_server/app/main.py
 
-  kakao_wrapper:
-    image: docker.lomin.ai/ts-kakao_wrapper:0.0.1
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper:0.0.1
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.kakao_wrapper
-    container_name: kakao_wrapper
+      dockerfile: docker/production/Dockerfile.wrapper
+    container_name: wrapper
     ports: 
       - 8090:8090
     volumes:
@@ -91,7 +91,7 @@ services:
     tty: true
     networks:
       our_net:
-          ipv4_address: ${KAKAO_WRAPPER_IP_ADDR}
+          ipv4_address: ${WRAPPER_IP_ADDR}
     restart: unless-stopped
     # command: python kakaobank_wrapper/dist/main/main
 

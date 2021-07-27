@@ -22,7 +22,7 @@ class Config:
 @dataclass
 class TestConfig(Config):
     TEST_MODE: bool = True
-    DB_URL: str = "sqlite:///./assets/sql_app.db"
+    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/{settings.PP_SERVER_APP_NAME}/assets/sql_app.db"
 
 
 @dataclass

@@ -92,7 +92,7 @@ class Settings(BaseSettings):
     }
 
     class Config:
-        env_file = f"/workspace/.env"
+        env_file = "/workspace/.env"
 
 
 @lru_cache()

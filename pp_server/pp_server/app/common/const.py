@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     DEVELOP: bool = True
     API_ENV: str = "production"
     BASE_PATH: str = "."
+    PP_SERVER_APP_NAME = "pp_server"
+    OCR_DEBUGGING: bool = False  # profiling or base
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"
