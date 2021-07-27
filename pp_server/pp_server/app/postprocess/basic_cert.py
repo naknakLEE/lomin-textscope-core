@@ -24,7 +24,6 @@ from pp_server.app.postprocess.family_cert import (
 )
 
 
-
 PERSONAL_INFO_KEYWORDS = ("구분", "성명", "출생연월일", "주민등록번호")
 PERSONAL_INFO_KEYWORDS = ("구분", "성명", "출생연월일", "주민등록번호")
 DATE_WILDCARD_KEYWORDS = (
@@ -91,9 +90,6 @@ def filter_pred(pred):
     return filter_pred
 
 
-
-
-
 def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
     value = list()
     try:
@@ -101,9 +97,7 @@ def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
         if isinstance(bboxes, torch.Tensor):
             bboxes = bboxes.numpy()
 
-        edit_distances = [
-            jamo_levenshtein(keyword, text) / len(keyword) for text in texts
-        ]
+        edit_distances = [jamo_levenshtein(keyword, text) / len(keyword) for text in texts]
 
         key_index = np.argmin(edit_distances)
 
@@ -118,19 +112,25 @@ def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
         right_bboxes = bboxes[right_mask.numpy()]
 
         y_iou_score = _get_iou_y(np.expand_dims(key_bbox, 0), right_bboxes)
-        valid_value = y_iou_score[0]>threshold
+        valid_value = y_iou_score[0] > threshold
         valid_index = [i for i, value in enumerate(valid_value) if value]
         # value_num = len(valid_index) if value_num > len(valid_index) else value_num
         # valid_index = valid_index[:value_num]
-        
+
         for index in valid_index:
-            value.append({"text": right_pred.get_field("texts")[index], "bbox":right_pred.bbox[np.array([index])]})
-            
+            value.append(
+                {
+                    "text": right_pred.get_field("texts")[index],
+                    "bbox": right_pred.bbox[np.array([index])],
+                }
+            )
+
         # value_idx = np.argsort(y_iou_score[0])[-2:]
     except:
         pass
 
     return value
+
 
 def get_right_value(pred, texts, keyword):
     try:
@@ -138,9 +138,7 @@ def get_right_value(pred, texts, keyword):
         if isinstance(bboxes, torch.Tensor):
             bboxes = bboxes.numpy()
 
-        edit_distances = [
-            jamo_levenshtein(keyword, text) / len(keyword) for text in texts
-        ]
+        edit_distances = [jamo_levenshtein(keyword, text) / len(keyword) for text in texts]
 
         key_index = np.argmin(edit_distances)
 
@@ -157,32 +155,31 @@ def get_right_value(pred, texts, keyword):
         y_iou_score = _get_iou_y(np.expand_dims(key_bbox, 0), right_bboxes)
 
         value_idx = np.argmax(y_iou_score[0])
-        value = (
-            right_pred.get_field("texts")[value_idx]
-            if y_iou_score[0][value_idx] > 0.5
-            else ""
-        )
+        value = right_pred.get_field("texts")[value_idx] if y_iou_score[0][value_idx] > 0.5 else ""
 
     except:
         value = ""
 
     return value
 
+
 def split_parental_authority_value(parent_relation, parental_authority):
     # 이름과 관계 분리
     assert len(parent_relation) >= 2
-    copy_parent_relation = copy.deepcopy(parent_relation)
-    for i, value in enumerate(copy_parent_relation):
-        if len(value["text"]) == 1:
-            relation = parent_relation.pop(i)
-            parental_authority["relation"] = relation["text"]
-            relation_x = relation["bbox"][0][2]
-            break
+    # copy_parent_relation = copy.deepcopy(parent_relation)
+    # for i, value in enumerate(copy_parent_relation):
+    #     if len(value["text"]) == 1:
+    #         relation = parent_relation.pop(i)
+    #         parental_authority["relation"] = relation["text"]
+    #         relation_x = relation["bbox"][0][2]
+    #         break
+    relation = parent_relation.pop(0)
+    parental_authority["relation"] = relation["text"]
+    relation_x = relation["bbox"][0][2]
     for value in parent_relation:
         if value["bbox"][0][0] > relation_x:
             parental_authority["authName"] = value["text"]
     return parental_authority
-
 
 
 def get_target_mask(pred, x_iou_thres, bbox):
@@ -222,15 +219,15 @@ def get_parental_authority(pred):
     #         box_index_list.append(i)
 
     parent_relation = get_multiple_right_value(pred, texts, "친권자")
-    if len(parent_relation) == 0:
+    if len(parent_relation) <= 1:
         parent_relation = get_multiple_right_value(pred, texts, "친권행사자")
-    if len(parent_relation) == 1:
-        parental_authority["authName"] = parent_relation[0]["text"]
-        target_mask, target_boxlist = get_target_mask(
-            pred, x_iou_thres=0.1, bbox=parent_relation[0]["bbox"]
-        )
+    # if len(parent_relation) == 1:
+    #     parental_authority["authName"] = parent_relation[0]["text"]
+    #     target_mask, target_boxlist = get_target_mask(
+    #         pred, x_iou_thres=0.1, bbox=parent_relation[0]["bbox"]
+    #     )
     elif len(parent_relation) >= 2:
-        parental_authority = split_parental_authority_value(parent_relation, parental_authority) 
+        parental_authority = split_parental_authority_value(parent_relation, parental_authority)
     return parental_authority
 
 
@@ -248,8 +245,6 @@ def parse_personal_info(personal_info):
     regnum = personal_info[idx]["주민등록번호"]
 
     return name, regnum
-
-
 
 
 def to_numpy(tensor):
@@ -303,11 +298,7 @@ def postprocess_basic_cert(pred, score_thresh=0.3, *args):
                 keyword_map[keyword].append({"bbox": bbox, "text": text})
             elif keyword == PERSONAL_INFO_KEYWORDS[2]:  # dirty code
                 for wildcard in DATE_WILDCARD_KEYWORDS + (keyword,):
-                    if (
-                        len(text) > 4
-                        and wildcard in text
-                        or levenshtein(wildcard, text) < 3
-                    ):
+                    if len(text) > 4 and wildcard in text or levenshtein(wildcard, text) < 3:
                         bbox = filtered_pred.bbox[i]
                         keyword_map[keyword].append({"bbox": bbox, "text": text})
                         break

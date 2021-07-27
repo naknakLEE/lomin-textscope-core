@@ -4,12 +4,9 @@
 [submodule "kakaobank_wrapper"]
 	path = kakaobank_wrapper
 	url = git@ssh.dev.azure.com:v3/textscope/Textscope/kakaobank_wrapper
-[submodule "bentoml_textscope"]
-	path = bentoml_textscope
-	url = git@ssh.dev.azure.com:v3/textscope/Textscope/bentoml_textscope
-[submodule "bentoml_package"]
-	path = bentoml_package
-	url = git@ssh.dev.azure.com:v3/textscope/Textscope/bentoml_package
 [submodule "kbcard_wrapper"]
 	path = kbcard_wrapper
 	url = git@ssh.dev.azure.com:v3/textscope/Textscope/kbcard_wrapper
+[submodule "inference_server"]
+	path = inference_server
+	url = git@ssh.dev.azure.com:v3/textscope/Textscope/inference_server
