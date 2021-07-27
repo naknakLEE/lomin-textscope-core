@@ -276,7 +276,7 @@ def postprocess_basic_cert(pred, score_thresh=0.3, *args):
 
     # filtered_pred = filter_pred(pred)
     filtered_pred = pred
-    save_debug_img(filtered_pred.bbox, "./test.jpg")
+    # save_debug_img(filtered_pred.bbox, "./test.jpg")
 
     keyword_map = {}
     for keyword in TARGET_KEYWORDS:

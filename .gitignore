@@ -156,10 +156,8 @@ pyarmor*
 *.hvc
 linuxenv
 
-
-
 # # other repo
-# kbcard_wrapper
-# kakaobank_wrapper
-# bentoml_package
-# bentoml_textscope
+# kbcard_wrapper/
+# kakaobank_wrapper/
+# bentoml_package/
+# bentoml_textscope/

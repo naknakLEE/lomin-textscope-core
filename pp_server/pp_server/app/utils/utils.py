@@ -20,13 +20,14 @@ settings = get_settings()
 def create_boxlist(data):
     logger.debug(data["boxes"])
     texts = convert_recognition_to_text(np.array(data["rec_preds"]))
+    logger.debug(texts)
     boxlist = BoxList(np.array(data["boxes"]), np.array(data["img_size"]))
     logger.info(f"texts: {texts}")
     boxlist.add_field("scores", np.array(data["scores"]))
     boxlist.add_field("texts", texts)
 
-    if settings.DEBUG:
-        with open(f"/workspace/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
+    if settings.PP_DEBUGGING:
+        with open(f"/workspace/pp_server/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
             pickle.dump(data, fw)
     return boxlist
 

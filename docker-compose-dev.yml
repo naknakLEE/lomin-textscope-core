@@ -17,10 +17,10 @@ services:
     restart: always
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:0.0.1
+    image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.gpu_serving
+      dockerfile: docker/development/Dockerfile.gpu_serving
       args:
         USER: ${USER}
         BUNDLE_PATH: ${BUNDLE_PATH}
