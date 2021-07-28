@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     API_ENV: str = "production"
     BASE_PATH: str = "."
     PP_SERVER_APP_NAME = "pp_server"
-    PP_DEBUGGING: bool = False  # profiling or base
+    PP_DEBUGGING: bool = True  # profiling or base
 
     # LOGGER CONFIG
     LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"

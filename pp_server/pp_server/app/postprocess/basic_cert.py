@@ -335,7 +335,7 @@ def postprocess_basic_cert(pred, score_thresh=0.3, *args):
             if k == "성명":
                 pi[k] = "".join(re.findall("[가-힇]", v))
             elif k == "주민등록번호":
-                pi[k] = "".join(re.findall("[\d-]", v))
+                pi[k] = "".join(re.findall("[\d]", v))
 
     result = {}
     name, regnum = parse_personal_info(personal_info)

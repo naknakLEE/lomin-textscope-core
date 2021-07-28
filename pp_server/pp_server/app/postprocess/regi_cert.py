@@ -128,6 +128,7 @@ def get_estate_num(preds):
             candidates_text = candidates.get_field("texts")
             estate_num = candidates_text[0]
 
+    estate_num = "".join(re.findall("[\d]", estate_num))
     return estate_num
 
 
@@ -180,6 +181,7 @@ def get_serial_num(preds):
             candidates_text = candidates.get_field("texts")
             serial_num = candidates_text[0]
 
+    serial_num = "".join(re.findall("[A-Z]", serial_num))
     return serial_num
 
 
@@ -271,7 +273,6 @@ def get_resident_registration_number(preds):
         password_texts = pwd_candidates.get_field("texts")
 
     return password_texts
-
 
 
 def get_passwords(preds):
@@ -393,9 +394,8 @@ def cal_find_value(keyword, target_boxlist):
         closest_bbox_idx = None
         texts = target_boxlist.get_field("texts")
         for i, bbox in enumerate(target_boxlist.bbox):
-            if (
-                closest_bbox_idx is None
-                or "".join(re.findall("[\d-]{6}", target_boxlist.extra_fields.get("texts")[closest_bbox_idx]))
+            if closest_bbox_idx is None or "".join(
+                re.findall("[\d-]{6}", target_boxlist.extra_fields.get("texts")[closest_bbox_idx])
             ):
                 closest_bbox_idx = i
 
@@ -403,7 +403,7 @@ def cal_find_value(keyword, target_boxlist):
         line_boxlist, (bbox, value) = find_line_and_merge(bbox, target_boxlist)
         boxlist_texts = target_boxlist.extra_fields.get("texts")
         pasted_text = "".join(boxlist_texts)
-        resident_registration_number = "".join(re.findall("[\d-]", pasted_text))
+        resident_registration_number = "".join(re.findall("[\d]", pasted_text))
         if len(resident_registration_number) == 0:
             resident_registration_number = ""
         return resident_registration_number
@@ -411,10 +411,7 @@ def cal_find_value(keyword, target_boxlist):
         closest_bbox_idx = None
         texts = target_boxlist.get_field("texts")
         for i, bbox in enumerate(target_boxlist.bbox):
-            if (
-                closest_bbox_idx is None
-                or bbox[0] < target_boxlist.bbox[closest_bbox_idx][0]
-            ):
+            if closest_bbox_idx is None or bbox[0] < target_boxlist.bbox[closest_bbox_idx][0]:
                 closest_bbox_idx = i
 
         bbox = target_boxlist.bbox[closest_bbox_idx]
