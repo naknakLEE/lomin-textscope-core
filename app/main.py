@@ -1,6 +1,8 @@
 import os
 import uvicorn
 
+from multiprocessing.managers import SyncManager
+
 from app.common.const import get_settings
 from app.utils.create_app import app_generator
 
@@ -16,5 +18,19 @@ if settings.DEVELOP:
     args["reload"] = True
 
 
+class MyManager(SyncManager):
+    pass
+
+
+syncdict = {}
+
+
+def get_dict():
+    return syncdict
+
+
 if __name__ == "__main__":
+    MyManager.register("syncdict", get_dict)
+    manager = MyManager(("0.0.0.0", 12200), authkey=b"password")
+    manager.start()
     uvicorn.run(**args)
