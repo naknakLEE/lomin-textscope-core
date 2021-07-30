@@ -10,6 +10,9 @@ ARG USER
 
 # RUN groupadd -r ${USER} && useradd --no-log-init -r -g ${USER} ${USER}
 
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
 RUN apt-get update && \

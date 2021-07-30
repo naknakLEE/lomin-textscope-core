@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     }
 
     # LOGGER CONFIG
-    LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"
+    LOG_DIR_PATH: str = "{base_path}/logs/model_service/log".format(base_path=BASE_PATH)
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"

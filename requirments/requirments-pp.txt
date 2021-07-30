@@ -6,13 +6,10 @@ pydantic[email,dotenv]==1.8.2
 numpy==1.19.0
 httpx==0.18.2
 Shapely==1.8a1
-scikit-image==0.17.2
 pdf2image==1.16.0
 tifffile==2020.9.3
 soynlp==0.0.493
 loguru==0.5.3
-pyarmor==6.7.3
-PyInstaller==4.3
 sqlalchemy-utils==0.37.8
 mysqlclient==2.0.3
 cython==0.29.24

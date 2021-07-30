@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-trigger:
-- master
-
-pool:
-  vmImage: ubuntu-18.04
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
-=======
 # Docker
 # Build a Docker image
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
@@ -93,4 +72,3 @@ stages:
           pip install -r requirments/requirments-test.txt
           pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml tests
       displayName: 'pytest'
->>>>>>> 73c6249495d7ff10bb1b6036bc0956a4de2d91a1
