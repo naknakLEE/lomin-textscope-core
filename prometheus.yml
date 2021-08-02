@@ -1,45 +1,28 @@
 global:
   scrape_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout: 1m
 
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
     monitor: 'codelab-monitor'
 
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
 scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: 'prometheus'
-
-    # Override the global default and scrape targets from this job every 5 seconds.
     scrape_interval: 15s
-    # scrape_timeout: 1m
-
     static_configs:
-      - targets: ['182.20.0.9:9090', '182.20.0.5:8000', '182.20.0.4:5000', '182.20.0.13:9100', '182.20.0.12:9400', '182.20.0.16:9104', "182.20.0.23:9113"]
+      - targets: ['182.20.0.9:9090']
+  - job_name: 'textscope'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['182.20.0.5:8000', '182.20.0.4:5000']
+  - job_name: 'general exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['182.20.0.13:9100', '182.20.0.16:9104', "182.20.0.23:9113"]
+  - job_name: 'nvidia-gpu-exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['182.20.0.12:9400']
   
-  # - job_name: 'web'
-  #   scrape_interval: 5s
-  #   static_configs:
-  #     - targets: [182.20.0.5:8000, ]
-
-  # - job_name: 'serving'
-  #   scrape_interval: 5s
-  #   static_configs:
-  #     - targets: [182.20.0.4:5000]
-
-  #   # - job_name: 'postgres_exporter'
-  #   # scrape_interval: 5s
-  #   # static_configs:
-  #   #   - targets: [182.20.0.11:9187]
-
-  #   - job_name: 'node_exporter'
-  #   scrape_interval: 5s
-  #   static_configs:
-  #     - targets: [182.20.0.13:9100]
-
-  #   - job_name: 'dcgm_exporter'
-  #   scrape_interval: 1s
-  #   static_configs:
-  #     - targets: [182.20.0.12:9400]
+  
