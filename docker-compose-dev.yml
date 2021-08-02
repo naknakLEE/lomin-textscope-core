@@ -133,7 +133,7 @@ services:
     restart: unless-stopped
     # command: python ${CUSTOMER}_wrapper/app/main.py
 
-  proxy:
+  nginx:
     image: nginx:latest
     container_name: nginx
     ports:
@@ -143,6 +143,20 @@ services:
     networks:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
+
+  
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.9.0
+    container_name: 'nginx_exporter'
+    command:
+      # - -nginx.plus
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
+    ports:
+      - '9113:9113'
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
+
 
   gpu_telemetry:
     image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
