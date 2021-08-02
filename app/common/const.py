@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # BASE CONFIG
     DEVELOP: bool = True
     API_ENV: str = "production"
-    BASE_PATH: str = "."
+    BASE_PATH: str = "/workspace"
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
@@ -54,13 +54,23 @@ class Settings(BaseSettings):
     }
 
     # LOGGER CONFIG
-    LOG_DIR_PATH: str = "{base_path}/logs/model_service/log".format(base_path=BASE_PATH)
+    LOG_BASE_PATH: str = "/workspace"
+    LOG_DIR_PATH: str = f"{LOG_BASE_PATH}/logs/textscope-core"
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"
     FILE_MAX_BYTE: int = 1024 * 1024
     BACKUP_COUNT: int = 100000000
+    LOG_LEVEL: str = "DEBUG"
+    BACKTRACE: str = "True"
+    DIAGNOSE: str = "True"
+    ENQUEUE: str = "True"
+    COLORIZE: str = "True"
+    SERIALIZE = "serialize"
+    ENCODING: str = "utf-8"
+    FORMAT: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
 
+    # FAKE DATA
     FAKE_SUPERUSER_INFORMATION: dict = {
         "username": "user",
         "full_name": "user",

@@ -44,12 +44,21 @@ class Settings(BaseSettings):
     PP_DEBUGGING: bool = True  # profiling or base
 
     # LOGGER CONFIG
-    LOG_DIR_PATH: str = f"{BASE_PATH}/logs/model_service/log"
+    LOG_BASE_PATH: str = "/workspace"
+    LOG_DIR_PATH: str = f"{LOG_BASE_PATH}/logs/pp-server"
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"
     FILE_MAX_BYTE: int = 1024 * 1024
     BACKUP_COUNT: int = 100000000
+    LOG_LEVEL: str = "DEBUG"
+    BACKTRACE: str = "True"
+    DIAGNOSE: str = "True"
+    ENQUEUE: str = "True"
+    COLORIZE: str = "True"
+    SERIALIZE = "serialize"
+    ENCODING: str = "utf-8"
+    FORMAT: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
 
     class Config:
         env_file = "/workspace/.env"

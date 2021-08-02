@@ -5,11 +5,11 @@ from typing import Any
 from fastapi import Depends, File, UploadFile, APIRouter, Form
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from loguru import logger
 
 from app.database.connection import db
 from app.utils.auth import get_current_active_user
 from app.common.const import get_settings
+from app.utils.logging import logger
 from app.schemas import inference_responses
 from app import models
 

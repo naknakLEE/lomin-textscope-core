@@ -155,6 +155,8 @@ Nuitka
 pyarmor*
 *.hvc
 linuxenv
+*.v2c
+*.c2v
 
 # # other repo
 # kbcard_wrapper/
