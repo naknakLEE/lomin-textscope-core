@@ -40,6 +40,6 @@ RUN mv ${APP_NAME}/app/main.py ./main.py && \
     python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME} && \
     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
 
-RUN rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/${APP_NAME}.build /workspace/requirments-${CUSTOMER}.txt /workspace/assets /workspace/Nuitka
+RUN rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/*.build /workspace/*.txt /workspace/assets /workspace/Nuitka
 
 # ENTRYPOINT ["python3", "main.py"]

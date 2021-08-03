@@ -26,7 +26,7 @@ RUN apt-get update && \
 
 RUN rm -rf /var/lib/apt/lists/*
 
-COPY ./lovit /workspace/lovit
+COPY ./lovit/lovit /workspace/lovit
 COPY ./pp_server /workspace/pp_server
 COPY ./assets/thales/ /workspace/assets/thales
 COPY ./.env /workspace/.env
@@ -35,22 +35,21 @@ COPY ./requirments/requirments-pp.txt /workspace/requirments-pp.txt
 RUN pip3 install --upgrade pip && \
     pip3 install -r /workspace/requirments-pp.txt
 
-# WORKDIR /workspace/lovit
-# RUN python3 setup.py install && \
-#     rm -r /workspace/lovit
+WORKDIR /workspace
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
 
-# WORKDIR /workspace
-# RUN git clone https://github.com/Nuitka/Nuitka.git && \
-#     cd Nuitka && \
-#     python3 setup.py install
+RUN python3 -m nuitka --module lovit --include-package=lovit && \
+    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp lovit.${SO_EXTENTION} lovit.${SO_EXTENTION}
 
-# WORKDIR /workspace/pp_server
-# RUN mv pp_server/app/main.py ./main.py && \
-#     python3 -m nuitka --module pp_server --include-package=pp_server && \
-#     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pp_server.${SO_EXTENTION} pp_server.${SO_EXTENTION}
+WORKDIR /workspace/pp_server
+RUN mv pp_server/app/main.py ./main.py && \
+    python3 -m nuitka --module pp_server --include-package=pp_server && \
+    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pp_server.${SO_EXTENTION} pp_server.${SO_EXTENTION}
 
-# RUN rm -r /workspace/pp_server/pp_server /workspace/assets /workspace/requirments-pp.txt&& \
-#     rm -r /workspace/Nuitka /workspace/pp_server/pp_server.build
+RUN rm -r /workspace/pp_server/pp_server /workspace/assets /workspace/*.txt&& \
+    rm -r /workspace/Nuitka /workspace/pp_server/*.build
 
 # ENTRYPOINT ["python3", "main.py"]
 

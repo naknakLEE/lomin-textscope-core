@@ -11,6 +11,7 @@ opencv-python==4.5.2.54
 fvcore==0.1.5.post20210630
 pyarmor==6.7.3
 scikit-image==0.17.2
+shapely==1.8a1
 pyinstrument
 
 # for tiff
