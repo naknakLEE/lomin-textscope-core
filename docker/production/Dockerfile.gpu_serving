@@ -78,6 +78,7 @@ RUN cp -r /workspace/${APP_NAME}/lovit . && \
     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
 
 RUN python3 -m nuitka --module lovit --include-package=lovit && \
+    find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';' && \
     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp lovit.${SO_EXTENTION} lovit.${SO_EXTENTION}
 
 RUN rm -r /workspace/bentoml /workspace/assets /workspace/Nuitka && \

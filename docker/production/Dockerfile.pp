@@ -41,6 +41,7 @@ RUN git clone https://github.com/Nuitka/Nuitka.git && \
     python3 setup.py install
 
 RUN python3 -m nuitka --module lovit --include-package=lovit && \
+    find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';' && \
     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp lovit.${SO_EXTENTION} lovit.${SO_EXTENTION}
 
 WORKDIR /workspace/pp_server
