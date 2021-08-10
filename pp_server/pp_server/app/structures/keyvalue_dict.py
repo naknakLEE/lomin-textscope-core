@@ -15,11 +15,7 @@ class KVDict(PostprocessResult):
         self.keys = defaultdict(default_type)
         self.values = defaultdict(default_type)
         self.keys.update(
-            {
-                re.sub("_key$", "", k): v
-                for k, v in result_all_classes.items()
-                if k.endswith("_key")
-            }
+            {re.sub("_key$", "", k): v for k, v in result_all_classes.items() if k.endswith("_key")}
         )
         self.values.update(
             {

@@ -56,7 +56,7 @@ RUN python3 app/serving/generate_bentoml_multiple_model.py
 
 # WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
 # RUN mkdir assets && \ 
-#     mv /workspace/assets/textscope_id.json ./assets/textscope_id.json && \
+#     mv /workspace/assets/textscope_idcard.json ./assets/textscope_idcard.json && \
 #     mv /workspace/.env .env && \ 
 #     mv ./app/serving/multiple_model_service.py ./multiple_model_service.py && \
 #     python3 -m nuitka --module app --include-package=app && \
