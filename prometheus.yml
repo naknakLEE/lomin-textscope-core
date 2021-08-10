@@ -26,3 +26,25 @@ scrape_configs:
       - targets: ['182.20.0.12:9400']
   
   
+
+# global:
+#   slack_api_url: 'https://xxxx.com/xxxxx/slack'
+
+# route:
+#   receiver: 'slack-notifications'
+
+#   group_by: ['alertname', 'cluster']
+
+#   group_wait: 30s
+#   group_interval: 5m
+#   repeat_interval: 3h
+#   routes:
+#   - reveiver: 'slack-notifications'
+#     group_wait: 10s
+#     match_re:
+#       service: mysql|cassandra
+
+# receivers:
+# - name: 'slack-norifications'
+#   slack_configs:
+#   - channel: 'test1'

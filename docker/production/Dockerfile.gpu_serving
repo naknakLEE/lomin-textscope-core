@@ -45,7 +45,7 @@ WORKDIR /bin
 RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
     chmod 755 jq
 
-RUN pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
@@ -61,7 +61,7 @@ RUN pip3 install -r /workspace/requirments-serving.txt
 #     python3 ${APP_NAME}/generate_${MODEL_SERVICE}.py
 
 WORKDIR /workspace/${APP_NAME}
-RUN python3 ${APP_NAME}/generate_document_model_service.py 
+RUN python3 ${APP_NAME}/generate_kbcard_model_service.py 
 
 WORKDIR /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
 RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \

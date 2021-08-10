@@ -30,16 +30,16 @@ COPY ./requirments/requirments-kakaobank.txt /workspace/requirments-${CUSTOMER}.
 RUN pip3 install --upgrade pip && \ 
     pip3 install -r /workspace/requirments-${CUSTOMER}.txt
 
-WORKDIR /workspace
-RUN git clone https://github.com/Nuitka/Nuitka.git && \
-    cd Nuitka && \
-    python3 setup.py install
+# WORKDIR /workspace
+# RUN git clone https://github.com/Nuitka/Nuitka.git && \
+#     cd Nuitka && \
+#     python3 setup.py install
 
-WORKDIR /workspace/${APP_NAME}
-RUN mv ${APP_NAME}/app/main.py ./main.py && \
-    python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME} && \
-    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
+# WORKDIR /workspace/${APP_NAME}
+# RUN mv ${APP_NAME}/app/main.py ./main.py && \
+#     python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME} && \
+#     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
 
-RUN rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/*.build /workspace/*.txt /workspace/assets /workspace/Nuitka
+# RUN rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/*.build /workspace/*.txt /workspace/assets /workspace/Nuitka
 
 # ENTRYPOINT ["python3", "main.py"]

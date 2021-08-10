@@ -13,6 +13,7 @@ pyarmor==6.7.3
 scikit-image==0.17.2
 shapely==1.8a1
 pyinstrument
+icecream
 
 # for tiff
 pdf2image==1.16.0

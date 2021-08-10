@@ -17,7 +17,7 @@ from app import models
 settings = get_settings()
 router = APIRouter()
 
-MODEL_SERVER_URL = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+MODEL_SERVER_URL = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
 PP_SERVER_URL = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
@@ -39,9 +39,7 @@ async def inference(file: UploadFile = File(...)) -> Any:
 
     image_data = await file.read()
     async with aiohttp.ClientSession() as session:
-        async with session.post(
-            serving_server_inference_url, data=image_data
-        ) as response:
+        async with session.post(serving_server_inference_url, data=image_data) as response:
             result = await response.json()
             return models.InferenceResponse(ocrResult=result)
 
@@ -62,9 +60,7 @@ async def tiff_idcard_inference(
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
-    serving_server_inference_url = (
-        f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
-    )
+    serving_server_inference_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 
     data = {
         "image_path": image_path,
@@ -98,6 +94,7 @@ async def inference(
     document_type = settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
 
     async with httpx.AsyncClient() as client:
+        logger.debug(MODEL_SERVER_URL)
         document_ocr_model_response = await client.post(
             f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=300.0
         )
