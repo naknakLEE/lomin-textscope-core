@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION
 
-FROM ubuntu:${UBUNTU_VERSION}
+FROM ubuntu:${UBUNTU_VERSION} as builder
 
 ARG CUSTOMER
 ARG BASE_PATH
@@ -23,7 +23,7 @@ RUN apt-get update && \
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./assets/thales/ /workspace/assets/thales
 COPY ./.env /workspace/.env
-COPY ./requirments/requirments-kakaobank.txt /workspace/requirments-${CUSTOMER}.txt
+COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/requirments-${CUSTOMER}.txt
 
 RUN pip3 install --upgrade pip && \ 
     pip3 install -r /workspace/requirments-${CUSTOMER}.txt
@@ -38,8 +38,35 @@ RUN mv ${APP_NAME}/app/main.py ./main.py && \
     python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME} && \
     ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
 
-RUN rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/*.build && \
-    /workspace/*.txt /workspace/assets /workspace/Nuitka && \
-    rm -rf /var/lib/apt/lists/*
+# RUN rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/*.build && \
+#     /workspace/*.txt /workspace/assets /workspace/Nuitka && \
+#     rm -rf /var/lib/apt/lists/*
+
+
+FROM ubuntu:${UBUNTU_VERSION}
+
+ARG CUSTOMER
+ARG APP_NAME=${CUSTOMER}_wrapper
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
+RUN apt-get update && \
+    apt-get -y install python3-pip && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
+    apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
+    apt-get -y install libmysqlclient-dev
+
+COPY --from=builder /workspace/.env /workspace/
+COPY --from=builder /workspace/requirments-${CUSTOMER}.txt /workspace/
+COPY --from=builder /workspace/${APP_NAME}/${APP_NAME}.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
+COPY --from=builder /workspace/${APP_NAME}/${APP_NAME}.pyi /workspace/${APP_NAME}/
+COPY --from=builder /workspace/${APP_NAME}/main.py /workspace/${APP_NAME}/
+
+RUN pip3 install --upgrade pip && \ 
+    pip3 install -r /workspace/requirments-${CUSTOMER}.txt
+
+RUN rm -rf /var/lib/apt/lists/* && \
+    rm -rf /root/.cache
+
 
 # ENTRYPOINT ["python3", "main.py"]
