@@ -1,0 +1,142 @@
+version: '2.3'
+
+services:
+  mysql:
+    image: mysql:8.0.25
+    container_name: mysql
+    volumes:
+      - mysqldata:/var/lib/mysql
+    restart: always
+    networks:
+      our_net:
+          ipv4_address: ${MYSQL_IP_ADDR}
+  
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving:0.0.1
+    container_name: serving
+    volumes:
+      - ./logs:/workspace/logs
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_IP_ADDR}
+
+  serving_replica:
+    image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
+    container_name: serving_replica
+    volumes:
+      - ./logs:/workspace/logs
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_REPLICA_IP_ADDR}
+
+  web:
+    image: docker.lomin.ai/ts-web:0.0.1
+    container_name: web
+    restart: unless-stopped
+    networks:
+      our_net:
+          ipv4_address: ${WEB_IP_ADDR}
+
+  pp:
+    image: docker.lomin.ai/ts-pp:0.0.1
+    container_name: pp
+    restart: unless-stopped
+    networks:
+      our_net:
+          ipv4_address: ${PP_IP_ADDR}
+
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper:0.0.1
+    container_name: wrapper
+    restart: unless-stopped
+    networks:
+      our_net:
+          ipv4_address: ${WRAPPER_IP_ADDR}
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - /etc/nginx/certificate:/etc/nginx/certs
+    ports:
+      - "800:80"
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_IP_ADDR}
+    
+  multiple_gpu_load_banlancing:
+    image: nginx:latest
+    container_name: multiple_gpu_load_banlancing
+    volumes:
+      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
+    networks:
+      our_net:
+        ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
+    
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.9.0
+    container_name: nginx_exporter
+    command:
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
+
+  gpu_telemetry:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+    container_name: gpu_telemetry
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+    
+  hardware_telemetry:
+    image: prom/node-exporter
+    container_name: hardware_telemetry
+    networks:
+      our_net:
+        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+    
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    restart: always
+    networks:
+      our_net:
+          ipv4_address: ${PROMETHEUS_IP_ADDR}
+    
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes: 
+      - grafana_data:/var/lib/grafana
+    depends_on: 
+      - prometheus
+    restart: always
+    networks:
+      our_net:
+          ipv4_address: ${GRAFANA_IP_ADDR}
+
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    container_name: mysqld-exporter
+    restart: always
+    networks:
+      our_net:
+        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+
+volumes: 
+  prometheus_data: {}
+  grafana_data: {}
+  pgdata: {}
+  mysqldata: {}
+
+networks:
+  our_net:
+    ipam:
+      config:
+        - subnet: 182.20.0.0/24

@@ -2,27 +2,19 @@ version: '2.3'
 
 services:
   mysql:
-    image: mysql:8.0.25
-    container_name: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
     ports: 
-      - 8051:3306
-    volumes:
-      - mysqldata:/var/lib/mysql
-    networks:
-      our_net:
-          ipv4_address: ${MYSQL_IP_ADDR}
-    restart: always
+      - 3307:3306
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
     build:
       context: ./
       dockerfile: docker/development/Dockerfile.gpu_serving
       args:
         USER: ${USER}
+        CUSTOMER: ${CUSTOMER}
         BUNDLE_PATH: ${BUNDLE_PATH}
         PYTHON_VERSION: ${PYTHON_VERSION}
         MODEL_TYPE: ${MODEL_TYPE}
@@ -32,9 +24,8 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    container_name: serving
     ports: 
-      - 8052:5000
+      - 5000:5000
     volumes:
       - ./logs:/workspace/logs
       - ./:/workspace
@@ -49,49 +40,44 @@ services:
           - driver: nvidia
             device_ids: ['0']
             capabilities: [gpu]
+    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
+  
+  serving_replica:
+    build:
+      context: ./
+      dockerfile: docker/development/Dockerfile.gpu_serving
+      args:
+        USER: ${USER}
+        CUSTOMER: ${CUSTOMER}
+        BUNDLE_PATH: ${BUNDLE_PATH}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        MODEL_TYPE: ${MODEL_TYPE}
+        MODEL_SERVICE: ${MODEL_SERVICE}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
+    volumes:
+      - ./logs:/workspace/logs
+      - ./:/workspace
+    #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    tty: true
+    depends_on: 
+      - mysql
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['1']
+            capabilities: [gpu]
     networks:
       our_net:
-        ipv4_address: ${SERVING_IP_ADDR}
-    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5010
-  
-  # serving_replica:
-  #   image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
-  #   build:
-  #     context: ./
-  #     dockerfile: docker/development/Dockerfile.gpu_serving
-  #     args:
-  #       USER: ${USER}
-  #       BUNDLE_PATH: ${BUNDLE_PATH}
-  #       PYTHON_VERSION: ${PYTHON_VERSION}
-  #       MODEL_TYPE: ${MODEL_TYPE}
-  #       MODEL_SERVICE: ${MODEL_SERVICE}
-  #       UBUNTU_VERSION: ${UBUNTU_VERSION}
-  #       BASE_PATH: ${BASE_PATH}
-  #       LINUX_ENV_PATH: ${LINUX_ENV_PATH}
-  #       DEMOMA_PATH: ${DEMOMA_PATH}
-  #       SO_EXTENTION: ${SO_EXTENTION}
-  #   container_name: serving_replica
-  #   volumes:
-  #     - ./logs:/workspace/logs
-  #     - ./:/workspace
-  #   #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
-  #   tty: true
-  #   depends_on: 
-  #     - mysql
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #         - driver: nvidia
-  #           device_ids: ['1']
-  #           capabilities: [gpu]
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${SERVING_REPLICA_IP_ADDR}
-  #   # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5020
+        ipv4_address: ${SERVING_REPLICA_IP_ADDR}
+    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
 
   web:
-    image: docker.lomin.ai/ts-web:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.web
@@ -102,7 +88,6 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    container_name: web
     ports: 
       - 8000:8000
     volumes:
@@ -114,11 +99,9 @@ services:
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
-    restart: unless-stopped
     # command: python3 app/main.py
 
   pp:
-    image: docker.lomin.ai/ts-pp:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
@@ -129,7 +112,6 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    container_name: pp
     ports: 
       - 8080:8080
     volumes:
@@ -145,7 +127,6 @@ services:
     # command: python pp_server/app/main.py
 
   wrapper:
-    image: docker.lomin.ai/ts-wrapper:0.0.1
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.wrapper
@@ -157,9 +138,8 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    container_name: wrapper
     ports: 
-      - 8050:8090
+      - 8090:8090
     volumes:
       - ./logs:/workspace/logs
       - ./:/workspace
@@ -167,107 +147,40 @@ services:
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
-    restart: unless-stopped
     # command: python ${CUSTOMER}_wrapper/app/main.py
 
   nginx:
-    image: nginx:latest
-    container_name: nginx
     ports:
       - "800:80"
       - "443:443"
-    volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
-      - /etc/nginx/certificate:/etc/nginx/certs
-    networks:
-      our_net:
-        ipv4_address: ${NGINX_IP_ADDR}
 
-  multiple_gpu_load_banlancing:
-    image: nginx:latest
-    container_name: multiple_gpu_load_banlancing
-    volumes:
-      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
-    networks:
-      our_net:
-        ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
-      
-
-  
   nginx-exporter:
-    image: nginx/nginx-prometheus-exporter:0.9.0
-    container_name: 'nginx_exporter'
-    command:
-      # - -nginx.plus
-      - -nginx.scrape-uri=https://${NGINX_IP_ADDR}:80//metrics
     ports:
       - '9113:9113'
-    networks:
-      our_net:
-        ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
-
 
   gpu_telemetry:
-    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
-    container_name: gpu_telemetry
     ports:
       - 9400:9400
-    runtime: nvidia
-    networks:
-      our_net:
-        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
 
   hardware_telemetry:
-    image: prom/node-exporter
-    container_name: hardware_telemetry
     ports:
       - 9100:9100
-    networks:
-      our_net:
-        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
 
   prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./.env:/etc/prometheus/.env
-      - prometheus_data:/prometheus
     ports:
       - 9090:9090
-    networks:
-      our_net:
-          ipv4_address: ${PROMETHEUS_IP_ADDR}
-    restart: always
     
   grafana:
-    image: grafana/grafana
-    container_name: grafana
-    depends_on: 
-      - prometheus
-    volumes: 
-      - grafana_data:/var/lib/grafana
     ports:
-      - 8053:3000
-    networks:
-      our_net:
-          ipv4_address: ${GRAFANA_IP_ADDR}
-    restart: always
-
+      - 3000:3000
 
   mysql-exporter:
-    image: prom/mysqld-exporter
-    container_name: mysqld-exporter
     ports:
       - 9104:9104
     environment:
       - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
     cap_add:
       - SYS_NICE
-    networks:
-      our_net:
-        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
-    restart: always
 
 volumes: 
   prometheus_data: {}
