@@ -2,11 +2,15 @@ ARG UBUNTU_VERSION=18.04
 
 FROM ubuntu:${UBUNTU_VERSION}
 
-ARG BASE_PATH="/workspace"
-ARG LINUX_ENV_PATH="/workspace/assets/thales/linuxenv"
-ARG DEMOMA_PATH="/workspace/assets/thales/DEMOMA.hvc"
-ARG SO_EXTENTION="cpython-36m-x86_64-linux-gnu.so"
-ARG USER="shinuk"
+ARG BASE_PATH
+ARG LINUX_ENV_PATH
+ARG DEMOMA_PATH
+ARG SO_EXTENTION
+
+# ARG BASE_PATH="/workspace"
+# ARG LINUX_ENV_PATH="/workspace/assets/thales/linuxenv"
+# ARG DEMOMA_PATH="/workspace/assets/thales/DEMOMA.hvc"
+# ARG SO_EXTENTION="cpython-36m-x86_64-linux-gnu.so"
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 

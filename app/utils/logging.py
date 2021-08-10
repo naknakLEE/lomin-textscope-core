@@ -5,7 +5,7 @@ from app.common.const import get_settings
 
 settings = get_settings()
 
-log_dir_path = settings.LOG_DIR_PATH
+log_dir_path = settings.TEXTSCOPE_LOG_DIR_PATH
 os.makedirs(log_dir_path, exist_ok=True)
 log_path = os.path.join(log_dir_path, "server.log")
 

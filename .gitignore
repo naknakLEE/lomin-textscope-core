@@ -123,6 +123,7 @@ Textscope-old
 temp
 temp/
 core
+pyminifier/
 
 # DB data
 pgdata/

@@ -30,7 +30,7 @@ def get_dict():
 
 
 if __name__ == "__main__":
-    MyManager.register("syncdict", get_dict)
-    manager = MyManager(("0.0.0.0", 12200), authkey=b"password")
-    manager.start()
+    # MyManager.register("syncdict", get_dict)
+    # manager = MyManager(("0.0.0.0", 12200), authkey=b"password")
+    # manager.start()
     uvicorn.run(**args)

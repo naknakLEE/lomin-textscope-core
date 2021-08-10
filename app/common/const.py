@@ -56,8 +56,7 @@ class Settings(BaseSettings):
     }
 
     # LOGGER CONFIG
-    LOG_BASE_PATH: str = "/workspace"
-    LOG_DIR_PATH: str = f"{LOG_BASE_PATH}/logs/textscope-core"
+    TEXTSCOPE_LOG_DIR_PATH: str
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"

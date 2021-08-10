@@ -27,7 +27,9 @@ def create_boxlist(data):
     boxlist.add_field("texts", texts)
 
     if settings.PP_DEBUGGING:
-        with open(f"/workspace/pp_server/assets/basic_cert_boxlist_data.pickle", "wb") as fw:
+        with open(
+            f"/workspace/pp_server/assets/basic_cert_boxlist_data.pickle", "wb"
+        ) as fw:
             pickle.dump(data, fw)
     return boxlist
 
@@ -45,7 +47,11 @@ class AttnLabelConverter(object):
         self.max_text_length = max_text_length
 
     def encode(self, text):
-        codes = [self.dict["[BOS]"]] + [self.dict[char] for char in text] + [self.dict["[EOS]"]]
+        codes = (
+            [self.dict["[BOS]"]]
+            + [self.dict[char] for char in text]
+            + [self.dict["[EOS]"]]
+        )
         return torch.tensor(np.array(codes), dtype=torch.long)
 
     def batch_encode(self, texts=[]):
@@ -111,13 +117,17 @@ def convert_recognition_to_text(rec_preds):
     return texts
 
 
-def mask_to_quadrangle(mask, mask_convex_hull=False, force_rect=False, allow_polygon=False):
+def mask_to_quadrangle(
+    mask, mask_convex_hull=False, force_rect=False, allow_polygon=False
+):
     assert isinstance(mask, torch.Tensor)
     assert mask.ndimension() == 2
     assert mask.dtype == torch.bool
     mask = mask.numpy().astype(np.uint8)
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     # TODO: handle this
     # assert len(contours) > 0
     if len(contours) == 0:
@@ -183,7 +193,11 @@ def mask_to_quadrangle(mask, mask_convex_hull=False, force_rect=False, allow_pol
         poly_approx = Polygon([(x, y) for x, y in zip(approx[:, 0], approx[:, 1])])
         poly_contour = Polygon([(x, y) for x, y in zip(contour[:, 0], contour[:, 1])])
 
-        if not poly_marect.is_valid or not poly_approx.is_valid or not poly_contour.is_valid:
+        if (
+            not poly_marect.is_valid
+            or not poly_approx.is_valid
+            or not poly_contour.is_valid
+        ):
             quad = marect
         else:
             inter_marect = poly_marect.intersection(poly_contour).area

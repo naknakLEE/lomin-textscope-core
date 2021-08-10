@@ -41,11 +41,10 @@ class Settings(BaseSettings):
     API_ENV: str = "production"
     BASE_PATH: str = "."
     PP_SERVER_APP_NAME = "pp_server"
-    PP_DEBUGGING: bool = True  # profiling or base
+    PP_DEBUGGING: bool = False  # profiling or base
 
     # LOGGER CONFIG
-    LOG_BASE_PATH: str = "/workspace"
-    LOG_DIR_PATH: str = f"{LOG_BASE_PATH}/logs/pp-server"
+    PP_LOG_DIR_PATH: str
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"

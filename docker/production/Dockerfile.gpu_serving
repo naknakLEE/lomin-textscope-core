@@ -2,6 +2,7 @@ ARG UBUNTU_VERSION
 
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
 
+
 ARG PYTHON_VERSION
 ARG MODEL_TYPE
 ARG MODEL_SERVICE
@@ -10,6 +11,7 @@ ARG LINUX_ENV_PATH
 ARG DEMOMA_PATH
 ARG SO_EXTENTION
 ARG USER
+ARG CUSTOMER
 ARG BUNDLE_PATH
 ARG BENTOML_PACKAGE_PATH=/usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks
 ARG APP_NAME=inference_server
@@ -28,8 +30,6 @@ RUN apt-get update && \
 RUN apt install -y libprotobuf-dev protobuf-compiler && \
     apt-get -y install cmake
 
-RUN rm -rf /var/lib/apt/lists/*
-
 WORKDIR /workspace
 RUN git clone http://github.com/bentoml/bentoml && \
     cd bentoml && \
@@ -45,7 +45,8 @@ WORKDIR /bin
 RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
     chmod 755 jq
 
-RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+# RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
@@ -61,7 +62,7 @@ RUN pip3 install -r /workspace/requirments-serving.txt
 #     python3 ${APP_NAME}/generate_${MODEL_SERVICE}.py
 
 WORKDIR /workspace/${APP_NAME}
-RUN python3 ${APP_NAME}/generate_kbcard_model_service.py 
+RUN python3 ${APP_NAME}/generate_${CUSTOMER}_model_service.py 
 
 WORKDIR /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
 RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
@@ -83,7 +84,8 @@ RUN python3 -m nuitka --module lovit --include-package=lovit && \
 
 RUN rm -r /workspace/bentoml /workspace/assets /workspace/Nuitka && \
     rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/lovit /workspace/*.txt && \
-    rm -r ${BUNDLE_PATH}/${APP_NAME} ${BUNDLE_PATH}/*.build
+    rm -r ${BUNDLE_PATH}/${APP_NAME} ${BUNDLE_PATH}/*.build && \
+    rm -rf /var/lib/apt/lists/*
 
 
 # root 권한 제거
