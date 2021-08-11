@@ -14,6 +14,7 @@ scikit-image==0.17.2
 shapely==1.8a1
 pyinstrument
 icecream
+pandas
 
 # for tiff
 pdf2image==1.16.0

@@ -65,10 +65,10 @@ RUN python3 ${APP_NAME}/generate_${CUSTOMER}_model_service.py
 
 WORKDIR /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
 RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
-    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py && \
-    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py && \
     python3 -m nuitka --module pytorch.py && \
-    rm -r pytorch.py pytorch.build __pycache__
+    rm -r pytorch.py pytorch.build __pycache__ && \
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py && \
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py
 
 # RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pytorch.${SO_EXTENTION} pytorch.${SO_EXTENTION}
 
@@ -102,10 +102,10 @@ RUN apt-get update && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0
 
 COPY --from=builder /workspace/requirments-serving.txt /workspace/
-COPY --from=builder /workspace/inference_server/ModelService /workspace/inference_server/
+COPY --from=builder /workspace/inference_server/ModelService /workspace/inference_server/ModelService
 COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/loader.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/
 COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/pip_pkg.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/
-COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/frameworks /usr/local/lib/python3.6/dist-packages/bentoml/
+COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
 
 RUN pip3 install --upgrade pip && \
     pip3 install -r /workspace/requirments-serving.txt && \

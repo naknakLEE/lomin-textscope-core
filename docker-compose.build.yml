@@ -7,6 +7,7 @@ services:
       - TZ=Asia/Seoul
   
   serving:
+    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.gpu_serving
@@ -36,20 +37,8 @@ services:
       - mysql
     # BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
 
-  serving_replica:
-    tty: true
-    depends_on: 
-      - mysql
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['1']
-            capabilities: [gpu]
-    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
-
   web:
+    image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.web
@@ -68,6 +57,7 @@ services:
     # command: python3 app/main.py
 
   pp:
+    image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
@@ -86,6 +76,7 @@ services:
     # command: python pp_server/app/main.py
 
   wrapper:
+    image: docker.lomin.ai/ts-wrapper-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.wrapper

@@ -2,6 +2,7 @@ ARG UBUNTU_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION}
 
+ARG ENCRYPTED_PATH
 ARG CUSTOMER
 ARG APP_NAME=${CUSTOMER}_wrapper
 
@@ -15,11 +16,11 @@ RUN apt-get update && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
     apt-get -y install libmysqlclient-dev
 
-COPY --from=builder /workspace/.env /workspace/
-COPY --from=builder /workspace/requirments-${CUSTOMER}.txt /workspace/
-COPY --from=builder /workspace/${APP_NAME}/${APP_NAME}.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
-COPY --from=builder /workspace/${APP_NAME}/${APP_NAME}.pyi /workspace/${APP_NAME}/
-COPY --from=builder /workspace/${APP_NAME}/main.py /workspace/${APP_NAME}/
+COPY ./.env /workspace/
+COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/
+COPY ./${ENCRYPTED_PATH}/wrapper/${APP_NAME}.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
+COPY ./${ENCRYPTED_PATH}/wrapper/${APP_NAME}.pyi /workspace/${APP_NAME}/
+COPY ./${ENCRYPTED_PATH}/wrapper/main.py /workspace/${APP_NAME}/
 
 RUN pip3 install --upgrade pip && \ 
     pip3 install -r /workspace/requirments-${CUSTOMER}.txt

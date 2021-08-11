@@ -12,7 +12,7 @@ services:
           ipv4_address: ${MYSQL_IP_ADDR}
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:0.0.1
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving
     volumes:
       - ./logs:/workspace/logs
@@ -21,7 +21,7 @@ services:
         ipv4_address: ${SERVING_IP_ADDR}
 
   serving_replica:
-    image: docker.lomin.ai/ts-gpu-serving-dev:0.0.1
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving_replica
     volumes:
       - ./logs:/workspace/logs
@@ -30,7 +30,7 @@ services:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
 
   web:
-    image: docker.lomin.ai/ts-web:0.0.1
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
     container_name: web
     restart: unless-stopped
     networks:
@@ -38,7 +38,7 @@ services:
           ipv4_address: ${WEB_IP_ADDR}
 
   pp:
-    image: docker.lomin.ai/ts-pp:0.0.1
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
     container_name: pp
     restart: unless-stopped
     networks:
@@ -46,7 +46,7 @@ services:
           ipv4_address: ${PP_IP_ADDR}
 
   wrapper:
-    image: docker.lomin.ai/ts-wrapper:0.0.1
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
     container_name: wrapper
     restart: unless-stopped
     networks:
@@ -103,6 +103,7 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./.env:/etc/prometheus/.env
       - prometheus_data:/prometheus
     restart: always
     networks:
