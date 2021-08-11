@@ -28,7 +28,7 @@ router = APIRouter()
 
 @router.post("/basic_cert")
 async def basic_cert(data: dict = Body(...)) -> Any:
-    boxlist = create_boxlist(data)
+    boxlist, texts = create_boxlist(data)
     try:
         result, debug_dic = postprocess_basic_cert(boxlist)
         # logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
@@ -37,47 +37,47 @@ async def basic_cert(data: dict = Body(...)) -> Any:
         logger.debug(f"Unexpected error: {sys.exc_info()}")
         logger.debug(traceback.print_exc())
         result = None
-    return {"texts": result}
+    return {"result": result, "texts": texts}
 
 
 @router.post("/family_cert")
 async def family_cert(data: dict = Body(...)) -> Any:
-    boxlist = create_boxlist(data)
+    boxlist, texts = create_boxlist(data)
     try:
         result, debug_dic = postprocess_family_cert(boxlist)
         # logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
-        logger.info(f"texts: {result}, debug_dic: {debug_dic}")
+        logger.info(f"result: {result}, debug_dic: {debug_dic}")
     except:
         logger.debug(f"Unexpected error: {sys.exc_info()}")
         logger.debug(traceback.print_exc())
         result = None
-    return {"texts": result}
+    return {"result": result, "texts": texts}
 
 
 @router.post("/rrtable")
 async def rrtable(data: dict = Body(...)) -> Any:
-    boxlist = create_boxlist(data)
+    boxlist, texts = create_boxlist(data)
     try:
         result, debug_dic = postprocess_rrtable(boxlist, 0.5, [])
-        logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
+        logger.info(f"result: {result.values}, debug_dic: {debug_dic.values}")
     except:
         logger.debug(f"Unexpected error: {sys.exc_info()}")
         logger.debug(traceback.print_exc())
         result = None
-    return {"texts": result}
+    return {"result": result, "texts": texts}
 
 
 @router.post("/regi_cert")
 async def regi_cert(data: dict = Body(...)) -> Any:
-    boxlist = create_boxlist(data)
+    boxlist, texts = create_boxlist(data)
     try:
         result, debug_dic = postprocess_regi_cert(boxlist)
-        logger.info(f"texts: {result.values}, debug_dic: {debug_dic.values}")
+        logger.info(f"result: {result.values}, debug_dic: {debug_dic.values}")
     except:
         logger.debug(f"Unexpected error: {sys.exc_info()}")
         logger.debug(traceback.print_exc())
         result = None
-    return {"texts": result}
+    return {"result": result, "texts": texts}
 
     # logger.info(f"Rec inference time: \t{(time.time()-start_t) * 1000:.2f}ms")
 

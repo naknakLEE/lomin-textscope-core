@@ -3,6 +3,7 @@ ARG UBUNTU_VERSION
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION} as builder
 
 ARG PYTHON_VERSION
+ARG APPLY_THALES
 ARG MODEL_TYPE
 ARG MODEL_SERVICE
 ARG BASE_PATH
@@ -64,21 +65,24 @@ RUN python3 ${APP_NAME}/generate_${CUSTOMER}_model_service.py
 
 WORKDIR /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
 RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
-    python3 -m nuitka --module pytorch.py && \
-    rm -r pytorch.py pytorch.build __pycache__ && \
-    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pytorch.${SO_EXTENTION} pytorch.${SO_EXTENTION} && \
     cp /workspace/${APP_NAME}/assets/modified_bentoml_file/loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py && \
-    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py && \
+    python3 -m nuitka --module pytorch.py && \
+    rm -r pytorch.py pytorch.build __pycache__
+
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pytorch.${SO_EXTENTION} pytorch.${SO_EXTENTION}
 
 WORKDIR ${BUNDLE_PATH}
 RUN cp -r /workspace/${APP_NAME}/lovit . && \
     python3 /workspace/${APP_NAME}/${APP_NAME}/encrytion.py && \
-    python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME} && \
-    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
+    python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME}
+
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
 
 RUN python3 -m nuitka --module lovit --include-package=lovit && \
-    find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';' && \
-    ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp lovit.${SO_EXTENTION} lovit.${SO_EXTENTION}
+    find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';'
+
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp lovit.${SO_EXTENTION} lovit.${SO_EXTENTION}
 
 # RUN rm -r /workspace/bentoml /workspace/assets /workspace/Nuitka && \
 #     rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/lovit /workspace/*.txt && \
@@ -92,6 +96,7 @@ ENV LANG=C.UTF-8
 ENV PYTHONPATH="$PYTHONPATH:/workspace/${APP_NAME}"
 
 RUN apt-get update && \
+    apt-get install -y git  && \
     apt-get -y install python3-pip && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0
@@ -106,8 +111,14 @@ RUN pip3 install --upgrade pip && \
     pip3 install -r /workspace/requirments-serving.txt && \
     pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install -r ./guides/quick-start/requirements.txt
+
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache
+
+
 
 # root 권한 제거
 # RUN groupadd -r ${USER} && useradd --no-log-init -r -g ${USER} ${USER}
