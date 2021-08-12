@@ -28,8 +28,8 @@ services:
     tty: true
     depends_on: 
       - mysql
-    # command: BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
-    # command: bentoml serve-gunicorn /workspace/inference_server/Model_service/ --port=5000
+    # command: BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
 
   serving_replica:
     tty: true
@@ -44,7 +44,8 @@ services:
             capabilities: [gpu]
     depends_on: 
     - mysql
-    # command: bentoml serve-gunicorn . --port=5000
+    # command: BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
 
   web:
     build:

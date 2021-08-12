@@ -9,6 +9,7 @@ services:
       - 3307:3306
   
   serving:
+    image: docker.lomin.ai/ts-gpu-serving-dev:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/development/Dockerfile.gpu_serving
@@ -43,6 +44,7 @@ services:
     # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
   
   serving_replica:
+    image: docker.lomin.ai/ts-gpu-serving-dev:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/development/Dockerfile.gpu_serving

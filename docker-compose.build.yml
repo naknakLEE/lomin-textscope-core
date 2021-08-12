@@ -23,8 +23,6 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    ports: 
-      - 8052:5000
     deploy:
       resources:
         reservations:
@@ -32,10 +30,6 @@ services:
           - driver: nvidia
             device_ids: ['0']
             capabilities: [gpu]
-    tty: true
-    depends_on: 
-      - mysql
-    # BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
 
   web:
     image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_VERSION}
@@ -49,12 +43,6 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    volumes:
-      - ./logs:/workspace/logs
-    tty: true
-    depends_on: 
-      - mysql
-    # command: python3 app/main.py
 
   pp:
     image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_VERSION}
@@ -68,12 +56,6 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    volumes:
-      - ./logs:/workspace/logs
-    tty: true
-    depends_on: 
-      - mysql
-    # command: python pp_server/app/main.py
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper-build:${TEXTSCOPE_VERSION}
@@ -88,20 +70,4 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    ports: 
-      - 8050:8090
-    volumes:
-      - ./logs:/workspace/logs
-    tty: true
-    # command: python kakaobank_wrapper/app/main.py
 
-  grafana:
-    ports:
-      - 8053:3000
-    restart: always
-
-  mysql-exporter:
-    environment:
-      - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
-    cap_add:
-      - SYS_NICE

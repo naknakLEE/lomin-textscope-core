@@ -9,7 +9,7 @@ do
     mkdir -p encrypted_file/${container}
     echo ${container}
     if [ "${container}" = "wrapper" ]; then
-        app_name="kakaobank_${container}"
+        app_name="kbcard_${container}"
         docker cp ${container}:/workspace/${app_name}/main.py encrypted_file/${container}/ &&
         docker cp ${container}:/workspace/${app_name}/${app_name}.cpython-36m-x86_64-linux-gnu.so encrypted_file/${container}/ &&
         docker cp ${container}:/workspace/${app_name}/${app_name}.pyi encrypted_file/${container}/

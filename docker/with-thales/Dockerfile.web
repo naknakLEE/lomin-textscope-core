@@ -7,6 +7,7 @@ ARG ENCRYPTED_PATH
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
+ENV API_ENV="production"
 
 RUN apt-get update && \
     apt-get -y install python3-pip && \
