@@ -26,26 +26,29 @@ services:
             device_ids: ['0']
             capabilities: [gpu]
     tty: true
-    depends_on: 
-      - mysql
-    # command: BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
-    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+    volumes:
+      - ./others/assets/tiff_register:/workspace/others/assets/tiff_register/
 
-  serving_replica:
-    tty: true
     depends_on: 
       - mysql
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['1']
-            capabilities: [gpu]
-    depends_on: 
-    - mysql
     # command: BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
-    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+    # command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+
+  # serving_replica:
+  #   tty: true
+  #   depends_on: 
+  #     - mysql
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #         - driver: nvidia
+  #           device_ids: ['1']
+  #           capabilities: [gpu]
+  #   depends_on: 
+  #   - mysql
+  #   # command: BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+  #   # command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
 
   web:
     build:
@@ -87,8 +90,10 @@ services:
       - 8050:8090
     volumes:
       - ./logs:/workspace/logs
+      - ./:/workspace
+      - ./others/assets/tiff_register:/workspace/others/assets/tiff_register/
     tty: true
-    command: python3 /workspace/kakaobank_wrapper/main.py
+    # command: python3 /workspace/${CUSTOMER}_wrapper/main.py
 
   grafana:
     ports:

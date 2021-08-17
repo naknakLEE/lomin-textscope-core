@@ -118,15 +118,12 @@ inputs
 tmp
 storage
 workspace
-Textscope-old/
 Textscope-old
 temp
-temp/
 core
 pyminifier
-pyminifier/
 encrypted_file
-encrypted_file/
+build-folder
 
 # DB data
 pgdata/

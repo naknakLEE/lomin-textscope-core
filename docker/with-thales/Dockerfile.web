@@ -13,16 +13,17 @@ RUN apt-get update && \
     apt-get -y install python3-pip && \
     apt-get -y install libmysqlclient-dev
 
+RUN pip3 install --upgrade pip
+
+COPY ./${ENCRYPTED_PATH}/web/ /workspace/
 COPY ./.env /workspace/
 COPY ./requirments/requirments-web.txt /workspace/
-COPY ./${ENCRYPTED_PATH}/app.cpython-36m-x86_64-linux-gnu.so /workspace/
-COPY ./${ENCRYPTED_PATH}/app.pyi /workspace/
-COPY ./${ENCRYPTED_PATH}/main.py /workspace/
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r /workspace/requirments-web.txt
+RUN pip3 install -r /workspace/requirments-web.txt
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache
+
+WORKDIR /workspace
 
 # ENTRYPOINT ["python3", "main.py"]

@@ -138,3 +138,5 @@
 **/*.npy
 **/*.pickle
 **/ModelService/
+**/logs/
+**/workspace/

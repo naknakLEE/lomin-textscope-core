@@ -70,12 +70,8 @@ async def tiff_idcard_inference(
     }
     json_data = jsonable_encoder(data)
     async with aiohttp.ClientSession() as session:
-        request_api = "tiff_inference_all"
-        if json_data["page"] != "None":
-            # below return line enable if not set "tiff_inference"
-            request_api = "tiff_inference"
         async with session.post(
-            f"{serving_server_inference_url}/{request_api}", json=json_data
+            f"{serving_server_inference_url}/kbcard_inference", json=json_data
         ) as response:
             results = await response.json()
             return {"code": "1000", "ocr_result": results}

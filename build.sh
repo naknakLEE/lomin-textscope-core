@@ -1,41 +1,54 @@
+base_path="others/sentinel"
+container_list="web pp wrapper serving"
+customer="kbcard"
+created_created_folder_name="${customer}-build"
+build_folder_name="build-folder"
+
+rm -rf ${base_path}/${created_folder_name}
+
 docker-compose -f docker-compose.yml -f docker-compose.build.yml build
 docker-compose -f docker-compose.yml -f docker-compose.build.yml up -d
 
-rm -rf encrypted_file
-
-container_list="web pp wrapper serving"
+mkdir -p ${base_path}/${created_folder_name}/lovit
 for container in ${container_list}
 do 
-    mkdir -p encrypted_file/${container}
+    mkdir -p ${base_path}/${created_folder_name}/${container}
     echo ${container}
     if [ "${container}" = "wrapper" ]; then
-        app_name="kbcard_${container}"
-        docker cp ${container}:/workspace/${app_name}/main.py encrypted_file/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.cpython-36m-x86_64-linux-gnu.so encrypted_file/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.pyi encrypted_file/${container}/
+        app_name="${customer}_${container}"
+        cp -r ./${app_name} ${base_path}/${created_folder_name}/${container}/
+        cp ./.env ${base_path}/${created_folder_name}/${container}/
+        cp ./docker-compose.yml ${base_path}/${created_folder_name}/${container}/
+        cp ./docker-compose.prod.yml ${base_path}/${created_folder_name}/${container}/
+        # docker cp ${container}:/workspace/${app_name}/main.py ${base_path}/${created_folder_name}/${container}/ &&
+        # docker cp ${container}:/workspace/${app_name}/${app_name}.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/${container}/ &&
+        # docker cp ${container}:/workspace/${app_name}/${app_name}.pyi ${base_path}/${created_folder_name}/${container}/
     elif [ "${container}" = "pp" ]; then
         app_name="${container}_server"
-        docker cp ${container}:/workspace/${app_name}/main.py encrypted_file/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.cpython-36m-x86_64-linux-gnu.so encrypted_file/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.pyi encrypted_file/${container}/ &&
-        docker cp ${container}:/workspace/lovit.cpython-36m-x86_64-linux-gnu.so encrypted_file/ &&
-        docker cp ${container}:/workspace/lovit.pyi encrypted_file/
+        docker cp ${container}:/workspace/${app_name}/main.py ${base_path}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/${app_name}/${app_name}.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/${app_name}/${app_name}.pyi ${base_path}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/lovit.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/lovit/ &&
+        docker cp ${container}:/workspace/lovit.pyi ${base_path}/${created_folder_name}/lovit/
     elif [ "${container}" = "web" ]; then
-        docker cp ${container}:/workspace/main.py encrypted_file/ &&
-        docker cp ${container}:/workspace/app.cpython-36m-x86_64-linux-gnu.so encrypted_file/ &&
-        docker cp ${container}:/workspace/app.pyi encrypted_file/
+        docker cp ${container}:/workspace/main.py ${base_path}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/app.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/app.pyi ${base_path}/${created_folder_name}/${container}/
     elif [ "${container}" = "serving" ]; then
         app_name="inference_server"
-        docker cp ${container}:/workspace/${app_name}/ModelService encrypted_file/${container}/ &&
-        docker cp ${container}:/usr/local/lib/python3.6/dist-packages/bentoml/frameworks encrypted_file/${container}/
-        mv encrypted_file/${container}/ModelService encrypted_file/${container}/CopiedModelService
+        docker cp ${container}:/workspace/${app_name}/ModelService ${base_path}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/usr/local/lib/python3.6/dist-packages/bentoml/frameworks ${base_path}/${created_folder_name}/${container}/
+        mv ${base_path}/${created_folder_name}/${container}/ModelService ${base_path}/${created_folder_name}/${container}/CopiedModelService
     else
         echo "not found!"
     fi
 done
 
+mkdir -p ${build_folder_name}
+cp -r ${base_path}/${created_folder_name} ./${build_folder_name}/
+
 docker-compose down
 
 # docker-compose -y rm
-# docker cp ${container}:/workspace/inference_server/KakaobankModelService/lovit.pyi encrypted_file/${container}/ &&
-# docker cp ${container}:/workspace/inference_server/KakaobankModelService/lovit.cpython-36m-x86_64-linux-gnu.so encrypted_file/${container}/ &&
+# docker cp ${container}:/workspace/inference_server/KakaobankModelService/lovit.pyi ${base_path}/${created_folder_name}/${container}/ &&
+# docker cp ${container}:/workspace/inference_server/KakaobankModelService/lovit.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/${container}/ &&

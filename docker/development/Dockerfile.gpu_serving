@@ -1,7 +1,9 @@
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
 
+ARG PYTHON_VERSION
 ARG MODEL_TYPE="document"
 ARG MODEL_SERVICE="document_model_service"
+ARG APP_NAME=inference_server
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 ENV LC_ALL=C.UTF-8
@@ -18,23 +20,22 @@ RUN apt-get update && \
 RUN apt install -y libprotobuf-dev protobuf-compiler && \
     apt-get -y install cmake
 
-WORKDIR /
-RUN git clone http://github.com/bentoml/bentoml && \
-    cd bentoml && \
-    pip3 install --upgrade pip && \
-    pip3 install -r ./guides/quick-start/requirements.txt
+RUN pip3 install --upgrade pip
 
-WORKDIR /bin
-RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
-    chmod 755 jq
+RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
 COPY ./lovit /workspace/lovit
 
-RUN pip3 install torch==1.8.1+cu111 torchvision==0.9.1+cu111 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 RUN pip3 install -r /workspace/requirments-serving.txt
 
 WORKDIR /workspace
 RUN cd lovit &&\ 
     python3 setup.py install
 
+
+# WORKDIR /
+# RUN git clone http://github.com/bentoml/bentoml && \
+#     cd bentoml && \
+#     pip3 install --upgrade pip && \
+#     pip3 install -r ./guides/quick-start/requirements.txt

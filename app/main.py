@@ -18,15 +18,15 @@ if settings.DEVELOP:
     args["reload"] = True
 
 
-class MyManager(SyncManager):
-    pass
+# class MyManager(SyncManager):
+#     pass
 
 
-syncdict = {}
+# syncdict = {}
 
 
-def get_dict():
-    return syncdict
+# def get_dict():
+#     return syncdict
 
 
 if __name__ == "__main__":
