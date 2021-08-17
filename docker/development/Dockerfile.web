@@ -1,75 +1,65 @@
-FROM ubuntu:18.04
+ARG UBUNTU_VERSION=18.04
 
-# EXPOSE 80
+FROM ubuntu:${UBUNTU_VERSION} as builder
+
+ARG APPLY_THALES="False"
+ARG BASE_PATH
+ARG LINUX_ENV_PATH
+ARG DEMOMA_PATH
+ARG SO_EXTENTION
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
 RUN apt-get update && \
-    apt-get install sudo && \
-    apt-get install nano && \
     apt-get -y install git && \
-    apt-get -y install python3-pip
+    apt-get -y install python3-pip && \
+    apt-get -y install libmysqlclient-dev
 
-RUN pip3 install fastapi uvicorn
-
-# RUN sudo apt-get -y install postgresql postgresql-contrib
-# RUN sudo apt-get -y install postgresql-client
-RUN apt-get -y install libmysqlclient-dev && \
-    pip3 install mysqlclient
-# RUN sudo apt-get -y install python3-pymysql
-
-RUN pip3 install sqlalchemy && \
-    pip3 install databases && \
-    pip3 install aiomysql
-
-RUN pip3 install python-jose[cryptography] && \
-    pip3 install passlib[bcrypt] && \
-    pip3 install python-multipart && \
-    pip3 install cryptography==3.3.2
-
-RUN pip3 install python-dotenv && \
-    pip3 install pydantic[email] && \
-    pip3 install PyJWT && \
-    pip3 install aiohttp
-
-RUN pip3 install fastapi_profiler && \
-    pip3 install fastapi-cprofile && \ 
-    pip3 install pyinstrument_flame && \
-    pip3 install prometheusrock && \
-    pip3 install loguru
-
-RUN apt-get install -y psmisc
-
-COPY . /workspace
+RUN pip3 install --upgrade pip
 
 WORKDIR /workspace
-# RUN mv app/main.py ./main.py && \
-#     python3 -m nuitka --module app --include-package=app && \
-#     rm -r app 
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
 
+COPY ./app /workspace/app
+COPY ./assets/thales/ /workspace/assets/thales
+COPY ./.env /workspace/.env     
+COPY ./requirments/requirments-web.txt /workspace/requirments-web.txt
 
+RUN pip3 install -r /workspace/requirments-web.txt
 
+RUN mv app/main.py ./main.py && \
+    python3 -m nuitka --module app --include-package=app
 
-# RUN mkdir ~/glibc_install && \
-#     cd ~/glibc_install && \
-#     wget http://ftp.gnu.org/gnu/glibc/glibc-2.31.tar.gz && \
-#     tar zxvf glibc-2.31.tar.gz && \
-#     cd glibc-2.31 && \
-#     mkdir build && \
-#     cd build && \
-#     ../configure --prefix=/opt/glibc-2.31 && \
-#     make -j4 && \
-#     sudo make install && \
-#     export LD_LIBRARY_PATH=/opt/glibc-2.31/lib
-# wget -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
-# 	wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-2.29-r0.apk && \
-# 	apk add --no-cache glibc-2.29-r0.apk && \
-# 	rm glibc-2.29-r0.apk && \
-# 	wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-bin-2.29-r0.apk && \
-# 	apk add --no-cache glibc-bin-2.29-r0.apk && \
-# 	rm glibc-bin-2.29-r0.apk && \
-# 	wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-i18n-2.29-r0.apk && \
-# 	apk add --no-cache glibc-i18n-2.29-r0.apk && \
-# 	rm glibc-i18n-2.29-r0.apk /etc/apk/keys/sgerrand.rsa.pub && \
-# 	/usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8 && \
-# 	apk del glibc-bin glibc-i18n
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp app.${SO_EXTENTION} app.${SO_EXTENTION};
+
+RUN rm -r /workspace/app /workspace/*.build /workspace/*.txt /workspace/Nuitka /workspace/assets && \
+    rm -rf /var/lib/apt/lists/*
+
+# FROM ubuntu:${UBUNTU_VERSION}
+
+# ENV PYTHONPATH="$PYTHONPATH:/workspace"
+
+# RUN apt-get update && \
+#     apt-get -y install python3-pip && \
+#     apt-get -y install libmysqlclient-dev
+
+# COPY --from=builder /workspace/.env /workspace/
+# COPY --from=builder /workspace/requirments-web.txt /workspace/
+# COPY --from=builder /workspace/app.cpython-36m-x86_64-linux-gnu.so /workspace/
+# COPY --from=builder /workspace/app.pyi /workspace/
+# COPY --from=builder /workspace/main.py /workspace/
+
+# RUN pip3 install --upgrade pip && \
+#     pip3 install -r /workspace/requirments-web.txt
+
+# RUN rm -rf /var/lib/apt/lists/* && \
+#     rm -rf /root/.cache
+
+# ENTRYPOINT ["python3", "main.py"]
+
+# ARG BASE_PATH="/workspace"
+# ARG LINUX_ENV_PATH="/workspace/assets/thales/linuxenv"
+# ARG DEMOMA_PATH="/workspace/assets/thales/DEMOMA.hvc"
+# ARG SO_EXTENTION="cpython-36m-x86_64-linux-gnu.so"

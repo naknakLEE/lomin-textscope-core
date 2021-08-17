@@ -9,10 +9,10 @@ services:
   serving:
     build:
       context: ./
-      dockerfile: docker/with-thales/Dockerfile.gpu_serving
+      dockerfile: docker/production/Dockerfile.gpu_serving
       args:
         APP_NAME: inference_server
-        ENCRYPTED_PATH: ${ENCRYPTED_PATH}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUSTOMER: ${CUSTOMER}
         PYTHON_VERSION: ${PYTHON_VERSION}
@@ -53,10 +53,10 @@ services:
   web:
     build:
       context: ./
-      dockerfile: docker/with-thales/Dockerfile.web
+      dockerfile: docker/production/Dockerfile.web
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
-        ENCRYPTED_PATH: ${ENCRYPTED_PATH}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
     volumes:
       - ./logs:/workspace/logs
     tty: true
@@ -67,10 +67,10 @@ services:
   pp:
     build:
       context: ./
-      dockerfile: docker/with-thales/Dockerfile.pp
+      dockerfile: docker/production/Dockerfile.pp
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
-        ENCRYPTED_PATH: ${ENCRYPTED_PATH}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
     volumes:
       - ./logs:/workspace/logs
     tty: true
@@ -81,10 +81,10 @@ services:
   wrapper:
     build:
       context: ./
-      dockerfile: docker/with-thales/Dockerfile.wrapper
+      dockerfile: docker/production/Dockerfile.wrapper
       args:
         CUSTOMER: ${CUSTOMER}
-        ENCRYPTED_PATH: ${ENCRYPTED_PATH}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
     ports: 
       - 8050:8090

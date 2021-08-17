@@ -1,16 +1,26 @@
-FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu18.04
+ARG UBUNTU_VERSION
+
+FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION} as builder
 
 ARG PYTHON_VERSION
-ARG MODEL_TYPE="document"
-ARG MODEL_SERVICE="document_model_service"
+ARG APPLY_THALES
+ARG MODEL_TYPE
+ARG MODEL_SERVICE
+ARG BASE_PATH
+ARG LINUX_ENV_PATH
+ARG DEMOMA_PATH
+ARG SO_EXTENTION
+ARG USER
+ARG CUSTOMER
+ARG BUNDLE_PATH
+ARG BENTOML_PACKAGE_PATH=/usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks
 ARG APP_NAME=inference_server
 
-ENV PYTHONPATH="$PYTHONPATH:/workspace"
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV PYTHONPATH="$PYTHONPATH:/workspace/${APP_NAME}"
 
 RUN apt-get update && \
-    apt-get install nano && \
     apt-get install -y git  && \
     apt-get install wget && \
     apt-get -y install python3-pip && \
@@ -22,20 +32,102 @@ RUN apt install -y libprotobuf-dev protobuf-compiler && \
 
 RUN pip3 install --upgrade pip
 
+WORKDIR /workspace
+RUN git clone http://github.com/bentoml/bentoml && \
+    cd bentoml && \
+    pip3 install -r ./guides/quick-start/requirements.txt
+
+RUN git clone https://github.com/Nuitka/Nuitka.git && \
+    cd Nuitka && \
+    python3 setup.py install
+
+# for bento dockerization
+WORKDIR /bin
+RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
+    chmod 755 jq
+
 RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
+COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
-COPY ./lovit /workspace/lovit
+COPY ./lovit/lovit /workspace/${APP_NAME}/lovit
+COPY ./assets/thales/ /workspace/assets/thales
+COPY ./.env /workspace/.env
 
 RUN pip3 install -r /workspace/requirments-serving.txt
 
-WORKDIR /workspace
-RUN cd lovit &&\ 
-    python3 setup.py install
+# AWS 이전 예정
+# WORKDIR /workspace
+# RUN python3 ${APP_NAME}/utils/azure_blob_container/download_blob_to_local.py && \
+#     python3 ${APP_NAME}/generate_${MODEL_SERVICE}.py
 
+WORKDIR /workspace/${APP_NAME}
+RUN python3 ${APP_NAME}/generate_${CUSTOMER}_model_service.py 
 
-# WORKDIR /
+WORKDIR /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
+RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
+    python3 -m nuitka --module pytorch.py && \
+    rm -r pytorch.py pytorch.build __pycache__ && \
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/${CUSTOMER}_loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py && \
+    cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py
+
+RUN cp /workspace/${APP_NAME}/assets/modified_bentoml_file/onnx.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/onnx.py && \
+    python3 -m nuitka --module onnx.py && \
+    rm -r onnx.py onnx.build
+
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pytorch.${SO_EXTENTION} pytorch.${SO_EXTENTION}
+
+WORKDIR ${BUNDLE_PATH}
+RUN cp -r /workspace/${APP_NAME}/lovit . && \
+    python3 /workspace/${APP_NAME}/${APP_NAME}/encrytion.py && \
+    python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME}
+
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp ${APP_NAME}.${SO_EXTENTION} ${APP_NAME}.${SO_EXTENTION}
+
+RUN python3 -m nuitka --module lovit --include-package=lovit && \
+    find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';'
+
+# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp lovit.${SO_EXTENTION} lovit.${SO_EXTENTION}
+
+RUN rm -r /workspace/bentoml /workspace/assets /workspace/Nuitka && \
+    rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/lovit /workspace/*.txt && \
+    rm -r ${BUNDLE_PATH}/${APP_NAME} ${BUNDLE_PATH}/*.build && \
+    rm -rf /var/lib/apt/lists/*
+
+# FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
+
+# ENV LC_ALL=C.UTF-8
+# ENV LANG=C.UTF-8
+# ENV PYTHONPATH="$PYTHONPATH:/workspace/${APP_NAME}"
+
+# RUN apt-get update && \
+#     apt-get install -y git  && \
+#     apt-get -y install python3-pip && \
+#     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
+#     apt-get -y install libgl1-mesa-glx libglib2.0-0
+
+# COPY --from=builder /workspace/requirments-serving.txt /workspace/
+# COPY --from=builder /workspace/inference_server/ModelService /workspace/inference_server/ModelService
+# COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/loader.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/loader.py
+# COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/pip_pkg.py /usr/local/lib/python3.6/dist-packages/bentoml/saved_bundle/
+# COPY --from=builder /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
+
+# RUN pip3 install --upgrade pip && \
+#     pip3 install -r /workspace/requirments-serving.txt && \
+#     pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+
 # RUN git clone http://github.com/bentoml/bentoml && \
 #     cd bentoml && \
-#     pip3 install --upgrade pip && \
 #     pip3 install -r ./guides/quick-start/requirements.txt
+
+# RUN rm -rf /var/lib/apt/lists/* && \
+#     rm -rf /root/.cache
+
+
+
+# root 권한 제거
+# RUN groupadd -r ${USER} && useradd --no-log-init -r -g ${USER} ${USER}
+# USER ${USER}
+
+# 바로 서비스 실행하도록
+# ENTRYPOINT ["BENTOML_CONFIG=/workspace/${APP_NAME}/assets/bentoml_configuration.yml", "bentoml", "serve-gunicorn", "."]

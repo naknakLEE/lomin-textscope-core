@@ -1,8 +1,0 @@
-FROM redocly/redoc
-
-WORKDIR /usr/share/nginx/html 
-RUN wget https://textcopepublic.blob.core.windows.net/textscope/textscope_openapi.json    
-
-ENV SPEC_URL=textscope_openapi.json
-
-CMD ["sh", "/usr/local/bin/docker-run.sh"]

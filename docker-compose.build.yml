@@ -56,18 +56,3 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-
-  # wrapper:
-  #   image: docker.lomin.ai/ts-wrapper-build:${TEXTSCOPE_VERSION}
-  #   build:
-  #     context: ./
-  #     dockerfile: docker/production/Dockerfile.wrapper
-  #     args:
-  #       USER: ${USER}
-  #       CUSTOMER: ${CUSTOMER}
-  #       UBUNTU_VERSION: ${UBUNTU_VERSION}
-  #       BASE_PATH: ${BASE_PATH}
-  #       LINUX_ENV_PATH: ${LINUX_ENV_PATH}
-  #       DEMOMA_PATH: ${DEMOMA_PATH}
-  #       SO_EXTENTION: ${SO_EXTENTION}
-
