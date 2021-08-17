@@ -100,17 +100,12 @@ def get_estate_num(preds):
         filter_mask = (y_iou_score > 0) * (text_filter)
 
         if np.sum(filter_mask) == 0:
-            text_filter = np.array(
-                [True if re.search("\d{4}-", text) else False for text in texts]
-            )
+            text_filter = np.array([True if re.search("\d{4}-", text) else False for text in texts])
             filter_mask = (y_iou_score > 0) * (text_filter)
 
         if np.sum(filter_mask) == 0:
             filter_mask = np.array(
-                [
-                    True if re.search("\d{4}-\d{4}-\d{6}", text) else False
-                    for text in texts
-                ]
+                [True if re.search("\d{4}-\d{4}-\d{6}", text) else False for text in texts]
             )
 
         if np.sum(filter_mask) == 0:
@@ -126,16 +121,19 @@ def get_estate_num(preds):
             estate_num = candidates_text[max_idx]
 
     except:
-        estate_num = ""
-        texts = np.array(preds.get_field("texts"))
-        text_filter = np.array(
-            [True if re.search("\d{4}-\d{4}-\d{6}", text) else False for text in texts]
-        )
-        candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
+        try:
+            estate_num = ""
+            texts = np.array(preds.get_field("texts"))
+            text_filter = np.array(
+                [True if re.search("\d{4}-\d{4}-\d{6}", text) else False for text in texts]
+            )
+            candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
 
-        if len(candidates) > 0:
-            candidates_text = candidates.get_field("texts")
-            estate_num = candidates_text[0]
+            if len(candidates) > 0:
+                candidates_text = candidates.get_field("texts")
+                estate_num = candidates_text[0]
+        except:
+            estate_num = ""
 
     estate_num = "".join(re.findall("[\d]", estate_num))
     return estate_num
@@ -145,10 +143,7 @@ def get_serial_num(preds):
     try:
         texts = np.array(preds.get_field("texts"))
         text_filter = np.array(
-            [
-                True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                for text in texts
-            ]
+            [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
         )
 
         serial_num = ""
@@ -166,10 +161,7 @@ def get_serial_num(preds):
 
         if np.sum(filter_mask) == 0:
             filter_mask = np.array(
-                [
-                    True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                    for text in texts
-                ]
+                [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
             )
 
         if np.sum(filter_mask) == 0:
@@ -185,19 +177,19 @@ def get_serial_num(preds):
             serial_num = candidates_text[max_idx]
 
     except:
-        serial_num = ""
-        texts = np.array(preds.get_field("texts"))
-        text_filter = np.array(
-            [
-                True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False
-                for text in texts
-            ]
-        )
-        candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
+        try:
+            serial_num = ""
+            texts = np.array(preds.get_field("texts"))
+            text_filter = np.array(
+                [True if re.search("[A-Z]{4}-[A-Z]{4}-[A-Z]{4}", text) else False for text in texts]
+            )
+            candidates = preds[torch.tensor(text_filter, dtype=torch.bool)]
 
-        if len(candidates) > 0:
-            candidates_text = candidates.get_field("texts")
-            serial_num = candidates_text[0]
+            if len(candidates) > 0:
+                candidates_text = candidates.get_field("texts")
+                serial_num = candidates_text[0]
+        except:
+            serial_num = ""
 
     serial_num = "".join(re.findall("[A-Z]", serial_num))
     return serial_num
@@ -215,8 +207,7 @@ def get_indices(texts, KEYWORDS):
 
 def get_upper_boundary(texts, preds):
     upper_indices = [
-        get_keyword_index(preds, KEYWORD, priority="upper")
-        for KEYWORD in UPPER_BOUNDARY_KEYWORDS
+        get_keyword_index(preds, KEYWORD, priority="upper") for KEYWORD in UPPER_BOUNDARY_KEYWORDS
     ]
     upper_boundary = [preds.bbox[index, 1] for index in upper_indices]
     upper_boundary = sorted(upper_boundary, reverse=True)
@@ -252,13 +243,9 @@ def get_bottom_boundary(preds):
 
 
 def get_resident_registration_number(preds):
-    pwd_candidates = preds.copy_with_fields(
-        list(preds.extra_fields.keys()), skip_missing=False
-    )
+    pwd_candidates = preds.copy_with_fields(list(preds.extra_fields.keys()), skip_missing=False)
     texts = pwd_candidates.get_field("texts")
-    text_filter = np.array(
-        [True if re.match("[0-9]{6}-", text) else False for text in texts]
-    )
+    text_filter = np.array([True if re.match("[0-9]{6}-", text) else False for text in texts])
     pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
     try:
         pwd_numbers = min(50, np.sum(text_filter))
@@ -266,9 +253,7 @@ def get_resident_registration_number(preds):
 
         for upper_boundary in upper_boundaries:
             _pwd_candidates = pwd_candidates[
-                torch.tensor(
-                    pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool
-                )
+                torch.tensor(pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool)
             ]
             # ==가 아니라 >= 사용해야하는거 아닌가?
             if len(_pwd_candidates) == pwd_numbers:
@@ -294,20 +279,19 @@ def get_resident_registration_number(preds):
         # passwords = fix_password(passwords)
 
     except:
-        pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
-        password_texts = pwd_candidates.get_field("texts")
+        try:
+            pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
+            password_texts = pwd_candidates.get_field("texts")
+        except:
+            password_texts = ""
 
     return password_texts
 
 
 def get_passwords(preds):
-    pwd_candidates = preds.copy_with_fields(
-        list(preds.extra_fields.keys()), skip_missing=False
-    )
+    pwd_candidates = preds.copy_with_fields(list(preds.extra_fields.keys()), skip_missing=False)
     texts = pwd_candidates.get_field("texts")
-    text_filter = np.array(
-        [True if re.match("\d{2}-\d{4}", text) else False for text in texts]
-    )
+    text_filter = np.array([True if re.match("\d{2}-\d{4}", text) else False for text in texts])
     pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
     try:
         pwd_numbers = min(50, np.sum(text_filter))
@@ -315,9 +299,7 @@ def get_passwords(preds):
 
         for upper_boundary in upper_boundaries:
             _pwd_candidates = pwd_candidates[
-                torch.tensor(
-                    pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool
-                )
+                torch.tensor(pwd_candidates.bbox[:, 3] > upper_boundary, dtype=torch.bool)
             ]
             # ==가 아니라 >= 사용해야하는거 아닌가?
             if len(_pwd_candidates) == pwd_numbers:
@@ -445,10 +427,7 @@ def cal_find_value(keyword, target_boxlist):
         closest_bbox_idx = None
         texts = target_boxlist.get_field("texts")
         for i, bbox in enumerate(target_boxlist.bbox):
-            if (
-                closest_bbox_idx is None
-                or bbox[0] < target_boxlist.bbox[closest_bbox_idx][0]
-            ):
+            if closest_bbox_idx is None or bbox[0] < target_boxlist.bbox[closest_bbox_idx][0]:
                 closest_bbox_idx = i
 
         bbox = target_boxlist.bbox[closest_bbox_idx]
@@ -601,9 +580,7 @@ def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
     result.update({"serial_num": serial_num})
     result.update({"passwords": pwd_texts})
     result.update({"rightful_person": personal_info["right_holder"]})
-    result.update(
-        {"resident_registration_number": personal_info["resident_registration_number"]}
-    )
+    result.update({"resident_registration_number": personal_info["resident_registration_number"]})
 
     result_all_classes = {}
 
