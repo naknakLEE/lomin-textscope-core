@@ -19,6 +19,8 @@ RUN apt-get update && \
 
 RUN pip3 install --upgrade pip
 
+COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/requirments-${CUSTOMER}.txt
+RUN pip3 install -r /workspace/requirments-${CUSTOMER}.txt
 # COPY ./.env /workspace/
 # COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/
 # COPY ./${BUILD_FOLDER_PATH}/wrapper/${APP_NAME}.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
@@ -26,9 +28,6 @@ RUN pip3 install --upgrade pip
 # COPY ./${BUILD_FOLDER_PATH}/wrapper/main.py /workspace/${APP_NAME}/
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./.env /workspace/.env
-COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/requirments-${CUSTOMER}.txt
-
-RUN pip3 install -r /workspace/requirments-${CUSTOMER}.txt
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \

@@ -1,9 +1,7 @@
 directory="encrypted_file"
 linuxenv="./linuxenv"
-# hvc="./DEMOMA.hvc"
-# feature="100"
-hvc="./TBXBG.hvc"
-feature="1"
+hvc="./TBXBG.hvc" # "./DEMOMA.hvc"
+feature="1" # 100
 
 for file in `find $directory -type f -name "*.so"`
 do

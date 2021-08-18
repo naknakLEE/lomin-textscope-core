@@ -10,13 +10,12 @@ services:
     image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.gpu_serving
+      dockerfile: docker/build/Dockerfile.gpu_serving
       args:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
         BUNDLE_PATH: ${BUNDLE_PATH}
         PYTHON_VERSION: ${PYTHON_VERSION}
-        MODEL_TYPE: ${MODEL_TYPE}
         MODEL_SERVICE: ${MODEL_SERVICE}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BASE_PATH: ${BASE_PATH}
@@ -35,7 +34,7 @@ services:
     image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.web
+      dockerfile: docker/build/Dockerfile.web
       args:
         USER: ${USER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
@@ -48,7 +47,7 @@ services:
     image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_VERSION}
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.pp
+      dockerfile: docker/build/Dockerfile.pp
       args:
         USER: ${USER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}

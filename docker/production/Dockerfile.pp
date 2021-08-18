@@ -17,15 +17,15 @@ RUN apt-get update && \
 
 RUN pip3 install --upgrade pip
 
+COPY ./requirments/requirments-pp.txt /workspace/
+RUN pip3 install -r /workspace/requirments-pp.txt
+
 COPY ./.env /workspace/
 COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.cpython-36m-x86_64-linux-gnu.so /workspace/
 COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.pyi /workspace/
-COPY ./requirments/requirments-pp.txt /workspace/
 COPY ./${BUILD_FOLDER_PATH}/pp/pp_server.cpython-36m-x86_64-linux-gnu.so /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/pp/pp_server.pyi /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/pp/main.py /workspace/pp_server/
-
-RUN pip3 install -r /workspace/requirments-pp.txt
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache

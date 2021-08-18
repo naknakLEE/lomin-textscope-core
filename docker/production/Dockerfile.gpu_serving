@@ -48,6 +48,6 @@ COPY ./${BUILD_FOLDER_PATH}/serving/frameworks/onnx.cpython-36m-x86_64-linux-gnu
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache /bentoml
 
-WORKDIR / 
+WORKDIR /
 
 # ENTRYPOINT ["BENTOML_CONFIG=/workspace/${APP_NAME}/assets/bentoml_configuration.yml", "bentoml", "serve-gunicorn", "."]

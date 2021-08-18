@@ -325,8 +325,11 @@ def get_passwords(preds):
         # passwords = fix_password(passwords)
 
     except:
-        pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
-        password_texts = pwd_candidates.get_field("texts")
+        try:
+            pwd_candidates = pwd_candidates[torch.tensor(text_filter, dtype=torch.bool)]
+            password_texts = pwd_candidates.get_field("texts")
+        except:
+            password_texts = ""
 
     return password_texts
 
@@ -573,7 +576,12 @@ def postprocess_regi_cert(predictions, score_thresh=0.1, *args):
     try:
         personal_info = get_personal_info(pred, keyword_map, BOTTOM_KEYWORDS)
     except:
-        personal_info = []
+        personal_info = {"right_holder": "", "resident_registration_number": ""}
+
+    if "right_holder" not in personal_info:
+        personal_info["right_holder"] = ""
+    if "resident_registration_number" not in personal_info:
+        personal_info["resident_registration_number"] = ""
 
     result = {}
     result.update({"estate_num": estate_num})

@@ -15,11 +15,11 @@ RUN apt-get update && \
 
 RUN pip3 install --upgrade pip
 
+COPY ./requirments/requirments-web.txt /workspace/
+RUN pip3 install -r /workspace/requirments-web.txt
+
 COPY ./${BUILD_FOLDER_PATH}/web/ /workspace/
 COPY ./.env /workspace/
-COPY ./requirments/requirments-web.txt /workspace/
-
-RUN pip3 install -r /workspace/requirments-web.txt
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache

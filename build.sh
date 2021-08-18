@@ -1,7 +1,7 @@
 base_path="others/sentinel"
 container_list="web pp wrapper serving"
-customer="kbcard"
-created_created_folder_name="${customer}-build"
+customer="kakaobank"
+created_folder_name="${customer}-build"
 build_folder_name="build-folder"
 
 rm -rf ${base_path}/${created_folder_name}
