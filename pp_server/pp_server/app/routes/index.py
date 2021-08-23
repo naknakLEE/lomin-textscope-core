@@ -1,86 +1,25 @@
-# import aiohttp
-# from fastapi.applications import FastAPI
-# import requests
-# import time
-# import asyncio
-# import numpy as np
-# import base64
-# import json
-# import cv2
-# import io
-# import struct
-# import requests
+import requests
 
-# from starlette.testclient import TestClient
-# from multiprocessing import shared_memory
-# from redis import Redis
-# from fastapi.responses import StreamingResponse
-# from fastapi.datastructures import UploadFile
-# from fastapi import Body
-# from typing import Any
-# from datetime import datetime
-# from fastapi import APIRouter, Depends, File
-# from fastapi.requests import Request
-# from sqlalchemy.orm import Session
-# from fastapi.responses import JSONResponse
-# from starlette.responses import Response
-# from inspect import currentframe as frame
+from typing import Any
+from fastapi import APIRouter
+from starlette.responses import Response
 
-# from app.database.connection import db
-# from app.database.schema import Users, Usage, Logs
-# from app.common.const import get_settings
-# from app import models
-
-# from pp_server.app.database.connection import redis_cache
+from pp_server.app.database.connection import db
+from pp_server.app.common.const import get_settings
+from pp_server.app import models
 
 
-# settings = get_settings()
-# router = APIRouter()
-# # redis_cache = Redis(host=settings.REDIS_IP_ADDR, port=settings.REDIS_IP_PORT, db=0)
-# serving_server_url = f"http://182.20.0.4:8080"
-# web_server_url = f"http://182.20.0.5:8000"
-
-# app = FastAPI()
-
-# client = TestClient(app)
+settings = get_settings()
+router = APIRouter()
 
 
-# @router.post("/pipeline")
-# async def inference(image: UploadFile = File(...)) -> Any:
-#     image_bytes = await image.read()
-#     image = {"image": image_bytes}
+@router.get("/status", response_model=models.StatusResponse)
+def check_status() -> Any:
+    """
+    ### 서버 상태 체크
+    응답 데이터: Textscope API (is_database_working: $(is_database_working), is_serving_server_working: $(is_serving_server_working))
+    -  is_database_working: 데이터베이스 서버와 연결 상태 확인
+    -  is_serving_server_working: 모델 서버와 연결 상태 확인
+    """
 
-#     # Detection
-#     async with aiohttp.ClientSession() as session:
-#         async with session.post(
-#             f"{serving_server_url}/inference/stage_one", data=image
-#         ) as response:
-#             result = await response.json()
-#             boxes = result
-#             print("\033[94m" + f"{result}" + "\033[m")
-
-#     # Post-Processing 1
-#     async with aiohttp.ClientSession() as session:
-#         async with session.post(
-#             f"{serving_server_url}/inference/stage_one", data=image
-#         ) as response:
-#             result = await response.json()
-#             boxes = result
-#             print("\033[94m" + f"{result}" + "\033[m")
-
-#     # Recognition
-#     async with aiohttp.ClientSession() as session:
-#         async with session.post(
-#             f"{serving_server_url}/inference/stage_two", json=boxes
-#         ) as response:
-#             result = await response.json()
-#             string = result
-#             print("\033[94m" + f"{result}" + "\033[m")
-
-#     # Post-Processing 2: result
-#     async with aiohttp.ClientSession() as session:
-#         async with session.post(
-#             f"{serving_server_url}/inference/stage_one", data=image
-#         ) as response:
-#             result = await response.json()
-#             return result
+    return Response(f"PP server: on working")

@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import Dict, List, Optional, Any
 from pydantic import BaseSettings
 from functools import lru_cache
 
@@ -58,6 +58,77 @@ class Settings(BaseSettings):
     SERIALIZE = "serialize"
     ENCODING: str = "utf-8"
     FORMAT: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
+
+    # IDCARD AND DOCUMENT CONFIG
+    ID_DLC_REMOVE_REGION_CODE: bool = False
+    DEIDENTIFY_JSON: bool = True
+    ID_DE_NAME: bool = True
+    VALID_TYPE: Dict = {
+        "RRC": ["id", "issue_date", "name"],
+        "DLC": [
+            "id",
+            "issue_date",
+            "name",
+            "dlc_license_region",
+            "dlc_license_num",
+            "dlc_serial_num",
+        ],
+        "ARC_FRONT": ["id", "issue_date", "name", "arc_nationality", "arc_visa"],
+        "ARC_BACK": ["expiration_date"],
+        "REPRESENTATIVE_ID": [
+            "dlc_title",
+            "name",
+            "dlc_regnum",
+            "dlc_issue_date",
+            "dlc_license_num",
+            "dlc_exp_date",
+        ],
+        "GENERAL_OCR": [
+            "dlc_title",
+            "name",
+            "dlc_regnum",
+            "dlc_issue_date",
+            "dlc_license_num",
+            "dlc_exp_date",
+        ],
+        "TRANSACTION_BANK_BOOK": [
+            "page_outline",
+            "bank_name_value",
+            "account_name_key",
+            "account_name_value",
+            "account_type_key",
+            "account_type_value",
+            "account_num_key",
+            "account_num_value",
+        ],
+        "BUSINESS_REGISTRATION": [
+            "business_num_key",
+            "business_num_value",
+            "business_name_key",
+            "business_name_value",
+            "business_repre_key",
+            "business_repre_value",
+            "business_address_key",
+            "business_address_value",
+            "business_addresshq_key",
+            "business_addresshq_value",
+            "business_workcond_key",
+            "business_workcond_value",
+            "business_worktype_key",
+            "business_worktype_value",
+            "business_bdate_key",
+            "business_bdate_value",
+            "business_type_value",
+            "business_issuedate_value",
+        ],
+    }
+
+    ESSENTIAL_KEYS: Dict = {
+        "RRC": ["id", "name", "issue_date"],
+        "DLC": ["id", "issue_date", "name", "dlc_license_num"],
+        "ARC_FRONT": ["id", "issue_date", "name", "arc_nationality"],
+        "ARC_BACK": ["expiration_date"],
+    }
 
     class Config:
         env_file = "/workspace/.env"

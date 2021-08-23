@@ -14,7 +14,7 @@ services:
         APP_NAME: inference_server
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
-        CUSTOM ER: ${CUSTOMER}
+        CUSTOMER: ${CUSTOMER}
         PYTHON_VERSION: ${PYTHON_VERSION}
     ports: 
       - 8052:5000

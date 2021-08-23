@@ -1,8 +1,7 @@
-import aiohttp
 import httpx
 
-from typing import Any
-from fastapi import Depends, File, UploadFile, APIRouter, Form
+from typing import Any, Dict
+from fastapi import Depends, File, UploadFile, APIRouter, Form, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -18,66 +17,52 @@ settings = get_settings()
 router = APIRouter()
 
 
-MODEL_SERVER_URL = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_ADDR}"
+model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_ADDR}"
 if settings.CUSTOMER == "kakaobank":
-    MODEL_SERVER_URL = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
-PP_SERVER_URL = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
+    model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
+pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
-@router.post(
-    "",
-    dependencies=[Depends(db.session), Depends(get_current_active_user)],
-    response_model=models.InferenceResponse,
-    responses=inference_responses,
-)
-async def inference(file: UploadFile = File(...)) -> Any:
-    """
-    ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
-    입력 데이터: 토큰, ocr에 사용할 파일 <br/>
-    응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
-    """
-    serving_server_inference_url = (
-        f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/inference"
-    )
-
-    image_data = await file.read()
-    async with aiohttp.ClientSession() as session:
-        async with session.post(serving_server_inference_url, data=image_data) as response:
-            result = await response.json()
-            return models.InferenceResponse(ocrResult=result)
+# response_model=models.InferenceResponse,
+# dependencies=[Depends(db.session), Depends(get_current_active_user)],
+"""
+### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
+입력 데이터: 토큰, ocr에 사용할 파일 <br/>
+응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
+"""
 
 
-@router.post(
-    "/tiff/idcard",
-    dependencies=[Depends(db.session)],
-    responses=inference_responses,
-)
-async def tiff_idcard_inference(
-    image_path: str = Form(...),
-    request_id: str = Form(...),
-    doc_type: str = Form(...),
-    page: str = Form(...),
-) -> Any:
+@router.post("/ocr", status_code=200, responses=inference_responses)
+async def ocr(request: Request) -> Dict:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
     serving_server_inference_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
-
-    data = {
-        "image_path": image_path,
-        "request_id": request_id,
-        "doc_type": doc_type,
-        "page": page,
-    }
-    json_data = jsonable_encoder(data)
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            f"{serving_server_inference_url}/kbcard_inference", json=json_data
-        ) as response:
-            results = await response.json()
-            return {"code": "1000", "ocr_result": results}
+    inputs = await request.json()
+    post_processing = inputs.get("post_processing", None)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{serving_server_inference_url}/ocr",
+            json=inputs,
+            timeout=settings.TIMEOUT_SECOND,
+        )
+        inference_results = response.json()
+        if response.status_code < 200 or response.status_code >= 400:
+            return JSONResponse(content=jsonable_encoder({"code": "3000", "ocr_result": {}}))
+        if post_processing is not None:
+            response = await client.post(
+                f"{pp_server_url}/post_processing/{post_processing}",
+                json=inference_results,
+                timeout=settings.TIMEOUT_SECOND,
+            )
+            post_processing_results = response.json()
+            if response.status_code < 200 or response.status_code >= 400:
+                return JSONResponse(content=jsonable_encoder({"code": "3000", "ocr_result": {}}))
+            inference_results["kv"] = post_processing_results["result"]
+        logger.debug(f"inference_results: {inference_results}")
+    return JSONResponse(content=jsonable_encoder({"code": "1000", "ocr_result": inference_results}))
 
 
 @router.post("/pipeline")
@@ -93,19 +78,21 @@ async def inference(
     document_type = settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
 
     async with httpx.AsyncClient() as client:
-        logger.debug(MODEL_SERVER_URL)
+        logger.debug(model_server_url)
         import time
 
         inference_start_time = time.time()
         document_ocr_model_response = await client.post(
-            f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=settings.TIMEOUT_SECOND
+            f"{model_server_url}/document_ocr",
+            files=files,
+            timeout=settings.TIMEOUT_SECOND,
         )
         logger.info(f"Ocr time: {time.time() - inference_start_time}")
         document_ocr_result = document_ocr_model_response.json()
 
         post_processing_start_time = time.time()
         document_ocr_pp_response = await client.post(
-            f"{PP_SERVER_URL}/post_processing/{document_type}",
+            f"{pp_server_url}/post_processing/{document_type}",
             json=document_ocr_result,
             timeout=settings.TIMEOUT_SECOND,
         )

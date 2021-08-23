@@ -4,6 +4,7 @@ from functools import cmp_to_key
 import torch
 import numpy as np
 import re
+from loguru import logger
 from collections import OrderedDict
 from soynlp.hangle import jamo_levenshtein, levenshtein
 from pp_server.app.postprocess.commons import (
@@ -127,7 +128,7 @@ def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
 
         # value_idx = np.argsort(y_iou_score[0])[-2:]
     except:
-        pass
+        logger.exception("get multiple right value")
 
     return value
 
@@ -158,6 +159,7 @@ def get_right_value(pred, texts, keyword):
         value = right_pred.get_field("texts")[value_idx] if y_iou_score[0][value_idx] > 0.5 else ""
 
     except:
+        logger.exception("get right value")
         value = ""
 
     return value
@@ -315,7 +317,6 @@ def postprocess_basic_cert(pred, score_thresh=0.3, *args):
         personal_info, personal_info_debug = get_personal_info(
             filtered_pred, keyword_map, BOTTOM_KEYWORDS
         )
-        from loguru import logger
 
         logger.info(f"info: {personal_info}")
     except:
