@@ -1,5 +1,8 @@
+# source .env
+
 base_path="others/sentinel"
 container_list="web pp wrapper serving"
+# customer="${CUSTOMER}"
 customer="kakaobank"
 created_folder_name="${customer}-build"
 build_folder_name="build-folder"
@@ -48,7 +51,3 @@ mkdir -p ${build_folder_name}
 cp -r ${base_path}/${created_folder_name} ./${build_folder_name}/
 
 docker-compose down
-
-# docker-compose -y rm
-# docker cp ${container}:/workspace/inference_server/KakaobankModelService/lovit.pyi ${base_path}/${created_folder_name}/${container}/ &&
-# docker cp ${container}:/workspace/inference_server/KakaobankModelService/lovit.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/${container}/ &&

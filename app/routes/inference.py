@@ -17,7 +17,10 @@ from app import models
 settings = get_settings()
 router = APIRouter()
 
-MODEL_SERVER_URL = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
+
+MODEL_SERVER_URL = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_ADDR}"
+if settings.CUSTOMER == "kakaobank":
+    MODEL_SERVER_URL = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
 PP_SERVER_URL = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
@@ -95,7 +98,7 @@ async def inference(
 
         inference_start_time = time.time()
         document_ocr_model_response = await client.post(
-            f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=300.0
+            f"{MODEL_SERVER_URL}/document_ocr", files=files, timeout=settings.TIMEOUT_SECOND
         )
         logger.info(f"Ocr time: {time.time() - inference_start_time}")
         document_ocr_result = document_ocr_model_response.json()
@@ -104,7 +107,7 @@ async def inference(
         document_ocr_pp_response = await client.post(
             f"{PP_SERVER_URL}/post_processing/{document_type}",
             json=document_ocr_result,
-            timeout=30.0,
+            timeout=settings.TIMEOUT_SECOND,
         )
         logger.info(f"Post processing time: {time.time() - post_processing_start_time}")
         result = document_ocr_pp_response.json()

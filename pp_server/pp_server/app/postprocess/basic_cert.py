@@ -97,9 +97,7 @@ def get_multiple_right_value(pred, texts, keyword, value_num=2, threshold=0.5):
         if isinstance(bboxes, torch.Tensor):
             bboxes = bboxes.numpy()
 
-        edit_distances = [
-            jamo_levenshtein(keyword, text) / len(keyword) for text in texts
-        ]
+        edit_distances = [jamo_levenshtein(keyword, text) / len(keyword) for text in texts]
 
         key_index = np.argmin(edit_distances)
 
@@ -140,9 +138,7 @@ def get_right_value(pred, texts, keyword):
         if isinstance(bboxes, torch.Tensor):
             bboxes = bboxes.numpy()
 
-        edit_distances = [
-            jamo_levenshtein(keyword, text) / len(keyword) for text in texts
-        ]
+        edit_distances = [jamo_levenshtein(keyword, text) / len(keyword) for text in texts]
 
         key_index = np.argmin(edit_distances)
 
@@ -159,11 +155,7 @@ def get_right_value(pred, texts, keyword):
         y_iou_score = _get_iou_y(np.expand_dims(key_bbox, 0), right_bboxes)
 
         value_idx = np.argmax(y_iou_score[0])
-        value = (
-            right_pred.get_field("texts")[value_idx]
-            if y_iou_score[0][value_idx] > 0.5
-            else ""
-        )
+        value = right_pred.get_field("texts")[value_idx] if y_iou_score[0][value_idx] > 0.5 else ""
 
     except:
         value = ""
@@ -226,7 +218,7 @@ def get_parental_authority(pred):
     #     if bbox[1] > 1908 - 50 and bbox[3] < 1958 + 50:
     #         box_index_list.append(i)
 
-    parent_relation = get_multiple_right_value(pred, texts, "친권자")
+    parent_relation = get_multiple_right_value(pred, texts, "[친권자]")
     if len(parent_relation) <= 1:
         parent_relation = get_multiple_right_value(pred, texts, "친권행사자")
     # if len(parent_relation) == 1:
@@ -235,9 +227,7 @@ def get_parental_authority(pred):
     #         pred, x_iou_thres=0.1, bbox=parent_relation[0]["bbox"]
     #     )
     elif len(parent_relation) >= 2:
-        parental_authority = split_parental_authority_value(
-            parent_relation, parental_authority
-        )
+        parental_authority = split_parental_authority_value(parent_relation, parental_authority)
     return parental_authority
 
 
@@ -308,11 +298,7 @@ def postprocess_basic_cert(pred, score_thresh=0.3, *args):
                 keyword_map[keyword].append({"bbox": bbox, "text": text})
             elif keyword == PERSONAL_INFO_KEYWORDS[2]:  # dirty code
                 for wildcard in DATE_WILDCARD_KEYWORDS + (keyword,):
-                    if (
-                        len(text) > 4
-                        and wildcard in text
-                        or levenshtein(wildcard, text) < 3
-                    ):
+                    if len(text) > 4 and wildcard in text or levenshtein(wildcard, text) < 3:
                         bbox = filtered_pred.bbox[i]
                         keyword_map[keyword].append({"bbox": bbox, "text": text})
                         break
@@ -329,6 +315,9 @@ def postprocess_basic_cert(pred, score_thresh=0.3, *args):
         personal_info, personal_info_debug = get_personal_info(
             filtered_pred, keyword_map, BOTTOM_KEYWORDS
         )
+        from loguru import logger
+
+        logger.info(f"info: {personal_info}")
     except:
         personal_info = []
         personal_info_debug = {}
