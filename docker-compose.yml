@@ -15,7 +15,7 @@ services:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving
     volumes:
-      - ./logs:/workspace/logs
+      - log:/workspace/logs
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
@@ -23,8 +23,6 @@ services:
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving_replica
-    volumes:
-      - ./logs:/workspace/logs
     networks:
       our_net:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
@@ -32,6 +30,8 @@ services:
   web:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
     container_name: web
+    volumes:
+      - log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -40,6 +40,8 @@ services:
   pp:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
     container_name: pp
+    volumes:
+      - log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -48,37 +50,30 @@ services:
   wrapper:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
     container_name: wrapper
+    volumes:
+      - log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
-      - /etc/nginx/certificate:/etc/nginx/certs
-    ports:
-      - "800:80"
-    networks:
-      our_net:
-        ipv4_address: ${NGINX_IP_ADDR}
     
   multiple_gpu_load_banlancing:
     image: nginx:latest
     container_name: multiple_gpu_load_banlancing
-    volumes:
-      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
     networks:
       our_net:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
+      
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_IP_ADDR}
     
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.9.0
     container_name: nginx_exporter
-    command:
-      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
     networks:
       our_net:
         ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
@@ -101,10 +96,6 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./.env:/etc/prometheus/.env
-      - prometheus_data:/prometheus
     restart: always
     networks:
       our_net:
@@ -135,6 +126,7 @@ volumes:
   grafana_data: {}
   pgdata: {}
   mysqldata: {}
+  log: {}
 
 networks:
   our_net:
