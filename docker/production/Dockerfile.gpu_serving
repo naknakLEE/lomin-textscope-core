@@ -13,6 +13,8 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace/${APP_NAME}"
 ENV API_ENV="production"
 
 RUN apt-get update && \
+    apt-get install -y locales && \
+    locale-gen ko_KR.UTF-8 && \
     apt-get -y install python3-pip && \
     apt-get install -y git  && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \

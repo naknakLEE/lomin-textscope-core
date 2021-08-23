@@ -10,6 +10,8 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace"
 ENV API_ENV="production"
 
 RUN apt-get update && \
+    apt-get install -y locales && \
+    locale-gen ko_KR.UTF-8 && \
     apt-get -y install python3-pip && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
