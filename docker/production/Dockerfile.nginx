@@ -1,0 +1,6 @@
+FROM nginx:stable
+
+ARG CONF_NAME
+
+COPY ./proxy/${CONF_NAME}.conf /etc/nginx/nginx.conf
+COPY ./proxy/certificate /etc/nginx/certs

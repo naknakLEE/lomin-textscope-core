@@ -1,0 +1,5 @@
+FROM mysql:8.0.25
+
+COPY ./database/my.cnf /etc/mysql/my.cnf
+# RUN mkdir /etc/mysql/mysql.conf.d
+RUN rm -rf /var/lib/apt/lists/*
