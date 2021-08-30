@@ -26,8 +26,10 @@ def check_status() -> Any:
     """
     try:
         is_serving_server_working = "False"
-        serving_server_addr = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
-        serving_server_status_check_url = f"{serving_server_addr}/healthz"
+        serving_server_addr = (
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_HEALTH_CHECK_IP_PORT}"
+        )
+        serving_server_status_check_url = f"{serving_server_addr}/livez"
         response = requests.get(serving_server_status_check_url)
         if response.status_code == 200:
             is_serving_server_working = "True"

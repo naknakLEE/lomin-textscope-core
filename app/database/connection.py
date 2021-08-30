@@ -31,6 +31,8 @@ class SQLAlchemy:
             create_database(database_url)
         pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
         echo = kwargs.setdefault("DB_ECHO", False)
+        pool_size = kwargs.setdefault("POOL_SIZE", 30)
+        max_overflow = kwargs.setdefault("MAX_OVERFLOW", 60)
 
         check_same_thread = {}
         if os.environ["API_ENV"] == "test":
@@ -41,11 +43,10 @@ class SQLAlchemy:
             echo=echo,
             pool_recycle=pool_recycle,
             pool_pre_ping=True,
-            # pool_size=30,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
         )
-        self._session = sessionmaker(
-            autocommit=False, autoflush=False, bind=self._engine
-        )
+        self._session = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
 
         @app.on_event("startup")
         def startup() -> None:

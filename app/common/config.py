@@ -2,27 +2,27 @@ import os
 
 from typing import Any
 from dataclasses import dataclass
-from os import path
 from app.common.const import get_settings
 
 
 settings = get_settings()
-base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
 
 @dataclass
 class Config:
-    BASE_DIR: str = base_dir
-    DB_POOL_RECYCLE: int = 900
-    DB_ECHO: bool = True
-    DEBUG: bool = False
-    TEST_MODE: bool = False
+    BASE_DIR = settings.BASE_DIR
+    DB_POOL_RECYCLE = settings.DB_POOL_RECYCLE
+    DB_ECHO = settings.DB_ECHO
+    DEBUG = settings.DATABASE_DEBUG
+    TEST_MODE = settings.TEST_MODE
+    POOL_SIZE = settings.POOL_SIZE
+    MAX_OVERFLOW = settings.MAX_OVERFLOW
 
 
 @dataclass
 class TestConfig(Config):
     TEST_MODE: bool = True
-    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/assets/sql_app.db"
+    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/sql_app.db"
 
 
 @dataclass

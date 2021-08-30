@@ -48,28 +48,34 @@ async def ocr(request: Request) -> Dict:
             json=inputs,
             timeout=settings.TIMEOUT_SECOND,
         )
-        inference_results = response.json()
         if response.status_code < 200 or response.status_code >= 400:
-            return JSONResponse(content=jsonable_encoder({"code": "3000", "ocr_result": {}}))
+            return JSONResponse(
+                content=jsonable_encoder(dict(code="3000", ocr_result={}, message="모델 서버 문제 발생"))
+            )
+        inference_results = response.json()
         if post_processing is not None:
             response = await client.post(
                 f"{pp_server_url}/post_processing/{post_processing}",
                 json=inference_results,
                 timeout=settings.TIMEOUT_SECOND,
             )
-            post_processing_results = response.json()
             if response.status_code < 200 or response.status_code >= 400:
-                return JSONResponse(content=jsonable_encoder({"code": "3000", "ocr_result": {}}))
+                return JSONResponse(
+                    content=jsonable_encoder(
+                        dict(code="3000", ocr_result={}, message="후처리 서버 문제 발생")
+                    )
+                )
+            post_processing_results = response.json()
             inference_results["kv"] = post_processing_results["result"]
         logger.debug(f"inference_results: {inference_results}")
-    return JSONResponse(content=jsonable_encoder({"code": "1000", "ocr_result": inference_results}))
+    return JSONResponse(content=jsonable_encoder(dict(code="1000", ocr_result=inference_results)))
 
 
 @router.post("/pipeline")
 async def inference(
-    edmisId: str,
+    edmsId: str,
     lnbzDocClcd: str,
-    lnbzMgntNo: str,
+    lnbzMgmtNo: str,
     pwdNo: str,
     image: UploadFile = File(...),
 ) -> Any:
@@ -77,6 +83,14 @@ async def inference(
     files = {"image": ("document_img.jpg", image_bytes)}
     document_type = settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
 
+    response = dict(
+        code="3400",
+        minQlt="00",
+        reliability="",
+        lnbzDocClcd="",
+        ocrResult="",
+        texts=[],
+    )
     async with httpx.AsyncClient() as client:
         logger.debug(model_server_url)
         import time
@@ -88,6 +102,11 @@ async def inference(
             timeout=settings.TIMEOUT_SECOND,
         )
         logger.info(f"Ocr time: {time.time() - inference_start_time}")
+        if (
+            document_ocr_model_response.status_code < 200
+            or document_ocr_model_response.status_code >= 400
+        ):
+            return response
         document_ocr_result = document_ocr_model_response.json()
 
         post_processing_start_time = time.time()
@@ -99,27 +118,11 @@ async def inference(
         logger.info(f"Post processing time: {time.time() - post_processing_start_time}")
         result = document_ocr_pp_response.json()
 
-    if result["result"] == None:
-        response = jsonable_encoder(
-            {
-                "code": "3400",
-                "minQlt": "00",
-                "reliability": "",
-                "lnbzDocClcd": "",
-                "texts": result["texts"],
-                "ocrResult": "",
-            }
-        )
-    else:
-        response = jsonable_encoder(
-            {
-                "code": "1200",
-                "description": "",
-                "minQlt": "01",
-                "reliability": "1.0",
-                "lnbzDocClcd": lnbzDocClcd,
-                "texts": result["texts"],
-                "ocrResult": result["result"]["values"],
-            }
-        )
-    return JSONResponse(content=response)
+    response["texts"] = result["texts"]
+    if result["result"] is not None:
+        response["code"] = "1200"
+        response["minQlt"] = "01"
+        response["reliability"] = "1.0"
+        response["lnbzDocClcd"] = lnbzDocClcd
+        response["ocrResult"] = result["result"]["values"]
+    return JSONResponse(content=jsonable_encoder(response))

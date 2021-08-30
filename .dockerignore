@@ -115,6 +115,7 @@
 **/storage/
 **/temp/
 **/core/
+**/.git/
 
 # aws 사용 가능할 때까지 로컬에서 불러오도록
 # # models
@@ -138,6 +139,7 @@
 **/*.mar
 **/*.npy
 **/*.pickle
+**/*.tar
 **/ModelService/
 **/logs/
 **/workspace/

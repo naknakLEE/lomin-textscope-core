@@ -1,6 +1,9 @@
 from typing import List, Optional, Any
 from pydantic import BaseSettings
 from functools import lru_cache
+from os import path
+
+base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
 
 class Settings(BaseSettings):
@@ -15,6 +18,7 @@ class Settings(BaseSettings):
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
+    SERVING_HEALTH_CHECK_IP_PORT: int
     REDIS_IP_PORT: int
     WEB_IP_PORT: int
     PP_IP_PORT: int
@@ -43,6 +47,15 @@ class Settings(BaseSettings):
     TEXTSCOPE_SERVER_MYSQL_DB: str
     MYSQL_PASSWORD: str
 
+    # DATABASE CONFIG
+    BASE_DIR: str = base_dir
+    DB_POOL_RECYCLE: int = 900
+    DB_ECHO: bool = True
+    DATABASE_DEBUG: bool = False
+    TEST_MODE: bool = False
+    POOL_SIZE: int = 50
+    MAX_OVERFLOW: int = 20000
+
     # AUTHORIZATION SETTING
     SECRET_KEY: str
     ALGORITHM: str
@@ -55,7 +68,7 @@ class Settings(BaseSettings):
     DEVELOP: bool = True
     API_ENV: str = "production"
     BASE_PATH: str = "/workspace"
-    TIMEOUT_SECOND: float = 30.0
+    TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
 
     # OTHERS
