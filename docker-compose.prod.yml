@@ -20,17 +20,19 @@ services:
       - 8052:5000
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['0']
-            capabilities: [gpu]
+      - CUDA_VISIBLE_DEVICES=0
+    runtime: nvidia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #       - driver: nvidia
+    #         device_ids: ['0']
+    #         capabilities: [gpu]
     tty: true
     depends_on: 
       - mysql
-    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   serving_replica:
     tty: true
@@ -38,16 +40,18 @@ services:
       - mysql
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['1']
-            capabilities: [gpu]
+      - CUDA_VISIBLE_DEVICES=1
+    runtime: nvidia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #       - driver: nvidia
+    #         device_ids: ['1']
+    #         capabilities: [gpu]
     depends_on: 
       - mysql
-    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   web:
     build:
@@ -84,6 +88,8 @@ services:
     ports: 
       - 8050:8090
     tty: true
+    depends_on: 
+      - mysql
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
     command: python3 /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app/main.py
@@ -98,11 +104,6 @@ services:
       - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
     cap_add:
       - SYS_NICE
-
-  multiple_gpu_load_banlancing:
-    volumes:
-      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
-      
   prometheus:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
