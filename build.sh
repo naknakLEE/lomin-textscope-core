@@ -9,13 +9,15 @@ build_folder_name="${BUILD_FOLDER_PATH}"
 
 # remove previous build folder
 rm -rf ${base_path}/${created_folder_name}
+rm -rf ./${build_folder_name}/${created_folder_name}
 
+# create compiled file
 # docker-compose -f docker-compose.yml -f docker-compose.base.yml build
 docker-compose -f docker-compose.yml -f docker-compose.build.yml build
 docker-compose -f docker-compose.yml -f docker-compose.build.yml up -d
 
-# create build task process folder
-mkdir -p ${base_path}/${created_folder_name}/${container}
+# create build task process folder for lovit and wrapper
+mkdir -p ${base_path}/${created_folder_name}/wrapper
 mkdir -p ${base_path}/${created_folder_name}/lovit
 
 # copy wrapper
@@ -25,18 +27,18 @@ rm -rf ${base_path}/${created_folder_name}/wrapper/${app_name}/${app_name}/tests
 rm -rf ${base_path}/${created_folder_name}/wrapper/${app_name}/assets
 
 # copy config
-CONFIG_FILE_LIST="assets/grafana inference_server/assets/bentoml_configuration.yml .env docker-compose.yml docker-compose.prod.yml prometheus.yml proxy database"
-for file in ${file_list}
+config_file_list="${CONFIG_FILE_LIST}"
+for file in ${config_file_list}
 do 
     echo ${file}
     cp ./${file} ${base_path}/${created_folder_name}/wrapper/
-    fi
 done
 
 # copy textscope
 for container in ${container_list}
 do 
     echo ${container}
+    mkdir -p ${base_path}/${created_folder_name}/${container}
     if [ "${container}" = "pp" ]; then
         app_name="${container}_server"
         docker cp ${container}:/workspace/${app_name}/main.py ${base_path}/${created_folder_name}/${container}/ &&
@@ -50,11 +52,13 @@ do
         docker cp ${container}:/workspace/app.pyi ${base_path}/${created_folder_name}/${container}/
     elif [ "${container}" = "serving" ]; then
         app_name="inference_server"
+        mkdir -p ${base_path}/${created_folder_name}/${container}/assets
         docker cp ${container}:/workspace/${app_name}/ModelService ${base_path}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/*.json ${base_path}/${created_folder_name}/${container}/assets/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/*.yml ${base_path}/${created_folder_name}/${container}/assets/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/*.ttc ${base_path}/${created_folder_name}/${container}/assets/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/textscope_${CUSTOMER}.json ${base_path}/${created_folder_name}/${container}/assets/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/bentoml_configuration.yml ${base_path}/${created_folder_name}/${container}/assets/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/gulim.ttc ${base_path}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/modified_bentoml_file ${base_path}/${created_folder_name}/${container}/assets/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/bentoml-for-health-check ${base_path}/${created_folder_name}/${container}/assets/        
         docker cp ${container}:/usr/local/lib/python3.6/dist-packages/bentoml/frameworks ${base_path}/${created_folder_name}/${container}/
         mv ${base_path}/${created_folder_name}/${container}/ModelService ${base_path}/${created_folder_name}/${container}/CopiedModelService
     else
@@ -63,15 +67,12 @@ do
 done
 
 # copy from save folder to textscope
-mkdir -p ${build_folder_name}
-cp -r ${base_path}/${created_folder_name} ./${build_folder_name}/
+rm -rf ./${build_folder_name}
+cp -r ${base_path}/${created_folder_name} ./${build_folder_name}
 
 docker-compose down
 
-
-"""
 # test process
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
-test_textscope.py
-"""
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+# test_textscope.py
