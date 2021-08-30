@@ -1,0 +1,57 @@
+version: '2.3'
+
+services:
+  mysql:
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
+  
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/build/Dockerfile.gpu_serving
+      args:
+        USER: ${USER}
+        CUSTOMER: ${CUSTOMER}
+        BUNDLE_PATH: ${BUNDLE_PATH}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        MODEL_SERVICE: ${MODEL_SERVICE}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
+
+  web:
+    image: docker.lomin.ai/ts-web-base:${TEXTSCOPE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/build/Dockerfile.web
+      args:
+        USER: ${USER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}
+
+  pp:
+    image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/build/Dockerfile.pp
+      args:
+        USER: ${USER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BASE_PATH: ${BASE_PATH}
+        LINUX_ENV_PATH: ${LINUX_ENV_PATH}
+        DEMOMA_PATH: ${DEMOMA_PATH}
+        SO_EXTENTION: ${SO_EXTENTION}

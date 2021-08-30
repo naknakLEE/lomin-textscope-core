@@ -2,7 +2,7 @@ version: '2.3'
 
 services:
   mysql:
-    image: mysql:8.0.25
+    image: docker.lomin.ai/ts-mysql:${TEXTSCOPE_VERSION}
     container_name: mysql
     volumes:
       - mysqldata:/var/lib/mysql
@@ -16,6 +16,7 @@ services:
     container_name: serving
     volumes:
       - log:/workspace/logs
+    restart: unless-stopped
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
@@ -23,6 +24,7 @@ services:
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving_replica
+    restart: unless-stopped
     networks:
       our_net:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
@@ -58,15 +60,22 @@ services:
           ipv4_address: ${WRAPPER_IP_ADDR}
     
   multiple_gpu_load_banlancing:
-    image: nginx:latest
+    image: docker.lomin.ai/ts-multiple-gpu-load-balancingy:${TEXTSCOPE_VERSION}
     container_name: multiple_gpu_load_banlancing
+    restart: unless-stopped
     networks:
       our_net:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
       
   nginx:
-    image: nginx:latest
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
     container_name: nginx
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx
+      args:
+        CONF_NAME: nginx
+    restart: unless-stopped
     networks:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
