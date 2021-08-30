@@ -30,6 +30,9 @@ RUN git clone http://github.com/bentoml/bentoml && \
 COPY ./requirments/requirments-serving.txt /workspace/
 RUN pip3 install -r /workspace/requirments-serving.txt
 
+COPY ./${APP_NAME}/assets/bentoml-for-health-check /workspace/bentoml-for-health-check
+RUN cp -r /workspace/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
+
 RUN rm /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.py && \
     rm /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/onnx.py && \
     rm /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/pip_pkg.py && \
@@ -38,19 +41,21 @@ RUN rm /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.py && \
 COPY ./.env /workspace/
 COPY ./${APP_NAME}/assets/textscope_${CUSTOMER}.json /workspace/${APP_NAME}/assets/
 COPY ./${APP_NAME}/assets/bentoml_configuration.yml /workspace/${APP_NAME}/assets/
+COPY ./${APP_NAME}/assets/gulim.ttc /workspace/${APP_NAME}/assets/
 COPY ./${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/
 COPY ./${APP_NAME}/assets/modified_bentoml_file/${CUSTOMER}_loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py
-COPY ./${APP_NAME}/assets/bentoml_configuration.yml /workspace/inference_server/assets/
 
-COPY ./${APP_NAME}/assets/modified_bentoml_file/server/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/server/
-COPY ./${APP_NAME}/assets/modified_bentoml_file/health /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
-COPY ./${APP_NAME}/assets/modified_bentoml_file/configuration/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/configuration/
+# COPY ./${APP_NAME}/assets/modified_bentoml_file/server/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/server/
+# COPY ./${APP_NAME}/assets/modified_bentoml_file/health /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
+# COPY ./${APP_NAME}/assets/modified_bentoml_file/configuration/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/configuration/
 
-COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
-COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.pyi /workspace/${APP_NAME}/
+# COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
+# COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.pyi /workspace/${APP_NAME}/
+COPY ./${BUILD_FOLDER_PATH}/lovit/* /workspace/${APP_NAME}/
 COPY ./${BUILD_FOLDER_PATH}/serving/CopiedModelService/ /workspace/${APP_NAME}/ModelService/
-COPY ./${BUILD_FOLDER_PATH}/serving/frameworks/pytorch.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
-COPY ./${BUILD_FOLDER_PATH}/serving/frameworks/onnx.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
+# COPY ./${BUILD_FOLDER_PATH}/serving/frameworks/pytorch.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
+# COPY ./${BUILD_FOLDER_PATH}/serving/frameworks/onnx.cpython-36m-x86_64-linux-gnu.so /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
+COPY ./${BUILD_FOLDER_PATH}/serving/frameworks/* /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache /bentoml

@@ -50,7 +50,14 @@ RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://downloa
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
 RUN pip3 install -r /workspace/requirments-serving.txt
 
-COPY ./${APP_NAME}/assets/modified_bentoml_file/server/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/server/
-COPY ./${APP_NAME}/assets/modified_bentoml_file/health /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
-COPY ./${APP_NAME}/assets/modified_bentoml_file/configuration/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/configuration/
-COPY ./${APP_NAME}/assets/modified_bentoml_file/configuration/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/configuration/
+COPY ./lovit /workspace/lovit
+
+WORKDIR /workspace/lovit
+RUN python3 setup.py install && \
+    rm -r /workspace/lovit
+
+COPY ./${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
+
+WORKDIR /
+# COPY ./${APP_NAME}/assets/bentoml-for-health-check/health /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/health
+# COPY ./${APP_NAME}/assets/bentoml-for-health-check/configuration/ /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/configuration
