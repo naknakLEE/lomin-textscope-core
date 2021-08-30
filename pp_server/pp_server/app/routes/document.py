@@ -58,7 +58,7 @@ async def family_cert(data: dict = Body(...)) -> Any:
 async def rrtable(data: dict = Body(...)) -> Any:
     boxlist, texts = create_boxlist(data)
     try:
-        result, debug_dic = postprocess_rrtable(boxlist, 0.5, [])
+        result, debug_dic = postprocess_rrtable(boxlist, 0.3, [])
         logger.info(f"result: {result.values}, debug_dic: {debug_dic.values}")
     except:
         logger.debug(f"Unexpected error: {sys.exc_info()}")

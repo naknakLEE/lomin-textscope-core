@@ -1,5 +1,5 @@
 import re
-import datetime
+from datetime import datetime
 import numpy as np
 
 from lovit.postprocess import postprocess_idcard

@@ -83,14 +83,6 @@ class Settings(BaseSettings):
             "dlc_license_num",
             "dlc_exp_date",
         ],
-        "GENERAL_OCR": [
-            "dlc_title",
-            "name",
-            "dlc_regnum",
-            "dlc_issue_date",
-            "dlc_license_num",
-            "dlc_exp_date",
-        ],
         "TRANSACTION_BANK_BOOK": [
             "page_outline",
             "bank_name_value",

@@ -15,14 +15,14 @@ class Config:
     BASE_DIR: str = base_dir
     DB_POOL_RECYCLE: int = 900
     DB_ECHO: bool = True
-    DEBUG: bool = False
+    DATABASE_DEBUG: bool = False
     TEST_MODE: bool = False
 
 
 @dataclass
 class TestConfig(Config):
     TEST_MODE: bool = True
-    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/{settings.PP_SERVER_APP_NAME}/assets/sql_app.db"
+    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/{settings.PP_SERVER_APP_NAME}/sql_app.db"
 
 
 @dataclass

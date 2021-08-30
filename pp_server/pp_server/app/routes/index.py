@@ -1,19 +1,15 @@
-import requests
-
 from typing import Any
 from fastapi import APIRouter
 from starlette.responses import Response
 
-from pp_server.app.database.connection import db
 from pp_server.app.common.const import get_settings
-from pp_server.app import models
 
 
 settings = get_settings()
 router = APIRouter()
 
 
-@router.get("/status", response_model=models.StatusResponse)
+@router.get("/status")
 def check_status() -> Any:
     """
     ### 서버 상태 체크

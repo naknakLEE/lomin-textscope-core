@@ -6,6 +6,7 @@ import torch
 from collections import defaultdict
 import re
 from soynlp.hangle import jamo_levenshtein, decompose
+from loguru import logger
 
 from pp_server.app.structures.keyvalue_dict import KVDict
 from pp_server.app.postprocess.family_cert import obj_to_kvdict
@@ -36,10 +37,7 @@ def get_doc_type(pred):
         for i, text in enumerate(texts)
         if any(
             np.array(
-                [
-                    jamo_levenshtein(key, text)
-                    for key in ["병역사항", "병역", "병사역항", "처분일자", "처분사항"]
-                ]
+                [jamo_levenshtein(key, text) for key in ["병역사항", "병역", "병사역항", "처분일자", "처분사항"]]
             )
             < 0.5
         )
@@ -98,9 +96,7 @@ def get_copy_user_info(pred):
     debug_dict = OrderedDict()
     kv_dict["repetition"] = list()
     texts = pred.get_field("texts")
-    key_pred = pred[
-        np.array([True if re.search("주민등록번호", text) else False for text in texts])
-    ]
+    key_pred = pred[np.array([True if re.search("주민등록번호", text) else False for text in texts])]
     names = list()
     categories = list()
 
@@ -131,25 +127,18 @@ def get_copy_user_info(pred):
         if len(regnum_pred) > 1:
             distance_list = list()
             for idx in range(len(regnum_pred) - 1):
-                distance_list.append(
-                    regnum_pred.bbox[idx + 1][1] - regnum_pred.bbox[idx][3]
-                )
+                distance_list.append(regnum_pred.bbox[idx + 1][1] - regnum_pred.bbox[idx][3])
 
             filter_pred = np.array([False] * len(regnum_pred))
             filter_pred[0] = True
             for idx, distance in enumerate(distance_list):
-                if (
-                    abs(distance)
-                    < (regnum_pred.bbox[0][3] - regnum_pred.bbox[0][1]) * 4
-                ):
+                if abs(distance) < (regnum_pred.bbox[0][3] - regnum_pred.bbox[0][1]) * 4:
                     filter_pred[idx + 1] = True
             regnum_pred = regnum_pred[torch.tensor(filter_pred, dtype=torch.bool)]
 
         debug_dict.update({"regnums": regnum_pred})
 
-        for regnum_bbox, regnum_text in zip(
-            regnum_pred.bbox, regnum_pred.get_field("texts")
-        ):
+        for regnum_bbox, regnum_text in zip(regnum_pred.bbox, regnum_pred.get_field("texts")):
             repetition_dict = dict()
             filtered_regnum_text = "".join(re.findall("[0-9\*\-]", regnum_text))
             repetition_dict["regnum"] = filtered_regnum_text
@@ -250,9 +239,7 @@ def get_issue_date(pred):
     kv_dict["issuedate"] = ""
 
     texts = pred.get_field("texts")
-    key_pred = pred[
-        np.array([True if re.search("년|월|일", text) else False for text in texts])
-    ]
+    key_pred = pred[np.array([True if re.search("년|월|일", text) else False for text in texts])]
     key_pred = PP.sort_tblr(key_pred)
     key_pred_text = key_pred.get_field("texts")
     debug_dict.update({"issuedate_key": key_pred})
@@ -277,9 +264,7 @@ def get_issue_date(pred):
                 kv_dict["issuedate"] = "".join(date_pred.get_field("texts"))
             elif len(date_pred) == 1:
                 kv_dict["issuedate"] = date_pred.get_field("texts")[-1]
-        kv_dict["issuedate"] = kv_dict["issuedate"][
-            : kv_dict["issuedate"].find("일") + 1
-        ]
+        kv_dict["issuedate"] = kv_dict["issuedate"][: kv_dict["issuedate"].find("일") + 1]
         debug_dict.update({"issue_date": date_pred})
 
     return kv_dict, debug_dict
@@ -295,9 +280,7 @@ def get_army_info(pred):
     texts = pred.get_field("texts")
 
     for condition in ["처분일자$", "처분사항$", "\d{4}-\d{2}-\d{2}"]:
-        key_pred = pred[
-            np.array([True if re.search(condition, text) else False for text in texts])
-        ]
+        key_pred = pred[np.array([True if re.search(condition, text) else False for text in texts])]
         if len(key_pred) > 0:
             break
 
@@ -325,9 +308,7 @@ def get_army_info(pred):
 
     if len(mil_date_indices) > 0:
         debug_dict.update({"army_mil_date": army_info_pred[np.array(mil_date_indices)]})
-    debug_dict.update(
-        {"army_mil_matter": army_info_pred[np.array([len(army_info_pred) - 1])]}
-    )
+    debug_dict.update({"army_mil_matter": army_info_pred[np.array([len(army_info_pred) - 1])]})
     return kv_dict, debug_dict
 
 
@@ -339,28 +320,35 @@ def word_formatter(kv_dict, doc_type):
             kv_dict["mil_matter"] = mil_matter[filter_idx + 1 :].replace("]", "")
 
     elif doc_type == "copy":
+
         for repeat in kv_dict["repetition"]:
-            repeat["category"] = re.sub("[0-9]+", "", repeat["category"])
-            if len(repeat["category"]) > 1:
-                for word in ["본인", "남편", "배우자", "자녀", "외손"]:
-                    if jamo_levenshtein(repeat["category"], word) < 0.5:
-                        repeat["category"] = word
-                        break
-            else:
-                for word in ["처", "자", "손", "부", "모"]:
-                    cnt = 0
-                    for ch1, ch2 in zip(decompose(word), decompose(repeat["category"])):
-                        if ch1 == ch2:
-                            cnt += 1
-                    if cnt >= 2:
-                        repeat["category"] = word
-                        break
-            regnum = re.sub("[^0-9*]+", "", repeat["regnum"])
-            repeat["regnum"] = "".join([regnum[:6], regnum[6:13]])
+            try:
+                repeat["category"] = re.sub("[0-9]+", "", repeat["category"])
+                if len(repeat["category"]) > 1:
+                    for word in ["본인", "남편", "배우자", "자녀", "외손"]:
+                        if jamo_levenshtein(repeat["category"], word) < 0.5:
+                            repeat["category"] = word
+                            break
+                else:
+                    for word in ["처", "자", "손", "부", "모"]:
+                        cnt = 0
+                        for ch1, ch2 in zip(decompose(word), decompose(repeat["category"])):
+                            if ch1 == ch2:
+                                cnt += 1
+                        if cnt >= 2:
+                            repeat["category"] = word
+                            break
+                regnum = re.sub("[^0-9*]+", "", repeat["regnum"])
+                repeat["regnum"] = "".join([regnum[:6], regnum[6:13]])
+            except:
+                logger.exception("rrtable")
+
     return kv_dict
 
 
 def postprocess_rrtable(pred, score_threshold, model_classes):
+    from loguru import logger
+
     pred = PP.filter_score(pred, score_threshold=score_threshold)
     pred = PP.remove_overlapped_box(pred)
     pred = PP.sort_from_left(pred)
@@ -379,8 +367,12 @@ def postprocess_rrtable(pred, score_threshold, model_classes):
 
     elif doc_type == "copy":
         copy_user_dict, copy_user_debug = get_copy_user_info(pred)
+
         kv_dict.update(copy_user_dict)
         debug_dict.update(copy_user_debug)
+        from loguru import logger
+
+        logger.debug(f"kv_dict: {kv_dict}")
 
     else:
         pass
