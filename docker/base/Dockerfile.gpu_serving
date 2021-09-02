@@ -1,18 +1,8 @@
-ARG UBUNTU_VERSION
+ARG UBUNTU_VERSION=18.04
 
-FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION} as builder
+FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
 
-ARG PYTHON_VERSION
-ARG APPLY_THALES
-ARG MODEL_SERVICE
-ARG BASE_PATH
-ARG LINUX_ENV_PATH
-ARG DEMOMA_PATH
-ARG SO_EXTENTION
-ARG USER
-ARG CUSTOMER
-ARG BUNDLE_PATH
-ARG BENTOML_PACKAGE_PATH=/usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks
+ARG PYTHON_VERSION=3.6
 ARG APP_NAME=inference_server
 
 ENV LC_ALL=C.UTF-8
@@ -36,18 +26,9 @@ RUN git clone http://github.com/bentoml/bentoml && \
     cd bentoml && \
     pip3 install -r ./guides/quick-start/requirements.txt
 
-RUN git clone https://github.com/Nuitka/Nuitka.git && \
-    cd Nuitka && \
-    python3 setup.py install
-
-# for bento dockerization
-WORKDIR /bin
-RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \
-    chmod 755 jq
-
 RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
-COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
+COPY ./requirments-serving.txt /workspace/requirments-serving.txt
 RUN pip3 install -r /workspace/requirments-serving.txt
 
 COPY ./lovit /workspace/lovit
@@ -58,6 +39,4 @@ RUN python3 setup.py install && \
 
 COPY ./${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
 
-WORKDIR /
-# COPY ./${APP_NAME}/assets/bentoml-for-health-check/health /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/health
-# COPY ./${APP_NAME}/assets/bentoml-for-health-check/configuration/ /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/configuration
+WORKDIR /workspace/${APP_NAME}

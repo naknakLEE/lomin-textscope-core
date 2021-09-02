@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 from pydantic import BaseSettings
 from functools import lru_cache
 from os import path
@@ -100,7 +100,7 @@ class Settings(BaseSettings):
     FORMAT: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
 
     # FAKE DATA
-    FAKE_SUPERUSER_INFORMATION: dict = {
+    FAKE_SUPERUSER_INFORMATION: Dict = {
         "username": "user",
         "full_name": "user",
         "email": "user@example.com",
@@ -110,7 +110,7 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION: dict = {
+    FAKE_USER_INFORMATION: Dict = {
         "username": "garam",
         "full_name": "garam",
         "email": "garam@example.com",
@@ -120,7 +120,7 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION2: dict = {
+    FAKE_USER_INFORMATION2: Dict = {
         "username": "tongo",
         "full_name": "tongo",
         "email": "tongo@example.com",

@@ -2,7 +2,8 @@ version: '2.3'
 
 services:
   mysql:
-    image: docker.lomin.ai/ts-mysql:${TEXTSCOPE_VERSION}
+    # image: docker.lomin.ai/ts-mysql:${TEXTSCOPE_VERSION}
+    image: mysql:8.0.25
     container_name: mysql
     volumes:
       - mysqldata:/var/lib/mysql

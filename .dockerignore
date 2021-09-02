@@ -137,7 +137,7 @@
 **/*.png
 **/*.xml
 **/*.mar
-**/*.npy
+# **/*.npy
 **/*.pickle
 **/*.tar
 **/ModelService/

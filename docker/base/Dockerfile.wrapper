@@ -20,11 +20,11 @@ RUN apt-get update && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
     apt-get -y install libmysqlclient-dev
 
-RUN pip3 install --upgrade pip 
+RUN pip3 install --upgrade pip && \
+    pip3 install locust
 
 WORKDIR /workspace
 RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python3 setup.py install
 
-RUN pip3 install --upgrade pip 

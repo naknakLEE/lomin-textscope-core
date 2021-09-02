@@ -31,7 +31,7 @@ config_file_list="${CONFIG_FILE_LIST}"
 for file in ${config_file_list}
 do 
     echo ${file}
-    cp ./${file} ${base_path}/${created_folder_name}/wrapper/
+    cp -r ./${file} ${base_path}/${created_folder_name}/wrapper/
 done
 
 # copy textscope
