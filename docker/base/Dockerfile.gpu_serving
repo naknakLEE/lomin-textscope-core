@@ -28,15 +28,16 @@ RUN git clone http://github.com/bentoml/bentoml && \
 
 RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
-COPY ./requirments-serving.txt /workspace/requirments-serving.txt
-RUN pip3 install -r /workspace/requirments-serving.txt
+RUN pip3 install numpy pandas opencv-python
 
 COPY ./lovit /workspace/lovit
-
 WORKDIR /workspace/lovit
 RUN python3 setup.py install && \
     rm -r /workspace/lovit
 
-COPY ./${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
+COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
+RUN pip3 install -r /workspace/requirments-serving.txt
+
+# COPY ./${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
 
 WORKDIR /workspace/${APP_NAME}

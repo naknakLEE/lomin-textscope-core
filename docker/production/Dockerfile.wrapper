@@ -23,11 +23,8 @@ RUN pip3 install --upgrade pip
 
 COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/requirments-${CUSTOMER}.txt
 RUN pip3 install -r /workspace/requirments-${CUSTOMER}.txt
-# COPY ./.env /workspace/
-# COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/
-# COPY ./${BUILD_FOLDER_PATH}/wrapper/${APP_NAME}.cpython-36m-x86_64-linux-gnu.so /workspace/${APP_NAME}/
-# COPY ./${BUILD_FOLDER_PATH}/wrapper/${APP_NAME}.pyi /workspace/${APP_NAME}/
-# COPY ./${BUILD_FOLDER_PATH}/wrapper/main.py /workspace/${APP_NAME}/
+
+COPY ./${BUILD_FOLDER_PATH}/assets/* /workspace/assets/
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./.env /workspace/.env
 

@@ -1,12 +1,6 @@
 ARG UBUNTU_VERSION=18.04
 
-FROM ubuntu:${UBUNTU_VERSION} as builder
-
-ARG APPLY_THALES="False"
-ARG BASE_PATH
-ARG LINUX_ENV_PATH
-ARG DEMOMA_PATH
-ARG SO_EXTENTION
+FROM ubuntu:${UBUNTU_VERSION}
 
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
@@ -21,3 +15,6 @@ WORKDIR /workspace
 RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python3 setup.py install
+
+COPY ./requirments/requirments-web.txt /workspace/requirments-web.txt
+RUN pip3 install -r /workspace/requirments-web.txt

@@ -25,9 +25,11 @@ RUN pip3 install -r /workspace/requirments-pp.txt
 COPY ./.env /workspace/
 COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.cpython-36m-x86_64-linux-gnu.so /workspace/
 COPY ./${BUILD_FOLDER_PATH}/lovit/lovit.pyi /workspace/
+COPY ./${BUILD_FOLDER_PATH}/lovit/lovit /workspace/lovit/
 COPY ./${BUILD_FOLDER_PATH}/pp/pp_server.cpython-36m-x86_64-linux-gnu.so /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/pp/pp_server.pyi /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/pp/main.py /workspace/pp_server/
+COPY ./${BUILD_FOLDER_PATH}/assets/* /workspace/assets/
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache

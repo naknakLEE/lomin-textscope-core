@@ -21,6 +21,7 @@ COPY ./requirments/requirments-web.txt /workspace/
 RUN pip3 install -r /workspace/requirments-web.txt
 
 COPY ./${BUILD_FOLDER_PATH}/web/ /workspace/
+COPY ./${BUILD_FOLDER_PATH}/* /workspace/assets/
 COPY ./.env /workspace/
 
 RUN rm -rf /var/lib/apt/lists/* && \

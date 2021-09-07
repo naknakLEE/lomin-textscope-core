@@ -150,9 +150,7 @@
             "J1",
             "L3",
             "R6",
-            "W2"
-        ],
-        "PASSPORT": [
+            "W2", 
             "J5"
         ],
         "BUSINESS_REGISTRATION": [
@@ -172,6 +170,53 @@
         ]
     },
     "DOC_MAPPING_TABLE": {
+        "주민등록증": {
+            "dlc_title": "rrc_title",
+            "name": "rrc_name",
+            "dlc_regnum": "rrc_regnum",
+            "dlc_issue_date": "rrc_issue_date"
+        },
+        "재외국민등록증": {
+            "dlc_title": "rrc_title",
+            "name": "rrc_name",
+            "dlc_regnum": "rrc_regnum",
+            "dlc_issue_date": "rrc_issue_date"
+        },
+        "운전면허증": {
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_exp_date": "dlc_exp_date"
+        },
+        "외국인등록증": {
+            "dlc_title": "arc_title",
+            "name": "arc_name",
+            "dlc_regnum": "arc_regnum",
+            "dlc_issue_date": "arc_issue_date",
+            "dlc_exp_date": "arc_exp_date"
+        },
+        "외국국적동포거소신고증": {
+            "dlc_title": "arc_title",
+            "name": "arc_name",
+            "dlc_regnum": "arc_regnum",
+            "dlc_issue_date": "arc_issue_date",
+            "dlc_exp_date": "arc_exp_date"
+        },
+        "영주증": {
+            "dlc_title": "arc_title",
+            "name": "arc_name",
+            "dlc_regnum": "arc_regnum",
+            "dlc_issue_date": "arc_issue_date",
+            "dlc_exp_date": "arc_exp_date"
+        },
+        "여권": {
+            "dlc_title": "pp_title",
+            "name": "pp_name",
+            "dlc_regnum": "pp_regnum",
+            "dlc_issue_date": "pp_issue_date"
+        },
         "J1": {
             "dlc_title": "dlc_title",
             "name": "dlc_name",
@@ -418,8 +463,7 @@
     "TORCH_MODEL_NAME_SET": [
         "kv_detection_transaction_bank_book_model",
         "kv_detection_businuss_registration_model",
-        "kv_detectioncertified_copy_of_coporate_registration",
-        "kv_detection_corporate_seal_certificate",
+        "kv_model",
         "general_ocr"
     ],
     "LOOKUP_TABLE": {
