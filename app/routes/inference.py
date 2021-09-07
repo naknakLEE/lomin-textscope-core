@@ -121,6 +121,10 @@ async def inference(
             return response
         document_ocr_result = document_ocr_model_response.json()
 
+        if len(document_ocr_result["boxes"]) < settings.LEAST_BOX_NUM:
+            response["code"] = "1400"
+            response["minQlt"] = "01"
+            return response
         post_processing_start_time = time.time()
         document_ocr_pp_response = await client.post(
             f"{pp_server_url}/post_processing/{document_type}",
