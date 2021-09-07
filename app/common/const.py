@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
     PYINSTRUMENT_RENDERER: str = "html"
+    LEAST_BOX_NUM: int = 1
 
     # KAKAOBANK_WRAPPER_CONFIG
     DOCUMENT_TYPE_SET = {
