@@ -13,7 +13,7 @@ rm -rf ./${build_folder_name}/${created_folder_name}
 
 # create compiled file
 # docker-compose -f docker-compose.yml -f docker-compose.base.yml build
-docker-compose -f docker-compose.yml -f docker-compose.build.yml build
+docker-compose -f docker-compose.yml -f docker-compose.build.yml build --parallel
 docker-compose -f docker-compose.yml -f docker-compose.build.yml up -d
 
 # create build task process folder for lovit and wrapper
@@ -47,7 +47,7 @@ do
         docker cp ${container}:/workspace/${app_name}/${app_name}.pyi ${base_path}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/lovit.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/lovit/ &&
         docker cp ${container}:/workspace/lovit.pyi ${base_path}/${created_folder_name}/lovit/
-        docker cp ${container}:/workspace/lovit/lovit/resources ${base_path}/${created_folder_name}/lovit/lovit/
+        docker cp ${container}:/workspace/lovit/resources ${base_path}/${created_folder_name}/lovit/lovit/
     elif [ "${container}" = "web" ]; then
         docker cp ${container}:/workspace/main.py ${base_path}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/app.cpython-36m-x86_64-linux-gnu.so ${base_path}/${created_folder_name}/${container}/ &&
