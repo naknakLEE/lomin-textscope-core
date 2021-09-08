@@ -60,26 +60,32 @@ services:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
     
-  multiple_gpu_load_banlancing:
-    image: docker.lomin.ai/ts-multiple-gpu-load-balancingy:${TEXTSCOPE_VERSION}
-    container_name: multiple_gpu_load_banlancing
+  multiple_gpu_load_balancing:
+    # image: docker.lomin.ai/ts-multiple-gpu-load-balancingy:${TEXTSCOPE_VERSION}
+    image: nginx:stable
+    container_name: multiple_gpu_load_balancing
     restart: unless-stopped
+    volumes:
+      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
     networks:
       our_net:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
       
-  nginx:
-    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
-    container_name: nginx
-    build:
-      context: ./
-      dockerfile: docker/production/Dockerfile.nginx
-      args:
-        CONF_NAME: nginx
-    restart: unless-stopped
-    networks:
-      our_net:
-        ipv4_address: ${NGINX_IP_ADDR}
+  # nginx:
+  #   # image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
+  #   image: nginx:stable
+  #   container_name: nginx
+  #   build:
+  #     context: ./
+  #     dockerfile: docker/production/Dockerfile.nginx
+  #     args:
+  #       CONF_NAME: nginx
+  #   volumes:
+  #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+  #   restart: unless-stopped
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${NGINX_IP_ADDR}
     
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.9.0
