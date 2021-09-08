@@ -323,9 +323,12 @@
             "ccr_issue_date": "ccr_issue_date",
             "ccr_num_pages": "ccr_num_pages",
             "ccr_issued_stock": "ccr_issued_stock",
-            "crs_issue_date": "crs_issue_date"
+            "ccr_exp_date": "ccr_exp_date"
         },
         "N2": {
+            "crs_issue_date": "crs_issue_date"
+        },
+        "J8": {
             "crs_issue_date": "crs_issue_date"
         }
     },
@@ -440,6 +443,15 @@
             "ccr_num_pages",
             "ccr_issued_stock",
             "ccr_exp_date",
+            "crs_issue_date",
+            "id_rrc",
+            "issue_date", 
+            "id_dlc",
+            "dlc_valid_date",
+            "id_arc",
+            "ccr_num_pages",
+            "ccr_issued_stock",
+            "ccr_exp_date",
             "crs_issue_date"
         ]
     },
@@ -455,7 +467,9 @@
             "pp_issue_date",
             "ccr_issued_stock",
             "ccr_exp_date",
-            "crs_issue_date"
+            "crs_issue_date",
+            "issue_date",
+            "dlc_valid_date"
         ],
         "length_12": [
             "cbr_regnum_business",
@@ -467,7 +481,10 @@
             "cer_regnum_corp",
             "rrc_regnum",
             "dlc_regnum",
-            "arc_regnum"
+            "arc_regnum",
+            "dlc_license_num",
+            "id_rrc",
+            "id_dlc"
         ],
         "length_50": [
             "dlc_license_num"
@@ -495,7 +512,10 @@
             "pp_title",
             "pp_name",
             "ccr_title",
-            "ccr_issue_date"
+            "ccr_issue_date",
+            "name_rrc",
+            "name_ko",
+            "name_en"
         ],
         "length_600": [
             "cbr_address_headquater",

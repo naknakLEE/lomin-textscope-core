@@ -54,6 +54,7 @@ async def ocr(request: Request) -> Dict:
         # ocr pp 요청
         post_processing = get_pp_api_name(inference_results.get("doc_type", None))
         if post_processing is not None and len(inference_results["rec_preds"]) > 0:
+            inference_results["img_size"] = inference_results["image_height"], inference_results["image_width"]
             response = await client.post(
                 f"{pp_server_url}/post_processing/{post_processing}",
                 json=inference_results,
