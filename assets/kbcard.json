@@ -151,14 +151,17 @@
             "L3",
             "R6",
             "W2", 
-            "J5"
+            "J5",
+            "Z3"
         ],
         "BUSINESS_REGISTRATION": [
-            "A1"
+            "A1",
+            "Z2"
         ],
         "TRANSACTION_BANK_BOOK": [
             "A2",
-            "AC"
+            "AC",
+            "Z1"
         ],
         "CERTIFIED_COPY_OF_CORPORATE_REGISTRATION": [
             "N1"
@@ -167,55 +170,87 @@
             "N2",
             "W3",
             "J8"
+        ],
+        "ENTERTAINMENT/DANRAN_PUB_PERMIT": [
+            "E3", 
+            "E4"
         ]
     },
+    "CLASSIFICATION_TARGET": [
+        "E2", 
+        "Z2", 
+        "EQ", 
+        "E4", 
+        "E1", 
+        "EC", 
+        "ER", 
+        "N1", 
+        "N2", 
+        "E5", 
+        "E7", 
+        "A3", 
+        "A5", 
+        "R2", 
+        "R1", 
+        "A8", 
+        "EB", 
+        "L4", 
+        "W1", 
+        "AD", 
+        "AE", 
+        "E6", 
+        "J2", 
+        "J3", 
+        "J7", 
+        "J8", 
+        "JB", 
+        "JA", 
+        "N5"
+    ],
     "DOC_MAPPING_TABLE": {
         "주민등록증": {
-            "dlc_title": "rrc_title",
-            "name": "rrc_name",
-            "dlc_regnum": "rrc_regnum",
-            "dlc_issue_date": "rrc_issue_date"
+            "title": "rrc_title",
+            "name_rrc": "rrc_name",
+            "id_rrc": "rrc_regnum",
+            "issue_date": "rrc_issue_date"
         },
         "재외국민등록증": {
-            "dlc_title": "rrc_title",
-            "name": "rrc_name",
-            "dlc_regnum": "rrc_regnum",
-            "dlc_issue_date": "rrc_issue_date"
+            "title": "rrc_title",
+            "name_rrc": "rrc_name",
+            "id_rrc": "rrc_regnum",
+            "issue_date": "rrc_issue_date"
         },
         "운전면허증": {
-            "dlc_title": "dlc_title",
-            "name": "dlc_name",
-            "dlc_regnum": "dlc_regnum",
-            "dlc_issue_date": "dlc_issue_date",
+            "title": "dlc_title",
+            "name_ko": "dlc_name",
+            "id_dlc": "dlc_regnum",
+            "issue_date": "dlc_issue_date",
             "dlc_license_num": "dlc_license_num",
-            "dlc_exp_date": "dlc_exp_date"
+            "dlc_valid_date": "dlc_exp_date"
         },
         "외국인등록증": {
-            "dlc_title": "arc_title",
-            "name": "arc_name",
-            "dlc_regnum": "arc_regnum",
-            "dlc_issue_date": "arc_issue_date",
-            "dlc_exp_date": "arc_exp_date"
+            "title": "arc_title",
+            "name_en": "arc_name",
+            "id_arc": "arc_regnum",
+            "issue_date": "arc_issue_date"
         },
         "외국국적동포거소신고증": {
-            "dlc_title": "arc_title",
-            "name": "arc_name",
-            "dlc_regnum": "arc_regnum",
-            "dlc_issue_date": "arc_issue_date",
-            "dlc_exp_date": "arc_exp_date"
+            "title": "arc_title",
+            "name_en": "arc_name",
+            "id_arc": "arc_regnum",
+            "issue_date": "arc_issue_date"
         },
         "영주증": {
-            "dlc_title": "arc_title",
-            "name": "arc_name",
-            "dlc_regnum": "arc_regnum",
-            "dlc_issue_date": "arc_issue_date",
-            "dlc_exp_date": "arc_exp_date"
+            "title": "arc_title",
+            "name_en": "arc_name",
+            "id_arc": "arc_regnum",
+            "issue_date": "arc_issue_date"
         },
-        "여권": {
-            "dlc_title": "pp_title",
-            "name": "pp_name",
-            "dlc_regnum": "pp_regnum",
-            "dlc_issue_date": "pp_issue_date"
+        "Z3": {
+            "title": "rrc_title",
+            "name_rrc": "rrc_name",
+            "id_rrc": "rrc_regnum",
+            "issue_date": "rrc_issue_date"
         },
         "J1": {
             "dlc_title": "dlc_title",
@@ -255,6 +290,15 @@
             "dlc_regnum": "pp_regnum",
             "dlc_issue_date": "pp_issue_date"
         },
+        "Z2": {
+            "business_num_value": "cbr_regnum_business",
+            "business_corpnum_value": "cbr_regnum_corp",
+            "business_repre_value": "cbr_ceo_name",
+            "business_name_value": "cbr_name",
+            "business_address_value": "cbr_address_business",
+            "business_worktype_value": "cbr_work_type",
+            "business_addresshq_value": "cbr_address_headquarter"
+        },
         "A1": {
             "business_num_value": "cbr_regnum_business",
             "business_corpnum_value": "cbr_regnum_corp",
@@ -263,6 +307,11 @@
             "business_address_value": "cbr_address_business",
             "business_worktype_value": "cbr_work_type",
             "business_addresshq_value": "cbr_address_headquarter"
+        },
+        "Z1": {
+            "account_num_value": "bb_account_num",
+            "bank_name_value": "bb_bank",
+            "account_type_value": "bb_account_holder"
         },
         "A2": {
             "account_num_value": "bb_account_num",

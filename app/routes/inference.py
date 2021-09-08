@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from app import models
 from app.schemas import inference_responses
 from app.utils.auth import get_current_active_user
-from app.utils.utils import set_error_response
+from app.utils.utils import set_error_response, get_pp_api_name
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import db
@@ -39,7 +39,6 @@ async def ocr(request: Request) -> Dict:
     """
     serving_server_inference_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
     inputs = await request.json()
-    post_processing = inputs.get("post_processing", None)
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     async with httpx.AsyncClient() as client:
         # ocr inference 요청
@@ -53,6 +52,7 @@ async def ocr(request: Request) -> Dict:
         inference_results = response.json()
 
         # ocr pp 요청
+        post_processing = get_pp_api_name(inference_results.get("doc_type", None))
         if post_processing is not None and len(inference_results["rec_preds"]) > 0:
             response = await client.post(
                 f"{pp_server_url}/post_processing/{post_processing}",
@@ -61,7 +61,7 @@ async def ocr(request: Request) -> Dict:
             )
             logger.debug(f"response: {type(response.text)}")
             if response.status_code < 200 or response.status_code >= 400:
-                return set_error_response(code="3000", message="후처리 서버 문제 발생")
+                return set_error_response(code="3000", message="pp 서버 문제 발생")
             post_processing_results = response.json()
             inference_results["kv"] = post_processing_results["result"]
         elif convert_preds_to_texts is not None:
