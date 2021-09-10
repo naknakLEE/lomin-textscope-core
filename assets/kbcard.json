@@ -316,7 +316,7 @@
         "A2": {
             "account_num_value": "bb_account_num",
             "bank_name_value": "bb_bank",
-            "account_type_value": "bb_account_holder"
+            "account_name_value": "bb_account_holder"
         },
         "N1": {
             "ccr_title": "ccr_title",
