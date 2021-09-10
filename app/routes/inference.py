@@ -65,7 +65,7 @@ async def ocr(request: Request) -> Dict:
                 return set_error_response(code="3000", message="pp 서버 문제 발생")
             post_processing_results = response.json()
             inference_results["kv"] = post_processing_results["result"]
-        elif convert_preds_to_texts is not None:
+        if convert_preds_to_texts is not None:
             request_data = dict(
                 rec_preds=inference_results.get("rec_preds", []),
                 id_type=inference_results.get("id_type", ""),
