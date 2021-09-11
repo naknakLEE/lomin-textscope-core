@@ -205,7 +205,9 @@
         "J8", 
         "JB", 
         "JA", 
-        "N5"
+        "N5",
+        "EZ",
+        "EY"
     ],
     "DOC_MAPPING_TABLE": {
         "주민등록증": {
@@ -297,6 +299,7 @@
             "business_name_value": "cbr_name",
             "business_address_value": "cbr_address_business",
             "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
             "business_addresshq_value": "cbr_address_headquarter"
         },
         "A1": {
@@ -306,12 +309,13 @@
             "business_name_value": "cbr_name",
             "business_address_value": "cbr_address_business",
             "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
             "business_addresshq_value": "cbr_address_headquarter"
         },
         "Z1": {
             "account_num_value": "bb_account_num",
             "bank_name_value": "bb_bank",
-            "account_type_value": "bb_account_holder"
+            "account_name_value": "bb_account_holder"
         },
         "A2": {
             "account_num_value": "bb_account_num",
@@ -428,7 +432,8 @@
             "cer_regnum_corp",
             "cer_regnum_business",
             "bb_account_num",
-            "dlc_license_num"
+            "dlc_license_num",
+            "account_num_value"
         ],
         "number": [
             "rrc_regnum",
