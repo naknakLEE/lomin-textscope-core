@@ -37,13 +37,12 @@ async def ocr(request: Request) -> Dict:
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
-    serving_server_inference_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
     inputs = await request.json()
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     async with httpx.AsyncClient() as client:
         # ocr inference 요청
         response = await client.post(
-            f"{serving_server_inference_url}/ocr",
+            f"{model_server_url}/ocr",
             json=inputs,
             timeout=settings.TIMEOUT_SECOND,
         )
