@@ -173,7 +173,12 @@
         ],
         "ENTERTAINMENT/DANRAN_PUB_PERMIT": [
             "E3", 
-            "E4"
+            "E4",
+            "ER"
+        ],
+        "OTHER_ATTACHED_DOCUMENTS": [
+            "EZ", 
+            "EY"
         ]
     },
     "CLASSIFICATION_TARGET": [
@@ -211,22 +216,22 @@
     ],
     "DOC_MAPPING_TABLE": {
         "주민등록증": {
-            "title": "rrc_title",
-            "name_rrc": "rrc_name",
-            "id_rrc": "rrc_regnum",
-            "issue_date": "rrc_issue_date"
+            "rrc_title": "rrc_title",
+            "rrc_name": "rrc_name",
+            "rrc_regnum": "rrc_regnum",
+            "rrc_issue_date": "rrc_issue_date"
         },
         "재외국민등록증": {
-            "title": "rrc_title",
-            "name_rrc": "rrc_name",
-            "id_rrc": "rrc_regnum",
-            "issue_date": "rrc_issue_date"
+            "rrc_title": "rrc_title",
+            "rrc_name": "rrc_name",
+            "rrc_regnum": "rrc_regnum",
+            "rrc_issue_date": "rrc_issue_date"
         },
         "운전면허증": {
-            "title": "dlc_title",
-            "name_ko": "dlc_name",
-            "id_dlc": "dlc_regnum",
-            "issue_date": "dlc_issue_date",
+            "dlc_title_ko": "dlc_title",
+            "dlc_name_ko": "dlc_name_ko",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
             "dlc_license_num": "dlc_license_num",
             "dlc_valid_date": "dlc_exp_date"
         },
@@ -248,45 +253,7 @@
             "id_arc": "arc_regnum",
             "issue_date": "arc_issue_date"
         },
-        "Z3": {
-            "title": "rrc_title",
-            "name_rrc": "rrc_name",
-            "id_rrc": "rrc_regnum",
-            "issue_date": "rrc_issue_date"
-        },
-        "J1": {
-            "dlc_title": "dlc_title",
-            "name": "dlc_name",
-            "dlc_regnum": "dlc_regnum",
-            "dlc_issue_date": "dlc_issue_date",
-            "dlc_license_num": "dlc_license_num",
-            "dlc_exp_date": "dlc_exp_date"
-        },
-        "L3": {
-            "dlc_title": "dlc_title",
-            "name": "dlc_name",
-            "dlc_regnum": "dlc_regnum",
-            "dlc_issue_date": "dlc_issue_date",
-            "dlc_license_num": "dlc_license_num",
-            "dlc_exp_date": "dlc_exp_date"
-        },
-        "R6": {
-            "dlc_title": "dlc_title",
-            "name": "dlc_name",
-            "dlc_regnum": "dlc_regnum",
-            "dlc_issue_date": "dlc_issue_date",
-            "dlc_license_num": "dlc_license_num",
-            "dlc_exp_date": "dlc_exp_date"
-        },
-        "W2": {
-            "dlc_title": "dlc_title",
-            "name": "dlc_name",
-            "dlc_regnum": "dlc_regnum",
-            "dlc_issue_date": "dlc_issue_date",
-            "dlc_license_num": "dlc_license_num",
-            "dlc_exp_date": "dlc_exp_date"
-        },
-        "J5": {
+        "여권": {
             "dlc_title": "pp_title",
             "name": "pp_name",
             "dlc_regnum": "pp_regnum",
@@ -302,22 +269,7 @@
             "business_workcond_value": "cbr_work_cond",
             "business_addresshq_value": "cbr_address_headquarter"
         },
-        "A1": {
-            "business_num_value": "cbr_regnum_business",
-            "business_corpnum_value": "cbr_regnum_corp",
-            "business_repre_value": "cbr_ceo_name",
-            "business_name_value": "cbr_name",
-            "business_address_value": "cbr_address_business",
-            "business_worktype_value": "cbr_work_type",
-            "business_workcond_value": "cbr_work_cond",
-            "business_addresshq_value": "cbr_address_headquarter"
-        },
         "Z1": {
-            "account_num_value": "bb_account_num",
-            "bank_name_value": "bb_bank",
-            "account_name_value": "bb_account_holder"
-        },
-        "A2": {
             "account_num_value": "bb_account_num",
             "bank_name_value": "bb_bank",
             "account_name_value": "bb_account_holder"
@@ -425,7 +377,7 @@
         ]
     },
     "ALLOWED_CHARACTERS_SET": {
-        "number_hipen": [
+        "number_hiphen": [
             "cbr_regnum_business",
             "cbr_regnum_corp",
             "cun_regnum_business",
