@@ -1,12 +1,12 @@
 base_path=".."
 
-.  ${base_path}/env
+.  ${base_path}/.env
 
 # set build variable
 saved_foler_name="${SAVED_FOLDER_NAME}"
 build_folder_name="${BUILD_FOLDER_PATH}"
 image_repository_list="${IMAGE_REPOSITORY_LIST}"
-saved_dir="${base_path}/${build_folder_name}/${saved_foler_name}/${CUSTOMER}"
+saved_dir="${base_path}/build-folder/saved-docker-images/${CUSTOMER}"
 
 echo "docker image download start!"
 mkdir -p saved_dir
