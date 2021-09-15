@@ -33,10 +33,13 @@ RUN pip3 install numpy pandas opencv-python
 COPY ./lovit /workspace/lovit
 WORKDIR /workspace/lovit
 RUN python3 setup.py install && \
-    rm -r /workspace/lovit
+    rm -rf /workspace/lovit
 
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
 RUN pip3 install -r /workspace/requirments-serving.txt
+
+RUN pip3 uninstall -y BentoML && \
+    pip3 install bentoml==0.13.1
 
 # COPY ./${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
 

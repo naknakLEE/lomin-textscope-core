@@ -87,7 +87,7 @@ services:
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
-    # command: python3 /workspace/app/main.py
+    command: python3 /workspace/app/main.py
 
   pp:
     image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -109,7 +109,7 @@ services:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
     restart: unless-stopped
-    # command: python3 /workspace/pp_server/pp_server/app/main.py
+    command: python3 /workspace/pp_server/pp_server/app/main.py
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -126,21 +126,26 @@ services:
       - ./logs:/workspace/logs
       - ./:/workspace
     tty: true
+    working_dir: /workspace/${CUSTOMER}_wrapper
+    environment: 
+      - API_ENV=production
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
-    # command: python ${CUSTOMER}_wrapper/app/main.py
+    command: python3 ${CUSTOMER}_wrapper/app/main.py
 
-  nginx:
-    ports:
-      - "800:80"
-      - "443:443"
+  # nginx:
+  #   ports:
+  #     - "800:80"
+  #     - "443:443"
     
-  nginx-exporter:
-    ports:
-      - '9113:9113'
-    command:
-      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
+  # nginx-exporter:
+  #   ports:
+  #     - '9113:9113'
+  #   command:
+  #     - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
 
   gpu_telemetry:
     ports:

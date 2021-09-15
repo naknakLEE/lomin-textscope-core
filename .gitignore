@@ -124,6 +124,10 @@ core
 pyminifier
 encrypted_file
 build-folder
+grafana
+fil
+onnxruntime
+
 
 # DB data
 pgdata/
@@ -151,6 +155,7 @@ Nuitka
 *.mar
 *.npy
 *.pickle
+*.pkl
 *.docker*
 
 # security

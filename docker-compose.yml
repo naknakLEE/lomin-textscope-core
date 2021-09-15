@@ -15,6 +15,8 @@ services:
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
       - log:/workspace/logs
     restart: unless-stopped
@@ -25,6 +27,8 @@ services:
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving_replica
+    environment:
+      - CUSTOMER=${CUSTOMER}
     restart: unless-stopped
     networks:
       our_net:
@@ -33,6 +37,8 @@ services:
   web:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
     container_name: web
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
       - log:/workspace/logs
     restart: unless-stopped
@@ -43,6 +49,8 @@ services:
   pp:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
     container_name: pp
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
       - log:/workspace/logs
     restart: unless-stopped
@@ -53,6 +61,8 @@ services:
   wrapper:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
     container_name: wrapper
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
       - log:/workspace/logs
     restart: unless-stopped
