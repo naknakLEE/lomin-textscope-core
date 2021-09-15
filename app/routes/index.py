@@ -3,7 +3,8 @@ import time
 
 from typing import Any
 from fastapi import APIRouter
-from starlette.responses import Response
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
 
 from app.database.connection import db
 from app.common.const import get_settings
@@ -55,5 +56,9 @@ def check_status() -> Any:
     finally:
         session.close()
 
-    status = f"is_database_working: {is_database_working}, is_serving_server_working: {is_serving_server_working}, is_pp_server_working: {is_pp_server_working}"
-    return Response(f"Textscope API ({status})")
+    status = dict(
+        is_database_working=is_database_working, 
+        is_serving_server_working=is_serving_server_working, 
+        is_pp_server_working=is_pp_server_working
+    )
+    return JSONResponse(content=jsonable_encoder(status))
