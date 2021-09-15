@@ -151,8 +151,10 @@
             "L3",
             "R6",
             "W2", 
-            "J5",
             "Z3"
+        ],
+        "PASSPORT": [
+            "J5"
         ],
         "BUSINESS_REGISTRATION": [
             "A1",
@@ -161,7 +163,8 @@
         "TRANSACTION_BANK_BOOK": [
             "A2",
             "AC",
-            "Z1"
+            "Z1",
+            "RF"
         ],
         "CERTIFIED_COPY_OF_CORPORATE_REGISTRATION": [
             "N1"
@@ -216,19 +219,19 @@
     ],
     "DOC_MAPPING_TABLE": {
         "주민등록증": {
-            "rrc_title": "rrc_title",
+            "title": "rrc_title",
             "rrc_name": "rrc_name",
             "rrc_regnum": "rrc_regnum",
             "rrc_issue_date": "rrc_issue_date"
         },
         "재외국민등록증": {
-            "rrc_title": "rrc_title",
+            "title": "rrc_title",
             "rrc_name": "rrc_name",
             "rrc_regnum": "rrc_regnum",
             "rrc_issue_date": "rrc_issue_date"
         },
         "운전면허증": {
-            "dlc_title_ko": "dlc_title",
+            "title": "dlc_title",
             "dlc_name_ko": "dlc_name_ko",
             "dlc_regnum": "dlc_regnum",
             "dlc_issue_date": "dlc_issue_date",
@@ -254,6 +257,44 @@
             "issue_date": "arc_issue_date"
         },
         "여권": {
+            "pp_title": "pp_title",
+            "pp_name": "pp_name",
+            "pp_regnum": "pp_regnum",
+            "pp_issue_date": "pp_issue_date"
+        },
+        "J1": {
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_exp_date": "dlc_exp_date"
+        },
+        "L3": {
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_exp_date": "dlc_exp_date"
+        },
+        "R6": {
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_exp_date": "dlc_exp_date"
+        },
+        "W2": {
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_exp_date": "dlc_exp_date"
+        },
+        "J5": {
             "dlc_title": "pp_title",
             "name": "pp_name",
             "dlc_regnum": "pp_regnum",
@@ -261,7 +302,7 @@
         },
         "Z2": {
             "business_num_value": "cbr_regnum_business",
-            "business_corpnum_value": "cbr_regnum_corp",
+            "business_regnum_value": "cbr_regnum_corp",
             "business_repre_value": "cbr_ceo_name",
             "business_name_value": "cbr_name",
             "business_address_value": "cbr_address_business",
@@ -273,6 +314,11 @@
             "account_num_value": "bb_account_num",
             "bank_name_value": "bb_bank",
             "account_name_value": "bb_account_holder"
+        },
+        "RF": {
+            "_account_num_value": "bb_account_num",
+            "_bank_name_value": "bb_bank",
+            "_account_name_value": "bb_account_holder"
         },
         "N1": {
             "ccr_title": "ccr_title",
@@ -547,5 +593,11 @@
             "business_type_value",
             "business_issuedate_value"
         ]
-    }
+    },
+    "SPACING_KEY": [
+        "account_name_value", 
+        "business_name_value", 
+        "business_address_value", 
+        "business_addresshq_value"
+    ]
 }
