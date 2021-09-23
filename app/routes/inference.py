@@ -1,4 +1,5 @@
 import httpx
+import numpy as np
 
 from typing import Any, Dict
 from fastapi import Depends, File, UploadFile, APIRouter, Form, Request
@@ -19,6 +20,7 @@ router = APIRouter()
 
 model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
+min_reliability_threshold = settings.MIN_RELIABILITY_THRESHOLD
 
 
 # response_model=models.InferenceResponse,
@@ -121,7 +123,12 @@ async def inference(
             return response
         document_ocr_result = document_ocr_model_response.json()
 
-        if len(document_ocr_result["boxes"]) < settings.LEAST_BOX_NUM:
+        if np.mean(document_ocr_result["scores"]) < min_reliability_threshold:
+            response["code"] = "5400"
+            response["minQlt"] = "00"
+            response["reliability"] = str(np.mean(document_ocr_result["scores"]))
+            return response
+        elif len(document_ocr_result["boxes"]) < settings.LEAST_BOX_NUM:
             response["code"] = "1400"
             response["minQlt"] = "01"
             return response
@@ -141,4 +148,5 @@ async def inference(
         response["reliability"] = "1.0"
         response["lnbzDocClcd"] = lnbzDocClcd
         response["ocrResult"] = result["result"]["values"]
+        response["scores"] = document_ocr_result["scores"]
     return JSONResponse(content=jsonable_encoder(response))
