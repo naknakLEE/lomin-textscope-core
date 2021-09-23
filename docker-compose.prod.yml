@@ -61,6 +61,7 @@ services:
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     depends_on: 
@@ -74,6 +75,7 @@ services:
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     depends_on: 

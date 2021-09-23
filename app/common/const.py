@@ -83,6 +83,7 @@ class Settings(BaseSettings):
         "D53": "basic_cert",
         "D54": "regi_cert",
     }
+    MIN_RELIABILITY_THRESHOLD: float = 0.5
 
     # LOGGER CONFIG
     TEXTSCOPE_LOG_DIR_PATH: str

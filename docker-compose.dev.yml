@@ -121,7 +121,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
         CUSTOMER: ${CUSTOMER}
     ports: 
-      - 8090:8090
+      - 8050:8090
     volumes:
       - ./logs:/workspace/logs
       - ./:/workspace
@@ -141,11 +141,11 @@ services:
   #     - "800:80"
   #     - "443:443"
     
-  # nginx-exporter:
-  #   ports:
-  #     - '9113:9113'
-  #   command:
-  #     - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
+  nginx-exporter:
+    ports:
+      - '9113:9113'
+    command:
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
 
   gpu_telemetry:
     ports:

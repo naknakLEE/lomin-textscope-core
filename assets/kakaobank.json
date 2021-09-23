@@ -123,5 +123,10 @@
             "보안스티커",
             "(주민)등록번호"
         ]
+    },
+    "PARAMETER_FULL_NAME_MAPPING_TABLE": {
+        "lnbzDocClcd": "document type",
+        "lnbzMgmtNo": "loan bz management number",
+        "edmsId": "edms id"
     }
 }

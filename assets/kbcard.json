@@ -217,6 +217,13 @@
         "EZ",
         "EY"
     ],
+    "NOT_SUPPORTED_OCR_TARGET": [
+        "Z1_1_거래통장_가상계좌발급확인서",
+        "Z1_4_거래통장_인터넷통장",
+        "Z1_3_거래통장_연계(가상)계좌확인서",
+        "Z1_2_거래통장_계좌개설확인서",
+        "Z2_3_사업자등록증_사업자등록증명"
+    ],
     "DOC_MAPPING_TABLE": {
         "주민등록증": {
             "title": "rrc_title",
@@ -232,7 +239,7 @@
         },
         "운전면허증": {
             "title": "dlc_title",
-            "dlc_name_ko": "dlc_name_ko",
+            "dlc_name_ko": "dlc_name",
             "dlc_regnum": "dlc_regnum",
             "dlc_issue_date": "dlc_issue_date",
             "dlc_license_num": "dlc_license_num",
@@ -261,6 +268,31 @@
             "pp_name": "pp_name",
             "pp_regnum": "pp_regnum",
             "pp_issue_date": "pp_issue_date"
+        },
+        "고유번호증": {
+            "business_num_value": "cun_regnum_business",
+            "business_name_value": "cun_name",
+            "business_address_value": "cun_address_business"
+        },
+        "사업자등록증": {
+            "business_num_value": "cbr_regnum_business",
+            "business_regnum_value": "cbr_regnum_corp",
+            "business_repre_value": "cbr_ceo_name",
+            "business_name_value": "cbr_name",
+            "business_address_value": "cbr_address_business",
+            "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
+            "business_addresshq_value": "cbr_address_headquarter"
+        },
+        "사업자등록증명": {
+            "business_num_value": "cbr_regnum_business",
+            "business_regnum_value": "cbr_regnum_corp",
+            "business_repre_value": "cbr_ceo_name",
+            "business_name_value": "cbr_name",
+            "business_address_value": "cbr_address_business",
+            "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
+            "business_addresshq_value": "cbr_address_headquarter"
         },
         "J1": {
             "dlc_title": "dlc_title",
@@ -295,10 +327,10 @@
             "dlc_exp_date": "dlc_exp_date"
         },
         "J5": {
-            "dlc_title": "pp_title",
-            "name": "pp_name",
-            "dlc_regnum": "pp_regnum",
-            "dlc_issue_date": "pp_issue_date"
+            "pp_title": "pp_title",
+            "pp_name": "pp_name",
+            "pp_regnum": "pp_regnum",
+            "pp_issue_date": "pp_issue_date"
         },
         "Z2": {
             "business_num_value": "cbr_regnum_business",
@@ -316,9 +348,9 @@
             "account_name_value": "bb_account_holder"
         },
         "RF": {
-            "_account_num_value": "bb_account_num",
-            "_bank_name_value": "bb_bank",
-            "_account_name_value": "bb_account_holder"
+            "account_num_value": "bb_account_num",
+            "bank_name_value": "bb_bank",
+            "account_name_value": "bb_account_holder"
         },
         "N1": {
             "ccr_title": "ccr_title",
@@ -598,6 +630,8 @@
         "account_name_value", 
         "business_name_value", 
         "business_address_value", 
-        "business_addresshq_value"
+        "business_addresshq_value",
+        "business_workcond_value",
+        "business_worktype_value"
     ]
 }

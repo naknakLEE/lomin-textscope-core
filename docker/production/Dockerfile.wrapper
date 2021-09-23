@@ -24,7 +24,7 @@ RUN pip3 install --upgrade pip
 COPY ./requirments/requirments-${CUSTOMER}.txt /workspace/requirments-${CUSTOMER}.txt
 RUN pip3 install -r /workspace/requirments-${CUSTOMER}.txt
 
-COPY ./${BUILD_FOLDER_PATH}/assets/* /workspace/assets/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./.env /workspace/.env
 

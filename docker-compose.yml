@@ -18,7 +18,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ./docker/log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -40,7 +40,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ./docker/log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -52,7 +52,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ./docker/log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -64,7 +64,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ./docker/log:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -82,16 +82,17 @@ services:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
       
   # nginx:
-  #   # image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
-  #   image: nginx:stable
-  #   container_name: nginx
+  #   image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
   #   build:
   #     context: ./
   #     dockerfile: docker/production/Dockerfile.nginx
   #     args:
   #       CONF_NAME: nginx
+  #   # image: nginx:stable
+  #   container_name: nginx
   #   volumes:
   #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./docker/log/nginx:/var/log/nginx
   #   restart: unless-stopped
   #   networks:
   #     our_net:
@@ -152,7 +153,6 @@ volumes:
   grafana_data: {}
   pgdata: {}
   mysqldata: {}
-  log: {}
 
 networks:
   our_net:

@@ -10,12 +10,12 @@ saved_dir="${base_path}/build-folder/saved-docker-images/${CUSTOMER}"
 
 echo "docker image download start!"
 mkdir -p saved_dir
+
 echo "start docker image download process!"
 for image in ${image_repository_list}
 do
-    output_name=$(echo ${image} | awk -F/ '{print $NF}')
-    echo ${image} 
-    echo ${output_name}
+    output_name=$(echo ${image} | awk -F/ '{print $NF}' | tr : _)
+    echo ${image} '|' ${output_name}
     docker save -o ${saved_dir}/${output_name}.tar ${image}
 done
 echo "docker image download complete!"
