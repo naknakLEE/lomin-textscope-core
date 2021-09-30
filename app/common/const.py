@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
     MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR: str
     POSTGRES_IP_ADDR: str
-    MYSQL_IP_ADDR: str
+    TEXTSCOPE_CORE_MYSQL_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str

@@ -11,7 +11,7 @@ hvc="${THALES_BASE_PATH}/${HVC}" # "./DEMOMA.hvc"
 feature="${FEATURE}" # 100
 
 encrypt_folder="${SCRIPT_BASE_PATH}/${BUILD_FOLDER_PATH}/${CUSTOMER}-build"
-cp -r "${encrypt_folder}" "${encrypt_folder}_copy"
+# cp -r "${encrypt_folder}" "${encrypt_folder}_copy"
 
 for file in `find $encrypt_folder -type f -name "*.so"`
 do

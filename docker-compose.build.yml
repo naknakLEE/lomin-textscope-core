@@ -1,13 +1,13 @@
 version: '2.3'
 
 services:
-  mysql:
+  mysql1:
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
       context: ./
       dockerfile: docker/build/Dockerfile.gpu_serving
@@ -32,7 +32,7 @@ services:
             capabilities: [gpu]
 
   web:
-    image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
       context: ./
       dockerfile: docker/build/Dockerfile.web
@@ -46,7 +46,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
 
   pp:
-    image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
       context: ./
       dockerfile: docker/build/Dockerfile.pp
