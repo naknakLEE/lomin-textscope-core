@@ -1,10 +1,11 @@
 # set enviroments
 . ./.env
+set -ex
 
 # set build variable
 container_list="${CONTAINER_LIST}"
 created_folder_name="${CUSTOMER}-build"
-build_folder_name="${BUILD_FOLDER_PATH}"
+build_folder_name="${BUILD_FOLER}"
 
 # remove previous build folder
 rm -rf ./${build_folder_name}/${created_folder_name}
