@@ -7,7 +7,7 @@ ARG CUSTOMER
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
-ENV PYTHONPATH="$PYTHONPATH:/workspace"
+ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 ENV API_ENV="production"
 
 RUN apt-get update && \

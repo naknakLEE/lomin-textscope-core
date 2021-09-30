@@ -41,6 +41,7 @@ RUN pip3 install -r /workspace/requirments-serving.txt
 RUN pip3 uninstall -y BentoML && \
     pip3 install bentoml==0.13.1
 
-# COPY ./${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
+COPY ./${APP_NAME}/assets/bentoml-for-health-check /workspace/bentoml-for-health-check
+RUN cp -r /workspace/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/
 
 WORKDIR /workspace/${APP_NAME}
