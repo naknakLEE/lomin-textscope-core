@@ -1,7 +1,70 @@
 version: '2.3'
 
 services:
-  mysql:
+  # management1:
+  #   image: mysql/mysql-cluster
+  #   container_name: mysql-management
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+  #   command: ndb_mgmd
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_MANAGEMENT_IP_ADDR}
+    
+  # ndb1:
+  #   image: mysql/mysql-cluster
+  #   container_name: mysql-ndb1
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+  #   command: ndbd
+  #   depends_on: 
+  #     - management1
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_NDB1_IP_ADDR}
+
+  # ndb2:
+  #   image: mysql/mysql-cluster
+  #   container_name: mysql-ndb2
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+  #   command: ndbd
+  #   depends_on:
+  #     - management1
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_NDB2_IP_ADDR}
+    
+  # mysql1:
+  #   image: mysql/mysql-cluster
+  #   container_name: mysql
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.conf
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+  #     MYSQL_DATABASE: ${CUSTOMER}
+  #     MYSQL_USER: ${CUSTOMER}
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  #     MYSQL_ROOT_HOST: '%'
+  #     # - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+  #     # - TZ=Asia/Seoul
+  #   command: mysqld
+  #   depends_on:
+  #     - management1
+  #     - ndb1
+  #     - ndb2
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_IP_ADDR}
+
+
+  mysql1:
     # image: docker.lomin.ai/ts-mysql:${TEXTSCOPE_VERSION}
     image: mysql:8.0.25
     container_name: mysql
@@ -11,6 +74,7 @@ services:
     networks:
       our_net:
           ipv4_address: ${MYSQL_IP_ADDR}
+
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
@@ -18,7 +82,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - ./docker/log:/workspace/logs
+      - ${BASE_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -40,8 +104,10 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - ./docker/log:/workspace/logs
+      - ${BASE_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    depends_on: 
+      - mysql1
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
@@ -52,7 +118,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - ./docker/log:/workspace/logs
+      - ${BASE_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     networks:
       our_net:
@@ -64,8 +130,10 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
-      - ./docker/log:/workspace/logs
+      - ${BASE_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    depends_on: 
+      - mysql1
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
@@ -81,22 +149,23 @@ services:
       our_net:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
       
-  # nginx:
-  #   image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
-  #   build:
-  #     context: ./
-  #     dockerfile: docker/production/Dockerfile.nginx
-  #     args:
-  #       CONF_NAME: nginx
-  #   # image: nginx:stable
-  #   container_name: nginx
-  #   volumes:
-  #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf
-  #     - ./docker/log/nginx:/var/log/nginx
-  #   restart: unless-stopped
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${NGINX_IP_ADDR}
+  nginx:
+    # image: nginx:stable
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx
+      args:
+        CONF_NAME: nginx
+    container_name: nginx
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ${BASE_LOG_PATH}/nginx:/var/log/nginx
+    restart: unless-stopped
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_IP_ADDR}
+
     
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.9.0
@@ -124,6 +193,10 @@ services:
     image: prom/prometheus
     container_name: prometheus
     restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./.env:/etc/prometheus/.env
+      - prometheus_data:/prometheus
     networks:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}

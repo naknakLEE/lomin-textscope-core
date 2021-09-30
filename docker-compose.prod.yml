@@ -1,7 +1,7 @@
 version: '2.3'
 
 services:
-  mysql:
+  mysql1:
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
@@ -32,13 +32,13 @@ services:
     #         capabilities: [gpu]
     tty: true
     depends_on: 
-      - mysql
+      - mysql1
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   serving_replica:
     tty: true
     depends_on: 
-      - mysql
+      - mysql1
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=1
@@ -51,7 +51,7 @@ services:
     #         device_ids: ['1']
     #         capabilities: [gpu]
     depends_on: 
-      - mysql
+      - mysql1
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   web:
@@ -65,8 +65,10 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     depends_on: 
-      - mysql
-    command: python3 /workspace/main.py
+      - mysql1
+    working_dir: /workspace
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
+    # command: python3 /workspace/main.py
 
   pp:
     build:
@@ -77,10 +79,14 @@ services:
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         CUSTOMER: ${CUSTOMER}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - PYTHONPATH=/workspace
     tty: true
     depends_on: 
-      - mysql
-    command: python3 /workspace/pp_server/main.py
+      - mysql1
+    working_dir: /workspace/pp_server
+    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
+    # command: python3 /workspace/pp_server/main.py
 
   wrapper:
     build:
@@ -95,10 +101,12 @@ services:
       - 8050:8090
     tty: true
     depends_on: 
-      - mysql
+      - mysql1
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
-    command: python3 /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app/main.py
+    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
+    # command: python3 /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app/main.py
 
   grafana:
     ports:
