@@ -294,6 +294,21 @@
             "business_workcond_value": "cbr_work_cond",
             "business_addresshq_value": "cbr_address_headquarter"
         },
+        "A1": {
+            "business_num_value": "cbr_regnum_business",
+            "business_regnum_value": "cbr_regnum_corp",
+            "business_repre_value": "cbr_ceo_name",
+            "business_name_value": "cbr_name",
+            "business_address_value": "cbr_address_business",
+            "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
+            "business_addresshq_value": "cbr_address_headquarter"
+        },
+        "A2": {
+            "account_num_value": "bb_account_num",
+            "bank_name_value": "bb_bank",
+            "account_name_value": "bb_account_holder"
+        },
         "J1": {
             "dlc_title": "dlc_title",
             "name": "dlc_name",
