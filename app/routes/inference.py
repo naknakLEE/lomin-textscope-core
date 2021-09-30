@@ -1,4 +1,5 @@
 import httpx
+import time
 import numpy as np
 
 from typing import Any, Dict
@@ -49,6 +50,7 @@ async def ocr(request: Request) -> Dict:
             timeout=settings.TIMEOUT_SECOND,
         )
         if response.status_code < 200 or response.status_code >= 400:
+            logger.debug(f"response text: {response.text}")
             return set_error_response(code="3000", message="모델 서버 문제 발생")
         inference_results = response.json()
 
@@ -63,7 +65,7 @@ async def ocr(request: Request) -> Dict:
             )
             logger.debug(f"response: {type(response.text)}")
             if response.status_code < 200 or response.status_code >= 400:
-                return set_error_response(code="3000", message="pp 서버 문제 발생")
+                return set_error_response(code="3000", message="pp 과정에서 문제 발생")
             post_processing_results = response.json()
             inference_results["kv"] = post_processing_results["result"]
         if convert_preds_to_texts is not None:
@@ -77,7 +79,7 @@ async def ocr(request: Request) -> Dict:
                 timeout=settings.TIMEOUT_SECOND,
             )
             if response.status_code < 200 or response.status_code >= 400:
-                return set_error_response(code="3000", message="후처리 서버 문제 발생")
+                return set_error_response(code="3000", message="텍스트 변환 과정에서 발생")
             get_tests_results = response.json()
             inference_results["texts"] = get_tests_results
 
@@ -93,60 +95,64 @@ async def inference(
     pwdNo: str,
     image: UploadFile = File(...),
 ) -> Any:
+    response_log = dict()
     image_bytes = await image.read()
     files = {"image": ("document_img.jpg", image_bytes)}
     document_type = settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
 
     response = dict(
         code="3400",
-        minQlt="00",
+        minQlt="01",
         reliability="",
-        lnbzDocClcd="",
         ocrResult="",
         texts=[],
     )
     async with httpx.AsyncClient() as client:
-        logger.debug(model_server_url)
-        import time
-
         inference_start_time = time.time()
+        response_log.update({"inference_start_time": inference_start_time})
         document_ocr_model_response = await client.post(
             f"{model_server_url}/document_ocr",
             files=files,
             timeout=settings.TIMEOUT_SECOND,
         )
-        logger.info(f"Ocr time: {time.time() - inference_start_time}")
+        inference_end_time = time.time()
+        response_log.update({"inference_end_time": inference_end_time})
+        logger.info(f"Inference time: {inference_end_time - inference_start_time}")
         if (
             document_ocr_model_response.status_code < 200
             or document_ocr_model_response.status_code >= 400
         ):
             return response
-        document_ocr_result = document_ocr_model_response.json()
+        ocr_result = document_ocr_model_response.json()
 
-        if np.mean(document_ocr_result["scores"]) < min_reliability_threshold:
+        if np.mean(ocr_result["scores"]) < min_reliability_threshold:
             response["code"] = "5400"
             response["minQlt"] = "00"
-            response["reliability"] = str(np.mean(document_ocr_result["scores"]))
+            response["reliability"] = str(np.mean(ocr_result["scores"]))
             return response
-        elif len(document_ocr_result["boxes"]) < settings.LEAST_BOX_NUM:
+        elif len(ocr_result["boxes"]) < settings.LEAST_BOX_NUM:
             response["code"] = "1400"
             response["minQlt"] = "01"
             return response
         post_processing_start_time = time.time()
+        response_log.update({"post_processing_start_time": post_processing_start_time})
         document_ocr_pp_response = await client.post(
             f"{pp_server_url}/post_processing/{document_type}",
-            json=document_ocr_result,
+            json=ocr_result,
             timeout=settings.TIMEOUT_SECOND,
         )
-        logger.info(f"Post processing time: {time.time() - post_processing_start_time}")
-        result = document_ocr_pp_response.json()
+        post_processing_end_time = time.time()
+        response_log.update({"post_processing_end_time": post_processing_end_time})
+        logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
+        pp_result = document_ocr_pp_response.json()
 
-    response["texts"] = result["texts"]
-    if result["result"] is not None:
-        response["code"] = "1200"
-        response["minQlt"] = "01"
-        response["reliability"] = "1.0"
-        response["lnbzDocClcd"] = lnbzDocClcd
-        response["ocrResult"] = result["result"]["values"]
-        response["scores"] = document_ocr_result["scores"]
+    response_log.update(ocr_result.get("response_log", {}))
+    response.update({"response_log": response_log})
+    response.update({"inferenceResult": ocr_result})
+    if pp_result["result"] is not None:
+        response.update({"ocrResult": pp_result.get("result", [])})
+        response.update({"texts": pp_result.get("texts", [])})
+        response.update({"code": "1200"})
+        response.update({"minQlt": "00"})
+    logger.info(f"response: {response_log}")
     return JSONResponse(content=jsonable_encoder(response))
