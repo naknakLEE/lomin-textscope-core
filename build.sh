@@ -1,6 +1,6 @@
 # set enviroments
 . ./.env
-set -ex
+set -eux
 
 # set build variable
 container_list="${CONTAINER_LIST}"
