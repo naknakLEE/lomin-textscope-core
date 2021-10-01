@@ -2,6 +2,12 @@ from typing import Dict, Union
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
+from app.common.const import get_settings
+
+
+settings = get_settings()
+pp_mapping_table = settings.PP_MAPPING_TABLE
+
 
 def set_error_response(code: str, ocr_result: Dict = {}, message: str = "") -> JSONResponse:
     return JSONResponse(
@@ -16,12 +22,12 @@ def set_error_response(code: str, ocr_result: Dict = {}, message: str = "") -> J
 
 
 def get_pp_api_name(doc_type: str) -> Union[None, str]:
-    if doc_type.split("_")[0] in ["Z2", "Z3"]:
+    if doc_type.split("_")[0] in pp_mapping_table.get("general_pp"):
         return "kv"
-    elif "인감증명서" in doc_type:
-        return "seal_imp_cert"
-    elif "법인등기부" in doc_type:
-        return "ccr"
-    elif "Z1" in doc_type:
+    elif doc_type.split("_")[0] in pp_mapping_table.get("bankbook"):
         return "bankbook"
+    elif pp_mapping_table.get("seal_imp_cert") in doc_type:
+        return "seal_imp_cert"
+    elif pp_mapping_table.get("ccr") in doc_type:
+        return "ccr"
     return None
