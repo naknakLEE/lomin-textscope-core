@@ -1,10 +1,19 @@
+import json
+
 from typing import List, Optional, Any, Dict
 from pydantic import BaseSettings
 from functools import lru_cache
-from os import path
+from os import path, environ
+from pathlib import Path
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
+def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
+    encoding = settings.__config__.env_file_encoding
+    customer_config = json.loads(
+        Path(f'/workspace/assets/{environ.get("CUSTOMER")}.json').read_text(encoding))
+    config = customer_config
+    return config
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
@@ -132,8 +141,57 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
+    # KBCARD CONFIG
+    ALLOWED_CHARACTERS_SET: Dict = {}
+    LENGTH_SET: Dict = {}
+    DOC_MAPPING_TABLE: Dict = {}
+    DOC_TYPE_SET: Dict = {}
+    LOOKUP_TABLE: Dict = {}
+    VALID_TYPE: Dict = {}
+    TORCH_MODEL_NAME_SET: List = []
+    ESSENTIAL_KEYS: Dict = {}
+    DOC_TYPE_SET: Dict = {}
+    DOC_KEY_SET: Dict = {}
+    IDCARD_TYPE_SET: List = []
+    KV_TYPE_SET: Dict = {}
+    PARAMETER_ERROR_SET: Dict = {}
+    DOCUMENT_TYPE_SET: Dict = {}
+    CLASSIFICATION_TARGET: List = []
+    SPACING_KEY: List = []
+    NOT_SUPPORTED_OCR_TARGET: List = []
+
+    DOCUMENT_TYPE_LIST: List = []
+    KEYWORDS: Dict = {}
+    KEYWORDS_ALL: Dict = {}
+    PP_MAPPING_TABLE: Dict = {}
+
+    # KAKAOBANK CONFIG
+    DOCUMENT_TYPE_LIST: List = []
+    DOCUMENT_TYPE_SET: Dict = {}
+    KEYWORDS: Dict = {}
+    ESSENTIAL_KEYS: Dict = {}
+    VALID_TYPE: Dict = {}
+    KEYWORDS_ALL: Dict = {}
+    PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
+
+
     class Config:
         env_file = "/workspace/.env"
+        env_file_encoding = 'utf-8'
+
+        @classmethod
+        def customise_sources(
+            cls,
+            init_settings,
+            env_settings,
+            file_secret_settings,
+        ):
+            return (
+                init_settings,
+                json_config_settings_source,
+                env_settings,
+                file_secret_settings,
+            )
 
 
 @lru_cache()
