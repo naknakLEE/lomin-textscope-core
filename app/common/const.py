@@ -39,7 +39,6 @@ class Settings(BaseSettings):
     MYSQL_EXPORTER_ADDR: str
     NGINX_EXPORTER_ADDR: str
     PROMETHEUS_ADDR: str
-    KAKAO_WRAPPER_ADDR: str
     REDIS_IP_PORT_ADDR: str
     SERVING_IP_PORT_ADDR: str
     WRAPPER_IP_PORT_ADDR: str

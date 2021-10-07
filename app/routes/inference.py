@@ -1,7 +1,9 @@
 import httpx
 import time
+import json
 import numpy as np
 
+from datetime import datetime
 from typing import Any, Dict
 from fastapi import Depends, File, UploadFile, APIRouter, Form, Request
 from fastapi.responses import JSONResponse
@@ -110,14 +112,14 @@ async def inference(
         texts=[],
     )
     async with httpx.AsyncClient() as client:
-        inference_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
+        inference_start_time = datetime.utcnow()
         document_ocr_model_response = await client.post(
             f"{model_server_url}/document_ocr",
             files=files,
             timeout=settings.TIMEOUT_SECOND,
         )
-        inference_end_time = time.strftime('%Y-%m-%d %H:%M:%S')
-        logger.info(f"Inference time: {inference_end_time - inference_start_time}")
+        inference_end_time = datetime.utcnow()
+        logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
         if (
             document_ocr_model_response.status_code < 200
             or document_ocr_model_response.status_code >= 400
@@ -134,20 +136,21 @@ async def inference(
             response["code"] = "1400"
             response["minQlt"] = "01"
             return response
-        post_processing_start_time = time.strftime('%Y-%m-%d %H:%M:%S')
+        post_processing_start_time = datetime.utcnow()
         document_ocr_pp_response = await client.post(
             f"{pp_server_url}/post_processing/{document_type}",
             json=ocr_result,
             timeout=settings.TIMEOUT_SECOND,
         )
         pp_result = document_ocr_pp_response.json()
-        post_processing_end_time = time.strftime('%Y-%m-%d %H:%M:%S')
+        post_processing_end_time = datetime.utcnow()
         logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
+        logger.info(f"pp result: {pp_result}")
     response_log.update(dict(
-        inference_start_time=inference_start_time,
-        inference_end_time=inference_end_time,
-        post_processing_start_time=post_processing_start_time,
-        post_processing_end_time=post_processing_end_time,
+        inference_request_start_time=inference_start_time.strftime('%Y-%m-%d %H:%M:%S'),
+        inference_request_end_time=inference_end_time.strftime('%Y-%m-%d %H:%M:%S'),
+        post_processing_start_time=post_processing_start_time.strftime('%Y-%m-%d %H:%M:%S'),
+        post_processing_end_time=post_processing_end_time.strftime('%Y-%m-do%d %H:%M:%S'),
         **ocr_result.get("response_log", {}),
     ))
     
@@ -158,5 +161,5 @@ async def inference(
         response.update(texts=pp_result.get("texts", []))
         response.update(code="1200")
         response.update(minQlt="00")
-    logger.info(f"response: {response_log}")
+    logger.info(f"response log: {response_log}")
     return JSONResponse(content=jsonable_encoder(response))
