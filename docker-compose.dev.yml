@@ -30,7 +30,7 @@ services:
     tty: true
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
-      - BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml
+      - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
     deploy:
       resources:
         reservations:
@@ -49,7 +49,7 @@ services:
     # tty: true
     # environment:
     #   - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
-    #   - BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml
+    #   - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
     # deploy:
     #   resources:
     #     reservations:
