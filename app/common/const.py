@@ -82,7 +82,6 @@ class Settings(BaseSettings):
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
     PYINSTRUMENT_RENDERER: str = "html"
-    LEAST_BOX_NUM: int = 1
 
     # KAKAOBANK_WRAPPER_CONFIG
     DOCUMENT_TYPE_SET = {
@@ -91,7 +90,6 @@ class Settings(BaseSettings):
         "D53": "basic_cert",
         "D54": "regi_cert",
     }
-    MIN_RELIABILITY_THRESHOLD: float = 0.5
 
     # LOGGER CONFIG
     TEXTSCOPE_LOG_DIR_PATH: str
