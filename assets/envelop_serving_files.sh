@@ -5,7 +5,7 @@ set -eux
 APP_NAME=${INFERENCE_SERVER_APP_NAME}
 
 cd /workspace/${APP_NAME}
-rm -r /workspace/${APP_NAME}/ModelService
+rm -rf /workspace/${APP_NAME}/ModelService
 python3 ${APP_NAME}/generate_${CUSTOMER}_model_service.py 
 
 cd /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/
