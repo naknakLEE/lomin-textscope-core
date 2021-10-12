@@ -1,19 +1,7 @@
-version: '2.3'
+version: '3.8'
 
 services:
-  mysql:
-    build:
-      context: ./
-      dockerfile: docker/production/Dockerfile.mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-      - TZ=Asia/Seoul
-    # ulimits:
-    #   nofile:
-    #     soft: "65536"
-    #     hard: "65536"
-    volumes:
-      - ./database/my.cnf:/etc/mysql/my.cnf
+  mysql1:
     ports: 
       - 3307:3306
   
@@ -40,8 +28,9 @@ services:
     volumes:
       - ./:/workspace
     tty: true
-    depends_on: 
-      - mysql
+    environment:
+      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
     deploy:
       resources:
         reservations:
@@ -49,25 +38,25 @@ services:
           - driver: nvidia
             device_ids: ['0']
             capabilities: [gpu]
-    # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
-  
-  # serving_replica:
-  #   image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
-  #   volumes:
-  #     # - ./logs:/workspace/logs
-  #     - ./:/workspace
-  #   #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
-  #   tty: true
-  #   depends_on: 
-  #     - mysql
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #         - driver: nvidia
-  #           device_ids: ['1']
-  #           capabilities: [gpu]
-  #   # BENTOML_CONFIG=/workspace/bentoml_textscope/assets/bentoml_configuration.yml bentoml serve-gunicorn . --port=5000
+    working_dir: /workspace/inference_server
+    # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+
+  serving_replica:
+    image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    # volumes:
+    #   - ./:/workspace
+    # #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml
+    # tty: true
+    # environment:
+    #   - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+    #   - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #       - driver: nvidia
+    #         device_ids: ['1']
+    #         capabilities: [gpu]
 
   web:
     image: docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -82,12 +71,9 @@ services:
     volumes:
       - ./:/workspace
     tty: true
-    depends_on: 
-      - mysql
-    networks:
-      our_net:
-          ipv4_address: ${WEB_IP_ADDR}
-    command: python3 /workspace/app/main.py
+    working_dir: /workspace/app
+    # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
+    command: python3 main.py
 
   pp:
     image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -100,16 +86,12 @@ services:
     ports: 
       - 8080:8080
     volumes:
-      - ./logs:/workspace/logs
       - ./:/workspace
     tty: true
-    depends_on: 
-      - mysql
-    networks:
-      our_net:
-          ipv4_address: ${PP_IP_ADDR}
     restart: unless-stopped
-    command: python3 /workspace/pp_server/pp_server/app/main.py
+    working_dir: /workspace/pp_server/pp_server/app
+    # command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
+    command: python3 main.py
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -121,29 +103,27 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
         CUSTOMER: ${CUSTOMER}
     ports: 
-      - 8050:8090
+      - 8090:8090
+      - 11120:11120
     volumes:
-      - ./logs:/workspace/logs
       - ./:/workspace
     tty: true
-    working_dir: /workspace/${CUSTOMER}_wrapper
     environment: 
       - API_ENV=production
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-    networks:
-      our_net:
-          ipv4_address: ${WRAPPER_IP_ADDR}
-    command: python3 ${CUSTOMER}_wrapper/app/main.py
+    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
+    # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
+    command: python3 main.py
 
-  # nginx:
-  #   ports:
-  #     - "800:80"
-  #     - "443:443"
+  nginx:
+    ports:
+      - 8050:80
+      - 443:443
     
   nginx-exporter:
     ports:
-      - '9113:9113'
+      - 9113:9113
     command:
       - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
 
@@ -158,11 +138,6 @@ services:
   prometheus:
     ports:
       - 9090:9090
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./.env:/etc/prometheus/.env
-      - prometheus_data:/prometheus
-
     
   grafana:
     ports:

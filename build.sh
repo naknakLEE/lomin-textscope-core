@@ -1,6 +1,7 @@
+set -eux
+
 # set enviroments
 . ./.env
-set -eux
 
 # set build variable
 container_list="${CONTAINER_LIST}"
@@ -12,8 +13,9 @@ rm -rf ./${build_folder_name}/${created_folder_name}
 
 # create compiled file
 # docker-compose -f docker-compose.yml -f docker-compose.base.yml build
-docker-compose -f docker-compose.yml -f docker-compose.build.yml build --parallel
+docker-compose -f docker-compose.build.yml build --parallel
 docker-compose -f docker-compose.yml -f docker-compose.build.yml up -d
+docker exec -it serving bash -c "sh /workspace/assets/envelop_serving_files.sh"
 
 # create build task process folder for lovit and wrapper
 mkdir -p ${build_folder_name}/${created_folder_name}/wrapper
@@ -68,8 +70,3 @@ do
 done
 
 docker-compose down
-
-# test process
-# docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
-# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
-# test_textscope.py

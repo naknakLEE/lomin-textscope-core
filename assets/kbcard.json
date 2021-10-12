@@ -176,10 +176,6 @@
             "W3",
             "J8"
         ],
-        "ENTERTAINMENT/DANRAN_PUB_PERMIT": [
-            "E3", 
-            "E4"
-        ],
         "OTHER_ATTACHED_DOCUMENTS": [
             "EZ", 
             "EY"
@@ -189,6 +185,7 @@
         "E2", 
         "Z2", 
         "EQ", 
+        "E3",
         "E4", 
         "E1", 
         "EC", 
@@ -653,7 +650,7 @@
     "PP_MAPPING_TABLE": {
         "general_pp": ["Z2", "Z3"],
         "seal_imp_cert": "인감증명서",
-        "ccr": "법인등기부",
+        "ccr": "N1",
         "bankbook": ["Z1"]
     }
 }
