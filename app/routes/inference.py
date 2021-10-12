@@ -12,7 +12,7 @@ from fastapi.encoders import jsonable_encoder
 from app import models
 from app.schemas import inference_responses
 from app.utils.auth import get_current_active_user
-from app.utils.utils import set_error_response, get_pp_api_name
+from app.utils.utils import set_json_response, get_pp_api_name
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import db
@@ -46,50 +46,50 @@ async def ocr(request: Request) -> Dict:
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     async with httpx.AsyncClient() as client:
         # ocr inference
-        response = await client.post(
+        model_server_response = await client.post(
             f"{model_server_url}/ocr",
             json=inputs,
             timeout=settings.TIMEOUT_SECOND,
         )
-        if response.status_code < 200 or response.status_code >= 400:
-            logger.debug(f"{request_id} response text: {response.text}")
-            return set_error_response(code="3000", message="모델 서버 문제 발생")
-        inference_results = response.json()
+        if model_server_response.status_code < 200 or model_server_response.status_code >= 400:
+            logger.debug(f"{request_id} response text: {model_server_response.text}")
+            return set_json_response(code="3000", message="모델 서버 문제 발생")
+        inference_results = model_server_response.json()
 
         # ocr pp
-        post_processing = get_pp_api_name(inference_results.get("doc_type", None))
-        logger.info(f"{request_id} post processing: {post_processing}")
-        if post_processing is not None and len(inference_results["rec_preds"]) > 0:
+        post_processing_type = get_pp_api_name(inference_results.get("doc_type", None))
+        logger.info(f"{request_id} post processing: {post_processing_type}")
+        if post_processing_type is not None and len(inference_results["rec_preds"]) > 0:
             inference_results["img_size"] = inference_results["image_height"], inference_results["image_width"]
-            response = await client.post(
-                f"{pp_server_url}/post_processing/{post_processing}",
+            pp_server_response = await client.post(
+                f"{pp_server_url}/post_processing/{post_processing_type}",
                 json=inference_results,
                 timeout=settings.TIMEOUT_SECOND,
             )
-            logger.debug(f"{request_id} response: {type(response.text)}")
-            if response.status_code < 200 or response.status_code >= 400:
-                return set_error_response(code="3000", message="pp 과정에서 문제 발생")
-            post_processing_results = response.json()
+            logger.debug(f"{request_id} response: {type(pp_server_response.text)}")
+            if pp_server_response.status_code < 200 or pp_server_response.status_code >= 400:
+                return set_json_response(code="3000", message="pp 과정에서 문제 발생")
+            post_processing_results = pp_server_response.json()
             inference_results["kv"] = post_processing_results["result"]
-            
+
         # convert preds to texts
         if convert_preds_to_texts is not None:
             request_data = dict(
                 rec_preds=inference_results.get("rec_preds", []),
                 id_type=inference_results.get("id_type", ""),
             )
-            response = await client.post(
+            pp_server_response = await client.post(
                 f"{pp_server_url}/convert/recognition_to_text",
                 json=jsonable_encoder(request_data),
                 timeout=settings.TIMEOUT_SECOND,
             )
-            if response.status_code < 200 or response.status_code >= 400:
-                return set_error_response(code="3000", message="텍스트 변환 과정에서 발생")
-            get_tests_results = response.json()
+            if pp_server_response.status_code < 200 or pp_server_response.status_code >= 400:
+                return set_json_response(code="3000", message="텍스트 변환 과정에서 발생")
+            get_tests_results = pp_server_response.json()
             inference_results["texts"] = get_tests_results
 
     logger.debug(f"{request_id} inference results: {inference_results}")
-    return set_error_response(code="1000", ocr_result=inference_results)
+    return set_json_response(code="1000", ocr_result=inference_results)
 
 
 @router.post("/pipeline")

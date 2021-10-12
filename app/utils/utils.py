@@ -9,7 +9,7 @@ settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
 
 
-def set_error_response(code: str, ocr_result: Dict = {}, message: str = "") -> JSONResponse:
+def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JSONResponse:
     return JSONResponse(
         content=jsonable_encoder(
             dict(

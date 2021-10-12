@@ -650,7 +650,7 @@
     "PP_MAPPING_TABLE": {
         "general_pp": ["Z2", "Z3"],
         "seal_imp_cert": "인감증명서",
-        "ccr": "N1",
+        "ccr": "법인등기부",
         "bankbook": ["Z1"]
     }
 }
