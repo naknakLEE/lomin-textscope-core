@@ -1,7 +1,7 @@
 version: '2.3'
 
 services:
-  mysql:
+  mysql1:
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
@@ -23,6 +23,7 @@ services:
       - CUDA_VISIBLE_DEVICES=0
     volumes:
       - ./inference_server/assets:/workspace/inference_server/assets
+      - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
       - ./others:/workspace/others
       - ./.env:/workspace/.env
     runtime: nvidia
@@ -35,13 +36,13 @@ services:
     #         capabilities: [gpu]
     tty: true
     depends_on: 
-      - mysql
-    # command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+      - mysql1
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   # serving_replica:
   #   tty: true
   #   depends_on: 
-  #     - mysql
+  #     - mysql1
   #   environment:
   #     - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
   #     - CUDA_VISIBLE_DEVICES=1
@@ -54,7 +55,7 @@ services:
   #   #         device_ids: ['1']
   #   #         capabilities: [gpu]
   #   depends_on: 
-  #     - mysql
+  #     - mysql1
   #   command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   web:
@@ -66,7 +67,7 @@ services:
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
     tty: true
     depends_on: 
-      - mysql
+      - mysql1
     command: python3 /workspace/main.py
 
   pp:
@@ -76,9 +77,11 @@ services:
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+    environment:
+      - PYTHONPATH=/workspace
     tty: true
     depends_on: 
-      - mysql
+      - mysql1
     command: python3 /workspace/pp_server/main.py
 
   wrapper:
@@ -93,7 +96,7 @@ services:
       - 8050:8090
     tty: true
     depends_on: 
-      - mysql
+      - mysql1
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
       - ./others:/workspace/others

@@ -110,6 +110,7 @@ services:
     tty: true
     environment: 
       - API_ENV=production
+      - PYTHONPATH=/workspace/${CUSTOMER}_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
     working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
