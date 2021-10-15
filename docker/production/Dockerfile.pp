@@ -4,6 +4,9 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG BUILD_FOLDER_PATH
 ARG CUSTOMER
+ARG MAINTAINER
+
+LABEL maintainer=${MAINTAINER}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -33,7 +36,8 @@ COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/pp/main.py /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
 
 RUN rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache
+    rm -rf /root/.cache && \
+    rm -rf /usr/bin/gcc
 
 WORKDIR /workspace/pp_server
 # ENTRYPOINT ["python3", "main.py"]

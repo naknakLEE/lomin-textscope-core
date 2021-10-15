@@ -6,6 +6,9 @@ ARG BUILD_FOLDER_PATH
 ARG APP_NAME
 ARG CUSTOMER
 ARG PYTHON_VERSION
+ARG MAINTAINER
+
+LABEL maintainer=${MAINTAINER}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -50,7 +53,8 @@ COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/lovit/* /workspace/${APP_NAME}/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
 
 RUN rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache /bentoml
+    rm -rf /root/.cache /bentoml && \
+    rm -rf /usr/bin/gcc /usr/bin/ssh
 
 WORKDIR /
 

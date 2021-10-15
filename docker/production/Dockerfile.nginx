@@ -9,6 +9,10 @@
 
 FROM ubuntu:20.04 AS base
 
+ARG MAINTAINER
+
+LABEL maintainer=${MAINTAINER}
+
 #############################
 # Settings Common Variables #
 #############################
@@ -235,7 +239,7 @@ RUN set -eux \
 FROM ubuntu:20.04
 
 # http://label-schema.org/rc1/
-LABEL maintainer="Fabio Cicerchia <info@fabiocicerchia.it>" \
+LABEL maintainer=${MAINTAINER}"Fabio Cicerchia <info@fabiocicerchia.it>" \
     org.label-schema.build-date=$BUILD_DATE \
     org.label-schema.description="Nginx $VER_NGINX with Lua support based on $DOCKER_IMAGE_OS $DOCKER_IMAGE_TAG." \
     org.label-schema.docker.cmd="docker run -p 80:80 -d $DOCKER_IMAGE:$VER_NGINX-$DOCKER_IMAGE_OS$DOCKER_IMAGE_TAG" \
