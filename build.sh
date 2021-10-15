@@ -1,6 +1,7 @@
 set -eux
 
 # set enviroments
+sed -i 's/DEVELOP="True"/DEVELOP="False"/' ./.env
 . ./.env
 
 # set build variable
@@ -25,8 +26,10 @@ mkdir -p ${build_folder_name}/${created_folder_name}/lovit/lovit
 # copy wrapper
 app_name="${CUSTOMER}_wrapper"
 cp -r ./${app_name} ${build_folder_name}/${created_folder_name}/wrapper/
-rm -rf ${build_folder_name}/${created_folder_name}/wrapper/${app_name}/${app_name}/tests
-rm -rf ${build_folder_name}/${created_folder_name}/wrapper/${app_name}/assets
+cp -r ./${app_name} ${build_folder_name}/${created_folder_name}/assets/
+if [ "${CUSTOMER}" = "kbcard" ]; then
+    rm -rf ${build_folder_name}/${created_folder_name}/wrapper/${app_name}/assets
+fi
 
 # copy config
 config_file_list="${CONFIG_FILE_LIST}"
@@ -68,5 +71,9 @@ do
         echo "not found!"
     fi
 done
+
+mkdir -p ${build_folder_name}/${created_folder_name}/workspace
+cp -r ${build_folder_name}/${created_folder_name}/assets ${build_folder_name}/${created_folder_name}/workspace/
+cp -r ${build_folder_name}/${created_folder_name}/wrapper/ ${build_folder_name}/${created_folder_name}/workspace/
 
 docker-compose down
