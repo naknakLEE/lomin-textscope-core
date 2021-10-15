@@ -113,13 +113,13 @@ async def inference(
         texts=[],
     )
     async with httpx.AsyncClient() as client:
-        inference_start_time = datetime.utcnow()
+        inference_start_time = datetime.now()
         document_ocr_model_response = await client.post(
             f"{model_server_url}/document_ocr",
             files=files,
             timeout=settings.TIMEOUT_SECOND,
         )
-        inference_end_time = datetime.utcnow()
+        inference_end_time = datetime.now()
         logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
         if (
             document_ocr_model_response.status_code < 200
@@ -128,14 +128,14 @@ async def inference(
             return response
         ocr_result = document_ocr_model_response.json()
 
-        post_processing_start_time = datetime.utcnow()
+        post_processing_start_time = datetime.now()
         document_ocr_pp_response = await client.post(
             f"{pp_server_url}/post_processing/{document_type}",
             json=ocr_result,
             timeout=settings.TIMEOUT_SECOND,
         )
         pp_result = document_ocr_pp_response.json()
-        post_processing_end_time = datetime.utcnow()
+        post_processing_end_time = datetime.now()
         logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
         logger.debug(f"pp result: {pp_result}")
     response_log.update(dict(
