@@ -11,6 +11,7 @@ services:
       context: ./
       dockerfile: docker/production/Dockerfile.gpu_serving
       args:
+        MAINTAINER: ${MAINTAINER}
         APP_NAME: inference_server
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
@@ -22,6 +23,7 @@ services:
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
     runtime: nvidia
     # deploy:
     #   resources:
@@ -42,6 +44,7 @@ services:
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=1
+      - SERVICE_INSTANCE=serving_replica
     runtime: nvidia
     # deploy:
     #   resources:
@@ -59,6 +62,7 @@ services:
       context: ./
       dockerfile: docker/production/Dockerfile.web
       args:
+        MAINTAINER: ${MAINTAINER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         CUSTOMER: ${CUSTOMER}
@@ -75,6 +79,7 @@ services:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
       args:
+        MAINTAINER: ${MAINTAINER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         CUSTOMER: ${CUSTOMER}
@@ -93,6 +98,7 @@ services:
       context: ./
       dockerfile: docker/production/Dockerfile.wrapper
       args:
+        MAINTAINER: ${MAINTAINER}
         CUSTOMER: ${CUSTOMER}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}

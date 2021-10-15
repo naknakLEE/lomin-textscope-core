@@ -2,7 +2,7 @@ version: '2.3'
 
 services:
   # management1:
-  #   image: mysql/mysql-cluster
+  #   image: mysql/mysql-cluster:8.0
   #   container_name: mysql-management
   #   volumes:
   #     - ./mysql.conf/my.cnf:/etc/my.cnf
@@ -13,7 +13,7 @@ services:
   #         ipv4_address: ${MYSQL_MANAGEMENT_IP_ADDR}
     
   # ndb1:
-  #   image: mysql/mysql-cluster
+  #   image: mysql/mysql-cluster:8.0
   #   container_name: mysql-ndb1
   #   volumes:
   #     - ./mysql.conf/my.cnf:/etc/my.cnf
@@ -26,7 +26,7 @@ services:
   #         ipv4_address: ${MYSQL_NDB1_IP_ADDR}
 
   # ndb2:
-  #   image: mysql/mysql-cluster
+  #   image: mysql/mysql-cluster:8.0
   #   container_name: mysql-ndb2
   #   volumes:
   #     - ./mysql.conf/my.cnf:/etc/my.cnf
@@ -39,7 +39,7 @@ services:
   #         ipv4_address: ${MYSQL_NDB2_IP_ADDR}
     
   # mysql1:
-  #   image: mysql/mysql-cluster
+  #   image: mysql/mysql-cluster:8.0
   #   container_name: mysql
   #   ports:
   #     - "3306:3306"
@@ -83,6 +83,8 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
@@ -93,6 +95,8 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
@@ -107,6 +111,8 @@ services:
     restart: unless-stopped
     depends_on: 
       - mysql1
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
@@ -119,6 +125,8 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
@@ -138,7 +146,7 @@ services:
           ipv4_address: ${WRAPPER_IP_ADDR}
     
   multiple_gpu_load_balancing:
-    image: nginx:stable
+    image: nginx:1.21.1
     container_name: multiple_gpu_load_balancing
     restart: unless-stopped
     volumes:
@@ -180,14 +188,14 @@ services:
         ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
     
   hardware_telemetry:
-    image: prom/node-exporter
+    image: prom/node-exporter:v1.2.2
     container_name: hardware_telemetry
     networks:
       our_net:
         ipv4_address: ${NODE_EXPORTER_IP_ADDR}
     
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.30.0
     container_name: prometheus
     restart: always
     volumes:
@@ -199,7 +207,7 @@ services:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
     
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:8.1.4-ubuntu
     container_name: grafana
     volumes: 
       - grafana_data:/var/lib/grafana
@@ -211,7 +219,7 @@ services:
           ipv4_address: ${GRAFANA_IP_ADDR}
 
   mysql-exporter:
-    image: prom/mysqld-exporter
+    image: prom/mysqld-exporter:v0.13.0
     container_name: mysqld-exporter
     restart: always
     networks:
