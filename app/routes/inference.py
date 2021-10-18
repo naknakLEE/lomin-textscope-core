@@ -44,19 +44,40 @@ async def ocr(request: Request) -> Dict:
     inputs = await request.json()
     request_id = inputs.get("request_id")
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
+    post_processing_results = dict()
+    response_log = dict()
+    response = dict(
+        code="3400",
+        minQlt="01",
+        reliability="",
+        ocrResult="",
+        texts=[],
+    )
     async with httpx.AsyncClient() as client:
         # ocr inference
+        inference_start_time = datetime.now()
         model_server_response = await client.post(
             f"{model_server_url}/ocr",
             json=inputs,
             timeout=settings.TIMEOUT_SECOND,
         )
+        inference_end_time = datetime.now()
+        logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
+        response_log.update(dict(
+            inference_request_start_time=inference_start_time.strftime('%Y-%m-%d %H:%M:%S'),
+            inference_request_end_time=inference_end_time.strftime('%Y-%m-%d %H:%M:%S'),
+        ))
         if model_server_response.status_code < 200 or model_server_response.status_code >= 400:
             logger.debug(f"{request_id} response text: {model_server_response.text}")
             return set_json_response(code="3000", message="모델 서버 문제 발생")
         inference_results = model_server_response.json()
+    
 
         # ocr pp
+        if settings.DEVELOP:
+            inference_results["doc_type"] = "Z1_1_거래통장_가상계좌발급확인서"
+            pass
+        post_processing_start_time = datetime.now()
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", None))
         logger.info(f"{request_id} post processing: {post_processing_type}")
         if post_processing_type is not None and len(inference_results["rec_preds"]) > 0:
@@ -66,11 +87,18 @@ async def ocr(request: Request) -> Dict:
                 json=inference_results,
                 timeout=settings.TIMEOUT_SECOND,
             )
+            post_processing_end_time = datetime.now()
+            response_log.update(dict(
+                post_processing_start_time=post_processing_start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                post_processing_end_time=post_processing_end_time.strftime('%Y-%m-do%d %H:%M:%S'),
+            ))
+            logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
             logger.debug(f"{request_id} response: {type(pp_server_response.text)}")
             if pp_server_response.status_code < 200 or pp_server_response.status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
             post_processing_results = pp_server_response.json()
             inference_results["kv"] = post_processing_results["result"]
+            inference_results["texts"] = post_processing_results["texts"]
 
         # convert preds to texts
         if convert_preds_to_texts is not None:
@@ -88,8 +116,16 @@ async def ocr(request: Request) -> Dict:
             get_tests_results = pp_server_response.json()
             inference_results["texts"] = get_tests_results
 
+    response_log.update(inference_results.get("response_log", {}))
+    response.update(response_log=response_log)
+    response.update(inference_results=inference_results)
     logger.debug(f"{request_id} inference results: {inference_results}")
-    return set_json_response(code="1000", ocr_result=inference_results)
+    if post_processing_results.get("result", None) is not None:
+        response.update(code="1200")
+        response.update(minQlt="00")
+    # return set_json_response(code="1000", ocr_result=inference_results)
+    return JSONResponse(content=jsonable_encoder(response))
+
 
 
 @router.post("/pipeline")
@@ -115,7 +151,7 @@ async def inference(
     async with httpx.AsyncClient() as client:
         inference_start_time = datetime.now()
         document_ocr_model_response = await client.post(
-            f"{model_server_url}/document_ocr",
+            f"{model_server_url}/ocr",
             files=files,
             timeout=settings.TIMEOUT_SECOND,
         )
@@ -147,7 +183,7 @@ async def inference(
     ))
     
     response.update(response_log=response_log)
-    response.update(inferenceResult=ocr_result)
+    response.update(inference_results=ocr_result)
     if pp_result["result"] is not None:
         response.update(ocrResult=pp_result.get("result", []))
         response.update(texts=pp_result.get("texts", []))
