@@ -1,0 +1,44 @@
+dn: cn=admins,ou=groups,dc=lomin,dc=ai
+cn: admins
+objectClass: groupOfNames
+objectClass: top
+member: cn=ldap-admin,ou=users,dc=lomin,dc=ai
+member: cn=ldap-torkel,ou=users,dc=lomin,dc=ai
+member: cn=ldap-limbee,ou=users,dc=lomin,dc=ai
+
+dn: cn=editors,ou=groups,dc=lomin,dc=ai
+cn: editors
+objectClass: groupOfNames
+member: cn=ldap-editor,ou=users,dc=lomin,dc=ai
+
+dn: cn=backend,ou=groups,dc=lomin,dc=ai
+cn: backend
+objectClass: groupOfNames
+member: cn=ldap-carl,ou=users,dc=lomin,dc=ai
+member: cn=ldap-leo,ou=users,dc=lomin,dc=ai
+member: cn=ldap-torkel,ou=users,dc=lomin,dc=ai
+
+dn: cn=frontend,ou=groups,dc=lomin,dc=ai
+cn: frontend
+objectClass: groupOfNames
+member: cn=ldap-torkel,ou=users,dc=lomin,dc=ai
+member: cn=ldap-daniel,ou=users,dc=lomin,dc=ai
+member: cn=ldap-leo,ou=users,dc=lomin,dc=ai
+
+# -- POSIX --
+
+# posix admin group (without support for memberOf attribute)
+dn: cn=posix-admins,ou=groups,dc=lomin,dc=ai
+cn: admins
+objectClass: top
+objectClass: posixGroup
+gidNumber: 1
+memberUid: ldap-posix-admin
+
+# posix group (without support for memberOf attribute)
+dn: cn=posix,ou=groups,dc=lomin,dc=ai
+cn: viewers
+objectClass: top
+objectClass: posixGroup
+gidNumber: 2
+memberUid: ldap-posix
