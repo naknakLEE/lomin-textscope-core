@@ -21,6 +21,7 @@ services:
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
     volumes:
       - ./inference_server/assets:/workspace/inference_server/assets
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
@@ -46,6 +47,7 @@ services:
   #   environment:
   #     - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
   #     - CUDA_VISIBLE_DEVICES=1
+  #     - SERVICE_INSTANCE=serving_replica
   #   runtime: nvidia
   #   # deploy:
   #   #   resources:

@@ -125,8 +125,6 @@ services:
   nginx-exporter:
     ports:
       - 9113:9113
-    command:
-      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:80//metrics
 
   gpu_telemetry:
     ports:
@@ -147,7 +145,3 @@ services:
   mysql-exporter:
     ports:
       - 9104:9104
-    environment:
-      - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
-    cap_add:
-      - SYS_NICE

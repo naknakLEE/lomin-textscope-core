@@ -154,7 +154,7 @@ services:
     networks:
       our_net:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
-      
+   
   nginx:
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
     build:
@@ -162,6 +162,7 @@ services:
       dockerfile: docker/production/Dockerfile.nginx
       args:
         CONF_NAME: nginx
+        MAINTAINER: ${MAINTAINER}
     container_name: nginx
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
@@ -171,10 +172,11 @@ services:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
 
-    
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.9.0
     container_name: nginx_exporter
+    command:
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
     networks:
       our_net:
         ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
@@ -193,6 +195,7 @@ services:
     networks:
       our_net:
         ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+    entrypoint: /bin/node_exporter
     
   prometheus:
     image: prom/prometheus:v2.30.0
@@ -202,15 +205,36 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./.env:/etc/prometheus/.env
       - prometheus_data:/prometheus
+    entrypoint: /bin/prometheus
+    command: 
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
     networks:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
-    
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.13.0
+    container_name: mysqld-exporter
+    restart: always
+    entrypoint: /bin/mysqld_exporter
+    environment:
+      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+    cap_add:
+      - SYS_NICE
+    networks:
+      our_net:
+        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+
   grafana:
     image: grafana/grafana:8.1.4-ubuntu
     container_name: grafana
     volumes: 
       - grafana_data:/var/lib/grafana
+      - ./ldap/grafana.ini:/etc/grafana/grafana.ini
+      - ./ldap/ldap.toml:/etc/grafana/ldap.toml
     depends_on: 
       - prometheus
     restart: always
@@ -218,13 +242,20 @@ services:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
 
-  mysql-exporter:
-    image: prom/mysqld-exporter:v0.13.0
-    container_name: mysqld-exporter
-    restart: always
+  openldap:
+    image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
+    container_name: ldap
+    build: ./openldap
+    environment:
+      SLAPD_PASSWORD: lomin
+      SLAPD_DOMAIN: lomin.ai
+      SLAPD_ADDITIONAL_MODULES: memberof
+    ports:
+      - "389:389"
     networks:
       our_net:
-        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+          ipv4_address: ${OPENLDAP_IP_ADDR}
+
 
 volumes: 
   prometheus_data: {}

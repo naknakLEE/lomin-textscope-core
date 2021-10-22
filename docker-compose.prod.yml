@@ -121,7 +121,7 @@ services:
 
   mysql-exporter:
     environment:
-      - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
     cap_add:
       - SYS_NICE
   prometheus:
