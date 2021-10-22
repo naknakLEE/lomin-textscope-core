@@ -3,6 +3,12 @@ set -eux
 # set enviroments
 sed -i 's/DEVELOP="True"/DEVELOP="False"/' ./.env
 . ./.env
+if [ "${CUSTOMER}" = "kbcard" ]; then
+    sed -i 's/TIMEOUT_SECOND=30.0/TIMEOUT_SECOND=1200.0/' ./.env
+    sed -i 's/MODEL_SERVER_TIMEOUT_SECOND=30/TIMEOUT_SECOND=1200/' ./.env
+    sed -i 's/WRAPPER_DATABASE_NAME="${CUSTOMER}"/WRAPPER_DATABASE_NAME="DOS_TEST"/' ./.env
+    . ./.env
+fi
 
 # set build variable
 container_list="${CONTAINER_LIST}"
