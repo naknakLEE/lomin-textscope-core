@@ -23,14 +23,14 @@ def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JS
 
 
 def get_pp_api_name(doc_type: str) -> Union[None, str]:
-    if doc_type.split("_")[0] in pp_mapping_table.get("general_pp"):
+    if doc_type.split("_")[0] in pp_mapping_table.get("general_pp", []):
         return "kv"
-    elif doc_type.split("_")[0] in pp_mapping_table.get("bankbook"):
+    elif doc_type.split("_")[0] in pp_mapping_table.get("bankbook", []):
         return "bankbook"
-    elif pp_mapping_table.get("seal_imp_cert") in doc_type:
+    elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
         return "seal_imp_cert"
-    elif pp_mapping_table.get("ccr") in doc_type:
+    elif doc_type in pp_mapping_table.get("ccr", []):
         return "ccr"
-    elif environ.get("CUSTOMER") == "kakaobank" and doc_type in document_type_set:
+    elif settings.CUSTOMER == "kakaobank" and doc_type in document_type_set:
         return document_type_set.get(doc_type)
     return None
