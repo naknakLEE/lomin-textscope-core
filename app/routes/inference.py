@@ -5,7 +5,7 @@ import numpy as np
 
 from datetime import datetime
 from typing import Any, Dict
-from fastapi import Depends, File, UploadFile, APIRouter, Form, Request
+from fastapi import Depends, File, UploadFile, APIRouter, Form, Request, Body
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -35,13 +35,13 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
 @router.post("/ocr", status_code=200, responses=inference_responses)
-async def ocr(request: Request) -> Dict:
+async def ocr(inputs: Dict = Body(...)) -> Dict:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
-    inputs = await request.json()
+    # inputs = await request.json()
     request_id = inputs.get("request_id")
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     post_processing_results = dict()
@@ -50,7 +50,7 @@ async def ocr(request: Request) -> Dict:
         code="3400",
         minQlt="01",
         reliability="",
-        ocrResult="",
+        kv="",
         texts=[],
     )
     async with httpx.AsyncClient() as client:
@@ -75,7 +75,7 @@ async def ocr(request: Request) -> Dict:
 
         # ocr pp
         if settings.DEVELOP:
-            inference_results["doc_type"] = "Z1_1_거래통장_가상계좌발급확인서"
+            # inference_results["doc_type"] = "Z1_1_거래통장_가상계좌발급확인서"
             pass
         post_processing_start_time = datetime.now()
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", None))
@@ -123,71 +123,4 @@ async def ocr(request: Request) -> Dict:
     if post_processing_results.get("result", None) is not None:
         response.update(code="1200")
         response.update(minQlt="00")
-    # return set_json_response(code="1000", ocr_result=inference_results)
-    return JSONResponse(content=jsonable_encoder(response))
-
-
-
-@router.post("/pipeline")
-async def inference(
-    edmsId: str,
-    lnbzDocClcd: str,
-    lnbzMgmtNo: str,
-    pwdNo: str,
-    image: UploadFile = File(...),
-) -> Any:
-    response_log = dict()
-    image_bytes = await image.read()
-    files = {"image": ("document_img.jpg", image_bytes)}
-    document_type = settings.DOCUMENT_TYPE_SET[lnbzDocClcd]
-
-    response = dict(
-        code="3400",
-        minQlt="01",
-        reliability="",
-        ocrResult="",
-        texts=[],
-    )
-    async with httpx.AsyncClient() as client:
-        inference_start_time = datetime.now()
-        document_ocr_model_response = await client.post(
-            f"{model_server_url}/ocr",
-            files=files,
-            timeout=settings.TIMEOUT_SECOND,
-        )
-        inference_end_time = datetime.now()
-        logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
-        if (
-            document_ocr_model_response.status_code < 200
-            or document_ocr_model_response.status_code >= 400
-        ):
-            return response
-        ocr_result = document_ocr_model_response.json()
-
-        post_processing_start_time = datetime.now()
-        document_ocr_pp_response = await client.post(
-            f"{pp_server_url}/post_processing/{document_type}",
-            json=ocr_result,
-            timeout=settings.TIMEOUT_SECOND,
-        )
-        pp_result = document_ocr_pp_response.json()
-        post_processing_end_time = datetime.now()
-        logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
-        logger.debug(f"pp result: {pp_result}")
-    response_log.update(dict(
-        inference_request_start_time=inference_start_time.strftime('%Y-%m-%d %H:%M:%S'),
-        inference_request_end_time=inference_end_time.strftime('%Y-%m-%d %H:%M:%S'),
-        post_processing_start_time=post_processing_start_time.strftime('%Y-%m-%d %H:%M:%S'),
-        post_processing_end_time=post_processing_end_time.strftime('%Y-%m-do%d %H:%M:%S'),
-        **ocr_result.get("response_log", {}),
-    ))
-    
-    response.update(response_log=response_log)
-    response.update(inference_results=ocr_result)
-    if pp_result["result"] is not None:
-        response.update(ocrResult=pp_result.get("result", []))
-        response.update(texts=pp_result.get("texts", []))
-        response.update(code="1200")
-        response.update(minQlt="00")
-    logger.debug(f"response log: {response_log}")
     return JSONResponse(content=jsonable_encoder(response))
