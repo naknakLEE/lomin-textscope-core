@@ -131,7 +131,7 @@ onnxruntime
 
 # Dev
 docker-compose.dev.yml
-docker-compose.prod.test.yml
+*.test.*
 
 # DB data
 pgdata/
