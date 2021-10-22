@@ -27,7 +27,7 @@ class TestConfig(Config):
 
 @dataclass
 class ProdConfig(Config):
-    DB_URL: str = f"mysql://{settings.MYSQL_ROOT_USER}:{settings.MYSQL_PASSWORD}@{settings.TEXTSCOPE_CORE_MYSQL_IP_ADDR}/{settings.TEXTSCOPE_SERVER_MYSQL_DB}"
+    DB_URL: str = f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.TEXTSCOPE_CORE_MYSQL_IP_ADDR}/{settings.TEXTSCOPE_SERVER_MYSQL_DB}"
 
 
 def config() -> Any:

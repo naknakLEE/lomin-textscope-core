@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
 
     # MYSQL CONFIG
-    MYSQL_ROOT_USER: str
+    MYSQL_USER: str
     TEXTSCOPE_SERVER_MYSQL_DB: str
     MYSQL_PASSWORD: str
 
