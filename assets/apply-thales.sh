@@ -1,19 +1,19 @@
-base_path=".."
+SCRIPT_BASE_PATH=".."
+.  ${SCRIPT_BASE_PATH}/.env
 
-.  ${base_path}/.env
-
-ENCRYPTED_FOLDER_NAME="encrypted_file"
 THALES_LINUXENV="linuxenv"
 HVC="TBXBG.hvc"
 FEATURE="1"
+THALES_BASE_PATH="./thales"
 
-base_path="."
-encrypted_folder_name="${ENCRYPTED_FOLDER_NAME}"
-linuxenv="${base_path}/${THALES_LINUXENV}"
-hvc="${base_path}/${HVC}" # "./DEMOMA.hvc"
+linuxenv="${THALES_BASE_PATH}/${THALES_LINUXENV}"
+hvc="${THALES_BASE_PATH}/${HVC}" # "./DEMOMA.hvc"
 feature="${FEATURE}" # 100
 
-for file in `find $encrypted_folder_name -type f -name "*.so"`
+encrypt_folder="${SCRIPT_BASE_PATH}/${BUILD_FOLDER_PATH}/${CUSTOMER}-build"
+# cp -r "${encrypt_folder}" "${encrypt_folder}_copy"
+
+for file in `find $encrypt_folder -type f -name "*.so"`
 do
     $linuxenv -v:$hvc -f:$feature --dfp $file $file
 done

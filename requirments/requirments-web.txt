@@ -17,11 +17,11 @@ requests==2.25.1
 numpy==1.19.0
 httpx==0.18.2
 sqlalchemy-utils==0.37.8
-async-exit-stack
-async-generator
+gunicorn==20.1.0
+async-exit-stack==1.0.1
 
 # for development mode
 fastapi_cprofile==0.0.2      
 fastapi_profiler==1.0.0 
 pyinstrument==3.4.2      
-loguru==0.5.3      
+loguru==0.5.3  

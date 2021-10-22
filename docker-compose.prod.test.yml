@@ -1,0 +1,121 @@
+version: '2.3'
+
+services:
+  mysql1:
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
+  
+  serving:
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.gpu_serving
+      args:
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    ports: 
+      - 8052:5000
+    environment:
+      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
+    volumes:
+      - ./inference_server/assets:/workspace/inference_server/assets
+      - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
+      - ./others:/workspace/others
+      - ./.env:/workspace/.env
+    runtime: nvidia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #       - driver: nvidia
+    #         device_ids: ['0']
+    #         capabilities: [gpu]
+    tty: true
+    depends_on: 
+      - mysql1
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+
+  # serving_replica:
+  #   tty: true
+  #   depends_on: 
+  #     - mysql1
+  #   environment:
+  #     - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+  #     - CUDA_VISIBLE_DEVICES=1
+  #     - SERVICE_INSTANCE=serving_replica
+  #   runtime: nvidia
+  #   # deploy:
+  #   #   resources:
+  #   #     reservations:
+  #   #       devices:
+  #   #       - driver: nvidia
+  #   #         device_ids: ['1']
+  #   #         capabilities: [gpu]
+  #   depends_on: 
+  #     - mysql1
+  #   command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+
+  web:
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.web
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+    tty: true
+    depends_on: 
+      - mysql1
+    command: python3 /workspace/main.py
+
+  pp:
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.pp
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+    environment:
+      - PYTHONPATH=/workspace
+    tty: true
+    depends_on: 
+      - mysql1
+    command: python3 /workspace/pp_server/main.py
+
+  wrapper:
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.wrapper
+      args:
+        CUSTOMER: ${CUSTOMER}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+    ports: 
+      - 8050:8090
+    tty: true
+    depends_on: 
+      - mysql1
+    volumes:
+      - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
+      - ./others:/workspace/others
+    command: python3 /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app/main.py
+
+  grafana:
+    ports:
+      - 8053:3000
+    restart: always
+
+  mysql-exporter:
+    environment:
+      - DATA_SOURCE_NAME=${MYSQL_ROOT_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+    cap_add:
+      - SYS_NICE
+  prometheus:
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./.env:/etc/prometheus/.env
+      - prometheus_data:/prometheus

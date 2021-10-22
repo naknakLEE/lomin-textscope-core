@@ -1,0 +1,9 @@
+dn: ou=groups,dc=lomin,dc=ai
+ou: Groups
+objectclass: top
+objectclass: organizationalUnit
+
+dn: ou=users,dc=lomin,dc=ai
+ou: Users
+objectclass: top
+objectclass: organizationalUnit

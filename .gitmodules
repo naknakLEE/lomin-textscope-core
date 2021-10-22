@@ -1,12 +1,19 @@
 [submodule "lovit"]
 	path = lovit
-	url = git@ssh.dev.azure.com:v3/textscope/Textscope/lovit
+	url = git@github.com:Lomin-ai/lovit-tmp.git
 [submodule "kakaobank_wrapper"]
 	path = kakaobank_wrapper
-	url = git@ssh.dev.azure.com:v3/textscope/Textscope/kakaobank_wrapper
+	url = git@github.com:Lomin-ai/wrapper-kakaobank-mrg-2105.git
+	branch = feature/kakaobank-update
 [submodule "kbcard_wrapper"]
 	path = kbcard_wrapper
-	url = git@ssh.dev.azure.com:v3/textscope/Textscope/kbcard_wrapper
+	url = git@github.com:Lomin-ai/wrapper-kbcard-frc-2107.git
+	branch = feature/kbcard-update
 [submodule "inference_server"]
 	path = inference_server
-	url = git@ssh.dev.azure.com:v3/textscope/Textscope/inference_server
+	url = git@github.com:Lomin-ai/inference_server.git
+	branch = feature/kbcard-update
+[submodule "pp_server"]
+	path = pp_server
+	url = git@github.com:Lomin-ai/pp_server.git
+	branch = feature/kbcard-update

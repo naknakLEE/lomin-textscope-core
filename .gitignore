@@ -24,6 +24,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+package/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -124,6 +125,13 @@ core
 pyminifier
 encrypted_file
 build-folder
+grafana
+fil
+onnxruntime
+
+# Dev
+docker-compose.dev.yml
+*.test.*
 
 # DB data
 pgdata/
@@ -151,6 +159,7 @@ Nuitka
 *.mar
 *.npy
 *.pickle
+*.pkl
 *.docker*
 
 # security

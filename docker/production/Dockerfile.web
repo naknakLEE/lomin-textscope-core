@@ -2,7 +2,11 @@ ARG UBUNTU_VERSION=18.04
 
 FROM ubuntu:${UBUNTU_VERSION}
 
+ARG CUSTOMER
 ARG BUILD_FOLDER_PATH
+ARG MAINTAINER
+
+LABEL maintainer=${MAINTAINER}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -20,11 +24,13 @@ RUN pip3 install --upgrade pip
 COPY ./requirments/requirments-web.txt /workspace/
 RUN pip3 install -r /workspace/requirments-web.txt
 
-COPY ./${BUILD_FOLDER_PATH}/web/ /workspace/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/web/ /workspace/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
 COPY ./.env /workspace/
 
 RUN rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache
+    rm -rf /root/.cache && \
+    rm -rf /usr/bin/gcc
 
 WORKDIR /workspace
 

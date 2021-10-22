@@ -1,8 +1,71 @@
 version: '2.3'
 
 services:
-  mysql:
-    image: docker.lomin.ai/ts-mysql:${TEXTSCOPE_VERSION}
+  # management1:
+  #   image: mysql/mysql-cluster:8.0
+  #   container_name: mysql-management
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+  #   command: ndb_mgmd
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_MANAGEMENT_IP_ADDR}
+    
+  # ndb1:
+  #   image: mysql/mysql-cluster:8.0
+  #   container_name: mysql-ndb1
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+  #   command: ndbd
+  #   depends_on: 
+  #     - management1
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_NDB1_IP_ADDR}
+
+  # ndb2:
+  #   image: mysql/mysql-cluster:8.0
+  #   container_name: mysql-ndb2
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
+  #   command: ndbd
+  #   depends_on:
+  #     - management1
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_NDB2_IP_ADDR}
+    
+  # mysql1:
+  #   image: mysql/mysql-cluster:8.0
+  #   container_name: mysql
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - ./mysql.conf/my.cnf:/etc/my.cnf
+  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.conf
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+  #     MYSQL_DATABASE: ${CUSTOMER}
+  #     MYSQL_USER: ${CUSTOMER}
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  #     MYSQL_ROOT_HOST: '%'
+  #     # - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+  #     # - TZ=Asia/Seoul
+  #   command: mysqld
+  #   depends_on:
+  #     - management1
+  #     - ndb1
+  #     - ndb2
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_IP_ADDR}
+
+
+  mysql1:
+    image: mysql:8.0.25
     container_name: mysql
     volumes:
       - mysqldata:/var/lib/mysql
@@ -10,13 +73,18 @@ services:
     networks:
       our_net:
           ipv4_address: ${MYSQL_IP_ADDR}
+
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
@@ -24,7 +92,11 @@ services:
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving_replica
+    environment:
+      - CUSTOMER=${CUSTOMER}
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
@@ -32,9 +104,15 @@ services:
   web:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
     container_name: web
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    depends_on: 
+      - mysql1
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
@@ -42,9 +120,13 @@ services:
   pp:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
     container_name: pp
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     networks:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
@@ -52,37 +134,49 @@ services:
   wrapper:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
     container_name: wrapper
+    environment:
+      - CUSTOMER=${CUSTOMER}
     volumes:
-      - log:/workspace/logs
+      - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    depends_on: 
+      - mysql1
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
     
-  multiple_gpu_load_banlancing:
-    image: docker.lomin.ai/ts-multiple-gpu-load-balancingy:${TEXTSCOPE_VERSION}
-    container_name: multiple_gpu_load_banlancing
+  multiple_gpu_load_balancing:
+    image: nginx:1.21.1
+    container_name: multiple_gpu_load_balancing
     restart: unless-stopped
+    volumes:
+      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
     networks:
       our_net:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
-      
+   
   nginx:
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
-    container_name: nginx
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.nginx
       args:
         CONF_NAME: nginx
+        MAINTAINER: ${MAINTAINER}
+    container_name: nginx
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
     networks:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
-    
+
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.9.0
     container_name: nginx_exporter
+    command:
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
     networks:
       our_net:
         ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
@@ -96,25 +190,51 @@ services:
         ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
     
   hardware_telemetry:
-    image: prom/node-exporter
+    image: prom/node-exporter:v1.2.2
     container_name: hardware_telemetry
     networks:
       our_net:
         ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+    entrypoint: /bin/node_exporter
     
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.30.0
     container_name: prometheus
     restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./.env:/etc/prometheus/.env
+      - prometheus_data:/prometheus
+    entrypoint: /bin/prometheus
+    command: 
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
     networks:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
-    
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.13.0
+    container_name: mysqld-exporter
+    restart: always
+    entrypoint: /bin/mysqld_exporter
+    environment:
+      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+    cap_add:
+      - SYS_NICE
+    networks:
+      our_net:
+        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:8.1.4-ubuntu
     container_name: grafana
     volumes: 
       - grafana_data:/var/lib/grafana
+      - ./ldap/grafana.ini:/etc/grafana/grafana.ini
+      - ./ldap/ldap.toml:/etc/grafana/ldap.toml
     depends_on: 
       - prometheus
     restart: always
@@ -122,20 +242,26 @@ services:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
 
-  mysql-exporter:
-    image: prom/mysqld-exporter
-    container_name: mysqld-exporter
-    restart: always
+  openldap:
+    image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
+    container_name: ldap
+    build: ./openldap
+    environment:
+      SLAPD_PASSWORD: lomin
+      SLAPD_DOMAIN: lomin.ai
+      SLAPD_ADDITIONAL_MODULES: memberof
+    ports:
+      - "389:389"
     networks:
       our_net:
-        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+          ipv4_address: ${OPENLDAP_IP_ADDR}
+
 
 volumes: 
   prometheus_data: {}
   grafana_data: {}
   pgdata: {}
   mysqldata: {}
-  log: {}
 
 networks:
   our_net:

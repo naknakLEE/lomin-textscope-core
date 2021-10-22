@@ -1,16 +1,25 @@
-from typing import List, Optional, Any
+import json
+
+from typing import List, Optional, Any, Dict
 from pydantic import BaseSettings
 from functools import lru_cache
-from os import path
+from os import path, environ
+from pathlib import Path
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
+def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
+    encoding = settings.__config__.env_file_encoding
+    customer_config = json.loads(
+        Path(f'/workspace/assets/{environ.get("CUSTOMER")}.json').read_text(encoding))
+    config = customer_config
+    return config
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
     MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR: str
     POSTGRES_IP_ADDR: str
-    MYSQL_IP_ADDR: str
+    TEXTSCOPE_CORE_MYSQL_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
@@ -30,7 +39,6 @@ class Settings(BaseSettings):
     MYSQL_EXPORTER_ADDR: str
     NGINX_EXPORTER_ADDR: str
     PROMETHEUS_ADDR: str
-    KAKAO_WRAPPER_ADDR: str
     REDIS_IP_PORT_ADDR: str
     SERVING_IP_PORT_ADDR: str
     WRAPPER_IP_PORT_ADDR: str
@@ -43,7 +51,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
 
     # MYSQL CONFIG
-    MYSQL_ROOT_USER: str
+    MYSQL_USER: str
     TEXTSCOPE_SERVER_MYSQL_DB: str
     MYSQL_PASSWORD: str
 
@@ -100,7 +108,7 @@ class Settings(BaseSettings):
     FORMAT: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
 
     # FAKE DATA
-    FAKE_SUPERUSER_INFORMATION: dict = {
+    FAKE_SUPERUSER_INFORMATION: Dict = {
         "username": "user",
         "full_name": "user",
         "email": "user@example.com",
@@ -110,7 +118,7 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION: dict = {
+    FAKE_USER_INFORMATION: Dict = {
         "username": "garam",
         "full_name": "garam",
         "email": "garam@example.com",
@@ -120,7 +128,7 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION2: dict = {
+    FAKE_USER_INFORMATION2: Dict = {
         "username": "tongo",
         "full_name": "tongo",
         "email": "tongo@example.com",
@@ -130,8 +138,57 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
+    # KBCARD CONFIG
+    ALLOWED_CHARACTERS_SET: Dict = {}
+    LENGTH_SET: Dict = {}
+    DOC_MAPPING_TABLE: Dict = {}
+    DOC_TYPE_SET: Dict = {}
+    LOOKUP_TABLE: Dict = {}
+    VALID_TYPE: Dict = {}
+    TORCH_MODEL_NAME_SET: List = []
+    ESSENTIAL_KEYS: Dict = {}
+    DOC_TYPE_SET: Dict = {}
+    DOC_KEY_SET: Dict = {}
+    IDCARD_TYPE_SET: List = []
+    KV_TYPE_SET: Dict = {}
+    PARAMETER_ERROR_SET: Dict = {}
+    DOCUMENT_TYPE_SET: Dict = {}
+    CLASSIFICATION_TARGET: List = []
+    SPACING_KEY: List = []
+    NOT_SUPPORTED_OCR_TARGET: List = []
+
+    DOCUMENT_TYPE_LIST: List = []
+    KEYWORDS: Dict = {}
+    KEYWORDS_ALL: Dict = {}
+    PP_MAPPING_TABLE: Dict = {}
+
+    # KAKAOBANK CONFIG
+    DOCUMENT_TYPE_LIST: List = []
+    DOCUMENT_TYPE_SET: Dict = {}
+    KEYWORDS: Dict = {}
+    ESSENTIAL_KEYS: Dict = {}
+    VALID_TYPE: Dict = {}
+    KEYWORDS_ALL: Dict = {}
+    PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
+
+
     class Config:
         env_file = "/workspace/.env"
+        env_file_encoding = 'utf-8'
+
+        @classmethod
+        def customise_sources(
+            cls,
+            init_settings,
+            env_settings,
+            file_secret_settings,
+        ):
+            return (
+                init_settings,
+                json_config_settings_source,
+                env_settings,
+                file_secret_settings,
+            )
 
 
 @lru_cache()

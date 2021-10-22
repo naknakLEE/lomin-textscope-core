@@ -1,13 +1,14 @@
 version: '2.3'
 
 services:
-  mysql:
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-      - TZ=Asia/Seoul
-  
   serving:
-    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    container_name: serving
+    tty: true
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - CUSTOMER=${CUSTOMER}
+    runtime: nvidia
     build:
       context: ./
       dockerfile: docker/build/Dockerfile.gpu_serving
@@ -22,16 +23,29 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['0']
-            capabilities: [gpu]
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+
+
+  serving_replica:
+    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - CUDA_VISIBLE_DEVICES=1
+      - CUSTOMER=${CUSTOMER}
+    runtime: nvidia
+
+
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    container_name: wrapper
+    environment:
+      - CUSTOMER=${CUSTOMER}
+
 
   web:
-    image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    container_name: web
+    environment:
+      - CUSTOMER=${CUSTOMER}
     build:
       context: ./
       dockerfile: docker/build/Dockerfile.web
@@ -42,9 +56,13 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
 
   pp:
-    image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-pp-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    container_name: pp
+    environment:
+      - CUSTOMER=${CUSTOMER}
     build:
       context: ./
       dockerfile: docker/build/Dockerfile.pp
@@ -55,3 +73,4 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}

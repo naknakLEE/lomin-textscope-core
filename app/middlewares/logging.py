@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from jose import jwt
 
+from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.logger import api_logger
 from app.errors.exceptions import exception_handler
@@ -22,7 +23,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         try:
-            request.state.req_time = datetime.utcnow()
+            request.state.req_time = datetime.now()
+            logger.info(f"request time: {request.state.req_time}")
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None

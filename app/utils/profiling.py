@@ -34,7 +34,7 @@ async def add_process_time_header(
     request: Request, call_next: RequestResponseEndpoint
 ) -> None:
     try:
-        request.state.req_time = datetime.utcnow()
+        request.state.req_time = datetime.now()
         request.state.start = time.time()
         request.state.inspect = None
         request.state.user = None

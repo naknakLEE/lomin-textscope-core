@@ -104,7 +104,7 @@ async def api_logger(request: Request = None, response=None, error=None) -> None
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.exception("api logger")
     else:
-        logger.info(json.dumps(log_dict, indent=4, sort_keys=True))
+        logger.debug(json.dumps(log_dict, indent=4, sort_keys=True))
 
 
 # https://hwangheek.github.io/2019/python-logging/
