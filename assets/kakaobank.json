@@ -128,5 +128,11 @@
         "lnbzDocClcd": "document type",
         "lnbzMgmtNo": "loan bz management number",
         "edmsId": "edms id"
-    }
+    },
+    "TORCH_MODEL_NAME_SET": [
+        "kv_detection_transaction_bank_book_model",
+        "kv_detection_businuss_registration_model",
+        "kv_model",
+        "general_ocr"
+    ]
 }
