@@ -75,7 +75,7 @@ async def ocr_post_processing(
     logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
     logger.debug(f"{request_id} response: {type(pp_response.text)}")
     logger.info(f"convert_response 1026: {type(pp_response)}")
-    return pp_response, response_log
+    return (pp_response, response_log)
 
 
 async def ocr_convert_preds_to_texts(client: AsyncClient, inference_results: Dict) -> Response:
