@@ -258,13 +258,25 @@ services:
 
 
 volumes: 
-  prometheus_data: {}
-  grafana_data: {}
-  pgdata: {}
-  mysqldata: {}
+  prometheus_data:
+    driver: local-persist
+    driver_opts:
+      mountpoint: /docker/local-persist/data
+  grafana_data:
+    driver: local-persist
+    driver_opts:
+      mountpoint: /docker/local-persist/data
+  pgdata:
+    driver: local-persist
+    driver_opts:
+      mountpoint: /docker/local-persist/data
+  mysqldata:
+    driver: local-persist
+    driver_opts:
+      mountpoint: /docker/local-persist/data
 
 networks:
   our_net:
     ipam:
       config:
-        - subnet: 182.20.0.0/24
+        - subnet: 10.255.0.0/16
