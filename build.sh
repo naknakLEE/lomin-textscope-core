@@ -9,6 +9,12 @@ if [ "${CUSTOMER}" = "kbcard" ]; then
     sed -i 's/WRAPPER_DATABASE_NAME="${CUSTOMER}"/WRAPPER_DATABASE_NAME="DOS_TEST"/' ./.env
     . ./.env
 fi
+if [ "${CUSTOMER}" = "kakaobank" ]; then
+    sed -i 's/TIMEOUT_SECOND=1200.0/TIMEOUT_SECOND=30.0/' ./.env
+    sed -i 's/TIMEOUT_SECOND=1200/MODEL_SERVER_TIMEOUT_SECOND=30/' ./.env
+    sed -i 's/WRAPPER_DATABASE_NAME="DOS_TEST"/WRAPPER_DATABASE_NAME="${CUSTOMER}"/' ./.env
+    . ./.env
+fi
 
 # set build variable
 container_list="${CONTAINER_LIST}"
@@ -83,3 +89,6 @@ cp -r ${build_folder_name}/${created_folder_name}/assets ${build_folder_name}/${
 cp -r ${build_folder_name}/${created_folder_name}/wrapper/ ${build_folder_name}/${created_folder_name}/workspace/
 
 docker-compose down
+
+# ssh sentinel@127.0.0.1 -p2222 "sudo sh /media/sf_Textscope/assets/apply-thales.sh"
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --parallel

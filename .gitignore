@@ -114,7 +114,6 @@ others/
 .idea/
 memo.*
 memo.txt
-lovit
 outputs
 inputs
 tmp
@@ -159,9 +158,11 @@ Nuitka
 *.xml
 *.mar
 *.npy
+*.zip
 *.pickle
 *.pkl
 *.docker*
+*.zip
 
 # security
 pyarmor*

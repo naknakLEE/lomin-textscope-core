@@ -156,6 +156,7 @@ class Settings(BaseSettings):
     CLASSIFICATION_TARGET: List = []
     SPACING_KEY: List = []
     NOT_SUPPORTED_OCR_TARGET: List = []
+    RETURN_CLASS_MAPPING_TABLE: Dict = {}
 
     DOCUMENT_TYPE_LIST: List = []
     KEYWORDS: Dict = {}

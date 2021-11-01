@@ -117,15 +117,3 @@ services:
   grafana:
     ports:
       - 8053:3000
-    restart: always
-
-  mysql-exporter:
-    environment:
-      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
-    cap_add:
-      - SYS_NICE
-  prometheus:
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./.env:/etc/prometheus/.env
-      - prometheus_data:/prometheus

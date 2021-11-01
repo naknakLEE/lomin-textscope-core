@@ -1,10 +1,10 @@
-SCRIPT_BASE_PATH=".."
+SCRIPT_BASE_PATH="/media/sf_Textscope"
 .  ${SCRIPT_BASE_PATH}/.env
 
 THALES_LINUXENV="linuxenv"
 HVC="TBXBG.hvc"
 FEATURE="1"
-THALES_BASE_PATH="./thales"
+THALES_BASE_PATH="${SCRIPT_BASE_PATH}/assets/thales"
 
 linuxenv="${THALES_BASE_PATH}/${THALES_LINUXENV}"
 hvc="${THALES_BASE_PATH}/${HVC}" # "./DEMOMA.hvc"
