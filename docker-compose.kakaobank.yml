@@ -1,69 +1,6 @@
 version: '2.3'
 
 services:
-  # management1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-management
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndb_mgmd
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_MANAGEMENT_IP_ADDR}
-    
-  # ndb1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-ndb1
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndbd
-  #   depends_on: 
-  #     - management1
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_NDB1_IP_ADDR}
-
-  # ndb2:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-ndb2
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndbd
-  #   depends_on:
-  #     - management1
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_NDB2_IP_ADDR}
-    
-  # mysql1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.conf
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-  #     MYSQL_DATABASE: ${CUSTOMER}
-  #     MYSQL_USER: ${CUSTOMER}
-  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-  #     MYSQL_ROOT_HOST: '%'
-  #     # - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-  #     # - TZ=Asia/Seoul
-  #   command: mysqld
-  #   depends_on:
-  #     - management1
-  #     - ndb1
-  #     - ndb2
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_IP_ADDR}
-
-
   mysql1:
     image: mysql:8.0.25
     container_name: mysql
@@ -77,12 +14,9 @@ services:
       our_net:
           ipv4_address: ${MYSQL_IP_ADDR}
 
-  
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving
-    environment:
-      - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
@@ -90,54 +24,105 @@ services:
       - ${LDAP_HOST}
     cap_add:
       - SYS_PTRACE
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.gpu_serving
+      args:
+        MAINTAINER: ${MAINTAINER}
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports: 
+      - 8052:5000
+    environment:
+      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
+      - CUSTOMER=${CUSTOMER}
+    runtime: nvidia
+    tty: true
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
 
   serving_replica:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
     container_name: serving_replica
-    environment:
-      - CUSTOMER=${CUSTOMER}
     restart: unless-stopped
     cap_add:
       - SYS_PTRACE
+    tty: true
+    environment:
+      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - CUDA_VISIBLE_DEVICES=1
+      - SERVICE_INSTANCE=serving_replica
+      - CUSTOMER=${CUSTOMER}
+    runtime: nvidia
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
     networks:
       our_net:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
 
   web:
-    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
     container_name: web
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    depends_on: 
-      - mysql1
     cap_add:
       - SYS_PTRACE
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.web
+      args:
+        MAINTAINER: ${MAINTAINER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    tty: true
+    
+    working_dir: /workspace
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
 
   pp:
-    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
     container_name: pp
-    environment:
-      - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     cap_add:
       - SYS_PTRACE
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.pp
+      args:
+        MAINTAINER: ${MAINTAINER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - PYTHONPATH=/workspace
+      - CUSTOMER=${CUSTOMER}
+    tty: true
+    working_dir: /workspace/pp_server
+    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
     networks:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
 
   wrapper:
-    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
     container_name: wrapper
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -146,11 +131,23 @@ services:
     restart: unless-stopped
     extra_hosts:
       - ${DATABASE_HOST}
-    depends_on: 
-      - mysql1
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.wrapper
+      args:
+        MAINTAINER: ${MAINTAINER}
+        CUSTOMER: ${CUSTOMER}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports: 
+      - 8050:8090
+    tty: true
+    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     
   multiple_gpu_load_balancing:
     image: nginx:1.21.1
@@ -163,7 +160,7 @@ services:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
    
   nginx:
-    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.nginx
@@ -198,6 +195,9 @@ services:
     
   hardware_telemetry:
     image: prom/node-exporter:v1.2.2
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.node-exporter
     container_name: hardware_telemetry
     networks:
       our_net:
@@ -224,6 +224,9 @@ services:
 
   mysql-exporter:
     image: prom/mysqld-exporter:v0.13.0
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.mysqld-exporter
     container_name: mysqld-exporter
     restart: always
     entrypoint: /bin/mysqld_exporter
@@ -244,25 +247,12 @@ services:
       - ./ldap/ldap.toml:/etc/grafana/ldap.toml
     depends_on: 
       - prometheus
+    ports:
+      - 8053:3000
     restart: always
     networks:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
-
-  openldap:
-    image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
-    container_name: ldap
-    build: ./openldap
-    environment:
-      SLAPD_PASSWORD: lomin
-      SLAPD_DOMAIN: lomin.ai
-      SLAPD_ADDITIONAL_MODULES: memberof
-    ports:
-      - "389:389"
-    networks:
-      our_net:
-          ipv4_address: ${OPENLDAP_IP_ADDR}
-
 
 volumes: 
   prometheus_data:
@@ -283,7 +273,6 @@ volumes:
       o: bind
       type: none
       device: /docker/data/mysql_data
-
 networks:
   our_net:
     ipam:
