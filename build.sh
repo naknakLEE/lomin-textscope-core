@@ -6,13 +6,13 @@ sed -i 's/DEVELOP="True"/DEVELOP="False"/' ./.env
 if [ "${CUSTOMER}" = "kbcard" ]; then
     sed -i 's/TIMEOUT_SECOND=30.0/TIMEOUT_SECOND=1200.0/' ./.env
     sed -i 's/MODEL_SERVER_TIMEOUT_SECOND=30/TIMEOUT_SECOND=1200/' ./.env
-    sed -i 's/WRAPPER_DATABASE_NAME="${CUSTOMER}"/WRAPPER_DATABASE_NAME="DOS_TEST"/' ./.env
+    sed -i 's/WRAPPER_DATABASE="DOS_TEST"/WRAPPER_DATABASE="${CUSTOMER}"/' ./.env
     . ./.env
 fi
 if [ "${CUSTOMER}" = "kakaobank" ]; then
     sed -i 's/TIMEOUT_SECOND=1200.0/TIMEOUT_SECOND=30.0/' ./.env
     sed -i 's/TIMEOUT_SECOND=1200/MODEL_SERVER_TIMEOUT_SECOND=30/' ./.env
-    sed -i 's/WRAPPER_DATABASE_NAME="DOS_TEST"/WRAPPER_DATABASE_NAME="${CUSTOMER}"/' ./.env
+    sed -i 's/WRAPPER_DATABASE="${CUSTOMER}"/WRAPPER_DATABASE="DOS_TEST"/' ./.env
     . ./.env
 fi
 
@@ -63,7 +63,7 @@ do
         docker cp ${container}:/workspace/${app_name}/${app_name}.pyi ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/lovit.cpython-36m-x86_64-linux-gnu.so ${build_folder_name}/${created_folder_name}/lovit/ &&
         docker cp ${container}:/workspace/lovit.pyi ${build_folder_name}/${created_folder_name}/lovit/
-        docker cp ${container}:/workspace/lovit/resources ${build_folder_name}/${created_folder_name}/lovit/lovit/
+        # docker cp ${container}:/workspace/lovit/resources ${build_folder_name}/${created_folder_name}/lovit/lovit/
     elif [ "${container}" = "web" ]; then
         docker cp ${container}:/workspace/main.py ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/app.cpython-36m-x86_64-linux-gnu.so ${build_folder_name}/${created_folder_name}/${container}/ &&
