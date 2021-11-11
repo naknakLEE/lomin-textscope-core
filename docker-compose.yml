@@ -68,7 +68,10 @@ services:
     image: mysql:8.0.25
     container_name: mysql
     volumes:
-      - mysqldata:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
     restart: always
     networks:
       our_net:
@@ -76,13 +79,15 @@ services:
 
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
     container_name: serving
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    extra_hosts:
+      - ${LDAP_HOST}
     cap_add:
       - SYS_PTRACE
     networks:
@@ -90,7 +95,7 @@ services:
         ipv4_address: ${SERVING_IP_ADDR}
 
   serving_replica:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
     container_name: serving_replica
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -102,7 +107,7 @@ services:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
 
   web:
-    image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
     container_name: web
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -118,7 +123,7 @@ services:
           ipv4_address: ${WEB_IP_ADDR}
 
   pp:
-    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
     container_name: pp
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -132,13 +137,15 @@ services:
           ipv4_address: ${PP_IP_ADDR}
 
   wrapper:
-    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
     container_name: wrapper
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    extra_hosts:
+      - ${DATABASE_HOST}
     depends_on: 
       - mysql1
     networks:
@@ -156,7 +163,7 @@ services:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
    
   nginx:
-    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.nginx
@@ -259,24 +266,26 @@ services:
 
 volumes: 
   prometheus_data:
-    driver: local-persist
+    driver: local
     driver_opts:
-      mountpoint: /docker/local-persist/data
+      o: bind
+      type: none
+      device: /docker/data/prometheus_data
   grafana_data:
-    driver: local-persist
+    driver: local
     driver_opts:
-      mountpoint: /docker/local-persist/data
-  pgdata:
-    driver: local-persist
+      o: bind
+      type: none
+      device: /docker/data/grafana_data
+  mysql_data:
+    driver: local
     driver_opts:
-      mountpoint: /docker/local-persist/data
-  mysqldata:
-    driver: local-persist
-    driver_opts:
-      mountpoint: /docker/local-persist/data
+      o: bind
+      type: none
+      device: /docker/data/mysql_data
 
 networks:
   our_net:
     ipam:
       config:
-        - subnet: 10.255.0.0/16
+        - subnet: 10.254.0.0/16
