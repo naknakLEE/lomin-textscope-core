@@ -35,16 +35,19 @@ class SQLAlchemy:
         max_overflow = kwargs.setdefault("MAX_OVERFLOW", 60)
 
         check_same_thread = {}
-        if os.environ["API_ENV"] == "test":
-            check_same_thread = {"check_same_thread": False}
-        self._engine = create_engine(
-            database_url,
+        engine_config = dict(
+            name_or_url=database_url,
             connect_args=check_same_thread,
             echo=echo,
             pool_recycle=pool_recycle,
             pool_pre_ping=True,
             pool_size=pool_size,
             max_overflow=max_overflow,
+        )
+        if os.environ["API_ENV"] == "test":
+            del engine_config["pool_size"], engine_config["max_overflow"]
+        self._engine = create_engine(
+            **engine_config
         )
         self._session = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
 

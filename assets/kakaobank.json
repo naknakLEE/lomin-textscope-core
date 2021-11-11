@@ -134,5 +134,33 @@
         "kv_detection_businuss_registration_model",
         "kv_model",
         "general_ocr"
-    ]
+    ],
+    "KEY_LENGTH_TABLE": {
+        "scrapRsdtRegCropFlnm": 120,
+        "scrapRsdtRegCrcpRsdtNo": 24,
+        "scrapRsdtRegCropHsprCnt": 3,
+        "scrapRsdtRegCrcplssDt": 8,
+        "scrapFmlyRltCertFlnm": 120,
+        "scrapFmlyRltCertRsdtNo": 24,
+        "scrapFmlyRltCertFmlyCnt": 3,
+        "scrapFmlyRltCertlssDt": 8,
+        "scrapFmlyRltCertIssNo": 64,
+        "rsdtRegCrcpCstnNm": 120,
+        "rsdtRegCrcpCstnRsdtNo": 24,
+        "rsdtRegCrcpCstnGenFmlyRltNm": 30,
+        "fmlyRltCertCstnNm": 120,
+        "fmlyRltCertCstnRsdtNo": 24,
+        "fmlyRltCertCstnGenFmlyRltNm": 30,
+        "bsicCertFlnm": 120,
+        "bsicCertPwprMrkYn": 1,
+        "bsicCertPwprGenFmlyRltNm": 2,
+        "bsicCertPwprFlnm1": 120,
+        "bsicCertlssDt": 8,
+        "rgtyCrtfRlesUnqNo": 14,
+        "rgtyCrtfRgtyFinSeqno": 12,
+        "rgtyCrtfRtpFlnm": 120,
+        "rgtyCrtfRtpRsdt": 24,
+        "rgtyCrtfPswdItemNo": 3, 
+        "rgtyCrtfPswd": 24
+    }
 }
