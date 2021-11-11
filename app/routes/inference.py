@@ -1,3 +1,4 @@
+from re import M
 from httpx import AsyncClient, Response
 
 from datetime import datetime
@@ -27,16 +28,63 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 """
 
 
+async def ocr_inference_pipeline(
+    client: AsyncClient, 
+    inputs: Dict, 
+    response_log: Dict,
+) -> Tuple[int, Dict, Dict]:
+    inference_start_time = datetime.now()
+    detection_response = await client.post(
+        f"{model_server_url}/detection",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers = {"User-Agent": "textscope core"}
+    )
+    detection_result = detection_response.json()
+    response_log.update(detection_result.get("response_log", {}))
+    recognition_inputs = dict(
+        valid_boxes=detection_result.get("boxes", []),
+        classes=detection_result.get("classes", []),
+        image_bytes=inputs["image_bytes"]
+    )
+    recognition_response = await client.post(
+        f"{model_server_url}/recognition",
+        json=recognition_inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers = {"User-Agent": "textscope core"}
+    )
+    inference_end_time = datetime.now()
+    recognition_result = recognition_response.json()
+    response_log.update(recognition_result.get("response_log", {}))
+    logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
+    response_log.update(dict(
+        inference_request_start_time=inference_start_time.strftime('%Y-%m-%d %H:%M:%S'),
+        inference_request_end_time=inference_end_time.strftime('%Y-%m-%d %H:%M:%S'),
+        inference_request_time=inference_end_time-inference_start_time,
+    ))
+    response = dict(
+        scores=detection_result.get("scores", []),
+        boxes=detection_result.get("boxes", []),
+        classes=detection_result.get("classes", []),
+        image_height=detection_result.get("image_height"),
+        image_width=detection_result.get("image_width"),
+        doc_type=inputs["doc_type"],
+        rec_preds=recognition_result.get("rec_preds", []),
+    )
+    return (recognition_response.status_code, response, response_log)
+
+
 async def ocr_inference(
     client: AsyncClient, 
     inputs: Dict, 
-    response_log: Dict, 
-) -> Tuple[Response, Dict]:
+    response_log: Dict,
+) -> Tuple[int, Dict, Dict]:
     inference_start_time = datetime.now()
     model_server_response = await client.post(
         f"{model_server_url}/ocr",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
+        headers = {"User-Agent": "textscope core"}
     )
     inference_end_time = datetime.now()
     logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
@@ -45,7 +93,7 @@ async def ocr_inference(
         inference_request_end_time=inference_end_time.strftime('%Y-%m-%d %H:%M:%S'),
         inference_request_time=inference_end_time-inference_start_time,
     ))
-    return (model_server_response, response_log)
+    return (model_server_response.status_code, model_server_response.json(), response_log)
 
 
 async def ocr_post_processing(
@@ -54,10 +102,7 @@ async def ocr_post_processing(
     post_processing_type: str, 
     response_log: Dict, 
     request_id: str,
-) -> Tuple[Response, Dict]:
-    if settings.DEVELOP:
-        # inference_results["doc_type"] = "Z2_3_사업자등록증_사업자등록증명"
-        pass
+) -> Tuple[int, Dict, Dict]:
     post_processing_start_time = datetime.now()
     logger.info(f"{request_id} post processing: {post_processing_type}")
     inference_results["img_size"] = inference_results["image_height"], inference_results["image_width"]
@@ -72,13 +117,10 @@ async def ocr_post_processing(
         post_processing_end_time=post_processing_end_time.strftime('%Y-%m-do%d %H:%M:%S'),
         post_processing_time=post_processing_end_time-post_processing_start_time,
     ))
-    logger.info(f"Post processing time: {post_processing_end_time - post_processing_start_time}")
-    logger.debug(f"{request_id} response: {type(pp_response.text)}")
-    logger.info(f"convert_response 1026: {type(pp_response)}")
-    return (pp_response, response_log)
+    return (pp_response.status_code, pp_response.json(), response_log)
 
 
-async def ocr_convert_preds_to_texts(client: AsyncClient, inference_results: Dict) -> Response:
+async def ocr_convert_preds_to_texts(client: AsyncClient, inference_results: Dict) -> Tuple[int, Dict]:
     request_data = dict(
         rec_preds=inference_results.get("rec_preds", []),
         id_type=inference_results.get("id_type", ""),
@@ -88,7 +130,7 @@ async def ocr_convert_preds_to_texts(client: AsyncClient, inference_results: Dic
         json=jsonable_encoder(request_data),
         timeout=settings.TIMEOUT_SECOND,
     )
-    return convert_response
+    return (convert_response.status_code, convert_response.json())
 
 
 @router.post("/ocr", status_code=200, responses=inference_responses)
@@ -106,42 +148,47 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
     response = dict()
     async with AsyncClient() as client:
         # ocr inference
-        model_server_response, response_log = await ocr_inference(
-            client=client, 
-            inputs=inputs, 
-            response_log=response_log, 
-        )
-        if model_server_response.status_code < 200 or model_server_response.status_code >= 400:
-            logger.debug(f"{request_id} response text: {model_server_response.text}")
+        if settings.DEVELOP and settings.OCR_PIPELINE:
+            status_code, inference_results, response_log = await ocr_inference(
+                client=client, 
+                inputs=inputs,
+                response_log=response_log,
+            )
+        else:
+            status_code, inference_results, response_log = await ocr_inference(
+                client=client, 
+                inputs=inputs,
+                response_log=response_log,
+            )
+        if status_code < 200 or status_code >= 400:
             return set_json_response(code="3000", message="모델 서버 문제 발생")
-        inference_results = model_server_response.json()
 
         # ocr post processing
-        post_processing_type = get_pp_api_name(inference_results.get("doc_type", None))
+        if settings.DEVELOP:
+            if inputs.get("return_class", None) is not None:
+                inference_results["doc_type"] = inputs.get("return_class")
+        post_processing_type = get_pp_api_name(inference_results.get("doc_type"))
         if post_processing_type is not None and len(inference_results["rec_preds"]) > 0:
-            pp_response, response_log = await ocr_post_processing(
+            status_code, post_processing_results, response_log = await ocr_post_processing(
                 client=client, 
                 request_id=request_id,
                 response_log=response_log, 
                 inference_results=inference_results, 
                 post_processing_type=post_processing_type, 
             )
-            if pp_response.status_code < 200 or pp_response.status_code >= 400:
+            if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
-            post_processing_results = pp_response.json()
             inference_results["kv"] = post_processing_results["result"]
             inference_results["texts"] = post_processing_results["texts"]
 
         # convert preds to texts
         if convert_preds_to_texts is not None:
-            convert_response = await ocr_convert_preds_to_texts(
+            status_code, texts = await ocr_convert_preds_to_texts(
                 client=client, 
                 inference_results=inference_results,
-                convert_preds_to_texts=convert_preds_to_texts, 
             )
-            if convert_response.status_code < 200 or convert_response.status_code >= 400:
+            if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="텍스트 변환 과정에서 발생")
-            texts = convert_response.json()
             inference_results["texts"] = texts
 
     response_log.update(inference_results.get("response_log", {}))
