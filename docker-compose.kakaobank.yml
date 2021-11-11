@@ -1,0 +1,280 @@
+version: '2.3'
+
+services:
+  mysql1:
+    image: mysql:8.0.25
+    container_name: mysql
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=Asia/Seoul
+    restart: always
+    networks:
+      our_net:
+          ipv4_address: ${MYSQL_IP_ADDR}
+
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
+    container_name: serving
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    extra_hosts:
+      - ${LDAP_HOST}
+    cap_add:
+      - SYS_PTRACE
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.gpu_serving
+      args:
+        MAINTAINER: ${MAINTAINER}
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports: 
+      - 8052:5000
+    environment:
+      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
+      - CUSTOMER=${CUSTOMER}
+    runtime: nvidia
+    tty: true
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_IP_ADDR}
+
+  serving_replica:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
+    container_name: serving_replica
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    tty: true
+    environment:
+      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - CUDA_VISIBLE_DEVICES=1
+      - SERVICE_INSTANCE=serving_replica
+      - CUSTOMER=${CUSTOMER}
+    runtime: nvidia
+    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    networks:
+      our_net:
+        ipv4_address: ${SERVING_REPLICA_IP_ADDR}
+
+  web:
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
+    container_name: web
+    environment:
+      - CUSTOMER=${CUSTOMER}
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.web
+      args:
+        MAINTAINER: ${MAINTAINER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    tty: true
+    
+    working_dir: /workspace
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
+    networks:
+      our_net:
+          ipv4_address: ${WEB_IP_ADDR}
+
+  pp:
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
+    container_name: pp
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.pp
+      args:
+        MAINTAINER: ${MAINTAINER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - PYTHONPATH=/workspace
+      - CUSTOMER=${CUSTOMER}
+    tty: true
+    working_dir: /workspace/pp_server
+    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
+    networks:
+      our_net:
+          ipv4_address: ${PP_IP_ADDR}
+
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
+    container_name: wrapper
+    environment:
+      - CUSTOMER=${CUSTOMER}
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    extra_hosts:
+      - ${DATABASE_HOST}
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.wrapper
+      args:
+        MAINTAINER: ${MAINTAINER}
+        CUSTOMER: ${CUSTOMER}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports: 
+      - 8050:8090
+    tty: true
+    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
+    networks:
+      our_net:
+          ipv4_address: ${WRAPPER_IP_ADDR}
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
+    
+  multiple_gpu_load_balancing:
+    image: nginx:1.21.1
+    container_name: multiple_gpu_load_balancing
+    restart: unless-stopped
+    volumes:
+      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
+    networks:
+      our_net:
+        ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
+   
+  nginx:
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx
+      args:
+        CONF_NAME: nginx
+        MAINTAINER: ${MAINTAINER}
+    container_name: nginx
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
+    restart: unless-stopped
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_IP_ADDR}
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.9.0
+    container_name: nginx_exporter
+    command:
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
+    networks:
+      our_net:
+        ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
+
+  gpu_telemetry:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+    container_name: gpu_telemetry
+    runtime: nvidia
+    networks:
+      our_net:
+        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+    
+  hardware_telemetry:
+    image: prom/node-exporter:v1.2.2
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.node-exporter
+    container_name: hardware_telemetry
+    networks:
+      our_net:
+        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+    entrypoint: /bin/node_exporter
+    
+  prometheus:
+    image: prom/prometheus:v2.30.0
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./.env:/etc/prometheus/.env
+      - prometheus_data:/prometheus
+    entrypoint: /bin/prometheus
+    command: 
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+    networks:
+      our_net:
+          ipv4_address: ${PROMETHEUS_IP_ADDR}
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.13.0
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.mysqld-exporter
+    container_name: mysqld-exporter
+    restart: always
+    entrypoint: /bin/mysqld_exporter
+    environment:
+      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+    cap_add:
+      - SYS_NICE
+    networks:
+      our_net:
+        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+
+  grafana:
+    image: grafana/grafana:8.1.4-ubuntu
+    container_name: grafana
+    volumes: 
+      - grafana_data:/var/lib/grafana
+      - ./ldap/grafana.ini:/etc/grafana/grafana.ini
+      - ./ldap/ldap.toml:/etc/grafana/ldap.toml
+    depends_on: 
+      - prometheus
+    ports:
+      - 8053:3000
+    restart: always
+    networks:
+      our_net:
+          ipv4_address: ${GRAFANA_IP_ADDR}
+
+volumes: 
+  prometheus_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/prometheus_data
+  grafana_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/grafana_data
+  mysql_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/mysql_data
+networks:
+  our_net:
+    ipam:
+      config:
+        - subnet: 10.254.0.0/16
