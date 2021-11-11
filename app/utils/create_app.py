@@ -29,8 +29,10 @@ settings = get_settings()
 def app_generator() -> FastAPI:
     app = FastAPI()
 
-    db.init_app(app, **asdict(config()))
-    create_db_table()
+    if settings.USE_TEXTSCOPE_DATABASE:
+        db.init_app(app, **asdict(config()))
+        if settings.DEVELOP:
+            create_db_table()
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
@@ -50,8 +52,6 @@ def app_generator() -> FastAPI:
             strip_dirs=False,
             sort_by="cumulative",
         )
-    else:
-        pass
 
     app.add_exception_handler(RuntimeError, validation_exception_handler)
 

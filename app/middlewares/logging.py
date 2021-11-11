@@ -28,7 +28,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
-            request.state.db = next(db.session())
+            if settings.USE_TEXTSCOPE_DATABASE:
+                request.state.db = next(db.session())
             request.state.email = "none@none.none"
             headers = request.headers
             ip = (
@@ -59,5 +60,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response = JSONResponse(status_code=error.status_code, content=error_dict)
             await api_logger(request=request, error=error)
         finally:
-            request.state.db.close()
+            if settings.USE_TEXTSCOPE_DATABASE: 
+                request.state.db.close()
         return response
