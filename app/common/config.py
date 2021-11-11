@@ -22,12 +22,12 @@ class Config:
 @dataclass
 class TestConfig(Config):
     TEST_MODE: bool = True
-    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/sql_app.db"
+    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/assets/sql_app.db"
 
 
 @dataclass
 class ProdConfig(Config):
-    DB_URL: str = f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.TEXTSCOPE_CORE_MYSQL_IP_ADDR}/{settings.TEXTSCOPE_SERVER_MYSQL_DB}"
+    DB_URL: str = f"mysql+mysqlconnector://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_IP_ADDR}:{settings.MYSQL_IP_PORT}/{settings.TEXTSCOPE_SERVER_DATABASE}"
 
 
 def config() -> Any:

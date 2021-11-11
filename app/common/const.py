@@ -19,11 +19,12 @@ class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
     MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR: str
     POSTGRES_IP_ADDR: str
-    TEXTSCOPE_CORE_MYSQL_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
+    MYSQL_IP_ADDR: str
+    REDIS_IP_PORT_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
@@ -32,18 +33,7 @@ class Settings(BaseSettings):
     WEB_IP_PORT: int
     PP_IP_PORT: int
     MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT: int
-
-    # SERVER ADDRESS
-    DCGM_EXPORTER_ADDR: str
-    NODE_EXPORTER_ADDR: str
-    MYSQL_EXPORTER_ADDR: str
-    NGINX_EXPORTER_ADDR: str
-    PROMETHEUS_ADDR: str
-    REDIS_IP_PORT_ADDR: str
-    SERVING_IP_PORT_ADDR: str
-    WRAPPER_IP_PORT_ADDR: str
-    WEB_IP_PORT_ADDR: str
-    PP_IP_PORT_ADDR: str
+    MYSQL_IP_PORT: int
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
@@ -52,8 +42,11 @@ class Settings(BaseSettings):
 
     # MYSQL CONFIG
     MYSQL_USER: str
-    TEXTSCOPE_SERVER_MYSQL_DB: str
+    TEXTSCOPE_SERVER_DATABASE: str
     MYSQL_PASSWORD: str
+
+    # DATABASE SETTING
+    USE_TEXTSCOPE_DATABASE: bool = True
 
     # DATABASE CONFIG
     BASE_DIR: str = base_dir
@@ -78,6 +71,9 @@ class Settings(BaseSettings):
     BASE_PATH: str = "/workspace"
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
+
+    # SERVING CONFIG
+    OCR_PIPELINE: bool = False
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
@@ -171,6 +167,7 @@ class Settings(BaseSettings):
     VALID_TYPE: Dict = {}
     KEYWORDS_ALL: Dict = {}
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
+    KEY_LENGTH_TABLE: Dict = {}
 
 
     class Config:
