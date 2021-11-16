@@ -74,6 +74,7 @@ class Settings(BaseSettings):
 
     # SERVING CONFIG
     OCR_PIPELINE: bool = False
+    USE_OCR_PIPELINE: bool = False
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"

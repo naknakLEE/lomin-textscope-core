@@ -1,13 +1,11 @@
-from re import M
-from httpx import AsyncClient, Response
+from httpx import AsyncClient
 
 from datetime import datetime
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 from fastapi import APIRouter, Body
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
-from app import models
 from app.schemas import inference_responses
 from app.utils.utils import set_json_response, get_pp_api_name
 from app.common.const import get_settings
@@ -27,13 +25,27 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
 """
 
-
+# TODO: recify 90 추가 필요
 async def ocr_inference_pipeline(
     client: AsyncClient, 
     inputs: Dict, 
     response_log: Dict,
 ) -> Tuple[int, Dict, Dict]:
     inference_start_time = datetime.now()
+    classification_response = await client.post(
+        f"{model_server_url}/classification",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers = {"User-Agent": "textscope core"}
+    )
+    classification_result = classification_response.json()
+    response_log.update(classification_result.get("response_log", {}))
+
+    # TODO: hint 사용 가능하도록 구성
+    inputs["doc_type"] = classification_result["doc_type"]
+    if settings.DEVELOP:
+        if inputs.get("test_doc_type", None) is not None:
+            inputs["doc_type"] = inputs["test_doc_type"]
     detection_response = await client.post(
         f"{model_server_url}/detection",
         json=inputs,
@@ -45,7 +57,8 @@ async def ocr_inference_pipeline(
     recognition_inputs = dict(
         valid_boxes=detection_result.get("boxes", []),
         classes=detection_result.get("classes", []),
-        image_bytes=inputs["image_bytes"]
+        image_path=inputs["image_path"],
+        page=inputs.get("page"),
     )
     recognition_response = await client.post(
         f"{model_server_url}/recognition",
@@ -69,6 +82,7 @@ async def ocr_inference_pipeline(
         image_height=detection_result.get("image_height"),
         image_width=detection_result.get("image_width"),
         doc_type=inputs["doc_type"],
+        id_type=detection_result["id_type"],
         rec_preds=recognition_result.get("rec_preds", []),
     )
     return (recognition_response.status_code, response, response_log)
@@ -148,8 +162,8 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
     response = dict()
     async with AsyncClient() as client:
         # ocr inference
-        if settings.DEVELOP and settings.OCR_PIPELINE:
-            status_code, inference_results, response_log = await ocr_inference(
+        if settings.USE_OCR_PIPELINE:
+            status_code, inference_results, response_log = await ocr_inference_pipeline(
                 client=client, 
                 inputs=inputs,
                 response_log=response_log,
@@ -165,9 +179,10 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
 
         # ocr post processing
         if settings.DEVELOP:
-            if inputs.get("return_class", None) is not None:
-                inference_results["doc_type"] = inputs.get("return_class")
+            if inputs.get("test_class", None) is not None:
+                inference_results["doc_type"] = inputs.get("test_class")
         post_processing_type = get_pp_api_name(inference_results.get("doc_type"))
+        logger.info(f"post_processing_type123124: {post_processing_type}")
         if post_processing_type is not None and len(inference_results["rec_preds"]) > 0:
             status_code, post_processing_results, response_log = await ocr_post_processing(
                 client=client, 
