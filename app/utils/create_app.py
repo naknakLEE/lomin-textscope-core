@@ -18,7 +18,8 @@ from app.routes import (
     users,
     inference,
     admin,
-    dataset
+    dataset,
+    categories
 )
 from app.database.connection import db
 from app.common.config import config
@@ -74,5 +75,6 @@ def app_generator() -> FastAPI:
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
     app.include_router(dataset.router, tags=["Training dataset"], prefix="/dataset/training")
+    app.include_router(categories.router, tags=["model categories"], prefix="/model")
 
     return app
