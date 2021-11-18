@@ -210,6 +210,10 @@ class Image(BaseModel):
     format: str = 'jpg'
     data: str = 'encoded str by base64'
     
+class Category(BaseModel):
+    code: str = 'A01'
+    name: str = '주민등록증'
+
 class Error(BaseModel):
     error_code: str = 'ER-TRN-CLS-0002'
     error_message: str = 'dataset_id에 해당하는 데이터셋이 존재하지 않음'
@@ -225,6 +229,9 @@ class BaseTextsResponse(BaseModel):
 class BaseResponse(BaseModel):
     request: dict = {}
     response_metadata: ResponseMetadata = ResponseMetadata()
+    
+class BaseCategoriesResponse(BaseResponse):
+    categories: List[Category] = [Category()]
     
 class ClassificationResponse(BaseResponse):
     doc_type: DocType = DocType()
