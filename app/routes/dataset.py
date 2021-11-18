@@ -4,7 +4,7 @@ import zipfile
 
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 from fastapi import APIRouter, Request, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
@@ -29,24 +29,32 @@ def upload_cls_training_dataset(
     request_datetime = datetime.now()
     response_log = dict()
     response_log.update(dict(request_datetime=request_datetime))
-    
     encoded_file = inputs.get('file')
     decoded_file = base64.b64decode(encoded_file)
+    file_name = inputs.get('file_name')
+    save_path = Path(settings.ZIP_PATH) / file_name
     
     Path(settings.ZIP_PATH).mkdir(exist_ok=True)
     
-    file_name = inputs.get('file_name')
-    save_path = Path(settings.ZIP_PATH) / file_name
-    with open(save_path, 'wb') as file:
+    with save_path.open('wb') as file:
         file.write(decoded_file)
     
-    zip_file = zipfile.ZipFile(save_path)
+    # @TODO: Zip file load and check file integrity
+    with zipfile.ZipFile(save_path, 'r') as zip_file:
+        zip_file.extractall(save_path.parent)
+    
     zip_file_name = Path(file_name).stem
-    logger.info(f'zipfile: {zip_file}')
     images_path = save_path.parent / zip_file_name
-    images = list(images_path.glob('**/*.*'))
-    zip_file.close()
-    logger.info(f'mylogger: {images}')
+    is_exist = images_path.exists()
+    images = list()
+    
+    if is_exist:
+        images = list(images_path.glob('**/*.*'))
+        # @TODO: image file load and check file validation, integrity
+    response_log.update(dict(
+        is_exist=is_exist,
+        image_list=images
+    ))
     
     # @TODO: db insert dataset info
     
@@ -61,5 +69,9 @@ def upload_cls_training_dataset(
     
     response_datetime = datetime.now()
     response_log.update(dict(response_datetime=response_datetime))
+    
+    response.update(dict(
+        response_log=response_log
+    ))
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
