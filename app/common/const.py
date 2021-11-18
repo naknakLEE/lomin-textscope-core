@@ -174,6 +174,7 @@ class Settings(BaseSettings):
     
     # FILE CONFIG
     ZIP_PATH: str
+    IMG_PATH: str
     IMAGE_VALIDATION: List = [
         'jpg',
         'png',
