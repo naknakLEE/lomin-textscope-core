@@ -27,8 +27,7 @@ class TestConfig(Config):
 
 @dataclass
 class ProdConfig(Config):
-    DB_URL: str = f"mysql+mysqlconnector://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_IP_ADDR}:{settings.MYSQL_IP_PORT}/{settings.TEXTSCOPE_SERVER_DATABASE}"
-
+    DB_URL: str = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_CONNET_ADDR}:{settings.POSTGRES_IP_PORT}/{settings.POSTGRES_DATABASE}"
 
 def config() -> Any:
     config = dict(production=ProdConfig(), test=TestConfig())

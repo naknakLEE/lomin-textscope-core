@@ -120,6 +120,50 @@ class InferenceResponse(BaseModel):
     lnbzDocClcd: str
     ocrResult: dict
 
+class PgInference(BaseModel):
+    inference_pkey: int
+    task_id: str
+    inference_result: Optional[Json]
+    inference_type: str
+    create_datetime: Optional[datetime]
+    image_pkey: Optional[int]
+    start_datetime: Optional[datetime]
+    finsh_datetime: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+class PgImage(BaseModel):
+    image_pkey: int
+    image_id: str
+    image_path: str
+    image_description: Optional[str]
+    category_pkey: Optional[int]
+    dataset_pkey: Optional[int]
+    image_type: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+class PgCategory(BaseModel):
+    category_pkey: int
+    category_name_en: Optional[str]
+    category_name_kr: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+class PgDataset(BaseModel):
+    dataset_pkey: int
+    dataset_id: Optional[str]
+    root_path: str
+    zip_file_name: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+
 
 class OAuth2PasswordRequestForm:
     def __init__(

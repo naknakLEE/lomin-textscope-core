@@ -64,19 +64,37 @@ services:
   #         ipv4_address: ${MYSQL_IP_ADDR}
 
 
-  mysql1:
-    image: mysql:8.0.25
-    container_name: mysql
-    volumes:
-      - mysql_data:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-      - TZ=Asia/Seoul
-    restart: always
-    networks:
-      our_net:
-          ipv4_address: ${MYSQL_IP_ADDR}
+  # mysql1:
+  #   image: mysql:8.0.25
+  #   container_name: mysql
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+  #     - TZ=Asia/Seoul
+  #   restart: always
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_IP_ADDR}
 
+  postgres:
+    container_name: postgres
+    image: postgres:14
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    ports:
+      - "55432:55432"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
@@ -114,8 +132,8 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    depends_on: 
-      - mysql1
+    # depends_on: 
+    #   - mysql1
     cap_add:
       - SYS_PTRACE
     networks:
@@ -146,8 +164,8 @@ services:
     restart: unless-stopped
     extra_hosts:
       - ${DATABASE_HOST}
-    depends_on: 
-      - mysql1
+    # depends_on: 
+    #   - mysql1
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
@@ -222,18 +240,18 @@ services:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
 
-  mysql-exporter:
-    image: prom/mysqld-exporter:v0.13.0
-    container_name: mysqld-exporter
-    restart: always
-    entrypoint: /bin/mysqld_exporter
-    environment:
-      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
-    cap_add:
-      - SYS_NICE
-    networks:
-      our_net:
-        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+  # mysql-exporter:
+  #   image: prom/mysqld-exporter:v0.13.0
+  #   container_name: mysqld-exporter
+  #   restart: always
+  #   entrypoint: /bin/mysqld_exporter
+  #   environment:
+  #     - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+  #   cap_add:
+  #     - SYS_NICE
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
 
   grafana:
     image: grafana/grafana:8.1.4-ubuntu

@@ -16,7 +16,7 @@ from app.routes import auth, index, users, inference, admin
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
-from app.database.schema import create_db_table
+from app.database.query import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import validation_exception_handler
@@ -32,7 +32,7 @@ def app_generator() -> FastAPI:
     if settings.USE_TEXTSCOPE_DATABASE:
         db.init_app(app, **asdict(config()))
         if settings.DEVELOP:
-            create_db_table()
+            create_db_table(db)
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
@@ -66,5 +66,6 @@ def app_generator() -> FastAPI:
     app.include_router(users.router, tags=["Users"], prefix="/v1/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
+    app.include_router(dao.router, tags=["Dao"], prefix="/dao")
 
     return app

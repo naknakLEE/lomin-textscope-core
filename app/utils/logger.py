@@ -97,7 +97,7 @@ async def api_logger(request: Request = None, response=None, error=None) -> None
     # request.state.db.commit()
     # Logs.querycreate(request.state.db, auto_commit=True, **log_dict)
 
-    if settings.USE_TEXTSCOPE_DATABASE:
+    if settings.USE_TEXTSCOPE_DATABASE and settings.USE_AUTO_LOG:
         if "inference" in request.url.path.split("/"):
             Usage.create_log(request.state.db, auto_commit=True, email=email, status_code=status_code)
         Logs.create_log(request.state.db, auto_commit=True, **log_dict)

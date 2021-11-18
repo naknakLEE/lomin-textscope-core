@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  mysql1:
-    ports: 
-      - 3307:3306
+  # mysql1:
+  #   ports: 
+  #     - 3307:3306
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -142,6 +142,6 @@ services:
     ports:
       - 3000:3000
 
-  mysql-exporter:
-    ports:
-      - 9104:9104
+  # mysql-exporter:
+  #   ports:
+  #     - 9104:9104

@@ -21,3 +21,7 @@ pytest==6.2.5
 # for authentication
 passlib==1.7.4
 python-jose==3.3.0
+
+# for postgresql
+psycopg2-binary==2.9.2
+sqlacodegen==3.0.0b2

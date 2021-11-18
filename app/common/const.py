@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
     MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR: str
     POSTGRES_IP_ADDR: str
+    POSTGRES_IP_CONNET_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
@@ -34,11 +35,13 @@ class Settings(BaseSettings):
     PP_IP_PORT: int
     MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT: int
     MYSQL_IP_PORT: int
+    POSTGRES_IP_PORT: int
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
+    POSTGRES_DATABASE: str
 
     # MYSQL CONFIG
     MYSQL_USER: str
@@ -47,6 +50,7 @@ class Settings(BaseSettings):
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
+    USE_AUTO_LOG: bool
 
     # DATABASE CONFIG
     BASE_DIR: str = base_dir
