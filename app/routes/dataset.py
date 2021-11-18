@@ -75,3 +75,44 @@ def upload_cls_training_dataset(
     ))
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+@router.get("/cls")
+def get_cls_train_dataset(
+    dataset_id: str,
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    response = dict()
+    request_datetime = datetime.now()
+    response_log = dict()
+    response_log.update(dict(
+        request_datetime=request_datetime
+    ))
+
+    # @TODO: select db by dataset_id
+    
+    datasets = [
+        models.Dataset(
+            image_id='df31ea8a-f6ed-4783-ae10-b307903b6028',
+            category_id='GV_CBR',
+            category_name='사업자등록증',
+            filename='myfilename.jpg'
+        ),
+        models.Dataset(
+            image_id='4f55adc2-74ec-4ab3-b5f9-560477e2e3cd',
+            category_id='GV_CBR',
+            category_name='사업자등록증',
+            filename='myCBRname.jpg'
+        )
+    ]
+    
+    response_log.update(dict(
+        dataset=datasets
+    ))
+    response.update(dict(
+        dataset=datasets
+    ))
+    response.update(dict(
+        response_log=response_log
+    ))
+
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
