@@ -1,6 +1,7 @@
 import requests
 import base64
 import zipfile
+import os
 
 from pathlib import Path
 from datetime import datetime
@@ -14,6 +15,7 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
 from sqlalchemy.orm import Session
+from app.utils.utils import cal_time_elapsed_seconds
 
 
 settings = get_settings()
@@ -28,7 +30,6 @@ def upload_cls_training_dataset(
     response = dict()
     request_datetime = datetime.now()
     response_log = dict()
-    response_log.update(dict(request_datetime=request_datetime))
     encoded_file = inputs.get('file')
     decoded_file = base64.b64decode(encoded_file)
     file_name = inputs.get('file_name')
@@ -51,10 +52,6 @@ def upload_cls_training_dataset(
     if is_exist:
         images = list(images_path.glob('**/*.*'))
         # @TODO: image file load and check file validation, integrity
-    response_log.update(dict(
-        is_exist=is_exist,
-        image_list=images
-    ))
     
     # @TODO: db insert dataset info
     
@@ -68,7 +65,14 @@ def upload_cls_training_dataset(
     
     
     response_datetime = datetime.now()
-    response_log.update(dict(response_datetime=response_datetime))
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        is_exist=is_exist,
+        image_list=images
+    ))
     
     response.update(dict(
         response_log=response_log
@@ -84,9 +88,6 @@ def get_cls_train_dataset(
     response = dict()
     request_datetime = datetime.now()
     response_log = dict()
-    response_log.update(dict(
-        request_datetime=request_datetime
-    ))
 
     # @TODO: select db by dataset_id
     
@@ -105,14 +106,74 @@ def get_cls_train_dataset(
         )
     ]
     
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
     response_log.update(dict(
-        dataset=datasets
+        dataset=datasets,
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed
     ))
     response.update(dict(
-        dataset=datasets
-    ))
-    response.update(dict(
+        dataset=datasets,
         response_log=response_log
     ))
 
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+@router.delete('/cls')
+def delete_cls_train_dataset(
+    
+) -> JSONResponse:
+    response = dict()
+    request_datetime = datetime.now()
+    response_log = dict()
+    
+    # @TODO: set is_visible flag false in db
+    
+    # delete image file
+    # test를 위한 임시 dataset directory path
+    target_path = Path('/workspace/assets/dataset/my_dataset')
+    is_exist = target_path.exists()
+    images = list()
+    if is_exist:
+        images = list(target_path.glob('**/*.*'))
+        dirs = list(target_path.iterdir())
+        response_log.update(dict(
+            images=[],
+            dirs=[]
+        ))
+        for image in images:
+            response_log['images'].append(str(image))
+            try:
+                os.remove(image)
+            except:
+                # @TODO: not exists file exception
+                pass
+        for d in dirs:
+            response_log['dirs'].append(str(d))
+            try:
+                d.rmdir()
+                pass
+            except:
+                # @TODO: directory not empty or directory not exists
+                pass
+        # remove root path
+        target_path.rmdir()
+    else:
+        # @TODO: target dataset directory가 없을 경우에 대한 exception raise
+        pass
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed
+    ))
+    
+    response.update(dict(
+        response_log=response_log
+    ))
+    
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
