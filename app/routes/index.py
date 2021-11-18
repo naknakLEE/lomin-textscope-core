@@ -1,15 +1,20 @@
 import requests
 import time
+import base64
 
+from datetime import datetime
+from pathlib import Path
 from typing import Any
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Body
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
+from sqlalchemy.orm import Session
 
 from app.database.connection import db
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
+from app.utils.utils import cal_time_elapsed_seconds
 
 
 settings = get_settings()
@@ -62,3 +67,52 @@ def check_status() -> Any:
         is_pp_server_working=is_pp_server_working
     )
     return JSONResponse(content=jsonable_encoder(status))
+
+@router.post('/image')
+def upload_image(
+    request: dict = Body(...),
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    inputs = request
+    response = dict()
+    response_log = dict()
+    request_datetime = datetime.now()
+    image_data = inputs.get('file')
+    image_name = inputs.get('file_name')
+    image_id = inputs.get('image_id')
+    decoded_image_data = base64.b64decode(image_data)
+    
+    root_path = Path(settings.IMG_PATH)
+    
+    base_path = root_path.joinpath(image_id)
+    base_path.mkdir(parents=True, exist_ok=True)
+    
+    save_path = base_path.joinpath(image_name)
+    
+    with save_path.open('wb') as file:
+        file.write(decoded_image_data)
+        
+    is_exist = save_path.exists()
+    if is_exist:
+        # @TODO: image data insert into db
+        pass
+    else:
+        # @TODO: file not saved
+        pass
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed
+    ))
+    
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log
+    ))
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
