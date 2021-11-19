@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
 
-from app.routes import auth, index, users, inference, admin
+from app.routes import auth, index, users, inference, admin, dao
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings

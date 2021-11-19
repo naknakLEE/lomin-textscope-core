@@ -79,17 +79,17 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:14
+    image: postgres:14 #TODO make Dockerfile
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DATABASE}
     ports:
-      - "55432:55432"
+      - "55432:5432"
 
   pgadmin:
     container_name: pgadmin
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4 #TODO make Dockerfile  
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
@@ -132,8 +132,8 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    # depends_on: 
-    #   - mysql1
+    depends_on: 
+      - postgres
     cap_add:
       - SYS_PTRACE
     networks:
