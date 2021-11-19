@@ -86,6 +86,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DATABASE}
     ports:
       - "55432:5432"
+    networks:
+      our_net:
+        ipv4_address: ${POSTGRES_IP_ADDR}
 
   pgadmin:
     container_name: pgadmin
@@ -95,6 +98,9 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
       - "5050:80"
+    networks:
+      our_net:
+        ipv4_address: ${PGADMIN_IP_ADDR}
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
