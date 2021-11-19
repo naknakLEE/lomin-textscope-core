@@ -16,6 +16,7 @@ from app.utils.logging import logger
 from app import models
 from sqlalchemy.orm import Session
 from app.utils.utils import cal_time_elapsed_seconds
+from app.database import query
 
 
 settings = get_settings()
@@ -54,6 +55,32 @@ def upload_cls_training_dataset(
         # @TODO: image file load and check file validation, integrity
     
     # @TODO: db insert dataset info
+    dao_dataset_params = {
+        'dataset_id': 'eeee', 
+        'root_path': 'b',
+        'zip_file_name': zip_file_name     
+        }
+    dataset_pkey = query.insert_training_dataset(session, **dao_dataset_params)
+    categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
+    for category in categories:
+        dao_category_params = {
+            'category_name_en': category.name,
+            'category_code': 'A01'
+        }
+        category_pkey = query.insert_category(session, **dao_category_params)
+
+        for image in images:
+            if str(image).find(category.name) != -1:
+                dao_image_params = {
+                    'image_id': 'uuu',
+                    'image_path': str(image),
+                    'category_pkey': category_pkey,
+                    'dataset_pkey': dataset_pkey,
+                    'image_type': 'training'
+                }
+                image_pkey = query.insert_image(session, **dao_image_params)
+            
+
     
     # validation inspect image files
     for image in images:
