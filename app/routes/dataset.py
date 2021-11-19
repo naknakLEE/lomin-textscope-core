@@ -60,7 +60,7 @@ def upload_cls_training_dataset(
         'root_path': 'b',
         'zip_file_name': zip_file_name     
         }
-    dataset_pkey = query.insert_training_dataset(session, **dao_dataset_params)
+    dataset_pkey, dataset_id = query.insert_training_dataset(session, **dao_dataset_params)
     categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
     for category in categories:
         dao_category_params = {

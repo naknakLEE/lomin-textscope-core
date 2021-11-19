@@ -102,7 +102,7 @@ def insert_inference_result(db: Session, task_id: str, inference_result: json, i
 
 def insert_training_dataset(db: Session, **kwargs):
     res = schema.Dataset.create(db, **kwargs)
-    return res.dataset_pkey
+    return res.dataset_pkey, res.dataset_id
 
 def insert_category(db: Session, **kwargs):
     res = schema.Category.create(db, **kwargs)
