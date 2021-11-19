@@ -117,21 +117,16 @@ def get_cls_train_dataset(
     response_log = dict()
 
     # @TODO: select db by dataset_id
-    
-    datasets = [
-        models.Dataset(
-            image_id='df31ea8a-f6ed-4783-ae10-b307903b6028',
-            category_id='GV_CBR',
-            category_name='사업자등록증',
-            filename='myfilename.jpg'
-        ),
-        models.Dataset(
-            image_id='4f55adc2-74ec-4ab3-b5f9-560477e2e3cd',
-            category_id='GV_CBR',
-            category_name='사업자등록증',
-            filename='myCBRname.jpg'
-        )
-    ]
+    dao_object = query.select_category(session, dataset_id)
+
+    datasets = []
+    for do in dao_object:
+        datasets.append(models.Dataset(
+            image_id=do.Image.image_id,
+            category_id=do.Category.category_name_en,
+            category_name=do.Category.category_name_en,
+            filename=(do.Image.image_path).split("/")[-1]
+        ))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
