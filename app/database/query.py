@@ -151,3 +151,16 @@ def select_category(db: Session, dataset_id: str):
         
     res = query.all()
     return res
+
+def delete_dataset(db: Session, dataset_id: str):
+    try:
+        query = db\
+            .query(schema.Dataset)\
+            .filter_by(dataset_id=dataset_id).delete()
+        return True
+    except Exception as ex:
+        print(ex)
+        return False
+        
+    
+

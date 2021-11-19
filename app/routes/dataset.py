@@ -56,8 +56,8 @@ def upload_cls_training_dataset(
     
     # @TODO: db insert dataset info
     dao_dataset_params = {
-        'dataset_id': 'eeee', 
-        'root_path': 'b',
+        'dataset_id': inputs.get('dataset_id'), 
+        'root_path': str(images_path),
         'zip_file_name': zip_file_name     
         }
     dataset_pkey, dataset_id = query.insert_training_dataset(session, **dao_dataset_params)
@@ -145,13 +145,16 @@ def get_cls_train_dataset(
 
 @router.delete('/cls')
 def delete_cls_train_dataset(
-    
+    dataset_id: str,
+    session: Session = Depends(db.session)
 ) -> JSONResponse:
     response = dict()
     request_datetime = datetime.now()
     response_log = dict()
     
     # @TODO: set is_visible flag false in db
+    # delete visiable 작업 필요 
+    res = query.delete_dataset(session, dataset_id)
     
     # delete image file
     # test를 위한 임시 dataset directory path
