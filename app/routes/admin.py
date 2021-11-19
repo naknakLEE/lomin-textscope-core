@@ -14,6 +14,7 @@ from app.errors import exceptions as ex
 from app.common.const import get_settings
 from app.schemas import admin_users_responses
 from app import models
+from app.database import query
 
 
 settings = get_settings()

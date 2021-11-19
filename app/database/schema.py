@@ -16,10 +16,11 @@ from sqlalchemy import (
     Boolean,
     Enum,
     ForeignKey,
+    Text,
     and_,
     or_,
 )
-from sqlalchemy.orm import Session, relationships
+from sqlalchemy.orm import Session, relationship
 from sqlalchemy.sql.sqltypes import BIGINT
 from fastapi.encoders import jsonable_encoder
 from passlib.context import CryptContext
@@ -219,6 +220,74 @@ class BaseMixin:
 
         return query.all()
 
+class WooriBaseMixin:
+    def all_columns(self) -> List:
+        return [
+            c
+            for c in self.__table__.columns
+            if c.primary_key is False and c.name != "created_at"
+        ]
+
+    @classmethod
+    def get(cls, session: Session = None, **kwargs) -> Optional[ModelType]:
+        sess = next(db.session()) if not session else session
+
+        query = sess.query(cls)
+        for key, val in kwargs.items():
+            col = getattr(cls, key)
+            query = query.filter(col == val)
+
+        if sess is None:
+            sess.close()
+        # if query.count() > 1:
+        #     raise Exception("Only one row is supposed to be returned, but got more than one.")
+        return query.first()
+
+    @classmethod
+    def get_multi(
+        cls, session: Session, skip: int = 0, limit: int = 100
+    ) -> Optional[ModelType]:
+        query = session.query(cls).offset(skip).limit(limit)
+        return query.all()
+
+    @classmethod
+    def remove(cls, session: Session, email: EmailStr) -> ModelType:
+        obj = session.query(cls).filter(cls.email == email).delete()
+        session.flush()
+        session.commit()
+        return obj
+
+    @classmethod
+    def update(cls, session: Session, *, db_obj: User, obj_in: UserInDB) -> Any:
+        current_user_email = db_obj.email
+        obj_in.hashed_password = get_password_hash(obj_in.password)
+        obj_data = jsonable_encoder(db_obj)
+        user = session.query(cls).filter(cls.email == current_user_email).first()
+        for field in obj_data:
+            field_value = getattr(obj_in, field) if hasattr(obj_in, field) else None
+            if field_value is not None:
+                setattr(user, field, field_value)
+        session.flush()
+        session.commit()
+        return user
+
+    @classmethod
+    def create(
+        cls, session: Session, auto_commit=True, **kwargs
+    ) -> Optional[ModelType]:
+        obj = cls()
+        for col in obj.all_columns():
+            col_name = col.name
+            if col_name in kwargs:
+                setattr(obj, col_name, kwargs.get(col_name))
+        session.add(obj)
+        session.flush()
+        if auto_commit:
+            session.commit()
+        # session.refresh(obj)
+        return obj
+
+
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"
@@ -257,13 +326,197 @@ class Usage(Base, BaseMixin):
     email = Column(String(length=255), nullable=False)
     status_code = Column(Integer, nullable=False)
 
+class Dataset(Base, WooriBaseMixin):
+    __tablename__ = 'dataset'
 
-def create_db_table() -> None:
-    try:
-        settings = get_settings()
-        session = next(db.session())
-        Base.metadata.create_all(db._engine)
-        Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
-        Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
-    finally:
-        session.close()
+    dataset_pkey = Column(Integer, primary_key=True)
+    root_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop')
+    dataset_id = Column(String(50))
+    zip_file_name = Column(String(50))
+
+    image = relationship('Image', back_populates='dataset')
+
+
+class Model(Base, WooriBaseMixin):
+    __tablename__ = 'model'
+
+    model_pkey = Column(Integer, primary_key=True)
+    model_id = Column(String(50), nullable=False)
+    model_name_kr = Column(String(50))
+    model_name_en = Column(String(100))
+    model_version = Column(String(50))
+    model_path = Column(String(50))
+    model_type = Column(String(50))
+    create_datetime = Column(DateTime)
+
+    category = relationship('Category', back_populates='model')
+
+
+class Category(Base, WooriBaseMixin):
+    __tablename__ = 'category'
+
+    category_pkey = Column(Integer, primary_key=True)
+    category_name_en = Column(String(50), comment='category_a')
+    category_name_kr = Column(String(50), comment='주민등록등본')
+    model_pkey = Column(ForeignKey('model.model_pkey'))
+    category_code = Column(String(50))
+
+    model = relationship('Model', back_populates='category')
+    image = relationship('Image', back_populates='category')
+
+
+class Image(Base, WooriBaseMixin):
+    __tablename__ = 'image'
+
+    image_pkey = Column(Integer, primary_key=True, comment='1')
+    image_id = Column(String(50), nullable=False, comment='uuuu-uuuu-uuuu-uuuu')
+    image_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
+    image_type = Column(String(30), nullable=False, comment="['training', 'inference']")
+    image_description = Column(Text, comment='이미지 설명')
+    category_pkey = Column(ForeignKey('category.category_pkey'), comment='category_a, 주민등록등본')
+    dataset_pkey = Column(ForeignKey('dataset.dataset_pkey'))
+
+    category = relationship('Category', back_populates='image')
+    dataset = relationship('Dataset', back_populates='image')
+    inference = relationship('Inference', back_populates='image')
+
+
+class Inference(Base, WooriBaseMixin):
+    __tablename__ = 'inference'
+    __table_args__ = {'comment': 'test1'}
+
+    inference_pkey = Column(Integer, primary_key=True)
+    task_id = Column(String(50), nullable=False)
+    inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
+    create_datetime = Column(DateTime, nullable=False)
+    inference_result = Column(JSON)
+    image_pkey = Column(ForeignKey('image.image_pkey'))
+    start_datetime = Column(DateTime)
+    finsh_datetime = Column(DateTime)
+
+    image = relationship('Image', back_populates='inference')
+
+
+'''
+-- The table order is arranged so that it does not cause errors even if it is run at once, taking into account the relationship.
+
+-- model Table Create SQL
+CREATE TABLE model
+(
+    model_pkey         int             GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    model_id           varchar(50)     NOT NULL, 
+    model_name_kr      varchar(50)     NULL, 
+    model_name_en      varchar(100)    NULL, 
+    model_version      varchar(50)     NULL, 
+    model_path         varchar(50)     NULL, 
+    model_type         varchar(50)     NULL, 
+    create_datetime    timestamp       NULL, 
+     PRIMARY KEY (model_pkey)
+);
+
+
+-- dataset Table Create SQL
+CREATE TABLE dataset
+(
+    dataset_pkey     int             GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    dataset_id       varchar(50)     NULL, 
+    root_path        varchar(200)    NOT NULL, 
+    zip_file_name    varchar(50)     NULL, 
+     PRIMARY KEY (dataset_pkey)
+);
+
+COMMENT ON COLUMN dataset.root_path IS '/home/ihlee/Desktop';
+
+
+-- category Table Create SQL
+CREATE TABLE category
+(
+    category_pkey       int            GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    category_name_en    varchar(50)    NULL, 
+    category_name_kr    varchar(50)    NULL, 
+    model_pkey          integer        NULL, 
+    category_code       varchar(50)    NULL, 
+     PRIMARY KEY (category_pkey)
+);
+
+COMMENT ON COLUMN category.category_name_en IS 'category_a';
+
+COMMENT ON COLUMN category.category_name_kr IS '주민등록등본';
+
+COMMENT ON COLUMN category.category_code IS 'A01';
+
+ALTER TABLE category
+    ADD CONSTRAINT FK_category_model_pkey_model_model_pkey FOREIGN KEY (model_pkey)
+        REFERENCES model (model_pkey);
+
+
+-- image Table Create SQL
+CREATE TABLE image
+(
+    image_pkey           int             GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    image_id             varchar(50)     NOT NULL, 
+    image_path           varchar(200)    NOT NULL, 
+    image_description    text            NULL, 
+    category_pkey        integer         NULL, 
+    dataset_pkey         integer         NULL, 
+    image_type           varchar(30)     NOT NULL, 
+     PRIMARY KEY (image_pkey)
+);
+
+COMMENT ON COLUMN image.image_pkey IS '1';
+
+COMMENT ON COLUMN image.image_id IS 'uuuu-uuuu-uuuu-uuuu';
+
+COMMENT ON COLUMN image.image_path IS '/home/ihlee/Desktop/category_a/test.jpg';
+
+COMMENT ON COLUMN image.image_description IS '이미지 설명';
+
+COMMENT ON COLUMN image.category_pkey IS 'category_a, 주민등록등본';
+
+COMMENT ON COLUMN image.image_type IS '[''training'', ''inference'']';
+
+ALTER TABLE image
+    ADD CONSTRAINT FK_image_category_pkey_category_category_pkey FOREIGN KEY (category_pkey)
+        REFERENCES category (category_pkey);
+
+ALTER TABLE image
+    ADD CONSTRAINT FK_image_dataset_pkey_dataset_dataset_pkey FOREIGN KEY (dataset_pkey)
+        REFERENCES dataset (dataset_pkey);
+
+
+-- inference Table Create SQL
+CREATE TABLE inference
+(
+    inference_pkey      int            GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    task_id             varchar(50)    NOT NULL, 
+    inference_result    json           NULL, 
+    inference_type      varchar(5)     NOT NULL, 
+    create_datetime     timestamp      NOT NULL, 
+    image_pkey          integer        NULL, 
+    start_datetime      timestamp      NULL, 
+    finsh_datetime      timestamp      NULL, 
+     PRIMARY KEY (inference_pkey)
+);
+
+COMMENT ON TABLE inference IS 'test1';
+
+COMMENT ON COLUMN inference.inference_type IS '[''kv'', ''gocr'']';
+
+ALTER TABLE inference
+    ADD CONSTRAINT FK_inference_image_pkey_image_image_pkey FOREIGN KEY (image_pkey)
+        REFERENCES image (image_pkey);
+
+
+
+
+'''
+
+# def create_db_table() -> None:
+#     try:
+#         settings = get_settings()
+#         session = next(db.session())
+#         Base.metadata.create_all(db._engine)
+#         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
+#         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
+#     finally:
+#         session.close()

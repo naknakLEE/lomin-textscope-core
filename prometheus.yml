@@ -11,19 +11,19 @@ scrape_configs:
   - job_name: 'prometheus'
     scrape_interval: 15s
     static_configs:
-      - targets: ['10.255.0.9:9090']
+      - targets: ['10.254.0.9:9090']
   - job_name: 'textscope'
     scrape_interval: 15s
     static_configs:
-      - targets: ['10.255.0.5:8000', '10.255.0.4:5000']
+      - targets: ['10.254.0.5:8000', '10.254.0.4:5000']
   - job_name: 'general exporter'
     scrape_interval: 15s
     static_configs:
-      - targets: ['10.255.0.13:9100', '10.255.0.16:9104', "10.255.0.23:9113"]
+      - targets: ['10.254.0.13:9100', '10.254.0.16:9104', "10.254.0.23:9113"]
   - job_name: 'nvidia-gpu-exporter'
     scrape_interval: 5s
     static_configs:
-      - targets: ['10.255.0.12:9400']
+      - targets: ['10.254.0.12:9400']
   
   
 

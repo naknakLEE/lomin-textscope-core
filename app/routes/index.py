@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database.connection import db
+from app.database import query
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models

@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  mysql1:
-    ports: 
-      - 3307:3306
+  # mysql1:
+  #   ports: 
+  #     - 3307:3306
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -21,16 +21,24 @@ services:
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
-        PYTHON_VERSION: ${PYTHON_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports: 
       - 5000:5000
+      - 5002:5002
     volumes:
       - ./:/workspace
-    tty: true
+    shm_size: "16gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
     environment:
+      - DISPLAY=$DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TERM=$TERM
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+    tty: true
+      
     deploy:
       resources:
         reservations:
@@ -110,10 +118,11 @@ services:
     tty: true
     environment: 
       - API_ENV=production
-      - PYTHONPATH=/workspace/${CUSTOMER}_wrapper
+      - PYTHONPATH=/workspace/kakaobank_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
+      - CUSTOMER=kakaobank
+    working_dir: /workspace/kakaobank_wrapper/kakaobank_wrapper/app
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 
@@ -142,6 +151,6 @@ services:
     ports:
       - 3000:3000
 
-  mysql-exporter:
-    ports:
-      - 9104:9104
+  # mysql-exporter:
+  #   ports:
+  #     - 9104:9104

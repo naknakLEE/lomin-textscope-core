@@ -64,25 +64,48 @@ services:
   #         ipv4_address: ${MYSQL_IP_ADDR}
 
 
-  mysql1:
-    image: mysql:8.0.25
-    container_name: mysql
-    volumes:
-      - mysqldata:/var/lib/mysql
-    restart: always
-    networks:
-      our_net:
-          ipv4_address: ${MYSQL_IP_ADDR}
+  # mysql1:
+  #   image: mysql:8.0.25
+  #   container_name: mysql
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+  #     - TZ=Asia/Seoul
+  #   restart: always
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${MYSQL_IP_ADDR}
 
+  postgres:
+    container_name: postgres
+    image: postgres:14 #TODO make Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    ports:
+      - "55432:5432"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4 #TODO make Dockerfile  
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
   
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
     container_name: serving
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
+    extra_hosts:
+      - ${LDAP_HOST}
     cap_add:
       - SYS_PTRACE
     networks:
@@ -90,7 +113,7 @@ services:
         ipv4_address: ${SERVING_IP_ADDR}
 
   serving_replica:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
     container_name: serving_replica
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -102,7 +125,7 @@ services:
         ipv4_address: ${SERVING_REPLICA_IP_ADDR}
 
   web:
-    image: docker.lomin.ai/ts-web:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
     container_name: web
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -110,7 +133,7 @@ services:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     depends_on: 
-      - mysql1
+      - postgres
     cap_add:
       - SYS_PTRACE
     networks:
@@ -118,7 +141,7 @@ services:
           ipv4_address: ${WEB_IP_ADDR}
 
   pp:
-    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
     container_name: pp
     environment:
       - CUSTOMER=${CUSTOMER}
@@ -132,15 +155,17 @@ services:
           ipv4_address: ${PP_IP_ADDR}
 
   wrapper:
-    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
     container_name: wrapper
     environment:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    depends_on: 
-      - mysql1
+    extra_hosts:
+      - ${DATABASE_HOST}
+    # depends_on: 
+    #   - mysql1
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
@@ -156,7 +181,7 @@ services:
         ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
    
   nginx:
-    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_VERSION}
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.nginx
@@ -215,18 +240,18 @@ services:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
 
-  mysql-exporter:
-    image: prom/mysqld-exporter:v0.13.0
-    container_name: mysqld-exporter
-    restart: always
-    entrypoint: /bin/mysqld_exporter
-    environment:
-      - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
-    cap_add:
-      - SYS_NICE
-    networks:
-      our_net:
-        ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
+  # mysql-exporter:
+  #   image: prom/mysqld-exporter:v0.13.0
+  #   container_name: mysqld-exporter
+  #   restart: always
+  #   entrypoint: /bin/mysqld_exporter
+  #   environment:
+  #     - DATA_SOURCE_NAME=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_IP_ADDR}:3306)/
+  #   cap_add:
+  #     - SYS_NICE
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${MYSQL_EXPORTER_IP_ADDR}
 
   grafana:
     image: grafana/grafana:8.1.4-ubuntu
@@ -258,25 +283,12 @@ services:
 
 
 volumes: 
-  prometheus_data:
-    driver: local-persist
-    driver_opts:
-      mountpoint: /docker/local-persist/data
-  grafana_data:
-    driver: local-persist
-    driver_opts:
-      mountpoint: /docker/local-persist/data
-  pgdata:
-    driver: local-persist
-    driver_opts:
-      mountpoint: /docker/local-persist/data
-  mysqldata:
-    driver: local-persist
-    driver_opts:
-      mountpoint: /docker/local-persist/data
+  prometheus_data: {}
+  grafana_data: {}
+  mysql_data: {}
 
 networks:
   our_net:
     ipam:
       config:
-        - subnet: 10.255.0.0/16
+        - subnet: 10.254.0.0/16

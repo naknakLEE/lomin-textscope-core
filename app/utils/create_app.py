@@ -20,12 +20,13 @@ from app.routes import (
     admin,
     dataset,
     categories,
-    prediction
+    prediction,
+    dao
 )
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
-from app.database.schema import create_db_table
+from app.database.query import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import validation_exception_handler
@@ -38,8 +39,10 @@ settings = get_settings()
 def app_generator() -> FastAPI:
     app = FastAPI()
 
-    db.init_app(app, **asdict(config()))
-    create_db_table()
+    if settings.USE_TEXTSCOPE_DATABASE:
+        db.init_app(app, **asdict(config()))
+        if settings.DEVELOP:
+            create_db_table(db)
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
@@ -59,8 +62,6 @@ def app_generator() -> FastAPI:
             strip_dirs=False,
             sort_by="cumulative",
         )
-    else:
-        pass
 
     app.add_exception_handler(RuntimeError, validation_exception_handler)
 
@@ -78,5 +79,6 @@ def app_generator() -> FastAPI:
     app.include_router(dataset.router, tags=["Training dataset"], prefix="/dataset/training")
     app.include_router(categories.router, tags=["model categories"], prefix="/model")
     app.include_router(prediction.router, tags=["Prediction Result"], prefix="/prediction")
+    app.include_router(dao.router, tags=["Dao"], prefix="/dao")
 
     return app

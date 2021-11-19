@@ -1,11 +1,6 @@
 version: '2.3'
 
 services:
-  mysql1:
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-      - TZ=Asia/Seoul
-  
   serving:
     build:
       context: ./
@@ -25,13 +20,6 @@ services:
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
     runtime: nvidia
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #       - driver: nvidia
-    #         device_ids: ['0']
-    #         capabilities: [gpu]
     tty: true
     depends_on: 
       - mysql1
@@ -46,13 +34,6 @@ services:
       - CUDA_VISIBLE_DEVICES=1
       - SERVICE_INSTANCE=serving_replica
     runtime: nvidia
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #       - driver: nvidia
-    #         device_ids: ['1']
-    #         capabilities: [gpu]
     depends_on: 
       - mysql1
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}

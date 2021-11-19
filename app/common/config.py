@@ -22,13 +22,12 @@ class Config:
 @dataclass
 class TestConfig(Config):
     TEST_MODE: bool = True
-    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/sql_app.db"
+    DB_URL: str = f"sqlite:///{settings.BASE_PATH}/assets/sql_app.db"
 
 
 @dataclass
 class ProdConfig(Config):
-    DB_URL: str = f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.TEXTSCOPE_CORE_MYSQL_IP_ADDR}/{settings.TEXTSCOPE_SERVER_MYSQL_DB}"
-
+    DB_URL: str = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_CONNET_ADDR}:{settings.POSTGRES_IP_PORT}/{settings.POSTGRES_DATABASE}"
 
 def config() -> Any:
     config = dict(production=ProdConfig(), test=TestConfig())
