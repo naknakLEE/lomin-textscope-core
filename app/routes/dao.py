@@ -4,7 +4,7 @@ from app.common.const import get_settings
 from app.database.connection import db
 from app.database import query
 from app.utils.logging import logger
-from app.database.schema import Image
+from app.database.schema import Image, Dataset
 from sqlalchemy.orm import Session
 import json
 
@@ -30,7 +30,11 @@ def insert_inference_result(data: Dict = Body(...), db: Session = Depends(db.ses
 
 @router.post("/create/image")
 def insert_inference_result(data: Dict = Body(...),  db: Session = Depends(db.session)):
-    logger.info(data)
+    logger.info(f"create image data: {data}")
     return Image.create(db, **data)
 
+@router.post("/create/dataset")
+def insert_inference_result(data: Dict = Body(...),  db: Session = Depends(db.session)):
+    logger.info(f"create dataset data: {data}")
+    return Dataset.create(db, **data)
 
