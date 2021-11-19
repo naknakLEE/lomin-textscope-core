@@ -21,6 +21,100 @@ from app.utils.utils import cal_time_elapsed_seconds
 settings = get_settings()
 router = APIRouter()
 
+@router.get('/')
+def get_all_prediction(
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    response = dict()
+    response_log = dict()
+    request_datetime = datetime.now()
+    
+    # @TODO: select all prediction data
+    doc_type = models.DocType(
+        code="A01",
+        name="주민등록증",
+        confidence=0.98,
+        is_hint_used=False,
+        is_hint_trusted=False
+    )
+    
+    bbox = models.Bbox(
+        x=123.0,
+        y=321.0,
+        w=111.2,
+        h=222.3
+    )
+    
+    key_values = [
+        models.KeyValue(
+            id="kv-001",
+            key="주소",
+            confidence=0.78,
+            text_ids=['txt-0001'],
+            text="서울특별시 서초구 서초대로 396",
+            bbox=bbox,
+            is_hint_used=False,
+            is_hint_trusted=False
+        ),
+        models.KeyValue(
+            id="kv-002",
+            key="생년월일",
+            confidence=0.83,
+            text_ids=['txt-0002'],
+            text="1993-12-05",
+            bbox=bbox,
+            is_hint_used=True,
+            is_hint_trusted=False
+        ),
+    ]
+    
+    texts = [
+        models.Text(
+            id="txt-0001",
+            text="홍길동",
+            bbox=bbox,
+            confidence=0.87,
+            kv_ids=['kv-001']
+        ),
+        models.Text(
+            id="txt-0002",
+            text="김철수",
+            bbox=bbox,
+            confidence=0.94,
+            kv_ids=['kv-002']
+        ),
+    ]
+    
+    predictions = [
+        models.PredictionResponse(
+            doc_type=doc_type,
+            key_values=key_values,
+            texts=texts
+        ),
+        models.PredictionResponse(
+            doc_type=doc_type,
+            key_values=key_values,
+            texts=texts
+        ),
+    ]
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        predictions=predictions
+    ))
+    
+    response = dict(
+        predictions=predictions,
+        response_log=response_log
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
 @router.get("/cls-kv")
 def get_cls_kv_prediction(
     task_id: str,
