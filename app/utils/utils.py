@@ -4,7 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from os import environ
 
 from app.common.const import get_settings
-
+from datetime import datetime
 
 settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
@@ -34,3 +34,8 @@ def get_pp_api_name(doc_type: str) -> Union[None, str]:
     elif settings.CUSTOMER == "kakaobank" and doc_type in document_type_set:
         return document_type_set.get(doc_type)
     return None
+
+def cal_time_elapsed_seconds(start: datetime, end: datetime) -> str:
+    elapsed = end - start
+    sec, microsec = elapsed.seconds, round(elapsed.microseconds / 1_000_000, 3)
+    return f'{sec + microsec}'

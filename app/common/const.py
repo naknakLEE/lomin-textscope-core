@@ -172,6 +172,17 @@ class Settings(BaseSettings):
     VALID_TYPE: Dict = {}
     KEYWORDS_ALL: Dict = {}
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
+    
+    # FILE CONFIG
+    ZIP_PATH: str
+    IMG_PATH: str
+    IMAGE_VALIDATION: List = [
+        'jpg',
+        'png',
+        'pdf',
+        'tif',
+        'tiff'
+    ]
     KEY_LENGTH_TABLE: Dict = {}
 
 

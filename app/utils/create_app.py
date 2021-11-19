@@ -12,7 +12,17 @@ from fastapi.exceptions import RequestValidationError
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
 
-from app.routes import auth, index, users, inference, admin, dao
+from app.routes import (
+    auth,
+    index,
+    users,
+    inference,
+    admin,
+    dataset,
+    categories,
+    prediction,
+    dao
+)
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -66,6 +76,9 @@ def app_generator() -> FastAPI:
     app.include_router(users.router, tags=["Users"], prefix="/v1/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
+    app.include_router(dataset.router, tags=["Training dataset"], prefix="/dataset/training")
+    app.include_router(categories.router, tags=["model categories"], prefix="/model")
+    app.include_router(prediction.router, tags=["Prediction Result"], prefix="/prediction")
     app.include_router(dao.router, tags=["Dao"], prefix="/dao")
 
     return app

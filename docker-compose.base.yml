@@ -1,10 +1,10 @@
 version: '2.3'
 
 services:
-  mysql1:
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-      - TZ=Asia/Seoul
+  # mysql1:
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+  #     - TZ=Asia/Seoul
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -16,7 +16,6 @@ services:
         CUSTOMER: ${CUSTOMER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         PYTHON_VERSION: ${PYTHON_VERSION}
-        CUSTOMER: ${CUSTOMER}
     deploy:
       resources:
         reservations:
