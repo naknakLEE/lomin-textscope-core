@@ -74,7 +74,7 @@ def select_category(db: Session, model_id: str):
     res = query.all()
     return res
 
-def insert_inference_result(db: Session, task_id: str, inferenec_result: json, inference_type: str, image_pkey: int):
+def insert_inference_result(db: Session, task_id: str, inference_result: json, inference_type: str, image_pkey: int):
     '''
             INSERT INTO
             inference

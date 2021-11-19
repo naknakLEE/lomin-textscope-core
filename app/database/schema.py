@@ -220,6 +220,74 @@ class BaseMixin:
 
         return query.all()
 
+class WooriBaseMixin:
+    def all_columns(self) -> List:
+        return [
+            c
+            for c in self.__table__.columns
+            if c.primary_key is False and c.name != "created_at"
+        ]
+
+    @classmethod
+    def get(cls, session: Session = None, **kwargs) -> Optional[ModelType]:
+        sess = next(db.session()) if not session else session
+
+        query = sess.query(cls)
+        for key, val in kwargs.items():
+            col = getattr(cls, key)
+            query = query.filter(col == val)
+
+        if sess is None:
+            sess.close()
+        # if query.count() > 1:
+        #     raise Exception("Only one row is supposed to be returned, but got more than one.")
+        return query.first()
+
+    @classmethod
+    def get_multi(
+        cls, session: Session, skip: int = 0, limit: int = 100
+    ) -> Optional[ModelType]:
+        query = session.query(cls).offset(skip).limit(limit)
+        return query.all()
+
+    @classmethod
+    def remove(cls, session: Session, email: EmailStr) -> ModelType:
+        obj = session.query(cls).filter(cls.email == email).delete()
+        session.flush()
+        session.commit()
+        return obj
+
+    @classmethod
+    def update(cls, session: Session, *, db_obj: User, obj_in: UserInDB) -> Any:
+        current_user_email = db_obj.email
+        obj_in.hashed_password = get_password_hash(obj_in.password)
+        obj_data = jsonable_encoder(db_obj)
+        user = session.query(cls).filter(cls.email == current_user_email).first()
+        for field in obj_data:
+            field_value = getattr(obj_in, field) if hasattr(obj_in, field) else None
+            if field_value is not None:
+                setattr(user, field, field_value)
+        session.flush()
+        session.commit()
+        return user
+
+    @classmethod
+    def create(
+        cls, session: Session, auto_commit=True, **kwargs
+    ) -> Optional[ModelType]:
+        obj = cls()
+        for col in obj.all_columns():
+            col_name = col.name
+            if col_name in kwargs:
+                setattr(obj, col_name, kwargs.get(col_name))
+        session.add(obj)
+        session.flush()
+        if auto_commit:
+            session.commit()
+        # session.refresh(obj)
+        return obj
+
+
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"
@@ -258,7 +326,7 @@ class Usage(Base, BaseMixin):
     email = Column(String(length=255), nullable=False)
     status_code = Column(Integer, nullable=False)
 
-class Dataset(Base):
+class Dataset(Base, WooriBaseMixin):
     __tablename__ = 'dataset'
 
     dataset_pkey = Column(Integer, primary_key=True)
@@ -269,7 +337,7 @@ class Dataset(Base):
     image = relationship('Image', back_populates='dataset')
 
 
-class Model(Base):
+class Model(Base, WooriBaseMixin):
     __tablename__ = 'model'
 
     model_pkey = Column(Integer, primary_key=True)
@@ -284,7 +352,7 @@ class Model(Base):
     category = relationship('Category', back_populates='model')
 
 
-class Category(Base):
+class Category(Base, WooriBaseMixin):
     __tablename__ = 'category'
 
     category_pkey = Column(Integer, primary_key=True)
@@ -297,7 +365,7 @@ class Category(Base):
     image = relationship('Image', back_populates='category')
 
 
-class Image(Base):
+class Image(Base, WooriBaseMixin):
     __tablename__ = 'image'
 
     image_pkey = Column(Integer, primary_key=True, comment='1')
@@ -313,7 +381,7 @@ class Image(Base):
     inference = relationship('Inference', back_populates='image')
 
 
-class Inference(Base):
+class Inference(Base, WooriBaseMixin):
     __tablename__ = 'inference'
     __table_args__ = {'comment': 'test1'}
 
