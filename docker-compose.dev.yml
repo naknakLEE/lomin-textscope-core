@@ -25,6 +25,17 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports: 
       - 5000:5000
+      - 5002:5002
+    volumes:
+      - ./:/workspace
+    shm_size: "16gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      - DISPLAY=$DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TERM=$TERM
     volumes:
       - ./:/workspace
     tty: true
@@ -39,7 +50,7 @@ services:
             device_ids: ['0']
             capabilities: [gpu]
     working_dir: /workspace/inference_server
-    # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -110,10 +121,11 @@ services:
     tty: true
     environment: 
       - API_ENV=production
-      - PYTHONPATH=/workspace/${CUSTOMER}_wrapper
+      - PYTHONPATH=/workspace/kakaobank_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
+      - CUSTOMER=kakaobank
+    working_dir: /workspace/kakaobank_wrapper/kakaobank_wrapper/app
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 

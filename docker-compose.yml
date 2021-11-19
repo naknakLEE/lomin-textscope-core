@@ -283,24 +283,9 @@ services:
 
 
 volumes: 
-  prometheus_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/prometheus_data
-  grafana_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/grafana_data
-  mysql_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/mysql_data
+  prometheus_data: {}
+  grafana_data: {}
+  mysql_data: {}
 
 networks:
   our_net:
