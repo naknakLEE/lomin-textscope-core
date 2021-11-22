@@ -93,9 +93,10 @@ def insert_inference_result(db: Session, task_id: str, inference_result: json, i
         )
     '''
     try:
-        db.add(schema.Inference(task_id = task_id, inferenec_result = inferenec_result, inference_type = inference_type, image_pkey = image_pkey))
+        db.add(schema.Inference(task_id = task_id, inference_result = inference_result, inference_type = inference_type, image_pkey = image_pkey))
         db.commit()  
-    except:
+    except Exception as ex:
+        print(f"error {ex}")
         db.rollback()
         return False
     return True
@@ -113,16 +114,10 @@ def insert_image(db: Session, **kwargs):
     return res.image_pkey
 
 def insert_inference_image(db: Session, **kwargs):
-    '''
-        #TODO sql 작성
-    '''
-    try:
-        db.add(schema.Inference(**kwargs))
-        db.commit()  
-    except:
-        db.rollback()
-        return False
-    return True
+    res = schema.Image.create(db, **kwargs)
+    return res.image_pkey
+
+    
     
 def select_category(db: Session, dataset_id: str):
     '''
@@ -174,3 +169,52 @@ def select_inference_all(db: Session):
     res = query.all()
     return res
 
+
+def select_category_pkey(db: Session, dataset_id: str):
+    '''
+    SELECT  
+        DISTINCT category_pkey 
+    FROM  
+        image 
+    WHERE 
+        dataset_pkey IN 
+            (
+                SELECT  
+                    dataset_pkey 
+                FROM 
+                    dataset 
+                WHERE 
+                    dataset_id = 'b0839c1c-7099-4743-901c-b4d66e173e97'
+            )
+    '''
+    dataset_pkeys = db\
+        .query(schema.Dataset.dataset_pkey)\
+        .select_from(schema.Dataset)\
+        .filter(schema.Dataset.dataset_id == dataset_id)\
+        .all()
+
+    category_pkeys = db\
+        .query(schema.Image.category_pkey)\
+        .select_from(schema.Image)\
+        .filter(schema.Image.dataset_pkey.in_(dataset_pkeys))\
+        .distinct()\
+        .all()
+
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+        .filter(schema.Category.category_pkey.in_(category_pkeys))\
+
+
+    res_category = query.all()
+    return res_category
+
+def select_inference_image(db: Session, task_id: str):
+    query = db\
+        .query(schema.Inference, schema.Image)\
+        .select_from(schema.Inference)\
+        .join(schema.Image, schema.Inference.image_pkey == schema.Image.image_pkey)\
+        .filter(schema.Inference.task_id == task_id)\
+
+    res = query.all()
+    return res
