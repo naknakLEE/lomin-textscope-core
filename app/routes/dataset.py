@@ -16,6 +16,7 @@ from app.utils.logging import logger
 from app import models
 from sqlalchemy.orm import Session
 from app.utils.utils import cal_time_elapsed_seconds
+from app.database import query
 
 
 settings = get_settings()
@@ -54,6 +55,32 @@ def upload_cls_training_dataset(
         # @TODO: image file load and check file validation, integrity
     
     # @TODO: db insert dataset info
+    dao_dataset_params = {
+        'dataset_id': inputs.get('dataset_id'), 
+        'root_path': str(images_path),
+        'zip_file_name': zip_file_name     
+        }
+    dataset_pkey, dataset_id = query.insert_training_dataset(session, **dao_dataset_params)
+    categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
+    for category in categories:
+        dao_category_params = {
+            'category_name_en': category.name,
+            'category_code': 'A01'
+        }
+        category_pkey = query.insert_category(session, **dao_category_params)
+
+        for image in images:
+            if str(image).find(category.name) != -1:
+                dao_image_params = {
+                    'image_id': 'uuu',
+                    'image_path': str(image),
+                    'category_pkey': category_pkey,
+                    'dataset_pkey': dataset_pkey,
+                    'image_type': 'training'
+                }
+                image_pkey = query.insert_image(session, **dao_image_params)
+            
+
     
     # validation inspect image files
     for image in images:
@@ -90,21 +117,16 @@ def get_cls_train_dataset(
     response_log = dict()
 
     # @TODO: select db by dataset_id
-    
-    datasets = [
-        models.Dataset(
-            image_id='df31ea8a-f6ed-4783-ae10-b307903b6028',
-            category_id='GV_CBR',
-            category_name='사업자등록증',
-            filename='myfilename.jpg'
-        ),
-        models.Dataset(
-            image_id='4f55adc2-74ec-4ab3-b5f9-560477e2e3cd',
-            category_id='GV_CBR',
-            category_name='사업자등록증',
-            filename='myCBRname.jpg'
-        )
-    ]
+    dao_object = query.select_category(session, dataset_id)
+
+    datasets = []
+    for do in dao_object:
+        datasets.append(models.Dataset(
+            image_id=do.Image.image_id,
+            category_id=do.Category.category_name_en,
+            category_name=do.Category.category_name_en,
+            filename=(do.Image.image_path).split("/")[-1]
+        ))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -123,13 +145,16 @@ def get_cls_train_dataset(
 
 @router.delete('/cls')
 def delete_cls_train_dataset(
-    
+    dataset_id: str,
+    session: Session = Depends(db.session)
 ) -> JSONResponse:
     response = dict()
     request_datetime = datetime.now()
     response_log = dict()
     
     # @TODO: set is_visible flag false in db
+    # delete visiable 작업 필요 
+    res = query.delete_dataset(session, dataset_id)
     
     # delete image file
     # test를 위한 임시 dataset directory path

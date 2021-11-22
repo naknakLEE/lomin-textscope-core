@@ -100,32 +100,18 @@ def insert_inference_result(db: Session, task_id: str, inference_result: json, i
         return False
     return True
 
-def insert_training_dataset(db: Session, task_id: str, inferenec_result: json, inference_type: str, image_pkey: int):
-    '''
-            INSERT INTO
-            inference
-        (
-            task_id,
-            inference_result,
-            inference_type,
-            image_pkey
-        )
-        VALUES
-        (
-            'test1',
-            '{"test" : "test"}',
-            'gocr',
-            1
-        )
-    '''
-    try:
-        db.add(schema.Inference(task_id = task_id, inferenec_result = inferenec_result, inference_type = inference_type, image_pkey = image_pkey))
-        db.commit()  
-    except:
-        db.rollback()
-        return False
-    return True
-    
+def insert_training_dataset(db: Session, **kwargs):
+    res = schema.Dataset.create(db, **kwargs)
+    return res.dataset_pkey, res.dataset_id
+
+def insert_category(db: Session, **kwargs):
+    res = schema.Category.create(db, **kwargs)
+    return res.category_pkey
+
+def insert_image(db: Session, **kwargs):
+    res = schema.Image.create(db, **kwargs)
+    return res.image_pkey
+
 def insert_inference_image(db: Session, **kwargs):
     '''
         #TODO sql 작성
@@ -138,3 +124,43 @@ def insert_inference_image(db: Session, **kwargs):
         return False
     return True
     
+def select_category(db: Session, dataset_id: str):
+    '''
+    select 
+        * 
+    from
+        dataset
+    join 
+        image
+        on
+            image.dataset_pkey = dataset.dataset_pkey
+    join
+        category
+        on
+            category.category_pkey = image.category_pkey
+    where dataset_id = 'eeee'
+
+    '''
+
+    query = db\
+        .query(schema.Dataset, schema.Image, schema.Category)\
+        .select_from(schema.Dataset)\
+        .join(schema.Image, schema.Image.dataset_pkey == schema.Dataset.dataset_pkey)\
+        .join(schema.Category, schema.Category.category_pkey == schema.Image.category_pkey)\
+        .filter(schema.Dataset.dataset_id == dataset_id)\
+        
+    res = query.all()
+    return res
+
+def delete_dataset(db: Session, dataset_id: str):
+    try:
+        query = db\
+            .query(schema.Dataset)\
+            .filter_by(dataset_id=dataset_id).delete()
+        return True
+    except Exception as ex:
+        print(ex)
+        return False
+        
+    
+
