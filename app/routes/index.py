@@ -96,7 +96,12 @@ def upload_image(
     is_exist = save_path.exists()
     if is_exist:
         # @TODO: image data insert into db
-        pass
+        dao_image_params = {
+                    'image_id': image_id,
+                    'image_path': str(save_path),
+                    'image_type': 'inference'
+                }
+        image_pkey = query.insert_image(session, **dao_image_params)
     else:
         # @TODO: file not saved
         pass
