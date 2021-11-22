@@ -317,6 +317,9 @@ class RecificationOption(BaseModel):
     rotation_90n: bool = False
     rotation_fine: bool = False
 
+class BaseFileResponse(BaseResponse):
+     file: bytes  # 파일 첨부
+
 class ParamPostUploadClsTrainDataset(BaseModel):
     file: bytes  # 파일 첨부
     dataset_id: str = "ea67a273-cb29-4c79-9739-708bf6085720" # UUID 형식의 데이터셋 ID
