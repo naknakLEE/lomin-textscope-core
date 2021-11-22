@@ -2,6 +2,7 @@ import requests
 import base64
 import zipfile
 import os
+import uuid
 
 from pathlib import Path
 from datetime import datetime
@@ -72,7 +73,7 @@ def upload_cls_training_dataset(
         for image in images:
             if str(image).find(category.name) != -1:
                 dao_image_params = {
-                    'image_id': 'uuu',
+                    'image_id': str(uuid.uuid4()),
                     'image_path': str(image),
                     'category_pkey': category_pkey,
                     'dataset_pkey': dataset_pkey,
