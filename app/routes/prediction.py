@@ -16,6 +16,7 @@ from app.utils.logging import logger
 from app import models
 from sqlalchemy.orm import Session
 from app.utils.utils import cal_time_elapsed_seconds
+from app.database import query
 
 
 settings = get_settings()
@@ -30,6 +31,16 @@ def get_all_prediction(
     request_datetime = datetime.now()
     
     # @TODO: select all prediction data
+    dao_result_list = query.select_inference_all(session)
+    for res in dao_result_list:
+        doc_type =  models.DocType(
+            code= res.Category.category_code,
+            name= res.Category.category_name_kr,
+            confidence=0.98,
+            is_hint_used=False,
+            is_hint_trusted=False
+        )
+
     doc_type = models.DocType(
         code="A01",
         name="주민등록증",

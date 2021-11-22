@@ -164,3 +164,13 @@ def delete_dataset(db: Session, dataset_id: str):
         
     
 
+def select_inference_all(db: Session):
+    query = db\
+        .query(schema.Inference, schema.Image, schema.Category)\
+        .select_from(schema.Inference)\
+        .join(schema.Image, schema.Image.image_pkey == schema.Inference.image_pkey)\
+        .join(schema.Category, schema.Category.category_pkey == schema.Image.category_pkey)
+
+    res = query.all()
+    return res
+
