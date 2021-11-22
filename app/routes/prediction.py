@@ -30,6 +30,8 @@ def get_all_prediction(
     response_log = dict()
     request_datetime = datetime.now()
     
+    # @TODO: select all image ids
+    
     # @TODO: select all prediction data
     dao_result_list = query.select_inference_all(session)
     for res in dao_result_list:
@@ -96,17 +98,36 @@ def get_all_prediction(
         ),
     ]
     
+    test_image_paths = [
+        '/test/file/test_file_image1.jpg',
+        '/test/file/test_file_image2.jpg'
+    ]
+    
+    """Query
+    SELECT inference.*, image.image_path as image_path
+    FROM inference
+    LEFT JOIN image on image.image_pkey = inference.image_pkey;
+    """
+    
     predictions = [
-        models.PredictionResponse(
-            doc_type=doc_type,
-            key_values=key_values,
-            texts=texts
-        ),
-        models.PredictionResponse(
-            doc_type=doc_type,
-            key_values=key_values,
-            texts=texts
-        ),
+        {
+            "image_path": test_image_paths[0],
+            "inference_result": models.PredictionResponse(
+                doc_type=doc_type,
+                key_values=key_values,
+                texts=texts
+            ),
+            "inference_type": "gocr"
+        },
+        {
+            "image_path": test_image_paths[1],
+            "inference_result": models.PredictionResponse(
+                doc_type=doc_type,
+                key_values=key_values,
+                texts=texts
+            ),
+            "inference_type": "kv"
+        }
     ]
     
     response_datetime = datetime.now()
