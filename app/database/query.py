@@ -33,6 +33,39 @@ def select_image(db: Session, image_id: str):
     res = query.all()
     return res
 
+def select_image_by_pkey(db: Session, image_pkey: str):
+    query = db\
+        .query(schema.Image)\
+        .select_from(schema.Image)\
+        .filter(schema.Image.image_pkey == image_pkey)
+    res = query.first()
+    return res
+
+def select_image_all(db: Session):
+    '''
+    SELECT
+        *
+    FROM
+        image
+    '''
+    query = db\
+        .query(schema.Image)\
+        .select_from(schema.Image)
+        
+    res = query.all()
+    return res
+
+def select_inference_by_type(
+    db: Session,
+    inference_type: str
+):
+    query = db\
+        .query(schema.Inference)\
+        .select_from(schema.Inference)\
+        .filter(schema.Inference.inference_type == inference_type)
+    res = query.all()
+    return res
+
 def select_dataset(db: Session, dataset_id: str):
     '''
     SELECT
