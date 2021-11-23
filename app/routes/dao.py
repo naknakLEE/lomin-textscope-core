@@ -4,7 +4,7 @@ from app.common.const import get_settings
 from app.database.connection import db
 from app.database import query
 from app.utils.logging import logger
-from app.database.schema import Image, Dataset, Model
+from app.database.schema import Image, Dataset, Model, Inference
 from sqlalchemy.orm import Session
 import json
 
