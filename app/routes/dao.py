@@ -32,6 +32,11 @@ def insert_image(data: Dict = Body(...),  db: Session = Depends(db.session)):
     logger.info(f"create image data: {data}")
     return Image.create(db, **data)
 
+@router.patch("/update/image")
+def update_image(data: Dict = Body(...), db: Session = Depends(db.session)):
+    logger.info(f"update image data: {data}")
+    return Image.image_update(db, **data)
+
 @router.post("/create/dataset")
 def insert_dataset(data: Dict = Body(...),  db: Session = Depends(db.session)):
     logger.info(f"create dataset data: {data}")
