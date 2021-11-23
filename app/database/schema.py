@@ -266,6 +266,16 @@ class WooriBaseMixin:
         session.flush()
         session.commit()
         return model
+    
+    @classmethod
+    def image_update(cls, session: Session, **kwargs) -> Any:
+        image_id = kwargs["image_id"]
+        model = session.query(cls).filter(cls.image_id == image_id).first()
+        for key, value in kwargs.items():
+            setattr(model, key, value)
+        session.flush()
+        session.commit()
+        return model
 
     @classmethod
     def create(
@@ -384,12 +394,12 @@ class Inference(Base, WooriBaseMixin):
     inference_pkey = Column(Integer, primary_key=True)
     task_id = Column(String(50), nullable=False)
     inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
-    create_datetime = Column(DateTime)
+    create_datetime = Column(DateTime, nullable=True)
     inference_result = Column(JSON)
     image_pkey = Column(ForeignKey('image.image_pkey'))
-    start_datetime = Column(DateTime)
-    finsh_datetime = Column(DateTime)
-    inference_img_path = Column(String(200))
+    start_datetime = Column(DateTime, nullable=True)
+    finsh_datetime = Column(DateTime, nullable=True)
+    inference_img_path = Column(String(200), nullable=True)
 
     image = relationship('Image', back_populates='inference')
 
