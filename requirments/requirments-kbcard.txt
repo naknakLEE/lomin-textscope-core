@@ -22,3 +22,6 @@ psycopg2-binary==2.9.2
 # for authentication
 passlib==1.7.4
 python-jose==3.3.0
+pandas
+numpy
+openpyxl
