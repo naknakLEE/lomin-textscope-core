@@ -52,6 +52,14 @@ def get_all_prediction(
         is_hint_trusted=False
     )
     
+    test_doc_type = models.DocType(
+        code="A02",
+        name="통장사본",
+        confidence=0.98,
+        is_hint_used=False,
+        is_hint_trusted=False
+    )
+    
     bbox = models.Bbox(
         x=123.0,
         y=321.0,
@@ -82,6 +90,29 @@ def get_all_prediction(
         ),
     ]
     
+    test_key_values = [
+        models.KeyValue(
+            id="kv-001",
+            key="주소",
+            confidence=0.78,
+            text_ids=['txt-0001'],
+            text="서울시 성동구",
+            bbox=bbox,
+            is_hint_used=False,
+            is_hint_trusted=False
+        ),
+        models.KeyValue(
+            id="kv-002",
+            key="계좌번호",
+            confidence=0.83,
+            text_ids=['txt-0002'],
+            text="110-234-234623",
+            bbox=bbox,
+            is_hint_used=True,
+            is_hint_trusted=False
+        ),
+    ]
+    
     texts = [
         models.Text(
             id="txt-0001",
@@ -93,6 +124,23 @@ def get_all_prediction(
         models.Text(
             id="txt-0002",
             text="김철수",
+            bbox=bbox,
+            confidence=0.94,
+            kv_ids=['kv-002']
+        ),
+    ]
+    
+    test_texts = [
+        models.Text(
+            id="txt-0001",
+            text="신한은행",
+            bbox=bbox,
+            confidence=0.87,
+            kv_ids=['kv-001']
+        ),
+        models.Text(
+            id="txt-0002",
+            text="통장발급",
             bbox=bbox,
             confidence=0.94,
             kv_ids=['kv-002']
@@ -113,9 +161,7 @@ def get_all_prediction(
     predictions = [
         {
             "image_path": test_image_paths[0],
-            "inference_result": models.PredictionResponse(
-                doc_type=doc_type,
-                key_values=key_values,
+            "inference_result": models.BaseTextsResponse(
                 texts=texts
             ),
             "inference_type": "gocr"
@@ -123,9 +169,9 @@ def get_all_prediction(
         {
             "image_path": test_image_paths[1],
             "inference_result": models.PredictionResponse(
-                doc_type=doc_type,
-                key_values=key_values,
-                texts=texts
+                doc_type=test_doc_type,
+                key_values=test_key_values,
+                texts=test_texts
             ),
             "inference_type": "kv"
         }
