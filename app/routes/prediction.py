@@ -17,6 +17,7 @@ from app import models
 from sqlalchemy.orm import Session
 from app.utils.utils import cal_time_elapsed_seconds
 from app.database import query
+from app.utils.utils import load_image2base64
 
 
 settings = get_settings()

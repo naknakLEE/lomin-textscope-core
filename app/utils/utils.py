@@ -1,8 +1,12 @@
+import base64
+
 from typing import Dict, Union
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from os import environ
 
+from io import BytesIO
+from PIL import Image
 from app.common.const import get_settings
 from datetime import datetime
 
@@ -39,3 +43,12 @@ def cal_time_elapsed_seconds(start: datetime, end: datetime) -> str:
     elapsed = end - start
     sec, microsec = elapsed.seconds, round(elapsed.microseconds / 1_000_000, 3)
     return f'{sec + microsec}'
+
+
+def load_image2base64(img_path):
+    buffered = BytesIO()
+    pil_image = Image.open(img_path)
+    image_convert_rgb = pil_image.convert("RGB")
+    image_convert_rgb.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()) 
+    return img_str
