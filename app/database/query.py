@@ -218,3 +218,12 @@ def select_inference_image(db: Session, task_id: str):
 
     res = query.all()
     return res
+
+def select_gocr_inference_from_taskid(db: Session, task_id: str):
+    query = db\
+        .query(schema.Inference)\
+        .select_from(schema.Inference)\
+        .filter(schema.Inference.task_id == task_id)\
+    
+    res = query.all()
+    return res
