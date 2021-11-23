@@ -21,6 +21,7 @@ sqlalchemy-utils==0.37.8
 gunicorn==20.1.0
 async-exit-stack==1.0.1
 psycopg2-binary==2.9.2
+pandas==1.1.5
 
 # for development mode
 fastapi_cprofile==0.0.2     

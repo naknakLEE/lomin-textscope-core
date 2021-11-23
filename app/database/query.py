@@ -150,7 +150,14 @@ def insert_inference_image(db: Session, **kwargs):
     res = schema.Image.create(db, **kwargs)
     return res.image_pkey
 
-    
+def select_inference_img_path_from_taskid(db: Session, task_id: str):
+    query = db\
+        .query(schema.Visualize.inference_img_path)\
+        .select_from(schema.Visualize)\
+        .filter(schema.Visualize.task_id == task_id)\
+        
+    res = query.first()
+    return res
     
 def select_category(db: Session, dataset_id: str):
     '''
