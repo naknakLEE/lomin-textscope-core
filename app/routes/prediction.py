@@ -2,6 +2,8 @@ import requests
 import base64
 import zipfile
 import os
+import pandas as pd
+import json
 
 from pathlib import Path
 from datetime import datetime
@@ -30,152 +32,114 @@ def get_all_prediction(
     response = dict()
     response_log = dict()
     request_datetime = datetime.now()
+    predictions = list()
+    
+    local_category_path = Path(settings.CATEGORY_PATH).joinpath('categories.csv')
+    categories = dict()
+    csv_file = pd.read_csv(local_category_path)
+    for name, pkey, *_ in zip(*[csv_file[k] for k in csv_file.columns]):
+        categories[name] = pkey
+        categories[pkey] = name
     
     # @TODO: select all image ids
+    gocr_results = query.select_inference_by_type(session, inference_type='gocr')
+    kv_results = query.select_inference_by_type(session, inference_type='kv')
     
-    # @TODO: select all prediction data
-    dao_result_list = query.select_inference_all(session)
-    for res in dao_result_list:
-        doc_type =  models.DocType(
-            code= res.Category.category_code,
-            name= res.Category.category_name_kr,
-            confidence=0.98,
-            is_hint_used=False,
-            is_hint_trusted=False
+    for gocr_res in gocr_results:
+        inference_result = gocr_res.inference_result
+        inference_type = gocr_res.inference_type
+        image_pkey = gocr_res.image_pkey
+        image = query.select_image_by_pkey(session, image_pkey=image_pkey)
+        if image.category_pkey is None:
+            continue
+        image_path = image.image_path
+        
+        prediction = dict(
+            image_path=image_path,
+            inference_result=dict(
+                texts=inference_result.get('texts')
+            ),
+            inference_type=inference_type
         )
-
-    doc_type = models.DocType(
-        code="A01",
-        name="주민등록증",
-        confidence=0.98,
-        is_hint_used=False,
-        is_hint_trusted=False
-    )
-    
-    test_doc_type = models.DocType(
-        code="A02",
-        name="통장사본",
-        confidence=0.98,
-        is_hint_used=False,
-        is_hint_trusted=False
-    )
-    
-    bbox = models.Bbox(
-        x=123.0,
-        y=321.0,
-        w=111.2,
-        h=222.3
-    )
-    
-    key_values = [
-        models.KeyValue(
-            id="kv-001",
-            key="주소",
-            confidence=0.78,
-            text_ids=['txt-0001'],
-            text="서울특별시 서초구 서초대로 396",
-            bbox=bbox,
-            is_hint_used=False,
-            is_hint_trusted=False
-        ),
-        models.KeyValue(
-            id="kv-002",
-            key="생년월일",
-            confidence=0.83,
-            text_ids=['txt-0002'],
-            text="1993-12-05",
-            bbox=bbox,
-            is_hint_used=True,
-            is_hint_trusted=False
-        ),
-    ]
-    
-    test_key_values = [
-        models.KeyValue(
-            id="kv-001",
-            key="주소",
-            confidence=0.78,
-            text_ids=['txt-0001'],
-            text="서울시 성동구",
-            bbox=bbox,
-            is_hint_used=False,
-            is_hint_trusted=False
-        ),
-        models.KeyValue(
-            id="kv-002",
-            key="계좌번호",
-            confidence=0.83,
-            text_ids=['txt-0002'],
-            text="110-234-234623",
-            bbox=bbox,
-            is_hint_used=True,
-            is_hint_trusted=False
-        ),
-    ]
-    
-    texts = [
-        models.Text(
-            id="txt-0001",
-            text="홍길동",
-            bbox=bbox,
-            confidence=0.87,
-            kv_ids=['kv-001']
-        ),
-        models.Text(
-            id="txt-0002",
-            text="김철수",
-            bbox=bbox,
-            confidence=0.94,
-            kv_ids=['kv-002']
-        ),
-    ]
-    
-    test_texts = [
-        models.Text(
-            id="txt-0001",
-            text="신한은행",
-            bbox=bbox,
-            confidence=0.87,
-            kv_ids=['kv-001']
-        ),
-        models.Text(
-            id="txt-0002",
-            text="통장발급",
-            bbox=bbox,
-            confidence=0.94,
-            kv_ids=['kv-002']
-        ),
-    ]
-    
-    test_image_paths = [
-        '/test/file/test_file_image1.jpg',
-        '/test/file/test_file_image2.jpg'
-    ]
-    
-    """Query
-    SELECT inference.*, image.image_path as image_path
-    FROM inference
-    LEFT JOIN image on image.image_pkey = inference.image_pkey;
-    """
-    
-    predictions = [
-        {
-            "image_path": test_image_paths[0],
-            "inference_result": models.BaseTextsResponse(
+        predictions.append(prediction)
+        
+    for kv_res in kv_results:
+        inference_result = kv_res.inference_result
+        inference_type = kv_res.inference_type
+        classes = list(set(inference_result.get('classes', [])))
+        image_pkey = kv_res.image_pkey
+        image = query.select_image_by_pkey(session, image_pkey=image_pkey)
+        if image.category_pkey is None:
+            continue
+        image_path = image.image_path
+        image_category = categories[image.category_pkey]
+        logger.info(f'image_category {image_category}')
+        kv = inference_result.get('kv', {})
+        key_values = list()
+        texts = list()
+        
+        for cls in classes:
+            kv_data = kv.get(f'{cls}_pred')
+            key_value_model = models.KeyValue(
+                id='test_id',
+                key=cls,
+                confidence=kv_data.get('score'),
+                text_ids=[kv_data.get('class')],
+                text=kv_data.get('text'),
+                bbox=models.Bbox(
+                    x=kv_data.get('box')[0],
+                    y=kv_data.get('box')[1],
+                    w=kv_data.get('box')[2],
+                    h=kv_data.get('box')[3],
+                ),
+                is_hint_used=False,
+                is_hint_trusted=False
+            )
+            key_values.append(key_value_model)
+            texts.append(kv_data.get(cls))
+                
+        prediction = dict(
+            image_path=image_path,
+            inference_result=dict(
+                doc_type=image_category,
+                key_values=key_values,
                 texts=texts
             ),
-            "inference_type": "gocr"
-        },
-        {
-            "image_path": test_image_paths[1],
-            "inference_result": models.PredictionResponse(
-                doc_type=test_doc_type,
-                key_values=test_key_values,
-                texts=test_texts
-            ),
-            "inference_type": "kv"
-        }
-    ]
+            inference_type=inference_type
+        )
+        predictions.append(prediction)
+        
+        
+    
+    # @TODO: select all prediction data
+    # dao_result_list = query.select_inference_all(session)
+    # for res in dao_result_list:
+    #     doc_type =  models.DocType(
+    #         code= res.Category.category_code,
+    #         name= res.Category.category_name_kr,
+    #         confidence=0.98,
+    #         is_hint_used=False,
+    #         is_hint_trusted=False
+    #     )
+    
+    # predictions = [
+    #     {
+    #         "image_path": test_image_paths[0],
+    #         "inference_result": models.BaseTextsResponse(
+    #             texts=texts
+    #         ),
+    #         "inference_type": "gocr"
+    #     },
+    #     {
+    #         "image_path": test_image_paths[1],
+    #         "inference_result": models.PredictionResponse(
+    #             doc_type=test_doc_type,
+    #             key_values=test_key_values,
+    #             texts=test_texts
+    #         ),
+    #         "inference_type": "kv"
+    #     }
+    # ]
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -251,11 +215,14 @@ def get_cls_kv_prediction(
         finished_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     )
     
-    image = None
-    
     if visualize:
         # @TODO: load image file
-        image = 'encoded str by base64'
+        image = Path("/workspace/assets/dumy_images.jpg").open('rb')
+        file_data = image.read()
+        encoded_file_data = base64.b64encode(file_data)
+        image = encoded_file_data
+    else:
+        image = None
     
     response_datetime=datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -308,11 +275,15 @@ def get_cls_kv_prediction(
     )
     
     # @TODO: select image file from db
-    image = None
     
     if visualize:
         # @TODO: load image file
-        image = image
+        image = Path("/workspace/assets/dumy_images.jpg").open('rb')
+        file_data = image.read()
+        encoded_file_data = base64.b64encode(file_data)
+        image = encoded_file_data
+    else:
+        image = None
     
     response_datetime=datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
