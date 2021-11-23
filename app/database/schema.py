@@ -258,18 +258,14 @@ class WooriBaseMixin:
         return obj
 
     @classmethod
-    def update(cls, session: Session, *, db_obj: User, obj_in: UserInDB) -> Any:
-        current_user_email = db_obj.email
-        obj_in.hashed_password = get_password_hash(obj_in.password)
-        obj_data = jsonable_encoder(db_obj)
-        user = session.query(cls).filter(cls.email == current_user_email).first()
-        for field in obj_data:
-            field_value = getattr(obj_in, field) if hasattr(obj_in, field) else None
-            if field_value is not None:
-                setattr(user, field, field_value)
+    def update(cls, session: Session, *, obj_in) -> Any:
+        task_id = obj_in["task_id"]
+        model = session.query(cls).filter(cls.task_id == task_id).first()
+        for key, value in obj_in.items():
+            setattr(model, key, value)
         session.flush()
         session.commit()
-        return user
+        return model
 
     @classmethod
     def create(
@@ -393,9 +389,19 @@ class Inference(Base, WooriBaseMixin):
     image_pkey = Column(ForeignKey('image.image_pkey'))
     start_datetime = Column(DateTime)
     finsh_datetime = Column(DateTime)
-    inference_img_path = Column(String(50))
+    inference_img_path = Column(String(200))
 
     image = relationship('Image', back_populates='inference')
+
+
+class Visualize(Base, WooriBaseMixin):
+    __tablename__ = 'visualize'
+    __table_args__ = {"extend_existing": True}
+
+    visualize_pkey = Column(Integer, primary_key=True, autoincrement=True)
+    task_id = Column(String(50), nullable=False)
+    inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
+    inference_img_path = Column(String(200), nullable=False)
 
 
 '''

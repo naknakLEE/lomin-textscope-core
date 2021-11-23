@@ -4,9 +4,8 @@ from app.common.const import get_settings
 from app.database.connection import db
 from app.database import query
 from app.utils.logging import logger
-from app.database.schema import Image, Dataset, Model, Inference
+from app.database.schema import Image, Dataset, Model, Inference, Visualize
 from sqlalchemy.orm import Session
-import json
 
 settings = get_settings()
 router = APIRouter()
@@ -43,10 +42,15 @@ def insert_model(data: Dict = Body(...),  db: Session = Depends(db.session)):
     logger.info(f"create model data: {data}")
     return Model.create(db, **data)
 
+@router.post("/create/visualize")
+def insert_visualize(data: Dict = Body(...),  db: Session = Depends(db.session)):
+    logger.info(f"create visualize data: {data}")
+    return Visualize.create(db, **data)
+
 @router.post("/insert/inference_img_path")
 def insert_img_path(data: Dict = Body(...),  db: Session = Depends(db.session)):
     logger.info(f"insert infernece_img_path: {data}")
-    return Inference.update(db, **data)
+    return Inference.update(session=db, obj_in=data)
 
 @router.get("/select/category_pkey")
 def select_category_pkey(dataset_id: str,  db: Session = Depends(db.session)):
