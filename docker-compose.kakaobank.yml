@@ -5,7 +5,7 @@ services:
     image: mysql:8.0.25
     container_name: mysql
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ${DATA_PATH}/mysql_data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
@@ -172,6 +172,8 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
+    ports:
+      - 18090:80
     networks:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
@@ -211,7 +213,7 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./.env:/etc/prometheus/.env
-      - prometheus_data:/prometheus
+      - ${DATA_PATH}/prometheus_data:/prometheus
     entrypoint: /bin/prometheus
     command: 
       - --config.file=/etc/prometheus/prometheus.yml
@@ -242,7 +244,7 @@ services:
     image: grafana/grafana:8.1.4-ubuntu
     container_name: grafana
     volumes: 
-      - grafana_data:/var/lib/grafana
+      - ${DATA_PATH}/grafana_data:/var/lib/grafana
       - ./ldap/grafana.ini:/etc/grafana/grafana.ini
       - ./ldap/ldap.toml:/etc/grafana/ldap.toml
     depends_on: 
@@ -254,25 +256,7 @@ services:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
 
-volumes: 
-  prometheus_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/prometheus_data
-  grafana_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/grafana_data
-  mysql_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/mysql_data
+
 networks:
   our_net:
     ipam:

@@ -1,74 +1,11 @@
 version: '2.3'
 
 services:
-  # management1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-management
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndb_mgmd
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_MANAGEMENT_IP_ADDR}
-    
-  # ndb1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-ndb1
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndbd
-  #   depends_on: 
-  #     - management1
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_NDB1_IP_ADDR}
-
-  # ndb2:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-ndb2
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndbd
-  #   depends_on:
-  #     - management1
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_NDB2_IP_ADDR}
-    
-  # mysql1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.conf
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-  #     MYSQL_DATABASE: ${CUSTOMER}
-  #     MYSQL_USER: ${CUSTOMER}
-  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-  #     MYSQL_ROOT_HOST: '%'
-  #     # - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-  #     # - TZ=Asia/Seoul
-  #   command: mysqld
-  #   depends_on:
-  #     - management1
-  #     - ndb1
-  #     - ndb2
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_IP_ADDR}
-
-
   mysql1:
     image: mysql:8.0.25
     container_name: mysql
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ${DATA_PATH}/mysql_data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
@@ -175,6 +112,8 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
+    ports:
+      - 18090:80
     networks:
       our_net:
         ipv4_address: ${NGINX_IP_ADDR}
@@ -211,7 +150,7 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./.env:/etc/prometheus/.env
-      - prometheus_data:/prometheus
+      - ${DATA_PATH}/prometheus_data:/prometheus
     entrypoint: /bin/prometheus
     command: 
       - --config.file=/etc/prometheus/prometheus.yml
@@ -239,9 +178,9 @@ services:
     image: grafana/grafana:8.1.4-ubuntu
     container_name: grafana
     volumes: 
-      - grafana_data:/var/lib/grafana
       - ./ldap/grafana.ini:/etc/grafana/grafana.ini
       - ./ldap/ldap.toml:/etc/grafana/ldap.toml
+      - ${DATA_PATH}/grafana_data:/var/lib/grafana
     depends_on: 
       - prometheus
     restart: always
@@ -262,27 +201,6 @@ services:
     networks:
       our_net:
           ipv4_address: ${OPENLDAP_IP_ADDR}
-
-
-volumes: 
-  prometheus_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/prometheus_data
-  grafana_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/grafana_data
-  mysql_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/mysql_data
 
 networks:
   our_net:
