@@ -9,6 +9,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
+from pathlib import Path
 
 from app.database.connection import db
 from app.common.const import get_settings
@@ -251,11 +252,19 @@ def get_cls_kv_prediction(
         finished_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     )
     
+    inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[0]
+    # inference_img_paths = inference_img_path.split(".")[-1]
+
+    inference_img_path = Path(inference_img_path)
+    inference_img_path = str(inference_img_path.parents[0]) + '/' + inference_img_path.stem + '_debug' + inference_img_path.suffix
+    img_str = load_image2base64(inference_img_path)
+
+    # @TODO: select image file from db
     image = None
     
     if visualize:
         # @TODO: load image file
-        image = 'encoded str by base64'
+        image = img_str
     
     response_datetime=datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -307,8 +316,15 @@ def get_cls_kv_prediction(
         finished_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     )
     
+    
+    inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[0]
+    inference_img_path = Path(inference_img_path)
+    inference_img_path = str(inference_img_path.parents[0]) + '/' + inference_img_path.stem + '_debug' + inference_img_path.suffix
+
+    img_str = load_image2base64(inference_img_path)
+
     # @TODO: select image file from db
-    image = None
+    image = img_str
     
     if visualize:
         # @TODO: load image file
