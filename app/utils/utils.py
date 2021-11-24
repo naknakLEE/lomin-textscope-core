@@ -44,6 +44,8 @@ def cal_time_elapsed_seconds(start: datetime, end: datetime) -> str:
     sec, microsec = elapsed.seconds, round(elapsed.microseconds / 1_000_000, 3)
     return f'{sec + microsec}'
 
+def basic_time_formatter(target_time: str):
+    return target_time.replace('.', '-', 2).replace('.', '', 1)[:-3]
 
 def load_image2base64(img_path):
     buffered = BytesIO()
