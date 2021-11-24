@@ -205,10 +205,6 @@ def get_cls_kv_prediction(
     )
     
     inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[0]
-    # inference_img_paths = inference_img_path.split(".")[-1]
-
-    inference_img_path = Path(inference_img_path)
-    inference_img_path = str(inference_img_path.parents[0]) + '/' + inference_img_path.stem + '_debug' + inference_img_path.suffix
     img_str = load_image2base64(inference_img_path)
 
     image = None
@@ -266,9 +262,6 @@ def get_cls_kv_prediction(
     
     
     inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[0]
-    inference_img_path = Path(inference_img_path)
-    inference_img_path = str(inference_img_path.parents[0]) + '/' + inference_img_path.stem + '_debug' + inference_img_path.suffix
-
     img_str = load_image2base64(inference_img_path)
 
     image = None
