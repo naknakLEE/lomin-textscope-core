@@ -264,6 +264,17 @@ def select_gocr_inference_from_taskid(db: Session, task_id: str):
         .query(schema.Inference)\
         .select_from(schema.Inference)\
         .filter(schema.Inference.task_id == task_id)\
+        .filter(schema.Inference.inference_type == 'gocr')
     
     res = query.all()
+    return res
+
+def select_kv_inference_from_taskid(db: Session, task_id:str):
+    query = db\
+        .query(schema.Inference)\
+        .select_from(schema.Inference)\
+        .filter(schema.Inference.task_id == task_id)\
+        .filter(schema.Inference.inference_type == 'kv')
+    
+    res = query.first()
     return res
