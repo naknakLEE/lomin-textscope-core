@@ -42,7 +42,6 @@ def get_all_prediction(
         categories[name] = pkey
         categories[pkey] = name
     
-    # @TODO: select all image ids
     gocr_results = query.select_inference_by_type(session, inference_type='gocr')
     kv_results = query.select_inference_by_type(session, inference_type='kv')
     
@@ -85,7 +84,6 @@ def get_all_prediction(
     for kv_res in kv_results:
         inference_result = kv_res.inference_result
         inference_type = kv_res.inference_type
-        classes = list(set(inference_result.get('classes', [])))
         image_pkey = kv_res.image_pkey
         image = query.select_image_by_pkey(session, image_pkey=image_pkey)
         if image.category_pkey not in categories.keys():
@@ -177,7 +175,6 @@ def get_cls_kv_prediction(
     kv_result = query.select_kv_inference_from_taskid(session, task_id=task_id)
     inference_type = kv_result.inference_type
     inference_result = kv_result.inference_result
-    classes = inference_result.get('classes')
     response_log = inference_result.get('response_log')
     started_datetime = basic_time_formatter(response_log.get('time_textscope_request'))
     finished_datetime = basic_time_formatter(response_log.get('time_textscope_response'))
@@ -194,10 +191,10 @@ def get_cls_kv_prediction(
     texts = list()
     
     inference_result = kv_result.inference_result
-    kv_results = inference_result.get("kv", {})
+    kv = inference_result.get("kv", {})
 
     key_values = list()
-    for key, value in kv_results.items():
+    for key, value in kv.items():
         if not key.endswith("_pred"): continue
         bbox = models.Bbox(
             x=value["box"][0],
