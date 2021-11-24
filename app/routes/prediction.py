@@ -20,7 +20,7 @@ from app import models
 from sqlalchemy.orm import Session
 from app.utils.utils import cal_time_elapsed_seconds
 from app.database import query
-from app.utils.utils import load_image2base64
+from app.utils.utils import load_image2base64, basic_time_formatter
 
 
 settings = get_settings()
@@ -109,38 +109,6 @@ def get_all_prediction(
             inference_type=inference_type
         )
         predictions.append(prediction)
-        
-        
-    
-    # @TODO: select all prediction data
-    # dao_result_list = query.select_inference_all(session)
-    # for res in dao_result_list:
-    #     doc_type =  models.DocType(
-    #         code= res.Category.category_code,
-    #         name= res.Category.category_name_kr,
-    #         confidence=0.98,
-    #         is_hint_used=False,
-    #         is_hint_trusted=False
-    #     )
-    
-    # predictions = [
-    #     {
-    #         "image_path": test_image_paths[0],
-    #         "inference_result": models.BaseTextsResponse(
-    #             texts=texts
-    #         ),
-    #         "inference_type": "gocr"
-    #     },
-    #     {
-    #         "image_path": test_image_paths[1],
-    #         "inference_result": models.PredictionResponse(
-    #             doc_type=test_doc_type,
-    #             key_values=test_key_values,
-    #             texts=test_texts
-    #         ),
-    #         "inference_type": "kv"
-    #     }
-    # ]
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -169,41 +137,61 @@ def get_cls_kv_prediction(
     response = dict()
     response_log = dict()
     
+    kv_result = query.select_kv_inference_from_taskid(session, task_id=task_id)
+    inference_type = kv_result.inference_type
+    inference_result = kv_result.inference_result
+    classes = inference_result.get('classes')
+    response_log = inference_result.get('response_log')
+    started_datetime = basic_time_formatter(response_log.get('time_textscope_request'))
+    finished_datetime = basic_time_formatter(response_log.get('time_textscope_response'))
+    kv = inference_result.get(inference_type)
+    
     doc_type = models.DocType(
-        code='A01',
-        name='주민등록증',
+        code=inference_result.get('doc_type').split('_')[0],
+        name=inference_result.get('doc_type').split('_')[-1],
         confidence=0.93,
         is_hint_used=False,
         is_hint_trusted=False
     )
-    bbox = models.Bbox(
-        x=123.0,
-        y=452.0,
-        w=113.3,
-        h=342.2
-    )
-    key_value = models.KeyValue(
-        id='kv-001',
-        key='주소',
-        confidence=0.93,
-        text_ids=['txt-0001'],
-        text='서울특별시 서초구 서초대로 396',
-        bbox=bbox,
-        is_hint_used=False,
-        is_hint_trusted=False
-    )
-    text = models.Text(
-        id='txt-0001',
-        text='홍길동',
-        bbox=bbox,
-        confidence=0.4326,
-        kv_ids=['kv-001']
-    )
-    # @TODO: select prediction result from db
+    key_values = list()
+    texts = list()
+    
+    for cls in set(classes):
+        kv_data = kv.get(f'{cls}_pred')
+        key_value = models.KeyValue(
+            id='test_id',
+            key=cls,
+            confidence=kv_data.get('score'),
+            text_ids=[kv_data.get('class')],
+            text=kv_data.get('value'),
+            bbox=models.Bbox(
+                x=kv_data.get('box')[0],
+                y=kv_data.get('box')[1],
+                w=kv_data.get('box')[2],
+                h=kv_data.get('box')[3],
+            ),
+            is_hint_used=False,
+            is_hint_trusted=False
+        )
+        text = models.Text(
+            id='test_id',
+            text=kv_data.get('text'),
+            bbox=models.Bbox(
+                x=kv_data.get('box')[0],
+                y=kv_data.get('box')[1],
+                w=kv_data.get('box')[2],
+                h=kv_data.get('box')[3],
+            ),
+            confidence=kv_data.get('score'),
+            kv_ids=[kv_data.get('class')]
+        )
+        key_values.append(key_value)
+        texts.append(text)
+        
     prediction = models.PredictionResponse(
         doc_type=doc_type,
-        key_values=[key_value],
-        texts=[text]
+        key_values=key_values,
+        texts=texts
     )
     
     # @TODO: select task status from db
@@ -212,8 +200,8 @@ def get_cls_kv_prediction(
         status_code='ST-TRN-CLS-0003',
         status_message='학습 task 완료',
         progress=1.0,
-        started_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-        finished_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        started_datetime=started_datetime,
+        finished_datetime=finished_datetime
     )
     
     inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[0]
@@ -223,11 +211,9 @@ def get_cls_kv_prediction(
     inference_img_path = str(inference_img_path.parents[0]) + '/' + inference_img_path.stem + '_debug' + inference_img_path.suffix
     img_str = load_image2base64(inference_img_path)
 
-    # @TODO: select image file from db
     image = None
     
     if visualize:
-        # @TODO: load image file
         image = img_str
     
     response_datetime=datetime.now()
@@ -261,9 +247,7 @@ def get_cls_kv_prediction(
     response = dict()
     response_log = dict()
     
-    text = models.Text(
-        
-    )
+    text = models.Text()
     
     # @TODO: select prediction result from db
     prediction = models.BaseTextsResponse(
@@ -287,15 +271,10 @@ def get_cls_kv_prediction(
 
     img_str = load_image2base64(inference_img_path)
 
-    # @TODO: select image file from db
-    image = img_str
+    image = None
     
     if visualize:
-        # @TODO: load image file
-        image = Path("/workspace/assets/dumy_images.jpg").open('rb')
-        file_data = image.read()
-        encoded_file_data = base64.b64encode(file_data)
-        image = encoded_file_data
+        image = img_str
     else:
         image = None
     
