@@ -51,14 +51,32 @@ def get_all_prediction(
         inference_type = gocr_res.inference_type
         image_pkey = gocr_res.image_pkey
         image = query.select_image_by_pkey(session, image_pkey=image_pkey)
-        if image.category_pkey is None:
+        if image.category_pkey not in categories.keys():
             continue
         image_path = image.image_path
+        
+        texts = list()
+        for text_, box_, score_, class_ in zip(inference_result["texts"], inference_result["boxes"], inference_result["scores"], inference_result["classes"]):
+            bbox = models.Bbox(
+                x=box_[0],
+                y=box_[1],
+                w=box_[2] - box_[0],
+                h=box_[3] - box_[1],
+            )
+            # TODO: kv_ids 매핑 필요
+            text = models.Text(
+                id=class_,
+                text=text_,
+                bbox=bbox,
+                confidence=score_,
+                kv_ids=[class_]
+            )
+            texts.append(text)
         
         prediction = dict(
             image_path=image_path,
             inference_result=dict(
-                texts=inference_result.get('texts')
+                texts=texts
             ),
             inference_type=inference_type
         )
@@ -70,7 +88,7 @@ def get_all_prediction(
         classes = list(set(inference_result.get('classes', [])))
         image_pkey = kv_res.image_pkey
         image = query.select_image_by_pkey(session, image_pkey=image_pkey)
-        if image.category_pkey is None:
+        if image.category_pkey not in categories.keys():
             continue
         image_path = image.image_path
         image_category = categories[image.category_pkey]
@@ -79,25 +97,44 @@ def get_all_prediction(
         key_values = list()
         texts = list()
         
-        for cls in classes:
-            kv_data = kv.get(f'{cls}_pred')
-            key_value_model = models.KeyValue(
-                id='test_id',
-                key=cls,
-                confidence=kv_data.get('score'),
-                text_ids=[kv_data.get('class')],
-                text=kv_data.get('text'),
-                bbox=models.Bbox(
-                    x=kv_data.get('box')[0],
-                    y=kv_data.get('box')[1],
-                    w=kv_data.get('box')[2],
-                    h=kv_data.get('box')[3],
-                ),
-                is_hint_used=False,
-                is_hint_trusted=False
+        for key, value in kv.items():
+            if not key.endswith("_pred"): continue
+            bbox = models.Bbox(
+                x=value["box"][0],
+                y=value["box"][1],
+                w=value["box"][2] - value["box"][0],
+                h=value["box"][3] - value["box"][1],
             )
-            key_values.append(key_value_model)
-            texts.append(kv_data.get(cls))
+            # TODO: key, kv_ids 매핑 필요
+            key_value = models.KeyValue(
+                id=value["class"],
+                key=key,
+                confidence=value["score"],
+                text=value["value"],
+                bbox=bbox,
+                is_hint_used=False,
+                is_hint_trusted=False,
+            )
+            key_values.append(key_value)
+
+        texts = list()
+        for text_, box_, score_, class_ in zip(inference_result["texts"], inference_result["boxes"], inference_result["scores"], inference_result["classes"]):
+            bbox = models.Bbox(
+                x=box_[0],
+                y=box_[1],
+                w=box_[2] - box_[0],
+                h=box_[3] - box_[1],
+            )
+            # TODO: kv_ids 매핑 필요
+            text = models.Text(
+                id=class_,
+                text=text_,
+                bbox=bbox,
+                confidence=score_,
+                kv_ids=[class_]
+            )
+            texts.append(text)
+
                 
         prediction = dict(
             image_path=image_path,
@@ -156,37 +193,29 @@ def get_cls_kv_prediction(
     key_values = list()
     texts = list()
     
-    for cls in set(classes):
-        kv_data = kv.get(f'{cls}_pred')
-        key_value = models.KeyValue(
-            id='test_id',
-            key=cls,
-            confidence=kv_data.get('score'),
-            text_ids=[kv_data.get('class')],
-            text=kv_data.get('value'),
-            bbox=models.Bbox(
-                x=kv_data.get('box')[0],
-                y=kv_data.get('box')[1],
-                w=kv_data.get('box')[2],
-                h=kv_data.get('box')[3],
-            ),
-            is_hint_used=False,
-            is_hint_trusted=False
+    inference_result = kv_result.inference_result
+    kv_results = inference_result.get("kv", {})
+
+    key_values = list()
+    for key, value in kv_results.items():
+        if not key.endswith("_pred"): continue
+        bbox = models.Bbox(
+            x=value["box"][0],
+            y=value["box"][1],
+            w=value["box"][2] - value["box"][0],
+            h=value["box"][3] - value["box"][1],
         )
-        text = models.Text(
-            id='test_id',
-            text=kv_data.get('text'),
-            bbox=models.Bbox(
-                x=kv_data.get('box')[0],
-                y=kv_data.get('box')[1],
-                w=kv_data.get('box')[2],
-                h=kv_data.get('box')[3],
-            ),
-            confidence=kv_data.get('score'),
-            kv_ids=[kv_data.get('class')]
+        # TODO: key, kv_ids 매핑 필요
+        key_value = models.KeyValue(
+            id=value["class"],
+            key=key,
+            confidence=value["score"],
+            text=value["value"],
+            bbox=bbox,
+            is_hint_used=False,
+            is_hint_trusted=False,
         )
         key_values.append(key_value)
-        texts.append(text)
         
     prediction = models.PredictionResponse(
         doc_type=doc_type,
