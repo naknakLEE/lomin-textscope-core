@@ -77,7 +77,6 @@ def app_generator() -> FastAPI:
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
     app.include_router(dataset.router, tags=["Training dataset"], prefix="/dataset/training")
-    app.include_router(categories.router, tags=["model categories"], prefix="/model")
     app.include_router(prediction.router, tags=["Prediction Result"], prefix="/prediction")
     app.include_router(dao.router, tags=["Dao"], prefix="/dao")
 

@@ -35,13 +35,6 @@ def get_all_prediction(
     request_datetime = datetime.now()
     predictions = list()
     
-    local_category_path = Path(settings.CATEGORY_PATH).joinpath('categories.csv')
-    categories = dict()
-    csv_file = pd.read_csv(local_category_path)
-    for name, pkey, *_ in zip(*[csv_file[k] for k in csv_file.columns]):
-        categories[name] = pkey
-        categories[pkey] = name
-    
     gocr_results = query.select_inference_by_type(session, inference_type='gocr')
     kv_results = query.select_inference_by_type(session, inference_type='kv')
     
@@ -50,8 +43,6 @@ def get_all_prediction(
         inference_type = gocr_res.inference_type
         image_pkey = gocr_res.image_pkey
         image = query.select_image_by_pkey(session, image_pkey=image_pkey)
-        if image.category_pkey not in categories.keys():
-            continue
         image_path = image.image_path
         
         texts = list()
@@ -86,11 +77,9 @@ def get_all_prediction(
         inference_type = kv_res.inference_type
         image_pkey = kv_res.image_pkey
         image = query.select_image_by_pkey(session, image_pkey=image_pkey)
-        if image.category_pkey not in categories.keys():
-            continue
+        category = query.select_category_by_pkey(session, category_pkey=image.category_pkey)
         image_path = image.image_path
-        image_category = categories[image.category_pkey]
-        logger.info(f'image_category {image_category}')
+        image_category = category.category_name_en
         kv = inference_result.get('kv', {})
         key_values = list()
         texts = list()

@@ -1,6 +1,7 @@
 import json
 from requests.sessions import session
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 
 from app import models
@@ -103,6 +104,7 @@ def select_category(db: Session, model_id: str):
         .select_from(schema.Category)\
         .join(schema.Model, schema.Category.model_pkey == schema.Model.model_pkey)\
         .filter(schema.Model.model_id == model_id)\
+        .filter(schema.Category.is_pretrained == False)
         
     res = query.all()
     return res
@@ -275,6 +277,60 @@ def select_kv_inference_from_taskid(db: Session, task_id:str):
         .select_from(schema.Inference)\
         .filter(schema.Inference.task_id == task_id)\
         .filter(schema.Inference.inference_type == 'kv')
+    
+    res = query.first()
+    return res
+
+def select_category_all(db: Session):
+    '''
+    SELECT
+        *
+    FROM
+        category
+    '''
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+    
+    res = query.all()
+    return res
+
+def select_category_by_name(db: Session, category_name:str) -> int:
+    '''
+    SELECT
+        category_pkey
+    FROM
+        category
+    WHERE
+        category_name_en = {category_name}
+        or
+        category_name_kr = {category_name}
+    '''
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+        .filter(
+            or_(
+                schema.Category.category_name_en == category_name,
+                schema.Category.category_name_kr == category_name
+            )
+        )
+    
+    res = query.first()
+    return res.category_pkey
+
+def select_category_by_pkey(db: Session, category_pkey: int) -> str:
+    '''
+    SELECT
+        *
+    FROM
+        category
+    WHERE category_pkey = {category_pkey}
+    '''
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+        .filter(schema.Category.category_pkey == category_pkey)
     
     res = query.first()
     return res

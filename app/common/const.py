@@ -176,7 +176,7 @@ class Settings(BaseSettings):
     # FILE CONFIG
     ZIP_PATH: str
     IMG_PATH: str
-    CATEGORY_PATH: str
+    SUPPORTSET_PATH: str
     IMAGE_VALIDATION: List = [
         'jpg',
         'png',

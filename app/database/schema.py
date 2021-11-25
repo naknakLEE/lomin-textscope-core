@@ -366,6 +366,7 @@ class Category(Base, WooriBaseMixin):
     category_name_kr = Column(String(50), comment='주민등록등본')
     model_pkey = Column(ForeignKey('model.model_pkey'))
     category_code = Column(String(50))
+    is_pretrained = Column(Boolean)
 
     model = relationship('Model', back_populates='category')
     image = relationship('Image', back_populates='category')
