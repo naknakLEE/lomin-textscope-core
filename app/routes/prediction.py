@@ -85,7 +85,7 @@ def get_all_prediction(
         texts = list()
         
         for key, value in kv.items():
-            if not key.endswith("_pred"): continue
+            if not key.endswith("_pred") or not value: continue
             bbox = models.Bbox(
                 x=value["box"][0],
                 y=value["box"][1],
@@ -184,7 +184,7 @@ def get_cls_kv_prediction(
 
     key_values = list()
     for key, value in kv.items():
-        if not key.endswith("_pred"): continue
+        if not key.endswith("_pred") or not value: continue
         bbox = models.Bbox(
             x=value["box"][0],
             y=value["box"][1],

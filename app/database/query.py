@@ -211,6 +211,15 @@ def select_inference_all(db: Session):
     res = query.all()
     return res
 
+def delete_inference_all(db: Session):
+    try:
+        query = db\
+            .query(schema.Inference).delete()
+    except Exception as ex:
+        print(ex)
+        db.rollback()
+        return False
+    return True
 
 def select_category_pkey(db: Session, dataset_id: str):
     '''

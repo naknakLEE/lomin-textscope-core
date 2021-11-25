@@ -22,6 +22,10 @@ def select_dataset(dataset_id: str, db: Session = Depends(db.session)):
 def select_category(model_id: str, db: Session = Depends(db.session)):
     return query.select_category(db, model_id = model_id)
 
+@router.get('/select/category/key')
+def select_category_pkey_by_name(category_name: str, db: Session = Depends(db.session)):
+    return query.select_category_by_name(db, category_name=category_name)
+
 @router.post("/insert/inference")
 def insert_inference_result(data: Dict = Body(...), db: Session = Depends(db.session)):
     logger.info(data)

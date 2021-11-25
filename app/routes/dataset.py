@@ -63,7 +63,7 @@ def upload_cls_training_dataset(
         }
     dataset_pkey, dataset_id = query.insert_training_dataset(session, **dao_dataset_params)
     new_categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
-    support_set_path = Path(settings.SUPPORTSET_PATH)
+    support_set_path = Path(settings.SUPPORT_SET_DIR)
     pretrained_categories = [d for d in support_set_path.iterdir() if d.is_dir()]
     
     exist_category_list = query.select_category_all(session)

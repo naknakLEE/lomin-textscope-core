@@ -83,6 +83,10 @@ def upload_image(
     image_id = inputs.get('image_id')
     decoded_image_data = base64.b64decode(image_data)
     
+    inference_result = query.select_inference_all(session)
+    if inference_result:
+        res = query.delete_inference_all(session)
+    
     root_path = Path(settings.IMG_PATH)
     
     base_path = root_path.joinpath(image_id)
