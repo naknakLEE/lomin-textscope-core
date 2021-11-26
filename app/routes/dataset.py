@@ -173,18 +173,15 @@ def delete_cls_train_dataset(
     request_datetime = datetime.now()
     response_log = dict()
     
-    # @TODO: set is_visible flag false in db
-    # delete visiable 작업 필요 
-    res = query.delete_dataset(session, dataset_id)
+    target_dataset = query.select_dataset(session, dataset_id=dataset_id)[0]
     
-    # delete image file
-    # test를 위한 임시 dataset directory path
-    target_path = Path('/workspace/assets/dataset/my_dataset')
+    target_path = Path(target_dataset.root_path)
+    
     is_exist = target_path.exists()
     images = list()
     if is_exist:
         images = list(target_path.glob('**/*.*'))
-        dirs = list(target_path.iterdir())
+        dirs = [d for d in target_path.iterdir() if d.is_dir()]
         response_log.update(dict(
             images=[],
             dirs=[]
@@ -209,6 +206,9 @@ def delete_cls_train_dataset(
     else:
         # @TODO: target dataset directory가 없을 경우에 대한 exception raise
         pass
+    
+    query_result = query.delete_category_cascade_image(session, dataset_pkey=target_dataset.dataset_pkey)
+    res = query.delete_dataset(session, dataset_id)
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)

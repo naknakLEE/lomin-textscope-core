@@ -1,12 +1,12 @@
 import json
 from requests.sessions import session
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 
 from app import models
 from app.database import schema
-
+from app.utils.logging import logger
 from app.database.connection import Base
 
 
@@ -131,7 +131,7 @@ def insert_inference_result(db: Session, task_id: str, inference_result: json, i
         db.add(schema.Inference(task_id = task_id, inference_result = inference_result, inference_type = inference_type, image_pkey = image_pkey))
         db.commit()  
     except Exception as ex:
-        print(f"error {ex}")
+        logger.warning(f"insert error: {ex}")
         db.rollback()
         return False
     return True
@@ -194,10 +194,13 @@ def delete_dataset(db: Session, dataset_id: str):
         query = db\
             .query(schema.Dataset)\
             .filter_by(dataset_id=dataset_id).delete()
-        return True
     except Exception as ex:
-        print(ex)
+        db.rollback()
+        logger.warning(f"delete error: {ex}")
         return False
+    
+    db.commit()
+    return True
         
     
 
@@ -216,7 +219,7 @@ def delete_inference_all(db: Session):
         query = db\
             .query(schema.Inference).delete()
     except Exception as ex:
-        print(ex)
+        logger.warning(f"delete error: {ex}")
         db.rollback()
         return False
     return True
@@ -334,7 +337,8 @@ def select_category_by_pkey(db: Session, category_pkey: int) -> str:
         *
     FROM
         category
-    WHERE category_pkey = {category_pkey}
+    WHERE 
+        category_pkey = {category_pkey}
     '''
     query = db\
         .query(schema.Category)\
@@ -343,3 +347,54 @@ def select_category_by_pkey(db: Session, category_pkey: int) -> str:
     
     res = query.first()
     return res
+
+def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
+    '''
+    DELETE FROM
+        image
+    WHERE
+        image.category_pkey = {
+            SELECT
+                category_pkey
+            FROM
+                category
+            WHERE
+                is_pretrained = False
+        }
+        image.dataset_pkey = {dataset_pkey}
+    
+    DELETE FROM
+        category
+    WHERE
+        is_pretrained = False
+    '''
+    query = db\
+        .query(schema.Category)\
+        .filter(schema.Category.is_pretrained == False)
+        
+    res = query.all()
+    
+    for category in res:
+        try:
+            q = db\
+                .query(schema.Image)\
+                .filter(
+                    and_(
+                        schema.Image.category_pkey == category.category_pkey,
+                        schema.Image.dataset_pkey == dataset_pkey
+                    )
+                ).delete()
+            logger.info(f'delete test: {category.category_pkey, q}')
+        except Exception as ex:
+            db.rollback()
+            logger.warning(f'delete error: {ex}')
+            return False
+    
+    try:
+        query.delete()
+    except Exception as ex:
+        db.rollback()
+        logger.warning(f'delete error: {ex}')
+        return False
+    db.commit()
+    return True
