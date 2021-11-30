@@ -26,6 +26,7 @@
             "business_issuedate_value": "발급일"
         },
         "통장사본": {
+            "bank_name_value": "은행명",
             "account_name_value": "예금주",
             "account_type_value": "예금종류",
             "account_num_value": "계좌번호"
