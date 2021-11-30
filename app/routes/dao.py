@@ -65,6 +65,10 @@ def insert_img_path(data: Dict = Body(...),  db: Session = Depends(db.session)):
 def select_category_pkey(dataset_id: str,  db: Session = Depends(db.session)):
     return query.select_category_pkey(db, dataset_id = dataset_id)
 
+@router.get("/select/category/all")
+def select_category_all(db: Session = Depends(db.session)):
+    return query.select_category_all(db)
+
 
 # @router.get("/select/inference_image")
 # def select_inference_image(task_id: str,  db: Session = Depends(db.session)):

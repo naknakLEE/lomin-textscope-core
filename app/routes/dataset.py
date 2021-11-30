@@ -121,6 +121,19 @@ def upload_cls_training_dataset(
     
     exist_category_list = query.select_category_all(session)
     exist_category_name_list = [category.category_name_en for category in exist_category_list]
+
+    check_category_else_flag = False
+    for exist_category in exist_category_list:
+        if exist_category.category_name_en == "기타":
+            check_category_else_flag = True
+    
+    if not check_category_else_flag:
+        dao_category_params = {
+                'category_name_en': "기타",
+                'category_code': 'P01',
+                'is_pretrained': True
+            }
+        query.insert_category(session, **dao_category_params)
     
     if not exist_category_list:
         for category in pretrained_categories:
