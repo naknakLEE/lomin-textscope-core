@@ -16,7 +16,11 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
 from sqlalchemy.orm import Session
-from app.utils.utils import cal_time_elapsed_seconds
+from app.utils.utils import (
+    cal_time_elapsed_seconds,
+    dir_structure_validation,
+    file_validation
+)
 from app.database import query
 
 
@@ -42,23 +46,72 @@ def upload_cls_training_dataset(
     with save_path.open('wb') as file:
         file.write(decoded_file)
     
-    # @TODO: Zip file load and check file integrity
-    with zipfile.ZipFile(save_path, 'r') as zip_file:
-        zip_file.extractall(save_path.parent)
+    # zip file validation
+    try:
+        with zipfile.ZipFile(save_path, 'r') as zip_file:
+            zip_file.extractall(save_path.parent)
+    except Exception as ex:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'zip file validation failed: {ex}'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
     
     zip_file_name = Path(file_name).stem
-    images_path = save_path.parent / zip_file_name
-    is_exist = images_path.exists()
-    images = list()
+    zip_folder_path = save_path.parent / zip_file_name
+    is_exist = zip_folder_path.exists()
+    if not is_exist:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'zip extraction failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
     
-    if is_exist:
-        images = list(images_path.glob('**/*.*'))
-        # @TODO: image file load and check file validation, integrity
+    # category validation
+    category_dirs = list(zip_folder_path.iterdir())
+    is_category_dirs = [d.is_dir() for d in category_dirs]
+    if not all(is_category_dirs):
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'category directory validation failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        
     
-    # @TODO: db insert dataset info
+    # sub directory validation
+    validation_result = dir_structure_validation(zip_folder_path)
+    if not validation_result:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'directory structure validation failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+    
+    # image validation
+    images = list(set(zip_folder_path.rglob('*')) - set(category_dirs))
+    file_validation_result = file_validation(images)
+    logger.info(f'file validation: {zip_file_name}, {file_validation_result}')
+    if file_validation_result:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'file validation failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        
+    
     dao_dataset_params = {
         'dataset_id': inputs.get('dataset_id'), 
-        'root_path': str(images_path),
+        'root_path': str(zip_folder_path),
         'zip_file_name': zip_file_name     
         }
     dataset_pkey, dataset_id = query.insert_training_dataset(session, **dao_dataset_params)
@@ -100,17 +153,6 @@ def upload_cls_training_dataset(
                     'image_type': 'training'
                 }
                 image_pkey = query.insert_image(session, **dao_image_params)
-            
-
-    
-    # validation inspect image files
-    for image in images:
-        category = image.stem
-        ext = image.suffix[1:] # e.g. '.jpg'
-        if ext in settings.IMAGE_VALIDATION:
-            # @TODO: db insert images info
-            pass
-    
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)

@@ -258,6 +258,7 @@ def select_category_pkey(db: Session, dataset_id: str):
         .query(schema.Category)\
         .select_from(schema.Category)\
         .filter(schema.Category.category_pkey.in_(category_pkeys))\
+        .filter(schema.Category.is_pretrained == False)\
 
 
     res_category = query.all()
