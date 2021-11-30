@@ -185,6 +185,7 @@ def get_cls_kv_prediction(
     key_values = list()
     for key, value in kv.items():
         if not key.endswith("_pred") or not value: continue
+        if 'key_pred' in key: continue
         bbox = models.Bbox(
             x=value["box"][0],
             y=value["box"][1],
