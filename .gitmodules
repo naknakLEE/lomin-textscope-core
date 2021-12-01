@@ -18,3 +18,7 @@
 	path = pp_server
 	url = git@github.com:Lomin-ai/pp_server.git
 	branch = feature/kbcard-update
+[submodule "textscope_wrapper"]
+	path = textscope_wrapper
+	url = git@github.com:Lomin-ai/textscope-wrapper.git
+	branch = heungkuklife

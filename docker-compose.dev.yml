@@ -105,7 +105,7 @@ services:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
       context: ./
-      dockerfile: docker/base/Dockerfile.wrapper
+      dockerfile: docker/base/Dockerfile.${WRAPPER_DOCKERFILE}
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -118,11 +118,11 @@ services:
     tty: true
     environment: 
       - API_ENV=production
-      - PYTHONPATH=/workspace/kakaobank_wrapper
+      - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
       - CUSTOMER=kakaobank
-    working_dir: /workspace/kakaobank_wrapper/kakaobank_wrapper/app
+    working_dir: /workspace/textscope_wrapper/textscope_wrapper/app
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 

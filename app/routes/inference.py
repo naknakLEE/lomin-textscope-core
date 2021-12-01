@@ -191,11 +191,9 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
     async with AsyncClient() as client:
         # ocr inference
         if settings.USE_OCR_PIPELINE:
-            status_code, inference_results, response_log = await ocr_inference_pipeline(
-                client=client, 
-                inputs=inputs,
-                response_log=response_log,
-            )
+            status_code = 200
+            inference_results = ''
+            response_log = ''
         else:
             status_code, inference_results, response_log = await ocr_inference(
                 client=client, 
