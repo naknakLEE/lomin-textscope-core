@@ -1,9 +1,6 @@
 version: '3.8'
 
 services:
-  # mysql1:
-  #   ports: 
-  #     - 3307:3306
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -49,8 +46,8 @@ services:
     working_dir: /workspace/inference_server
     # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
-  serving_replica:
-    image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+  # serving_replica:
+  #   image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     # volumes:
     #   - ./:/workspace
     # #   - ./app/utils/bentoml_configuration.yml:/user/home/bentoml/bentoml.yml

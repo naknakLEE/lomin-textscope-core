@@ -118,17 +118,17 @@ services:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
 
-  serving_replica:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
-    container_name: serving_replica
-    environment:
-      - CUSTOMER=${CUSTOMER}
-    restart: unless-stopped
-    cap_add:
-      - SYS_PTRACE
-    networks:
-      our_net:
-        ipv4_address: ${SERVING_REPLICA_IP_ADDR}
+  # serving_replica:
+  #   image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+  #   container_name: serving_replica
+  #   environment:
+  #     - CUSTOMER=${CUSTOMER}
+  #   restart: unless-stopped
+  #   cap_add:
+  #     - SYS_PTRACE
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${SERVING_REPLICA_IP_ADDR}
 
   web:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
@@ -176,15 +176,15 @@ services:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
     
-  multiple_gpu_load_balancing:
-    image: nginx:1.21.1
-    container_name: multiple_gpu_load_balancing
-    restart: unless-stopped
-    volumes:
-      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
-    networks:
-      our_net:
-        ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
+  # multiple_gpu_load_balancing:
+  #   image: nginx:1.21.1
+  #   container_name: multiple_gpu_load_balancing
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
    
   nginx:
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}

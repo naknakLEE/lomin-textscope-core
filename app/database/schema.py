@@ -293,248 +293,135 @@ class WooriBaseMixin:
         # session.refresh(obj)
         return obj
 
-
-
-class Users(Base, BaseMixin):
-    __tablename__ = "users"
-    __table_args__ = {"extend_existing": True}
-    username = Column(String(length=128), nullable=True)
-    email = Column(String(length=255), nullable=False)
-    hashed_password = Column(String(length=2000), nullable=True)
-    full_name = Column(String(length=128), nullable=True)
-    status = Column(Enum(StatusEnum), nullable=False, default="inactive")
-    is_superuser = Column(Boolean, nullable=False, default=False)
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        default=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
-    )
-
-
-class Logs(Base, BaseMixin):
-    __tablename__ = "logs"
-    __table_args__ = {"extend_existing": True}
-    url = Column(String(length=2000), nullable=False)
-    method = Column(String(length=255), nullable=False)
-    status_code = Column(String(length=255), nullable=False)
-    log_detail = Column(String(length=2000), nullable=True)
-    error_detail = Column(JSON, nullable=True)
-    client = Column(String(length=2000), nullable=True)
-    request_timestamp = Column(String(length=255), nullable=False)
-    response_timestamp = Column(String(length=255), nullable=False)
-    processed_time = Column(String(length=255), nullable=False)
-
-
-class Usage(Base, BaseMixin):
-    __tablename__ = "usage"
-    __table_args__ = {"extend_existing": True}
-    email = Column(String(length=255), nullable=False)
-    status_code = Column(Integer, nullable=False)
-
-class Dataset(Base, WooriBaseMixin):
-    __tablename__ = 'dataset'
-
-    dataset_pkey = Column(Integer, primary_key=True)
-    root_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop')
-    dataset_id = Column(String(50))
-    zip_file_name = Column(String(50))
-
-    image = relationship('Image', back_populates='dataset')
-
-
-class Model(Base, WooriBaseMixin):
-    __tablename__ = 'model'
-
-    model_pkey = Column(Integer, primary_key=True)
-    model_id = Column(String(50), nullable=False)
-    model_name_kr = Column(String(50))
-    model_name_en = Column(String(100))
-    model_version = Column(String(50))
-    model_path = Column(String(50))
-    model_type = Column(String(50))
-    create_datetime = Column(DateTime)
-
-    category = relationship('Category', back_populates='model')
-
-
-class Category(Base, WooriBaseMixin):
+class Category(Base):
     __tablename__ = 'category'
 
-    category_pkey = Column(Integer, primary_key=True)
-    category_name_en = Column(String(50), comment='category_a')
-    category_name_kr = Column(String(50), comment='주민등록등본')
-    model_pkey = Column(ForeignKey('model.model_pkey'))
-    category_code = Column(String(50))
-    is_pretrained = Column(Boolean)
+    category_peky = Column(Integer, primary_key=True)
+    category_name_kr = Column(String(50), comment='카테고리명_한글')
+    category_name_en = Column(String(50), comment='카테고리명_영문')
+    category_code = Column(String(50), comment='고유서식코드')
 
-    model = relationship('Model', back_populates='category')
-    image = relationship('Image', back_populates='category')
+    task = relationship('Task', back_populates='category')
 
 
-class Image(Base, WooriBaseMixin):
+class Image(Base):
     __tablename__ = 'image'
 
-    image_pkey = Column(Integer, primary_key=True, comment='1')
-    image_id = Column(String(50), nullable=False, comment='uuuu-uuuu-uuuu-uuuu')
-    image_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
-    image_type = Column(String(30), nullable=False, comment="['training', 'inference']")
-    image_description = Column(Text, comment='이미지 설명')
-    category_pkey = Column(ForeignKey('category.category_pkey'), comment='category_a, 주민등록등본')
-    dataset_pkey = Column(ForeignKey('dataset.dataset_pkey'))
+    image_pkey = Column(Integer, primary_key=True)
+    image_id = Column(String(50), nullable=False)
+    image_path = Column(String(50))
+    image_description = Column(String(50))
+    create_datetime = Column(DateTime)
 
-    category = relationship('Category', back_populates='image')
-    dataset = relationship('Dataset', back_populates='image')
-    inference = relationship('Inference', back_populates='image')
+    task = relationship('Task', back_populates='image')
 
 
-class Inference(Base, WooriBaseMixin):
+class Task(Base):
+    __tablename__ = 'task'
+
+    task_pkey = Column(Integer, primary_key=True)
+    task_id = Column(String(50), nullable=False)
+    image_pkey = Column(ForeignKey('image.image_pkey'))
+    category_peky = Column(ForeignKey('category.category_peky'))
+    create_datetime = Column(DateTime)
+
+    category = relationship('Category', back_populates='task')
+    image = relationship('Image', back_populates='task')
+    inference = relationship('Inference', back_populates='task')
+
+
+class Inference(Base):
     __tablename__ = 'inference'
-    __table_args__ = {'comment': 'test1'}
 
     inference_pkey = Column(Integer, primary_key=True)
-    task_id = Column(String(50), nullable=False)
-    inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
-    create_datetime = Column(DateTime, nullable=True)
+    inference_id = Column(String(50))
+    task_pkey = Column(ForeignKey('task.task_pkey'))
+    inference_type = Column(String(5), comment="['cls', 'kv', 'gocr', 'reco']")
+    inference_img_path = Column(String(50))
     inference_result = Column(JSON)
-    image_pkey = Column(ForeignKey('image.image_pkey'))
-    start_datetime = Column(DateTime, nullable=True)
-    finsh_datetime = Column(DateTime, nullable=True)
-    inference_img_path = Column(String(200), nullable=True)
+    start_datetime = Column(DateTime)
+    finsh_datetime = Column(DateTime)
+    create_datetime = Column(DateTime)
+    inference_sequence = Column(Integer, comment='inference 순서 1->2->3->4')
 
-    image = relationship('Image', back_populates='inference')
+    task = relationship('Task', back_populates='inference')
 
 
-class Visualize(Base, WooriBaseMixin):
-    __tablename__ = 'visualize'
-    __table_args__ = {"extend_existing": True}
 
-    visualize_pkey = Column(Integer, primary_key=True, autoincrement=True)
-    task_id = Column(String(50), nullable=False)
-    inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
-    inference_img_path = Column(String(200), nullable=False)
 
 
 '''
-﻿-- The table order was sorted considering the relationship to prevent error from occurring if all are run at once.
 
--- model Table Create SQL
-CREATE TABLE model
+-- image Table Create SQL
+CREATE TABLE image
 (
-    model_pkey         int             GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
-    model_id           varchar(50)     NOT NULL, 
-    model_name_kr      varchar(50)     NULL, 
-    model_name_en      varchar(100)    NULL, 
-    model_version      varchar(50)     NULL, 
-    model_path         varchar(50)     NULL, 
-    model_type         varchar(50)     NULL, 
-    create_datetime    timestamp       NULL, 
-     PRIMARY KEY (model_pkey)
+    image_pkey           integer        GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    image_id             varchar(50)    NOT NULL, 
+    image_path           varchar(50)    NULL, 
+    image_description    varchar(50)    NULL, 
+    create_datetime      timestamp      NULL, 
+     PRIMARY KEY (image_pkey)
 );
-
-
--- dataset Table Create SQL
-CREATE TABLE dataset
-(
-    dataset_pkey     int             GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
-    dataset_id       varchar(50)     NULL, 
-    root_path        varchar(200)    NOT NULL, 
-    zip_file_name    varchar(50)     NULL, 
-     PRIMARY KEY (dataset_pkey)
-);
-
-COMMENT ON COLUMN dataset.root_path IS '/home/ihlee/Desktop';
 
 
 -- category Table Create SQL
 CREATE TABLE category
 (
-    category_pkey       int            GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
-    category_name_en    varchar(50)    NULL, 
+    category_peky       integer        GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
     category_name_kr    varchar(50)    NULL, 
-    model_pkey          integer        NULL, 
+    category_name_en    varchar(50)    NULL, 
     category_code       varchar(50)    NULL, 
-     PRIMARY KEY (category_pkey)
+     PRIMARY KEY (category_peky)
 );
 
-COMMENT ON COLUMN category.category_name_en IS 'category_a';
+COMMENT ON COLUMN category.category_name_kr IS '카테고리명_한글';
 
-COMMENT ON COLUMN category.category_name_kr IS '주민등록등본';
+COMMENT ON COLUMN category.category_name_en IS '카테고리명_영문';
 
-COMMENT ON COLUMN category.category_code IS 'A01';
-
-ALTER TABLE category
-    ADD CONSTRAINT FK_category_model_pkey_model_model_pkey FOREIGN KEY (model_pkey)
-        REFERENCES model (model_pkey);
+COMMENT ON COLUMN category.category_code IS '고유서식코드';
 
 
--- image Table Create SQL
-CREATE TABLE image
+-- task Table Create SQL
+CREATE TABLE task
 (
-    image_pkey           int             GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
-    image_id             varchar(50)     NOT NULL, 
-    image_path           varchar(200)    NOT NULL, 
-    image_description    text            NULL, 
-    category_pkey        integer         NULL, 
-    dataset_pkey         integer         NULL, 
-    image_type           varchar(30)     NOT NULL, 
-     PRIMARY KEY (image_pkey)
+    task_pkey          integer        GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    task_id            varchar(50)    NOT NULL, 
+    image_pkey         integer        NULL, 
+    category_peky      integer        NULL, 
+    create_datetime    timestamp      NULL, 
+     PRIMARY KEY (task_pkey)
 );
 
-COMMENT ON COLUMN image.image_pkey IS '1';
+ALTER TABLE task
+    ADD CONSTRAINT FK_task_image_pkey_image_image_pkey FOREIGN KEY (image_pkey)
+        REFERENCES image (image_pkey);
 
-COMMENT ON COLUMN image.image_id IS 'uuuu-uuuu-uuuu-uuuu';
-
-COMMENT ON COLUMN image.image_path IS '/home/ihlee/Desktop/category_a/test.jpg';
-
-COMMENT ON COLUMN image.image_description IS '이미지 설명';
-
-COMMENT ON COLUMN image.category_pkey IS 'category_a, 주민등록등본';
-
-COMMENT ON COLUMN image.image_type IS '[''training'', ''inference'']';
-
-ALTER TABLE image
-    ADD CONSTRAINT FK_image_category_pkey_category_category_pkey FOREIGN KEY (category_pkey)
-        REFERENCES category (category_pkey);
-
-ALTER TABLE image
-    ADD CONSTRAINT FK_image_dataset_pkey_dataset_dataset_pkey FOREIGN KEY (dataset_pkey)
-        REFERENCES dataset (dataset_pkey);
+ALTER TABLE task
+    ADD CONSTRAINT FK_task_category_peky_category_category_peky FOREIGN KEY (category_peky)
+        REFERENCES category (category_peky);
 
 
 -- inference Table Create SQL
 CREATE TABLE inference
 (
-    inference_pkey        int            GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
-    task_id               varchar(50)    NOT NULL, 
+    inference_pkey        integer        GENERATED BY DEFAULT AS IDENTITY NOT NULL, 
+    inference_id          varchar(50)    NULL, 
+    task_pkey             integer        NULL, 
+    inference_type        varchar(5)     NULL, 
+    inference_img_path    varchar(50)    NULL, 
     inference_result      json           NULL, 
-    inference_type        varchar(5)     NOT NULL, 
-    create_datetime       timestamp      NULL, 
-    image_pkey            integer        NULL, 
     start_datetime        timestamp      NULL, 
     finsh_datetime        timestamp      NULL, 
-    inference_img_path    varchar(50)    NULL, 
+    create_datetime       timestamp      NULL, 
+    inference_sequence    integer        NULL, 
      PRIMARY KEY (inference_pkey)
 );
 
-COMMENT ON TABLE inference IS 'test1';
+COMMENT ON COLUMN inference.inference_type IS '[''cls'', ''kv'', ''gocr'', ''reco'']';
 
-COMMENT ON COLUMN inference.inference_type IS '[''kv'', ''gocr'']';
+COMMENT ON COLUMN inference.inference_sequence IS 'inference 순서 1->2->3->4';
 
 ALTER TABLE inference
-    ADD CONSTRAINT FK_inference_image_pkey_image_image_pkey FOREIGN KEY (image_pkey)
-        REFERENCES image (image_pkey);
-
-
-
+    ADD CONSTRAINT FK_inference_task_pkey_task_task_pkey FOREIGN KEY (task_pkey)
+        REFERENCES task (task_pkey);
 '''
-
-# def create_db_table() -> None:
-#     try:
-#         settings = get_settings()
-#         session = next(db.session())
-#         Base.metadata.create_all(db._engine)
-#         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
-#         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
-#     finally:
-#         session.close()

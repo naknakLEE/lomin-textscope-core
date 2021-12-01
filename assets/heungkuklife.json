@@ -1,0 +1,582 @@
+{
+    "진단서": {
+        "입원일자": { 
+            "code": "MD-MC-HTSD",
+            "name_en": "Hospitalization Treatment Start Date"
+        },
+        "상병명": { 
+            "code": "MD-MC-MDN",
+            "name_en": "Disease Name"
+        },
+        "의사명": { 
+            "code": "MD-MC-MDN",
+            "name_en": "Medical Doctor Name"
+        },
+        "상병명 및 코드": { 
+            "code": "DNC",
+            "name_en": "Disease Name and Code"
+        },
+        "퇴원일자": { 
+            "code": "MD-MC-HTED",
+            "name_en": "Hospitalization Treatment End Date"
+        },
+        "통원시작일": { 
+            "code": "MD-MC-OTSD",
+            "name_en": "Outpatient Treatment Start Date"
+        },
+        "등록번호": { 
+            "code": "MD-MC-SM",
+            "name_en": "Service Mark"
+        },
+        "병원명": { 
+            "code": "MD-MC-HN",
+            "name_en": "Hospital Name"
+        },
+        "상병코드": { 
+            "code": "MD-MC-MDC",
+            "name_en": "Disease Code"
+        },
+        "치료기간": { 
+            "code": "MD-MC-HP",
+            "name_en": "Hospital Treatment Period"
+        },
+        "병원 주소": { 
+            "code": "MD-MC-HA",
+            "name_en": "Hospital Address"
+        },
+        "발행일": { 
+            "code": "MD-MC-ID",
+            "name_en": "Issue Date"
+        },
+        "병원 전화번호 및 주소": { 
+            "code": "HTNA",
+            "name_en": "Hospital Telephone Number and Address"
+        },
+        "통원기간": { 
+            "code": "MD-MC-OTP",
+            "name_en": "Outpatient Treatment Period"
+        },
+        "연번호": { 
+            "code": "MD-MC-YN",
+            "name_en": "Year Code"
+        },
+        "입원기간": { 
+            "code": "MD-MC-HTP",
+            "name_en": "Hospitalization Treatment Period"
+        },
+        "의사면허번호": { 
+            "code": "MD-MC-DLN",
+            "name_en": "Medical Doctor's License Number"
+        },
+        "병원 전화번호": { 
+            "code": "MD-MC-HTN",
+            "name_en": "Hospital Telephone Number"
+        },
+        "환자 주소": { 
+            "code": "MD-MC-PA",
+            "name_en": "Patient Address"
+        },
+        "통원종료일": { 
+            "code": "MD-MC-OTED",
+            "name_en": "Outpatient Treatment End Date"
+        },
+        "입퇴원일자": { 
+            "code": "HTSED",
+            "name_en": "Hospitalization Treatment Start and End Date"
+        },
+        "치료시작일": { 
+            "code": "MD-MC-HSD",
+            "name_en": "Hospital Treatment Start Date"
+        },
+        "치료종료일": { 
+            "code": "MD-MC-HED",
+            "name_en": "Hospital Treatment End Date"
+        },
+        "진단일": { 
+            "code": "MD-MC-DD",
+            "name_en": "Diagonsis Date"
+        },
+        "환자명": { 
+            "code": "MD-MC-PN",
+            "name_en": "Patient Name"
+        },
+        "치료일": { 
+            "code": "MD-MC-HD",
+            "name_en": "Hospital Treatment Date"
+        }
+    },
+    "수술확인서": {
+        "치료일": { 
+            "code": "MD-CS-HTD",
+            "name_en": "Hospital Treatment Date"
+        },
+        "퇴원일자": { 
+            "code": "MD-CS-HTED",
+            "name_en": "Hospitalization Treatment End Date"
+        },
+        "진단일": { 
+            "code": "MD-CS-DD",
+            "name_en": "Diagonsis Date"
+        },
+        "입원기간": { 
+            "code": "MD-CS-HTP",
+            "name_en": "Hospitalization Treatment Period"
+        },
+        "의사면허번호": { 
+            "code": "MD-CS-DLN",
+            "name_en": "Medical Doctor's License Number"
+        },
+        "환자명": { 
+            "code": "MD-CS-PN",
+            "name_en": "Patient Address"
+        },
+        "병원 전화번호 및 주소": { 
+            "code": "HTNA",
+            "name_en": "Hospital Telephone Number and Address"
+        },
+        "상병명": { 
+            "code": "MD-CS-MDN",
+            "name_en": "Disease Name"
+        },
+        "의사명": { 
+            "code": "MD-CS-MDN",
+            "name_en": "Medical Doctor Name"
+        },
+        "등록번호": { 
+            "code": "MD-CS-SM",
+            "name_en": "Service Mark"
+        },
+        "병원 전화번호": { 
+            "code": "MD-CS-HTN",
+            "name_en": "Hospital Telephone Number"
+        },
+        "치료종료일": { 
+            "code": "MD-CS-HED",
+            "name_en": "Hospital Treatment End Date"
+        },
+        "입원일자": { 
+            "code": "MD-CS-HTSD",
+            "name_en": "Hospitalization Treatment Start Date"
+        },
+        "치료시작일": { 
+            "code": "MD-CS-HSD",
+            "name_en": "Hospital Treatment Start Date"
+        },
+        "병원 주소": { 
+            "code": "MD-CS-HA",
+            "name_en": "Hospital Address"
+        },
+        "통원종료일": { 
+            "code": "MD-CS-OTED",
+            "name_en": "Outpatient Treatment End Date"
+        },
+        "통원기간": { 
+            "code": "MD-CS-OTP",
+            "name_en": "Outpatient Treatment Period"
+        },
+        "상병명 및 코드": { 
+            "code": "DNC",
+            "name_en": "Disease Name and Code"
+        },
+        "발행일": { 
+            "code": "MD-CS-ID",
+            "name_en": "Issue Date"
+        },
+        "환자 주소": { 
+            "code": "MD-CS-PA",
+            "name_en": "Patient Name"
+        },
+        "통원시작일": { 
+            "code": "MD-CS-OTSD",
+            "name_en": "Outpatient Treatment Start Date"
+        },
+        "치료기간": { 
+            "code": "MD-CS-HP",
+            "name_en": "Hospital Treatment Period"
+        },
+        "연번호": { 
+            "code": "MD-CS-YN",
+            "name_en": "Year Code"
+        },
+        "상병코드": { 
+            "code": "MD-CS-MDC",
+            "name_en": "Disease Code"
+        },
+        "병원명": { 
+            "code": "MD-CS-HN",
+            "name_en": "Hospital Name"
+        },
+        "입퇴원일자": { 
+            "code": "HTSED",
+            "name_en": "Hospitalization Treatment Start and End Date"
+        },
+        "수술명": { 
+            "code": "MD-CS-MSN",
+            "name_en": "Medical Surgery Name"
+        },
+        "수술일자": { 
+            "code": "MD-CS-MSD",
+            "name_en": "Medical Surgery Date"
+        }
+    },
+    "통원확인서": {
+        "통원종료일": { 
+            "code": "MD-COT-OTED",
+            "name_en": "Outpatient Treatment End Date"
+        },
+        "통원기간": { 
+            "code": "MD-COT-OTP",
+            "name_en": "Outpatient Treatment Period"
+        },
+        "상병코드": { 
+            "code": "MD-COT-MDC",
+            "name_en": "Disease Code"
+        },
+        "상병명": { 
+            "code": "MD-COT-MDN",
+            "name_en": "Disease Name"
+        },
+        "환자 주소": { 
+            "code": "MD-COT-PN",
+            "name_en": "Patient Name"
+        },
+        "진단일": { 
+            "code": "MD-COT-DD",
+            "name_en": "Diagonsis Date"
+        },
+        "병원 전화번호": { 
+            "code": "MD-COT-HTN",
+            "name_en": "Hospital Telephone Number"
+        },
+        "통원시작일": { 
+            "code": "MD-COT-OTSD",
+            "name_en": "Outpatient Treatment Start Date"
+        },
+        "등록번호": { 
+            "code": "MD-COT-SM",
+            "name_en": "Service Mark"
+        },
+        "의사면허번호": { 
+            "code": "MD-COT-DLN",
+            "name_en": "Medical Doctor's License Number"
+        },
+        "상병명 및 코드": { 
+            "code": "DNC",
+            "name_en": "Disease Name and Code"
+        },
+        "의사명": { 
+            "code": "MD-COT-MDN",
+            "name_en": "Medical Doctor Name"
+        },
+        "발행일": { 
+            "code": "MD-COT-ID",
+            "name_en": "Issue Date"
+        },
+        "퇴원일자": { 
+            "code": "MD-COT-HTED",
+            "name_en": "Hospitalization Treatment End Date"
+        },
+        "환자명": { 
+            "code": "MD-COT-PA",
+            "name_en": "Patient Address"
+        },
+        "병원 주소": { 
+            "code": "MD-COT-HA",
+            "name_en": "Hospital Address"
+        },
+        "치료종료일": { 
+            "code": "MD-COT-HED",
+            "name_en": "Hospital Treatment End Date"
+        },
+        "입원기간": { 
+            "code": "MD-COT-HTP",
+            "name_en": "Hospitalization Treatment Period"
+        },
+        "연번호": { 
+            "code": "MD-COT-YN",
+            "name_en": "Year Code"
+        },
+        "병원명": { 
+            "code": "MD-COT-HN",
+            "name_en": "Hospital Name"
+        },
+        "치료시작일": { 
+            "code": "MD-COT-HSD",
+            "name_en": "Hospital Treatment Start Date"
+        },
+        "치료일": { 
+            "code": "MD-COT-HTD",
+            "name_en": "Hospital Treatment Date"
+        },
+        "입원일자": { 
+            "code": "MD-COT-HTSD",
+            "name_en": "Hospitalization Treatment Start Date"
+        },
+        "병원 주소 및 전화번호": { 
+            "code": "HTNA",
+            "name_en": "Hospital Telephone Number and Address"
+        },
+        "치료기간": { 
+            "code": "MD-COT-HP",
+            "name_en": "Hospital Treatment Period"
+        },
+        "입퇴원일자": { 
+            "code": "HTSED",
+            "name_en": "Hospitalization Treatment Start and End Date"
+        }
+    },
+    "입퇴원확인서":{
+        "의사명": { 
+            "code": "MD-CAD-MDN",
+            "name_en": "Medical Doctor Name"
+        },
+        "통원기간": { 
+            "code": "MD-CAD-OTP",
+            "name_en": "Outpatient Treatment Period"
+        },
+        "상병명": { 
+            "code": "MD-CAD-MDN",
+            "name_en": "Disease Name"
+        },
+        "병원 주소 및 전화번호": { 
+            "code": "HTNA",
+            "name_en": "Hospital Telephone Number and Address"
+        },
+        "병원 주소": { 
+            "code": "MD-CAD-HA",
+            "name_en": "Hospital Address"
+        },
+        "치료기간": { 
+            "code": "MD-CAD-HP",
+            "name_en": "Hospital Treatment Period"
+        },
+        "발행일": { 
+            "code": "MD-CAD-ID",
+            "name_en": "Issue Date"
+        },
+        "환자 주소": { 
+            "code": "MD-CAD-PA",
+            "name_en": "Patient Address"
+        },
+        "상병코드": { 
+            "code": "MD-CAD-MDC",
+            "name_en": "Disease Code"
+        },
+        "통원 종료일": { 
+            "code": "MD-CAD-OTED",
+            "name_en": "Outpatient Treatment End Date"
+        },
+        "병원 전화번호": { 
+            "code": "MD-CAD-HTN",
+            "name_en": "Hospital Telephone Number"
+        },
+        "입원 시작일": { 
+            "code": "MD-CAD-HTSD",
+            "name_en": "Hospitalization Treatment Start Date"
+        },
+        "진단일": { 
+            "code": "MD-CAD-DD",
+            "name_en": "Diagonsis Date"
+        },
+        "의사 면허번호": { 
+            "code": "MD-CAD-DLN",
+            "name_en": "Medical Doctor's License Number"
+        },
+        "치료 종료일": { 
+            "code": "MD-CAD-HED",
+            "name_en": "Hospital Treatment End Date"
+        },
+        "치료일(통원일)": { 
+            "code": "MD-CAD-HTD",
+            "name_en": "Hospital Treatment Date"
+        },
+        "등록번호": { 
+            "code": "MD-CAD-SM",
+            "name_en": "Service Mark"
+        },
+        "연번호": { 
+            "code": "MD-CAD-YN",
+            "name_en": "Year Code"
+        },
+        "입원기간": { 
+            "code": "MD-CAD-HTP",
+            "name_en": "Hospitalization Treatment Period"
+        },
+        "입원 종료일": { 
+            "code": "MD-CAD-HTED",
+            "name_en": "Hospitalization Treatment End Date"
+        },
+        "상병명 및 코드": { 
+            "code": "DNC",
+            "name_en": "Disease Name and Code"
+        },
+        "병원명": { 
+            "code": "MD-CAD-HN",
+            "name_en": "Hospital Name"
+        },
+        "치료 시작일": { 
+            "code": "MD-CAD-HSD",
+            "name_en": "Hospital Treatment Start Date"
+        },
+        "환자명": { 
+            "code": "MD-CAD-PN",
+            "name_en": "Patient Name"
+        },
+        "통원 시작일": { 
+            "code": "MD-CAD-OTSD",
+            "name_en": "Outpatient Treatment Start Date"
+        },
+        "입퇴원기간": { 
+            "code": "HTSED",
+            "name_en": "Hospitalization Treatment Start and End Date"
+        }
+    },
+    "보험금청구서":{
+        "청구사항-기타": { 
+            "code": "CNO",
+            "name_en": "Claim Note Others"
+        },
+        "실손타사가입-예": { 
+            "code": "OIY",
+            "name_en": "Other Insurance Yes"
+        },
+        "청구사항-치아": { 
+            "code": "CNS",
+            "name_en": "Claim Note Stomatology"
+        },
+        "청구사항-사고분할": { 
+            "code": "CNA",
+            "name_en": "Claim Note Accident Split"
+        },
+        "청구사항-입원": { 
+            "code": "CNH",
+            "name_en": "Claim Note Hospitalization"
+        },
+        "청구사항-통원": { 
+            "code": "CNOP",
+            "name_en": "Claim Note OutPatient"
+        },
+        "청구사항-수술": { 
+            "code": "CNS",
+            "name_en": "Claim Note Surgery"
+        },
+        "청구사항-진단": { 
+            "code": "CND",
+            "name_en": "Claim Note Diagnosis"
+        },
+        "청구유형-재해": { 
+            "code": "CTA",
+            "name_en": "Claim Type Accident"
+        },
+        "청구유형-기타": { 
+            "code": "CTO",
+            "name_en": "Claim Type Others"
+        },
+        "청구유형-교통재해": { 
+            "code": "CTT",
+            "name_en": "Claim Type Transport"
+        },
+        "청구범위-일부청구": { 
+            "code": "CRP",
+            "name_en": "Claim Range Partical"
+        },
+        "청구유형-질병": { 
+            "code": "CTD",
+            "name_en": "Claim Type Disease"
+        },
+        "청구사항-재해사망": { 
+            "code": "CNAD",
+            "name_en": "Claim Note Accident Death"
+        },
+        "실손타사가입-아니오": { 
+            "code": "OIN",
+            "name_en": "Other Insurance No"
+        },
+        "청구범위-전체청구": { 
+            "code": "CRT",
+            "name_en": "Claim Range Total"
+        },
+        "청구사항-일반사망": { 
+            "code": "CNGD",
+            "name_en": "Claim Note General Death"
+        },
+        "청구사항-장해": { 
+            "code": "CNO",
+            "name_en": "Claim Note Obstacle"
+        },
+        "청구사항-실손": { 
+            "code": "CNI",
+            "name_en": "Claim Note Indemnity"
+        }
+    },
+    "처방전": {
+        "의사면허번호": { 
+            "code": "MD-PRS-LN",
+            "name_en": "License Number"
+        },
+        "요양기관번호": { 
+            "code": "MD-PRS-MIB",
+            "name_en": "Medical Institution numBer"
+        },
+        "상병코드": { 
+            "code": "MD-PRS-DCC",
+            "name_en": "Disease Classification Code"
+        },
+        "의사명": { 
+            "code": "MDN",
+            "name_en": "Medical Doctor Name"
+        },
+        "처방의약품및코드": { 
+            "code": "PMNC",
+            "name_en": "Prescription Medicine Name and Code"
+        },
+        "병원주소": { 
+            "code": "MD-PRS-MIA",
+            "name_en": "Medical Institution Address"
+        },
+        "1일 투여횟수": { 
+            "code": "MD-PRS-DDC",
+            "name_en": "Daily Dosage Count"
+        },
+        "처방의약품": { 
+            "code": "MD-PRS-PMN",
+            "name_en": "Prescription Medicine Name"
+        },
+        "주민등록번호": { 
+            "code": "MD-PRS-PRN",
+            "name_en": "Patient Registration Number"
+        },
+        "교부번호": { 
+            "code": "MD-PRS-DN",
+            "name_en": "Delivery Number"
+        },
+        "병원명": { 
+            "code": "MD-PRS-MIM",
+            "name_en": "Medical Institution naMe"
+        },
+        "병원전화번호": { 
+            "code": "MD-PRS-MIT",
+            "name_en": "Medical Institution Telephone Number"
+        },
+        "교부일": { 
+            "code": "MD-PRS-DLD",
+            "name_en": "Delivery Date"
+        },
+        "1회 투약량": { 
+            "code": "MD-PRS-DSG",
+            "name_en": "Dosage"
+        },
+        "총투약일수": { 
+            "code": "MD-PRS-TDD",
+            "name_en": "Total Dosage Days"
+        },
+        "처방의약품코드": { 
+            "code": "PMC",
+            "name_en": "Prescription Medicine Code"
+        },
+        "환자명": { 
+            "code": "MD-PRS-PN",
+            "name_en": "Patient Name"
+        }
+    }
+}

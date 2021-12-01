@@ -16,7 +16,7 @@ from pydantic.networks import EmailStr
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app.database.schema import Users
+# from app.database.schema import Users
 from app.models import TokenData, User, UserInDB
 from app.common.const import get_settings
 from app.errors import exceptions as ex
@@ -40,32 +40,32 @@ def get_password_hash(password) -> str:
     return pwd_context.hash(password)
 
 
-def get_user(email: EmailStr, session: Session) -> UserInDB:
-    user = is_email_exist(email, session)
-    if user:
-        user_dict = {
-            "username": user.username,
-            "full_name": user.full_name,
-            "email": user.email,
-            "status": user.status,
-            "is_superuser": user.is_superuser,
-            "hashed_password": user.hashed_password,
-        }
-        return UserInDB(**user_dict)
+# def get_user(email: EmailStr, session: Session) -> UserInDB:
+#     user = is_email_exist(email, session)
+#     if user:
+#         user_dict = {
+#             "username": user.username,
+#             "full_name": user.full_name,
+#             "email": user.email,
+#             "status": user.status,
+#             "is_superuser": user.is_superuser,
+#             "hashed_password": user.hashed_password,
+#         }
+#         return UserInDB(**user_dict)
 
 
-def is_username_exist(username: str, session: Session) -> Any:
-    user = Users.get(session=session, username=username)
-    if user:
-        return user
-    return False
+# def is_username_exist(username: str, session: Session) -> Any:
+#     user = Users.get(session=session, username=username)
+#     if user:
+#         return user
+#     return False
 
 
-def is_email_exist(email: EmailStr, session: Session) -> Any:
-    user = Users.get(session=session, email=email)
-    if user:
-        return user
-    return False
+# def is_email_exist(email: EmailStr, session: Session) -> Any:
+#     user = Users.get(session=session, email=email)
+#     if user:
+#         return user
+#     return False
 
 
 def authenticate_user(email: EmailStr, password: str, session: Session) -> Any:
