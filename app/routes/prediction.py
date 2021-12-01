@@ -250,7 +250,7 @@ def get_cls_kv_prediction(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 @router.get("/gocr")
-def get_cls_kv_prediction(
+def get_gocr_prediction(
     task_id: str,
     visualize: bool,
     session: Session = Depends(db.session)
