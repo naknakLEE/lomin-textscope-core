@@ -192,14 +192,32 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
         # ocr inference
         if settings.USE_OCR_PIPELINE:
             status_code = 200
-            inference_results = ''
-            response_log = ''
-        else:
-            status_code, inference_results, response_log = await ocr_inference(
-                client=client, 
-                inputs=inputs,
-                response_log=response_log,
+            inference_results = dict(
+                doc_type='HKL01-CTM-Others'
             )
+            response_log = dict()
+        else:
+            status_code = 200
+            inference_results = dict(
+                boxes=[
+                    [356, 2789, 525, 2938]
+                ],
+                classes=[
+                    "beneficiary_eng_name"
+                ],
+                scores=[
+                    0.3715095520019531
+                ],
+                texts=[
+                    "asdf"
+                ],
+                id_type='test id type',
+                image_height=4032,
+                image_width=3024,
+                model_name='test model',
+                doc_type='test doc type'
+            )
+            response_log = dict()
         if status_code < 200 or status_code >= 400:
             return set_json_response(code="3000", message="모델 서버 문제 발생")
 

@@ -2,6 +2,7 @@ import requests
 import time
 import base64
 
+from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -69,6 +70,36 @@ def check_status() -> Any:
     )
     return JSONResponse(content=jsonable_encoder(status))
 
+@router.get('/image')
+def get_image(
+    path: str,
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    response = dict()
+    response_log = dict()
+    request_datetime = datetime.now()
+    
+    # @TODO: select image_id by image path
+    image_id = str(uuid4())
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed
+    ))
+    
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+        image_id=image_id
+    ))
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
 @router.post('/image')
 def upload_image(
     request: dict = Body(...),
@@ -78,37 +109,11 @@ def upload_image(
     response = dict()
     response_log = dict()
     request_datetime = datetime.now()
-    image_data = inputs.get('file')
-    image_name = inputs.get('file_name')
+
     image_id = inputs.get('image_id')
-    decoded_image_data = base64.b64decode(image_data)
+    path = inputs.get('path')
     
-    inference_result = query.select_inference_all(session)
-    if inference_result:
-        res = query.delete_inference_all(session)
-    
-    root_path = Path(settings.IMG_PATH)
-    
-    base_path = root_path.joinpath(image_id)
-    base_path.mkdir(parents=True, exist_ok=True)
-    
-    save_path = base_path.joinpath(image_name)
-    
-    with save_path.open('wb') as file:
-        file.write(decoded_image_data)
-        
-    is_exist = save_path.exists()
-    if is_exist:
-        # @TODO: image data insert into db
-        dao_image_params = {
-                    'image_id': image_id,
-                    'image_path': str(save_path),
-                    'image_type': 'inference'
-                }
-        image_pkey = query.insert_image(session, **dao_image_params)
-    else:
-        # @TODO: file not saved
-        pass
+    # @TODO: image data insert into db
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
