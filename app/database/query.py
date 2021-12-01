@@ -1,7 +1,7 @@
 import json
 from requests.sessions import session
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, desc
 
 
 from app import models
@@ -289,7 +289,9 @@ def select_kv_inference_from_taskid(db: Session, task_id:str):
         .query(schema.Inference)\
         .select_from(schema.Inference)\
         .filter(schema.Inference.task_id == task_id)\
-        .filter(schema.Inference.inference_type == 'kv')
+        .filter(schema.Inference.inference_type == 'kv')\
+        .order_by(desc(schema.Inference.inference_pkey))\
+        .limit(1)
     
     res = query.first()
     return res
