@@ -17,83 +17,71 @@ from app.utils.logging import logger
 """
 
 # TODO: move to json file
-inference_pipeline_list = {    
+inference_pipeline_list = {
     "heungkuk": {
         "general_detection": {
             "model_name": "agamotto",
             "route_name": "agamotto",
-            "module_name": "detection"
+            "module_name": "detection",
         },
         "kv_detection": {
             "model_name": None,
             "route_name": "duriel",
-            "module_name": "detection"
+            "module_name": "detection",
         },
         "classification": {
             "model_name": "duriel",
             "route_name": "duriel",
-            "module_name": "classification"
+            "module_name": "classification",
         },
         "recognition": {
             "model_name": "tiamo",
             "route_name": "tiamo",
-            "module_name": "recognition"
+            "module_name": "recognition",
         },
         "sequence": {
             "kv": ["general_detection", "recognition", "classification", "kv_detection"]
-        }
-        
+        },
     },
     "lomin": {
         "general_detection": {
             "model_name": "detection",
             "route_name": "detection",
-            "module_name": "detection"
+            "module_name": "detection",
         },
         "classification": {
             "model_name": "classification",
             "route_name": "classification",
-            "module_name": "classification"
+            "module_name": "classification",
         },
         "recognition": {
             "model_name": "recognition",
             "route_name": "recognition",
-            "module_name": "recognition"
+            "module_name": "recognition",
         },
-        "sequence": {
-            "kv": ["classification", "general_detection", "recognition"]
-        }
+        "sequence": {"kv": ["classification", "general_detection", "recognition"]},
     },
     "kbcard": {
         "general_detection": {
             "model_name": "general",
             "route_name": "detection",
-            "module_name": "detection"
+            "module_name": "detection",
         },
         "classification": {
             "model_name": "longinus",
             "route_name": "classification",
-            "module_name": "classification"
+            "module_name": "classification",
         },
         "recognition": {
             "model_name": "tiamo",
             "route_name": "recognition",
-            "module_name": "recognition"
+            "module_name": "recognition",
         },
-        "sequence": {
-            "kv": ["classification", "general_detection", "recognition"]
-        }
-    }
-
+        "sequence": {"kv": ["classification", "general_detection", "recognition"]},
+    },
 }
-model_mapping_table = {
-    "보험금청구서": "agammoto",
-    "처방전": "duriel"
-}
-route_mapping_table = {
-    "보험금청구서": "agammoto",
-    "처방전": "duriel"
-}
+model_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
+route_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 
 
 inference_pipeline = inference_pipeline_list.get(settings.CUSTOMER)
@@ -101,34 +89,53 @@ inference_pipeline = inference_pipeline_list.get(settings.CUSTOMER)
 
 # TODO: move to utils
 def get_name_list(items: Dict, key: str, separator: str = ",") -> List:
-    return list(map(
-            lambda x: x.strip(), items.get(key).split(separator)
-        ))
+    return list(map(lambda x: x.strip(), items.get(key).split(separator)))
+
+
+def set_predictions(
+    detection_result: Dict,
+    recogniton_result: Dict,
+) -> Dict:
+    classes = detection_result.get("classes", [])
+    scores = detection_result.get("scores", [])
+    boxes = detection_result.get("boxes", [])
+    texts = (
+        detection_result.get("texts", [])
+        if "texts" in detection_result
+        else recogniton_result.get("texts", [])
+    )
+    predictions = list()
+    for class_, score_, box_, text_ in zip(classes, scores, boxes, texts):
+        prediction = {
+            "class": class_,
+            "score": score_,
+            "box": box_,
+            "text": text_,
+        }
+        predictions.append(prediction)
+    return predictions
 
 
 # TODO: move to utils
-def set_ocr_response(
-    inputs: Dict, 
-    sequence_list: str,
-    result_set: Dict
-) -> Dict:
+def set_ocr_response(inputs: Dict, sequence_list: str, result_set: Dict) -> Dict:
     detection_method = "general_detection"
     if "kv_detection" in sequence_list:
         detection_method = "kv_detection"
     classification_result = result_set.get("classification")
     detection_result = result_set.get(detection_method)
     recogniton_result = result_set.get("recognition")
+    predicsions = set_predictions(
+        detection_result=detection_result,
+        recogniton_result=recogniton_result,
+    )
     return dict(
+        predicsions=predicsions,
         class_score=classification_result.get("score", 0.0),
-        classes=classification_result.get("classes", []),
-        scores=detection_result.get("scores", []),
-        boxes=detection_result.get("boxes", []),
         image_height=detection_result.get("image_height"),
         image_width=detection_result.get("image_width"),
         id_type=detection_result["id_type"],
         rec_preds=recogniton_result.get("rec_preds", []),
-        texts=recogniton_result.get("texts", []),
-        doc_type=inputs.get("doc_type"),
+        doc_type=classification_result.get("doc_type"),
     )
 
 
@@ -142,7 +149,7 @@ def get_model_info(method_name: str, result_set: str) -> Tuple[str, str, str]:
         doc_class = result_set.get("classification").get("doc_class")
         if route_name is None:
             route_name = route_mapping_table.get(doc_class)
-        if method_name is None: 
+        if method_name is None:
             model_name = model_mapping_table.get(doc_class)
     return (model_name, route_name, module_name)
 
@@ -150,8 +157,8 @@ def get_model_info(method_name: str, result_set: str) -> Tuple[str, str, str]:
 # TODO: recify 90 추가
 # TODO: hint 사용
 async def multiple_model_inference(
-    client: AsyncClient, 
-    inputs: Dict, 
+    client: AsyncClient,
+    inputs: Dict,
     sequence_type: str,
     response_log: Dict,
     hint: Optional[Dict] = None,
@@ -181,12 +188,12 @@ async def multiple_model_inference(
         inputs=inputs,
         sequence_list=sequence_list,
         result_set=result_set,
-    ) 
+    )
     return (result.get("status_code"), response, response_log)
 
 
 async def single_model_inference(
-    client: AsyncClient, 
+    client: AsyncClient,
     inputs: Dict,
     response_log: Dict,
     route_name: str = "ocr",
@@ -197,13 +204,19 @@ async def single_model_inference(
         f"{model_server_url}/{route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
-        headers = {"User-Agent": "textscope core"}
+        headers={"User-Agent": "textscope core"},
     )
     inference_end_time = datetime.now()
-    logger.info(f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}")
-    response_log.update(dict(
-        inference_request_start_time=inference_start_time.strftime('%Y-%m-%d %H:%M:%S'),
-        inference_request_end_time=inference_end_time.strftime('%Y-%m-%d %H:%M:%S'),
-        inference_request_time=inference_end_time-inference_start_time,
-    ))
+    logger.info(
+        f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}"
+    )
+    response_log.update(
+        dict(
+            inference_request_start_time=inference_start_time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            inference_request_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            inference_request_time=inference_end_time - inference_start_time,
+        )
+    )
     return (ocr_response.status_code, ocr_response.json(), response_log)

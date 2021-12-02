@@ -7,11 +7,11 @@ from app.wrapper import model_server_url, pp
 
 
 async def tiamo(
-    client: AsyncClient, 
-    inputs: Dict, 
+    client: AsyncClient,
+    inputs: Dict,
     inference_result: Dict,
     response_log: Optional[Dict],
-    hint: Optional[Dict] = None
+    hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict]:
     route_name = inputs.get("route_name")
     inference_inputs = dict(
@@ -24,7 +24,7 @@ async def tiamo(
         f"{model_server_url}/{route_name}",
         json=inference_inputs,
         timeout=settings.TIMEOUT_SECOND,
-        headers = {"User-Agent": "textscope core"}
+        headers={"User-Agent": "textscope core"},
     )
     recognition_result = recognition_response.json()
     rec_preds = recognition_result.get("rec_preds")

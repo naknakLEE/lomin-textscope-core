@@ -10,11 +10,11 @@ supported_class = ["처방전", "보험금청구서"]
 
 
 async def longinus(
-    client: AsyncClient, 
+    client: AsyncClient,
     inputs: Dict,
     inference_result: Optional[Dict],
     response_log: Optional[Dict],
-    hint: Optional[Dict] = None
+    hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict]:
     inference_inputs = inputs
     route_name = inputs.get("route_name")
@@ -22,11 +22,11 @@ async def longinus(
         f"{model_server_url}/{route_name}",
         json=inference_inputs,
         timeout=settings.TIMEOUT_SECOND,
-        headers = {"User-Agent": "textscope core"}
+        headers={"User-Agent": "textscope core"},
     )
     classification_result = classification_response.json()
     response = dict(
-        status_code=classification_response.status_code, 
+        status_code=classification_response.status_code,
         response=classification_result,
         is_supported_type=True,
     )
@@ -36,11 +36,11 @@ async def longinus(
 
 
 async def duriel(
-    client: AsyncClient, 
-    inputs: Dict, 
+    client: AsyncClient,
+    inputs: Dict,
     inference_result: Dict,
     response_log: Optional[Dict],
-    hint: Optional[Dict] = None
+    hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict]:
     # TODO: hint 사용 가능하도록 구성
     route_name = inputs.get("route_name")
@@ -54,11 +54,11 @@ async def duriel(
         f"{model_server_url}/{route_name}",
         json=inference_inputs,
         timeout=settings.TIMEOUT_SECOND,
-        headers = {"User-Agent": "textscope core"}
+        headers={"User-Agent": "textscope core"},
     )
     classification_result = classification_response.json()
     response = dict(
-        status_code=classification_response.status_code, 
+        status_code=classification_response.status_code,
         response=classification_result,
         is_supported_type=True,
     )
