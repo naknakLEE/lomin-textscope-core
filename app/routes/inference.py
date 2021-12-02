@@ -42,18 +42,21 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
         # ocr inference
         if settings.USE_OCR_PIPELINE:
             # TODO: sequence_type을 wrapper에서 받도록 수정
-            status_code, inference_results, response_log = pipeline.multiple_model_inference(
+            # TODO: python 3.6 버전에서 async profiling 사용에 제한이 있어 sync로 변경했는데 추후 async 사용해 micro bacing 사용하기 위해서는 다시 변경 필요
+            status_code, inference_results, response_log = pipeline.multiple(
                 client=client, 
                 inputs=inputs,
                 sequence_type="kv",
                 response_log=response_log,
             )
         else:
-            status_code, inference_results, response_log = pipeline.single_model_inference(
+            status_code, inference_results, response_log = pipeline.single(
                 client=client, 
                 inputs=inputs,
                 response_log=response_log,
+                route_name="heungkuk_life_pipeline",
             )
+        
         if status_code < 200 or status_code >= 400:
             return set_json_response(code="3000", message="모델 서버 문제 발생")
 

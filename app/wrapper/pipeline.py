@@ -151,7 +151,7 @@ def get_model_info(method_name: str, result_set: str) -> Tuple[str, str, str]:
 
 # TODO: recify 90 추가
 # TODO: hint 사용
-def multiple_model_inference(
+def multiple(
     client: Client,
     inputs: Dict,
     sequence_type: str,
@@ -193,7 +193,7 @@ def multiple_model_inference(
     return (result.get("status_code"), response, response_log)
 
 
-def single_model_inference(
+def single(
     client: Client,
     inputs: Dict,
     response_log: Dict,
