@@ -1,4 +1,31 @@
 # Introduction 
+
+# 우리은행 실행 방법
+
+1. docker-compose -f docker-compose.yml -f docker-compose.dev.yml up 
+1. inference_server/ModelService 파일이 있는지 확인
+
+    -  인퍼런스 서버(Bentoml)가 ModelService를 실행시키기 때문에 ModelService가 있어야 됨
+
+    1. 없다면 생성하는 코드
+    1. 터미널 열고
+    1. docker exec -it serving bash
+    1. python3 inference_server/generate_woori_model_service.py
+    1. 위에 스크립트 실행하면 ModelService 생성 (생성위치는 /workspace/inference_server)
+
+1. 학습 스크립트 실행
+
+    1. 터미널 열고
+    1. docker exec -it serving bash
+    1. cd longinus/
+    1. python3 setup.py install
+    1. cd /workspace/inference_server/inference_server
+    1. python3 training_server.py
+
+
+
+
+
 ```bash
 workspace
 ├── app
