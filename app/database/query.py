@@ -17,6 +17,23 @@ def create_db_table(db: Session) -> None:
     finally:
         session.close()
 
+def insert_initial_data(db: Session) -> None:
+    try:
+        session = next(db.session())
+        with open('/workspace/assets/heungkuklife.json', "r") as f:
+            json_database_initial_data = json.load(f)
+        database_initial_data = json_database_initial_data['database_initial_data']
+        for object_table in Base.metadata.sorted_tables:
+            table_initial_data = database_initial_data[object_table.name]
+            if len(table_initial_data) == 0:
+                continue
+            if db._engine.execute(f"SELECT count(*) FROM {object_table.name}").scalar() == 0:
+                db._engine.execute(object_table.insert(), table_initial_data)
+    except Exception as ex:
+        logger.error(ex)
+    finally:
+        session.close()
+
 def select_image(db: Session, image_id: str):
     '''
     SELECT

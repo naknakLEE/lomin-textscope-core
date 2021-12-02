@@ -578,5 +578,42 @@
             "code": "MD-PRS-PN",
             "name_en": "Patient Name"
         }
+    },
+
+    "database_initial_data": {
+        "category": [
+            {"category_name_kr": "기타 청구 서류", "category_code": "HKL01-CTM-Others"},
+            {"category_name_kr": "보험금 청구서", "category_code": "HKL01-CTM-IB"},
+            {"category_name_kr": "통장사본", "category_code": "HKL01-FN-BB"},
+            {"category_name_kr": "주민등록등본", "category_code": "HKL01-GV-ARR"},
+            {"category_name_kr": "기본증명서", "category_code": "HKL01-GV-BC"},
+            {"category_name_kr": "제적등본", "category_code": "HKL01-GV-CE"},
+            {"category_name_kr": "가족관계증명서", "category_code": "HKL01-GV-CFR"},
+            {"category_name_kr": "혼인관계증명서", "category_code": "HKL01-GV-CM"},
+            {"category_name_kr": "운전면허증", "category_code": "HKL01-ID-DLC"},
+            {"category_name_kr": "주민등록증", "category_code": "HKL01-ID-RRC"},
+            {"category_name_kr": "입퇴원확인서", "category_code": "HKL01-MD-CAD"},
+            {"category_name_kr": "통원확인서", "category_code": "HKL01-MD-CHT"},
+            {"category_name_kr": "각종 병원 차트", "category_code": "HKL01-MD-CRT"},
+            {"category_name_kr": "수술확인서", "category_code": "HKL01-MD-CS"},
+            {"category_name_kr": "병원 영수증", "category_code": "HKL01-MD-MB"},
+            {"category_name_kr": "각종 진단서", "category_code": "HKL01-MD-MC"},
+            {"category_name_kr": "진료비 세부내역서", "category_code": "HKL01-MD-MED"},
+            {"category_name_kr": "약제비 계산서", "category_code": "HKL01-MD-PER"},
+            {"category_name_kr": "처방전", "category_code": "HKL01-MD-PRS"},
+            {"category_name_kr": "각종 검사 결과지", "category_code": "HKL01-MD-TR"},
+            {"category_name_kr": "신분증 진위확인서", "category_code": "HKL01-CTM-FC"},
+            {"category_name_kr": "통장-운전면허증", "category_code": "HKL01-CTM-BBD"},
+            {"category_name_kr": "통장-주민등록증", "category_code": "HKL01-CTM-BBR"}
+        ],
+        "image": [
+
+        ],
+        "task": [
+
+        ],
+        "inference": [
+
+        ]
     }
 }
