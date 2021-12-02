@@ -5,7 +5,7 @@
 [submodule "kakaobank_wrapper"]
 	path = kakaobank_wrapper
 	url = git@github.com:Lomin-ai/wrapper-kakaobank-mrg-2105.git
-	branch = feature/implement-mockup-api
+	branch = release/woori
 [submodule "kbcard_wrapper"]
 	path = kbcard_wrapper
 	url = git@github.com:Lomin-ai/wrapper-kbcard-frc-2107.git
