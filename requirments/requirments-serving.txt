@@ -20,3 +20,9 @@ pandas
 pdf2image==1.16.0
 imagecodecs==2020.5.30
 tifffile==2020.9.3
+
+uvicorn
+fastapi[all]==0.65.2
+albumentations==1.1.0
+timm==0.4.12
+pytorch-lightning==1.4.0
