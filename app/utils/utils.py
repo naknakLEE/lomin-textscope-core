@@ -1,8 +1,14 @@
-from typing import Dict, Union
+import base64
+import tempfile
+
+from typing import Dict, Union, List
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from os import environ
-
+from pathlib import Path
+from pdf2image import convert_from_path
+from io import BytesIO
+from PIL import Image
 from app.common.const import get_settings
 from datetime import datetime
 
@@ -39,3 +45,53 @@ def cal_time_elapsed_seconds(start: datetime, end: datetime) -> str:
     elapsed = end - start
     sec, microsec = elapsed.seconds, round(elapsed.microseconds / 1_000_000, 3)
     return f'{sec + microsec}'
+
+def basic_time_formatter(target_time: str):
+    return target_time.replace('.', '-', 2).replace('.', '', 1)[:-3]
+
+def load_image2base64(img_path):
+    buffered = BytesIO()
+    pil_image = Image.open(img_path)
+    image_convert_rgb = pil_image.convert("RGB")
+    image_convert_rgb.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()) 
+    return img_str
+
+def dir_structure_validation(path: Path) -> int:
+    categories = list(path.iterdir())
+    whole_files = list(set(path.rglob('*')) - set(categories))
+    is_exist_sub_dir = set(len(file.parts) for file in whole_files if file.is_file())
+    is_only_file = [file.is_file() for file in whole_files]
+    is_not_empty_dir = [len(list(category.iterdir())) > 0 for category in categories]
+    result = len(is_exist_sub_dir) == 1 and all(is_only_file) and all(is_not_empty_dir)
+    return result
+
+def file_validation(files: Union[Path, List[Path]]) -> List:
+    white_list = settings.IMAGE_VALIDATION
+    fake_files = list()
+    if not isinstance(files, list):
+        files = [files]
+    
+    for file in files:
+        file_format = file.suffix[1:].lower()
+        if file_format not in white_list:
+            fake_files.append((file.name, 'unsupported extension'))
+
+        if file_format == 'pdf':
+            try:
+                with tempfile.TemporaryDirectory() as temp_path:
+                    img = convert_from_path(file, output_folder=temp_path)
+            except Exception as e:
+                fake_files.append((file.name, str(e)))
+                pass
+        elif file_format == 'jpg' or\
+            file_format == 'png' or\
+            file_format == 'tif' or\
+            file_format == 'tiff' or\
+            file_format == 'jpeg':
+            try:
+                img = Image.open(file)
+            except Exception as e:
+                fake_files.append((file.name, str(e)))
+                pass
+    return fake_files

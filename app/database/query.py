@@ -1,11 +1,12 @@
 import json
 from requests.sessions import session
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 
 
 from app import models
 from app.database import schema
-
+from app.utils.logging import logger
 from app.database.connection import Base
 
 
@@ -30,6 +31,39 @@ def select_image(db: Session, image_id: str):
         .select_from(schema.Image)\
         .filter(schema.Image.image_id == image_id)
 
+    res = query.all()
+    return res
+
+def select_image_by_pkey(db: Session, image_pkey: str):
+    query = db\
+        .query(schema.Image)\
+        .select_from(schema.Image)\
+        .filter(schema.Image.image_pkey == image_pkey)
+    res = query.first()
+    return res
+
+def select_image_all(db: Session):
+    '''
+    SELECT
+        *
+    FROM
+        image
+    '''
+    query = db\
+        .query(schema.Image)\
+        .select_from(schema.Image)
+        
+    res = query.all()
+    return res
+
+def select_inference_by_type(
+    db: Session,
+    inference_type: str
+):
+    query = db\
+        .query(schema.Inference)\
+        .select_from(schema.Inference)\
+        .filter(schema.Inference.inference_type == inference_type)
     res = query.all()
     return res
 
@@ -70,6 +104,7 @@ def select_category(db: Session, model_id: str):
         .select_from(schema.Category)\
         .join(schema.Model, schema.Category.model_pkey == schema.Model.model_pkey)\
         .filter(schema.Model.model_id == model_id)\
+        .filter(schema.Category.is_pretrained == False)
         
     res = query.all()
     return res
@@ -93,9 +128,10 @@ def insert_inference_result(db: Session, task_id: str, inference_result: json, i
         )
     '''
     try:
-        db.add(schema.Inference(task_id = task_id, inferenec_result = inferenec_result, inference_type = inference_type, image_pkey = image_pkey))
+        db.add(schema.Inference(task_id = task_id, inference_result = inference_result, inference_type = inference_type, image_pkey = image_pkey))
         db.commit()  
-    except:
+    except Exception as ex:
+        logger.warning(f"insert error: {ex}")
         db.rollback()
         return False
     return True
@@ -113,16 +149,17 @@ def insert_image(db: Session, **kwargs):
     return res.image_pkey
 
 def insert_inference_image(db: Session, **kwargs):
-    '''
-        #TODO sql 작성
-    '''
-    try:
-        db.add(schema.Inference(**kwargs))
-        db.commit()  
-    except:
-        db.rollback()
-        return False
-    return True
+    res = schema.Image.create(db, **kwargs)
+    return res.image_pkey
+
+def select_inference_img_path_from_taskid(db: Session, task_id: str):
+    query = db\
+        .query(schema.Visualize.inference_img_path)\
+        .select_from(schema.Visualize)\
+        .filter(schema.Visualize.task_id == task_id)\
+        
+    res = query.first()
+    return res
     
 def select_category(db: Session, dataset_id: str):
     '''
@@ -157,10 +194,208 @@ def delete_dataset(db: Session, dataset_id: str):
         query = db\
             .query(schema.Dataset)\
             .filter_by(dataset_id=dataset_id).delete()
-        return True
     except Exception as ex:
-        print(ex)
+        db.rollback()
+        logger.warning(f"delete error: {ex}")
         return False
+    
+    db.commit()
+    return True
         
     
 
+def select_inference_all(db: Session):
+    query = db\
+        .query(schema.Inference, schema.Image, schema.Category)\
+        .select_from(schema.Inference)\
+        .join(schema.Image, schema.Image.image_pkey == schema.Inference.image_pkey)\
+        .join(schema.Category, schema.Category.category_pkey == schema.Image.category_pkey)
+
+    res = query.all()
+    return res
+
+def delete_inference_all(db: Session):
+    try:
+        query = db\
+            .query(schema.Inference).delete()
+    except Exception as ex:
+        logger.warning(f"delete error: {ex}")
+        db.rollback()
+        return False
+    return True
+
+def select_category_pkey(db: Session, dataset_id: str):
+    '''
+    SELECT  
+        DISTINCT category_pkey 
+    FROM  
+        image 
+    WHERE 
+        dataset_pkey IN 
+            (
+                SELECT  
+                    dataset_pkey 
+                FROM 
+                    dataset 
+                WHERE 
+                    dataset_id = 'b0839c1c-7099-4743-901c-b4d66e173e97'
+            )
+    '''
+    dataset_pkeys = db\
+        .query(schema.Dataset.dataset_pkey)\
+        .select_from(schema.Dataset)\
+        .filter(schema.Dataset.dataset_id == dataset_id)\
+        .all()
+
+    category_pkeys = db\
+        .query(schema.Image.category_pkey)\
+        .select_from(schema.Image)\
+        .filter(schema.Image.dataset_pkey.in_(dataset_pkeys))\
+        .distinct()\
+        .all()
+
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+        .filter(schema.Category.category_pkey.in_(category_pkeys))\
+        # .filter(schema.Category.is_pretrained == False)
+
+
+    res_category = query.all()
+    return res_category
+
+def select_inference_image(db: Session, task_id: str):
+    query = db\
+        .query(schema.Inference, schema.Image)\
+        .select_from(schema.Inference)\
+        .join(schema.Image, schema.Inference.image_pkey == schema.Image.image_pkey)\
+        .filter(schema.Inference.task_id == task_id)\
+
+    res = query.all()
+    return res
+
+def select_gocr_inference_from_taskid(db: Session, task_id: str):
+    query = db\
+        .query(schema.Inference)\
+        .select_from(schema.Inference)\
+        .filter(schema.Inference.task_id == task_id)\
+        .filter(schema.Inference.inference_type == 'gocr')
+    
+    res = query.all()
+    return res
+
+def select_kv_inference_from_taskid(db: Session, task_id:str):
+    query = db\
+        .query(schema.Inference)\
+        .select_from(schema.Inference)\
+        .filter(schema.Inference.task_id == task_id)\
+        .filter(schema.Inference.inference_type == 'kv')
+    
+    res = query.first()
+    return res
+
+def select_category_all(db: Session):
+    '''
+    SELECT
+        *
+    FROM
+        category
+    '''
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+    
+    res = query.all()
+    return res
+
+def select_category_by_name(db: Session, category_name:str) -> int:
+    '''
+    SELECT
+        category_pkey
+    FROM
+        category
+    WHERE
+        category_name_en = {category_name}
+        or
+        category_name_kr = {category_name}
+    '''
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+        .filter(
+            or_(
+                schema.Category.category_name_en == category_name,
+                schema.Category.category_name_kr == category_name
+            )
+        )
+    
+    res = query.first()
+    return res.category_pkey
+
+def select_category_by_pkey(db: Session, category_pkey: int) -> str:
+    '''
+    SELECT
+        *
+    FROM
+        category
+    WHERE 
+        category_pkey = {category_pkey}
+    '''
+    query = db\
+        .query(schema.Category)\
+        .select_from(schema.Category)\
+        .filter(schema.Category.category_pkey == category_pkey)
+    
+    res = query.first()
+    return res
+
+def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
+    '''
+    DELETE FROM
+        image
+    WHERE
+        image.category_pkey = {
+            SELECT
+                category_pkey
+            FROM
+                category
+            WHERE
+                is_pretrained = False
+        }
+        image.dataset_pkey = {dataset_pkey}
+    
+    DELETE FROM
+        category
+    WHERE
+        is_pretrained = False
+    '''
+    query = db\
+        .query(schema.Category)\
+        .filter(schema.Category.is_pretrained == False)
+        
+    res = query.all()
+    
+    for category in res:
+        try:
+            q = db\
+                .query(schema.Image)\
+                .filter(
+                    and_(
+                        schema.Image.category_pkey == category.category_pkey,
+                        schema.Image.dataset_pkey == dataset_pkey
+                    )
+                ).delete()
+            logger.info(f'delete test: {category.category_pkey, q}')
+        except Exception as ex:
+            db.rollback()
+            logger.warning(f'delete error: {ex}')
+            return False
+    
+    try:
+        query.delete()
+    except Exception as ex:
+        db.rollback()
+        logger.warning(f'delete error: {ex}')
+        return False
+    db.commit()
+    return True

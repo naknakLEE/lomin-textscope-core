@@ -176,12 +176,14 @@ class Settings(BaseSettings):
     # FILE CONFIG
     ZIP_PATH: str
     IMG_PATH: str
+    SUPPORT_SET_DIR: str
     IMAGE_VALIDATION: List = [
         'jpg',
         'png',
         'pdf',
         'tif',
-        'tiff'
+        'tiff',
+        'jpeg'
     ]
     KEY_LENGTH_TABLE: Dict = {}
 

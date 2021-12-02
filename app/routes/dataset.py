@@ -2,6 +2,7 @@ import requests
 import base64
 import zipfile
 import os
+import uuid
 
 from pathlib import Path
 from datetime import datetime
@@ -15,7 +16,11 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
 from sqlalchemy.orm import Session
-from app.utils.utils import cal_time_elapsed_seconds
+from app.utils.utils import (
+    cal_time_elapsed_seconds,
+    dir_structure_validation,
+    file_validation
+)
 from app.database import query
 
 
@@ -41,55 +46,126 @@ def upload_cls_training_dataset(
     with save_path.open('wb') as file:
         file.write(decoded_file)
     
-    # @TODO: Zip file load and check file integrity
-    with zipfile.ZipFile(save_path, 'r') as zip_file:
-        zip_file.extractall(save_path.parent)
+    # zip file validation
+    try:
+        with zipfile.ZipFile(save_path, 'r') as zip_file:
+            zip_file.extractall(save_path.parent)
+    except Exception as ex:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'zip file validation failed: {ex}'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
     
     zip_file_name = Path(file_name).stem
-    images_path = save_path.parent / zip_file_name
-    is_exist = images_path.exists()
-    images = list()
+    zip_folder_path = save_path.parent / zip_file_name
+    is_exist = zip_folder_path.exists()
+    if not is_exist:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'zip extraction failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
     
-    if is_exist:
-        images = list(images_path.glob('**/*.*'))
-        # @TODO: image file load and check file validation, integrity
+    # category validation
+    category_dirs = list(zip_folder_path.iterdir())
+    is_category_dirs = [d.is_dir() for d in category_dirs]
+    if not all(is_category_dirs):
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'category directory validation failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        
     
-    # @TODO: db insert dataset info
+    # sub directory validation
+    validation_result = dir_structure_validation(zip_folder_path)
+    if not validation_result:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'directory structure validation failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+    
+    # image validation
+    images = list(set(zip_folder_path.rglob('*')) - set(category_dirs))
+    file_validation_result = file_validation(images)
+    logger.info(f'file validation: {zip_file_name}, {file_validation_result}')
+    if file_validation_result:
+        response = dict(
+            request_datetime=request_datetime,
+            response_datetime=datetime.now(),
+            message=f'file validation failed'
+        )
+        logger.warning(response.get('msg'))
+        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        
+    
     dao_dataset_params = {
         'dataset_id': inputs.get('dataset_id'), 
-        'root_path': str(images_path),
+        'root_path': str(zip_folder_path),
         'zip_file_name': zip_file_name     
         }
     dataset_pkey, dataset_id = query.insert_training_dataset(session, **dao_dataset_params)
-    categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
-    for category in categories:
+    new_categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
+    support_set_path = Path(settings.SUPPORT_SET_DIR)
+    pretrained_categories = [d for d in support_set_path.iterdir() if d.is_dir()]
+    
+    exist_category_list = query.select_category_all(session)
+    exist_category_name_list = [category.category_name_en for category in exist_category_list]
+
+    check_category_else_flag = False
+    for exist_category in exist_category_list:
+        if exist_category.category_name_en == "기타":
+            check_category_else_flag = True
+    
+    if not check_category_else_flag:
         dao_category_params = {
-            'category_name_en': category.name,
-            'category_code': 'A01'
-        }
-        category_pkey = query.insert_category(session, **dao_category_params)
+                'category_name_en': "기타",
+                'category_code': 'P01',
+                'is_pretrained': True
+            }
+        query.insert_category(session, **dao_category_params)
+    
+    if not exist_category_list:
+        for category in pretrained_categories:
+            dao_category_params = {
+                'category_name_en': category.name,
+                'category_code': 'P01',
+                'is_pretrained': True
+            }
+            category_pkey = query.insert_category(session, **dao_category_params)
+
+        
+    for category in new_categories:
+        if category.name not in exist_category_name_list:
+            dao_category_params = {
+                'category_name_en': category.name,
+                'category_code': 'A01',
+                'is_pretrained': False
+            }
+            category_pkey = query.insert_category(session, **dao_category_params)
+        else:
+            category_pkey = query.select_category_by_name(session, category_name=category.name)
 
         for image in images:
             if str(image).find(category.name) != -1:
                 dao_image_params = {
-                    'image_id': 'uuu',
+                    'image_id': str(uuid.uuid4()),
                     'image_path': str(image),
                     'category_pkey': category_pkey,
                     'dataset_pkey': dataset_pkey,
                     'image_type': 'training'
                 }
                 image_pkey = query.insert_image(session, **dao_image_params)
-            
-
-    
-    # validation inspect image files
-    for image in images:
-        category = image.stem
-        ext = image.suffix[1:] # e.g. '.jpg'
-        if ext in settings.IMAGE_VALIDATION:
-            # @TODO: db insert images info
-            pass
-    
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -152,18 +228,15 @@ def delete_cls_train_dataset(
     request_datetime = datetime.now()
     response_log = dict()
     
-    # @TODO: set is_visible flag false in db
-    # delete visiable 작업 필요 
-    res = query.delete_dataset(session, dataset_id)
+    target_dataset = query.select_dataset(session, dataset_id=dataset_id)[0]
     
-    # delete image file
-    # test를 위한 임시 dataset directory path
-    target_path = Path('/workspace/assets/dataset/my_dataset')
+    target_path = Path(target_dataset.root_path)
+    
     is_exist = target_path.exists()
     images = list()
     if is_exist:
         images = list(target_path.glob('**/*.*'))
-        dirs = list(target_path.iterdir())
+        dirs = [d for d in target_path.iterdir() if d.is_dir()]
         response_log.update(dict(
             images=[],
             dirs=[]
@@ -188,6 +261,9 @@ def delete_cls_train_dataset(
     else:
         # @TODO: target dataset directory가 없을 경우에 대한 exception raise
         pass
+    
+    query_result = query.delete_category_cascade_image(session, dataset_pkey=target_dataset.dataset_pkey)
+    res = query.delete_dataset(session, dataset_id)
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)

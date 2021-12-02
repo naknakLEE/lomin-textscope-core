@@ -163,6 +163,9 @@ Nuitka
 *.pkl
 *.docker*
 *.zip
+*.pdf
+*.tif
+*.tiff
 
 # security
 pyarmor*

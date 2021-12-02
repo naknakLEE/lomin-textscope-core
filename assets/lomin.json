@@ -1,0 +1,35 @@
+{
+    "TRAINING_STATUS_MAPPING_TABLE": {
+        "initializing": "ST-TRN-CLS-0001",
+        "running": "ST-TRN-CLS-0002",
+        "finished": "ST-TRN-CLS-0003",
+        "interrupted": "ST-TRN-CLS-0010"
+    },
+    "TRAINING_DESCRIPTION_MAPPING_TABLE": {
+        "ST-TRN-CLS-0001": "학습 task 진행 전 대기 상태.",
+        "ST-TRN-CLS-0002": "학습 task 진행 중.",
+        "ST-TRN-CLS-0003": "학습 task 완료.",
+        "ST-TRN-CLS-001": "알 수 없는 에러로 인한 학습 task 종료"
+    },
+    "KOREAN_CLASS_NAME_MAPPING_TABLE": {
+        "사업자등록증": {
+            "business_num_value": "등록번호",
+            "business_name_value": "법인명",
+            "business_repre_value": "대표자",
+            "business_address_value": "사업장소재지",
+            "business_addresshq_value": "본점소재지",
+            "business_workcond_value": "종목",
+            "business_worktype_value": "업태",
+            "business_bdate_value": "대표자생년월일",
+            "business_regnum_value": "법인등록번호",
+            "business_type_value": "사업자종류",
+            "business_issuedate_value": "발급일"
+        },
+        "통장사본": {
+            "bank_name_value": "은행명",
+            "account_name_value": "예금주",
+            "account_type_value": "예금종류",
+            "account_num_value": "계좌번호"
+        }
+    }
+}

@@ -4,9 +4,8 @@ from app.common.const import get_settings
 from app.database.connection import db
 from app.database import query
 from app.utils.logging import logger
-from app.database.schema import Image, Dataset
+from app.database.schema import Image, Dataset, Model, Inference, Visualize
 from sqlalchemy.orm import Session
-import json
 
 settings = get_settings()
 router = APIRouter()
@@ -23,18 +22,54 @@ def select_dataset(dataset_id: str, db: Session = Depends(db.session)):
 def select_category(model_id: str, db: Session = Depends(db.session)):
     return query.select_category(db, model_id = model_id)
 
+@router.get('/select/category/key')
+def select_category_pkey_by_name(category_name: str, db: Session = Depends(db.session)):
+    return query.select_category_by_name(db, category_name=category_name)
+
 @router.post("/insert/inference")
 def insert_inference_result(data: Dict = Body(...), db: Session = Depends(db.session)):
     logger.info(data)
     return query.insert_inference_result(db, **data)
 
 @router.post("/create/image")
-def insert_inference_result(data: Dict = Body(...),  db: Session = Depends(db.session)):
+def insert_image(data: Dict = Body(...),  db: Session = Depends(db.session)):
     logger.info(f"create image data: {data}")
     return Image.create(db, **data)
 
+@router.patch("/update/image")
+def update_image(data: Dict = Body(...), db: Session = Depends(db.session)):
+    logger.info(f"update image data: {data}")
+    return Image.image_update(db, **data)
+
 @router.post("/create/dataset")
-def insert_inference_result(data: Dict = Body(...),  db: Session = Depends(db.session)):
+def insert_dataset(data: Dict = Body(...),  db: Session = Depends(db.session)):
     logger.info(f"create dataset data: {data}")
     return Dataset.create(db, **data)
 
+@router.post("/create/model")
+def insert_model(data: Dict = Body(...),  db: Session = Depends(db.session)):
+    logger.info(f"create model data: {data}")
+    return Model.create(db, **data)
+
+@router.post("/create/visualize")
+def insert_visualize(data: Dict = Body(...),  db: Session = Depends(db.session)):
+    logger.info(f"create visualize data: {data}")
+    return Visualize.create(db, **data)
+
+@router.post("/insert/inference_img_path")
+def insert_img_path(data: Dict = Body(...),  db: Session = Depends(db.session)):
+    logger.info(f"insert infernece_img_path: {data}")
+    return Inference.update(session=db, obj_in=data)
+
+@router.get("/select/category_pkey")
+def select_category_pkey(dataset_id: str,  db: Session = Depends(db.session)):
+    return query.select_category_pkey(db, dataset_id = dataset_id)
+
+@router.get("/select/category/all")
+def select_category_all(db: Session = Depends(db.session)):
+    return query.select_category_all(db)
+
+
+# @router.get("/select/inference_image")
+# def select_inference_image(task_id: str,  db: Session = Depends(db.session)):
+#     return query.select_inference_image(db, task_id = task_id)
