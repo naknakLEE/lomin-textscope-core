@@ -1,7 +1,7 @@
 import json
 from requests.sessions import session
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, desc
 
 
 from app import models
@@ -14,6 +14,23 @@ def create_db_table(db: Session) -> None:
     try:
         session = next(db.session())
         Base.metadata.create_all(db._engine)
+    finally:
+        session.close()
+
+def insert_initial_data(db: Session) -> None:
+    try:
+        session = next(db.session())
+        with open('/workspace/assets/heungkuklife.json', "r") as f:
+            json_database_initial_data = json.load(f)
+        database_initial_data = json_database_initial_data['database_initial_data']
+        for object_table in Base.metadata.sorted_tables:
+            table_initial_data = database_initial_data[object_table.name]
+            if len(table_initial_data) == 0:
+                continue
+            if db._engine.execute(f"SELECT count(*) FROM {object_table.name}").scalar() == 0:
+                db._engine.execute(object_table.insert(), table_initial_data)
+    except Exception as ex:
+        logger.error(ex)
     finally:
         session.close()
 
@@ -289,7 +306,9 @@ def select_kv_inference_from_taskid(db: Session, task_id:str):
         .query(schema.Inference)\
         .select_from(schema.Inference)\
         .filter(schema.Inference.task_id == task_id)\
-        .filter(schema.Inference.inference_type == 'kv')
+        .filter(schema.Inference.inference_type == 'kv')\
+        .order_by(desc(schema.Inference.inference_pkey))\
+        .limit(1)
     
     res = query.first()
     return res

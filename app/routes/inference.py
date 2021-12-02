@@ -49,6 +49,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
                 sequence_type="kv",
                 response_log=response_log,
             )
+            response_log = dict()
         else:
             status_code, inference_results, response_log = pipeline.single(
                 client=client, 
