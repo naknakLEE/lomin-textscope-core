@@ -2,6 +2,12 @@
 
 # 우리은행 실행 방법
 
+.env 파일 
+
+https://lomin-my.sharepoint.com/personal/sw_lee_lomin_ai/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fsw%5Flee%5Flomin%5Fai%2FDocuments%2F%EB%AA%A8%EB%8D%B8
+
+.env.woori 다운 후 .env로 이름 변경
+
 1. docker-compose -f docker-compose.yml -f docker-compose.dev.yml up 
 1. inference_server/ModelService 파일이 있는지 확인
 
