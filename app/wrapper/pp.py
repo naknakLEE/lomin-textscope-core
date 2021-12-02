@@ -1,4 +1,4 @@
-from httpx import AsyncClient
+from httpx import Client
 
 from typing import Dict, Tuple, List
 from datetime import datetime
@@ -8,8 +8,8 @@ from app.common import settings
 from app.wrapper import pp_server_url
 
 
-async def post_processing(
-    client: AsyncClient,
+def post_processing(
+    client: Client,
     inference_results: Dict,
     post_processing_type: str,
     response_log: Dict,
@@ -25,7 +25,7 @@ async def post_processing(
         inference_results["image_height"],
         inference_results["image_width"],
     )
-    pp_response = await client.post(
+    pp_response = client.post(
         f"{pp_server_url}/post_processing/{post_processing_type}",
         json=inference_results,
         timeout=settings.TIMEOUT_SECOND,
@@ -42,14 +42,14 @@ async def post_processing(
     return (pp_response.status_code, pp_response.json(), response_log)
 
 
-async def convert_preds_to_texts(
-    client: AsyncClient, rec_preds: List, id_type: str = ""
+def convert_preds_to_texts(
+    client: Client, rec_preds: List, id_type: str = ""
 ) -> Tuple[int, Dict]:
     request_data = dict(
         rec_preds=rec_preds,
         id_type="",
     )
-    convert_response = await client.post(
+    convert_response = client.post(
         f"{pp_server_url}/convert/recognition_to_text",
         json=jsonable_encoder(request_data),
         timeout=settings.TIMEOUT_SECOND,

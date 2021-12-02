@@ -1,4 +1,6 @@
-from httpx import AsyncClient
+import json
+
+from httpx import Client
 
 from typing import Dict, Tuple, List, Optional
 from operator import attrgetter
@@ -6,16 +8,9 @@ from datetime import datetime
 
 from app import wrapper
 from app.common import settings
-from app.wrapper import model_server_url
 from app.utils.logging import logger
 
-
-"""
-### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
-입력 데이터: 토큰, ocr에 사용할 파일 <br/>
-응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
-"""
-
+model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.SERVING_IP_PORT}"
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {
@@ -139,8 +134,8 @@ def set_ocr_response(inputs: Dict, sequence_list: str, result_set: Dict) -> Dict
     )
 
 
+# TODO: raise not e~xist method name in pipeline
 def get_model_info(method_name: str, result_set: str) -> Tuple[str, str, str]:
-    # TODO: raise not exist method name in pipeline
     model_info = inference_pipeline.get(method_name)
     model_name = model_info.get("model_name", None)
     route_name = model_info.get("route_name", None)
@@ -156,34 +151,40 @@ def get_model_info(method_name: str, result_set: str) -> Tuple[str, str, str]:
 
 # TODO: recify 90 추가
 # TODO: hint 사용
-async def multiple_model_inference(
-    client: AsyncClient,
+def multiple_model_inference(
+    client: Client,
     inputs: Dict,
     sequence_type: str,
     response_log: Dict,
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict, Dict]:
-    response_log["ocr_pipeline_start_time"] = datetime.now()
+    ocr_pipeline_start_time = datetime.now()
+    response_log["ocr_pipeline_start_time"] = ocr_pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S")
+    sequence_list = inference_pipeline.get("sequence")
     result_set = dict()
     latest_result = dict()
-    sequence_list = inference_pipeline.get("sequence")
     for method_name in sequence_list.get(sequence_type):
-        start_time = datetime.now()
-        response_log[f"{method_name}_start_time"] = start_time
+        inference_start_time = datetime.now()
+        response_log[f"{method_name}_start_time"] = inference_start_time.strftime("%Y-%m-%d %H:%M:%S")
         model_info = get_model_info(method_name, result_set)
         inputs["model_name"], inputs["route_name"], module_name = model_info
         func_name = inputs["model_name"]
+
         call_func = attrgetter(f"{module_name}.{func_name}")(wrapper)
-        result = await call_func(client, inputs, latest_result, response_log, hint)
+        result = call_func(client, inputs, latest_result, hint)
         latest_result = result_set[method_name] = result.get("response")
+
+        inference_end_time = datetime.now()
+        response_log[f"{method_name}_end_time"] = inference_end_time.strftime("%Y-%m-%d %H:%M:%S")
+        response_log[f"{method_name}_inference_time"] = (inference_end_time - inference_start_time).total_seconds()
+
         if method_name == "classification" and result.get("is_supported_type") == True:
             break
-        if "response_log" in result:
-            response_log.update(result.get("response_log"))
-        end_time = datetime.now()
-        response_log[f"{method_name}_end_time"] = end_time
-        response_log[f"{method_name}_inference_time"] = end_time - start_time
-    response_log["ocr_pipeline_end_time"] = datetime.now()
+    ocr_pipeline_end_time = datetime.now()
+    response_log["ocr_pipeline_end_time"] = ocr_pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S")
+    response_log["ocr_pipeline_total_time"] = (ocr_pipeline_end_time - ocr_pipeline_start_time).total_seconds()
+    logger.info("inference log: {}", json.dumps(response_log, indent=4, sort_keys=True))
+
     response = set_ocr_response(
         inputs=inputs,
         sequence_list=sequence_list,
@@ -192,15 +193,15 @@ async def multiple_model_inference(
     return (result.get("status_code"), response, response_log)
 
 
-async def single_model_inference(
-    client: AsyncClient,
+def single_model_inference(
+    client: Client,
     inputs: Dict,
     response_log: Dict,
     route_name: str = "ocr",
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict, Dict]:
     inference_start_time = datetime.now()
-    ocr_response = await client.post(
+    ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,

@@ -1,4 +1,4 @@
-from httpx import AsyncClient
+from httpx import Client
 
 from datetime import datetime
 from typing import Dict
@@ -38,18 +38,18 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
     if settings.DEVELOP:
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
-    async with AsyncClient() as client:
+    with Client() as client:
         # ocr inference
         if settings.USE_OCR_PIPELINE:
             # TODO: sequence_type을 wrapper에서 받도록 수정
-            status_code, inference_results, response_log = await pipeline.multiple_model_inference(
+            status_code, inference_results, response_log = pipeline.multiple_model_inference(
                 client=client, 
                 inputs=inputs,
                 sequence_type="kv",
                 response_log=response_log,
             )
         else:
-            status_code, inference_results, response_log = await pipeline.single_model_inference(
+            status_code, inference_results, response_log = pipeline.single_model_inference(
                 client=client, 
                 inputs=inputs,
                 response_log=response_log,
@@ -63,7 +63,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
                 inference_results["doc_type"] = inputs.get("test_class")
         post_processing_type = get_pp_api_name(inference_results.get("doc_type"))
         if post_processing_type is not None and len(inference_results["rec_preds"]) > 0:
-            status_code, post_processing_results, response_log = await pp.ocr_post_processing(
+            status_code, post_processing_results, response_log = pp.post_processing(
                 client=client, 
                 request_id=request_id,
                 response_log=response_log, 
@@ -77,7 +77,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
 
         # convert preds to texts
         if convert_preds_to_texts is not None:
-            status_code, texts = await pp.convert_preds_to_texts(
+            status_code, texts = pp.convert_preds_to_texts(
                 client=client, 
                 rec_preds=inference_results.get("rec_preds", []),
             )

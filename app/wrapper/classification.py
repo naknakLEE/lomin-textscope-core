@@ -1,25 +1,24 @@
-from httpx import AsyncClient
+from httpx import Client
 
 from typing import Dict, Tuple, Optional, List
 
 from app.common import settings
-from app.wrapper import model_server_url
 
 
 supported_class = ["처방전", "보험금청구서"]
+classification_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.CLASSIFICATION_SERVICE_PORT}"
 
 
-async def longinus(
-    client: AsyncClient,
+def longinus(
+    client: Client,
     inputs: Dict,
     inference_result: Optional[Dict],
-    response_log: Optional[Dict],
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict]:
     inference_inputs = inputs
     route_name = inputs.get("route_name")
-    classification_response = await client.post(
-        f"{model_server_url}/{route_name}",
+    classification_response = client.post(
+        f"{classification_server_url}/{route_name}",
         json=inference_inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -36,10 +35,9 @@ async def longinus(
 
 
 async def duriel(
-    client: AsyncClient,
+    client: Client,
     inputs: Dict,
     inference_result: Dict,
-    response_log: Optional[Dict],
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict]:
     # TODO: hint 사용 가능하도록 구성
@@ -50,8 +48,8 @@ async def duriel(
         texts=inference_result["texts"],
         image_size=inference_result["image_size"],
     )
-    classification_response = await client.post(
-        f"{model_server_url}/{route_name}",
+    classification_response = client.post(
+        f"{classification_server_url}/{route_name}",
         json=inference_inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
