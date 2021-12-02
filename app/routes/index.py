@@ -6,7 +6,7 @@ from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, HTTPException
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -21,6 +21,18 @@ from app.utils.utils import cal_time_elapsed_seconds
 
 settings = get_settings()
 router = APIRouter()
+
+class Error400(models.CommonErrorResponse):
+    error = models.Error(
+        error_code='400',
+        error_message='already exist'
+    )
+
+class Error404(models.CommonErrorResponse):
+    error = models.Error(
+        error_code='404',
+        error_message='not found'
+    )
 
 
 @router.get("/status", response_model=models.StatusResponse)
@@ -72,15 +84,17 @@ def check_status() -> Any:
 
 @router.get('/image')
 def get_image(
-    path: str,
+    image_path: str,
     session: Session = Depends(db.session)
 ) -> JSONResponse:
     response = dict()
     response_log = dict()
     request_datetime = datetime.now()
     
-    # @TODO: select image_id by image path
-    image_id = str(uuid4())
+    result = query.select_image(session, image_path=image_path)
+    if not result:
+        raise HTTPException(status_code=404, detail=vars(Error404().error))
+    image_id = result.image_id
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -111,9 +125,18 @@ def upload_image(
     request_datetime = datetime.now()
 
     image_id = inputs.get('image_id')
-    path = inputs.get('path')
+    image_path = inputs.get('image_path')
+    description = inputs.get('description', '')
     
-    # @TODO: image data insert into db
+    image_obj = models.CreateImage(
+        image_id=image_id,
+        image_path=image_path,
+        description=description
+    )
+    
+    result = query.insert_image(session, data=image_obj)
+    if not result:
+        raise HTTPException(status_code=400, detail=vars(Error400().error))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)

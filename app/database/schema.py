@@ -32,15 +32,6 @@ from app.models import UserUpdate, User, UsersScheme, UserInDB
 
 
 ModelType = TypeVar("ModelType", bound=Base)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def verify_password(plain_password, hashed_password) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password) -> str:
-    return pwd_context.hash(password)
 
 class HeungkukBaseMixin:
     def all_columns(self) -> List:
@@ -71,30 +62,25 @@ class HeungkukBaseMixin:
     ) -> Optional[ModelType]:
         query = session.query(cls).offset(skip).limit(limit)
         return query.all()
+    
+    @classmethod
+    def get_all(cls, session: Session) -> Optional[ModelType]:
+        return session.query(cls).all()
+        
 
     @classmethod
-    def remove(cls, session: Session, email: EmailStr) -> ModelType:
-        obj = session.query(cls).filter(cls.email == email).delete()
+    def remove(cls, session: Session, pkey: str) -> ModelType:
+        obj = session.query(cls).filter(cls.pkey == pkey).delete()
         session.flush()
         session.commit()
         return obj
 
     @classmethod
-    def update(cls, session: Session, *, obj_in) -> Any:
-        task_id = obj_in["task_id"]
-        model = session.query(cls).filter(cls.task_id == task_id).first()
-        for key, value in obj_in.items():
-            setattr(model, key, value)
-        session.flush()
-        session.commit()
-        return model
-    
-    @classmethod
-    def image_update(cls, session: Session, **kwargs) -> Any:
-        image_id = kwargs["image_id"]
-        model = session.query(cls).filter(cls.image_id == image_id).first()
+    def update(cls, session: Session, pkey, **kwargs) -> Any:
+        model = session.query(cls).filter(cls.pkey == pkey).first()
         for key, value in kwargs.items():
             setattr(model, key, value)
+        session.add(model)
         session.flush()
         session.commit()
         return model
@@ -114,11 +100,11 @@ class HeungkukBaseMixin:
             session.commit()
         # session.refresh(obj)
         return obj
-      
+
 class Category(Base, HeungkukBaseMixin):
     __tablename__ = 'category'
 
-    pkey = Column(Integer, primary_key=True)
+    pkey = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     category_name_kr = Column(String(50), comment='카테고리명_한글')
     category_name_en = Column(String(100), comment='카테고리명_영문')
     category_code = Column(String(50), comment='고유서식코드')
@@ -131,11 +117,11 @@ class Category(Base, HeungkukBaseMixin):
 class Image(Base, HeungkukBaseMixin):
     __tablename__ = 'image'
 
-    pkey = Column(Integer, primary_key=True)
-    image_id = Column(String(50), nullable=False)
-    image_path = Column(String(300))
-    image_description = Column(Text)
-    create_datetime = Column(DateTime)
+    pkey = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    image_id = Column(String(50), nullable=False, unique=True)
+    image_path = Column(String(300), unique=True, nullable=False)
+    image_description = Column(String(50), nullable=True)
+    create_datetime = Column(DateTime, default=datetime.now())
 
     task = relationship('Task', back_populates='image')
 
@@ -143,11 +129,11 @@ class Image(Base, HeungkukBaseMixin):
 class Task(Base, HeungkukBaseMixin):
     __tablename__ = 'task'
 
-    pkey = Column(Integer, primary_key=True)
-    task_id = Column(String(50), nullable=False)
+    pkey = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    task_id = Column(String(50), nullable=False, unique=True)
     image_pkey = Column(ForeignKey('image.pkey'))
     category_pkey = Column(ForeignKey('category.pkey'))
-    create_datetime = Column(DateTime)
+    create_datetime = Column(DateTime, default=datetime.now())
 
     category = relationship('Category', back_populates='task')
     image = relationship('Image', back_populates='task')
@@ -157,15 +143,15 @@ class Task(Base, HeungkukBaseMixin):
 class Inference(Base, HeungkukBaseMixin):
     __tablename__ = 'inference'
 
-    pkey = Column(Integer, primary_key=True)
-    inference_id = Column(String(50))
+    pkey = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    inference_id = Column(String(50), unique=True, nullable=False)
     task_pkey = Column(ForeignKey('task.pkey'))
     inference_type = Column(String(5), comment="['cls', 'kv', 'gocr', 'reco']")
-    inference_img_path = Column(String(300))
-    inference_result = Column(JSON)
-    start_datetime = Column(DateTime)
-    finsh_datetime = Column(DateTime)
-    create_datetime = Column(DateTime)
+    inference_img_path = Column(String(300), nullable=False)
+    inference_result = Column(JSON, nullable=False)
+    start_datetime = Column(DateTime, nullable=False)
+    finsh_datetime = Column(DateTime, nullable=False)
+    create_datetime = Column(DateTime, default=datetime.now())
     inference_sequence = Column(Integer, comment='inference 순서 1->2->3->4')
 
     task = relationship('Task', back_populates='inference')
