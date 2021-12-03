@@ -22,7 +22,7 @@ def insert_initial_data(db: Session) -> None:
         session = next(db.session())
         with open('/workspace/assets/heungkuklife.json', "r") as f:
             json_database_initial_data = json.load(f)
-        database_initial_data = json_database_initial_data['database_initial_data']
+        database_initial_data = json_database_initial_data['DATABASE_INITIAL_DATA']
         for object_table in Base.metadata.sorted_tables:
             table_initial_data = database_initial_data[object_table.name]
             if len(table_initial_data) == 0:
@@ -33,6 +33,7 @@ def insert_initial_data(db: Session) -> None:
         logger.error(ex)
     finally:
         session.close()
+
 
 ### image
 def select_image_all(db: Session):

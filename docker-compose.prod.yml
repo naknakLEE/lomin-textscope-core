@@ -19,24 +19,19 @@ services:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
+      - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     runtime: nvidia
     tty: true
-    depends_on: 
-      - mysql1
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
-  serving_replica:
-    tty: true
-    depends_on: 
-      - mysql1
-    environment:
-      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
-      - CUDA_VISIBLE_DEVICES=1
-      - SERVICE_INSTANCE=serving_replica
-    runtime: nvidia
-    depends_on: 
-      - mysql1
-    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+  # serving_replica:
+  #   tty: true
+  #   environment:
+  #     - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+  #     - CUDA_VISIBLE_DEVICES=1
+  #     - SERVICE_INSTANCE=serving_replica
+  #   runtime: nvidia
+  #   command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   web:
     build:
@@ -49,8 +44,6 @@ services:
         CUSTOMER: ${CUSTOMER}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
-    depends_on: 
-      - mysql1
     working_dir: /workspace
     command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
     # command: python3 /workspace/main.py
@@ -68,8 +61,6 @@ services:
     environment:
       - PYTHONPATH=/workspace
     tty: true
-    depends_on: 
-      - mysql1
     working_dir: /workspace/pp_server
     command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
     # command: python3 /workspace/pp_server/main.py
@@ -87,8 +78,6 @@ services:
     ports: 
       - 8050:8090
     tty: true
-    depends_on: 
-      - mysql1
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
     working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
