@@ -1,0 +1,167 @@
+{
+    "DOCUMENT_TYPE_LIST": [
+        "D01",
+        "D02",
+        "D53",
+        "D54"
+    ],
+    "DOCUMENT_TYPE_SET": {
+        "D01": "rrtable",
+        "D02": "family_cert",
+        "D53": "basic_cert",
+        "D54": "regi_cert"
+    },
+    "KEYWORDS": {
+        "D01": [
+            "세대주",
+            "세대주와의",
+            "번호",
+            "현주소:",
+            "주민등록표",
+            "주민등록표의",
+            "원본",
+            "내용과",
+            "출생등록",
+            "전입",
+            "세대주변경",
+            "이하여백"
+        ],
+        "D02": [
+            "가족관계증명서(상세)",
+            "가족관계증명서(상세)는",
+            "가족사항",
+            "가족관계등록부의"
+        ],
+        "D53": [
+            "기본증명서",
+            "작성",
+            "기본증명서(상세)",
+            "일반등록사항",
+            "상세내용",
+            "출생",
+            "상세내용",
+            "변경",
+            "친권",
+            "가족관계등록부의"
+        ],
+        "D54": [
+            "등기필정보",
+            "등기완료통지서",
+            "접수번호:",
+            "일련번호",
+            "비밀번호",
+            "등기관",
+            "사용방법",
+            "주의사항",
+            "보안스티커",
+            "대리인",
+            "법무사",
+            "(주민)등록번호",
+            "등기원인및일자"
+        ]
+    },
+    "KEYWORDS_ALL": {
+        "D01": [
+            "주민등록표",
+            "현주소",
+            "등본",
+            "세대구성",
+            "신고일",
+            "발생일",
+            "번호",
+            "세대주",
+            "관계",
+            "성",
+            "주민등록번호",
+            "등록상태",
+            "변동사유"
+        ],
+        "D02": [
+            "등록기준지",
+            "구분",
+            "성명",
+            "출생년월일",
+            "주민등록번호",
+            "성별",
+            "본",
+            "가족사항",
+            "가족관계증명서"
+        ],
+        "D53": [
+            "등록기준지",
+            "구분",
+            "작성",
+            "변경",
+            "성명",
+            "출생연월일",
+            "주민등록번호",
+            "성별",
+            "본",
+            "일반등록사항",
+            "상세내용",
+            "출생",
+            "국적회복",
+            "개명",
+            "정정",
+            "기본증명서",
+            "작성",
+            "기본증명서(상세)",
+            "친권",
+            "가족관계등록부의"
+        ],
+        "D54": [
+            "등기필정보",
+            "대리인",
+            "주소",
+            "부동산고유번호",
+            "부동산소재",
+            "접수일자",
+            "등기목적",
+            "등기원인및일자",
+            "일련번호",
+            "비밀번호",
+            "보안스티커",
+            "(주민)등록번호"
+        ]
+    },
+    "PARAMETER_FULL_NAME_MAPPING_TABLE": {
+        "lnbzDocClcd": "document type",
+        "lnbzMgmtNo": "loan bz management number",
+        "edmsId": "edms id"
+    },
+    "TORCH_MODEL_NAME_SET": [
+        "kv_detection_transaction_bank_book_model",
+        "kv_detection_businuss_registration_model",
+        "kv_model",
+        "general_ocr",
+        "life_insurance"
+    ],
+    "KEY_LENGTH_TABLE": {
+        "scrapRsdtRegCropFlnm": 120,
+        "scrapRsdtRegCrcpRsdtNo": 24,
+        "scrapRsdtRegCropHsprCnt": 3,
+        "scrapRsdtRegCrcplssDt": 8,
+        "scrapFmlyRltCertFlnm": 120,
+        "scrapFmlyRltCertRsdtNo": 24,
+        "scrapFmlyRltCertFmlyCnt": 3,
+        "scrapFmlyRltCertlssDt": 8,
+        "scrapFmlyRltCertIssNo": 64,
+        "rsdtRegCrcpCstnNm": 120,
+        "rsdtRegCrcpCstnRsdtNo": 24,
+        "rsdtRegCrcpCstnGenFmlyRltNm": 30,
+        "fmlyRltCertCstnNm": 120,
+        "fmlyRltCertCstnRsdtNo": 24,
+        "fmlyRltCertCstnGenFmlyRltNm": 30,
+        "bsicCertFlnm": 120,
+        "bsicCertPwprMrkYn": 1,
+        "bsicCertPwprGenFmlyRltNm": 2,
+        "bsicCertPwprFlnm1": 120,
+        "bsicCertlssDt": 8,
+        "rgtyCrtfRlesUnqNo": 14,
+        "rgtyCrtfRgtyFinSeqno": 12,
+        "rgtyCrtfRtpFlnm": 120,
+        "rgtyCrtfRtpRsdt": 24,
+        "rgtyCrtfPswdItemNo": 3, 
+        "rgtyCrtfPswd": 24
+    }
+}

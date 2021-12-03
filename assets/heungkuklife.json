@@ -1,582 +1,655 @@
 {
-    "진단서": {
-        "입원일자": { 
-            "code": "MD-MC-HTSD",
-            "name_en": "Hospitalization Treatment Start Date"
+    "보험금청구서": {
+        "피보험자인적사항-성명": { 
+            "code": "HKL01-KV-0AA",
+            "name_en": "",
+            "date_type": "text"
         },
-        "상병명": { 
-            "code": "MD-MC-MDN",
-            "name_en": "Disease Name"
+        "피보험자인적사항-주민번호": { 
+            "code": "HKL01-KV-0AB",
+            "name_en": "",
+            "date_type": "text"
         },
-        "의사명": { 
-            "code": "MD-MC-MDN",
-            "name_en": "Medical Doctor Name"
+        "피보험자인적사항-의료수급권자-해당": { 
+            "code": "HKL01-KV-0AC01",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "상병명 및 코드": { 
-            "code": "DNC",
-            "name_en": "Disease Name and Code"
+        "피보험자인적사항-의료수급권자-비해당": { 
+            "code": "HKL01-KV-0AC02",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "퇴원일자": { 
-            "code": "MD-MC-HTED",
-            "name_en": "Hospitalization Treatment End Date"
+        "피보험자인적사항-휴대폰": { 
+            "code": "HKL01-KV-0AD",
+            "name_en": "",
+            "date_type": "text"
         },
-        "통원시작일": { 
-            "code": "MD-MC-OTSD",
-            "name_en": "Outpatient Treatment Start Date"
+        "수익자인적사항-관계-본인": { 
+            "code": "HKL01-KV-0BA01",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "등록번호": { 
-            "code": "MD-MC-SM",
-            "name_en": "Service Mark"
+        "수익자인적사항-관계-부": { 
+            "code": "HKL01-KV-0BA02",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "병원명": { 
-            "code": "MD-MC-HN",
-            "name_en": "Hospital Name"
+        "수익자인적사항-관계-모": { 
+            "code": "HKL01-KV-0BA03",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "상병코드": { 
-            "code": "MD-MC-MDC",
-            "name_en": "Disease Code"
+        "수익자인적사항-관계-자녀": { 
+            "code": "HKL01-KV-0BA04",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "치료기간": { 
-            "code": "MD-MC-HP",
-            "name_en": "Hospital Treatment Period"
+        "수익자인적사항-관계-배우자": { 
+            "code": "HKL01-KV-0BA05",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "병원 주소": { 
-            "code": "MD-MC-HA",
-            "name_en": "Hospital Address"
+        "수익자인적사항-관계-기타": { 
+            "code": "HKL01-KV-0BA06",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "발행일": { 
-            "code": "MD-MC-ID",
-            "name_en": "Issue Date"
+        "수익자인적사항-관계-기타(설명)": { 
+            "code": "HKL01-KV-0BA07",
+            "name_en": "",
+            "date_type": "text"
         },
-        "병원 전화번호 및 주소": { 
-            "code": "HTNA",
-            "name_en": "Hospital Telephone Number and Address"
+        "수익자인적사항-성명": { 
+            "code": "HKL01-KV-0BB",
+            "name_en": "",
+            "date_type": "text"
         },
-        "통원기간": { 
-            "code": "MD-MC-OTP",
-            "name_en": "Outpatient Treatment Period"
+        "수익자인적사항-주민번호": { 
+            "code": "HKL01-KV-0BC",
+            "name_en": "",
+            "date_type": "text"
         },
-        "연번호": { 
-            "code": "MD-MC-YN",
-            "name_en": "Year Code"
+        "수익자인적사항-실제소유자-예": { 
+            "code": "HKL01-KV-0BD01",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "입원기간": { 
-            "code": "MD-MC-HTP",
-            "name_en": "Hospitalization Treatment Period"
+        "수익자인적사항-실제소유자-아니오": { 
+            "code": "HKL01-KV-0BD02",
+            "name_en": "",
+            "date_type": "checkbox"
         },
-        "의사면허번호": { 
-            "code": "MD-MC-DLN",
-            "name_en": "Medical Doctor's License Number"
+        "수익자인적사항-휴대폰": { 
+            "code": "HKL01-KV-0BE",
+            "name_en": "",
+            "date_type": "text"
         },
-        "병원 전화번호": { 
-            "code": "MD-MC-HTN",
-            "name_en": "Hospital Telephone Number"
+        "수익자인적사항-주소": { 
+            "code": "HKL01-KV-0BF",
+            "name_en": "",
+            "date_type": "text"
         },
-        "환자 주소": { 
-            "code": "MD-MC-PA",
-            "name_en": "Patient Address"
+        "수익자인적사항-Email": { 
+            "code": "HKL01-KV-0BG",
+            "name_en": "",
+            "date_type": "text"
         },
-        "통원종료일": { 
-            "code": "MD-MC-OTED",
-            "name_en": "Outpatient Treatment End Date"
+        "수익자인적사항-직업": { 
+            "code": "HKL01-KV-0BH",
+            "name_en": "",
+            "date_type": "text"
         },
-        "입퇴원일자": { 
-            "code": "HTSED",
-            "name_en": "Hospitalization Treatment Start and End Date"
+        "수익자인적사항-국적": { 
+            "code": "HKL01-KV-0BI",
+            "name_en": "",
+            "date_type": "text"
         },
-        "치료시작일": { 
-            "code": "MD-MC-HSD",
-            "name_en": "Hospital Treatment Start Date"
+        "수익자인적사항-영문명": { 
+            "code": "HKL01-KV-0BJ",
+            "name_en": "",
+            "date_type": "text"
         },
-        "치료종료일": { 
-            "code": "MD-MC-HED",
-            "name_en": "Hospital Treatment End Date"
+        "수령계좌및청구-은행명": { 
+            "code": "HKL01-KV-0CA",
+            "name_en": "",
+            "date_type": "text"
         },
-        "진단일": { 
-            "code": "MD-MC-DD",
-            "name_en": "Diagonsis Date"
+        "수령계좌및청구-예금주명": { 
+            "code": "HKL01-KV-0CB",
+            "name_en": "",
+            "date_type": "text"
         },
-        "환자명": { 
-            "code": "MD-MC-PN",
-            "name_en": "Patient Name"
+        "수령계좌및청구-계좌번호": { 
+            "code": "HKL01-KV-0CC",
+            "name_en": "",
+            "date_type": "text"
         },
-        "치료일": { 
-            "code": "MD-MC-HD",
-            "name_en": "Hospital Treatment Date"
+        "수령계좌및청구-일시금신청": { 
+            "code": "HKL01-KV-0CD01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "수령계좌및청구-매회직접청구": { 
+            "code": "HKL01-KV-0CD02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구범위-전체청구": { 
+            "code": "HKL01-KV-0DA01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구범위-일부청구": { 
+            "code": "HKL01-KV-0DA02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구유형-질병": { 
+            "code": "HKL01-KV-0DB01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구유형-재해": { 
+            "code": "HKL01-KV-0DB02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구유형-교통재해": { 
+            "code": "HKL01-KV-0DB03",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구유형-기타": { 
+            "code": "HKL01-KV-0DB04",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구유형-기타(설명)": { 
+            "code": "HKL01-KV-0DB05",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "청구내용-청구사항-일반사망": { 
+            "code": "HKL01-KV-0DC01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-재해사망": { 
+            "code": "HKL01-KV-0DC02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-장해": { 
+            "code": "HKL01-KV-0DC03",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-진단": { 
+            "code": "HKL01-KV-0DC04",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-입원": { 
+            "code": "HKL01-KV-0DC05",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-통원": { 
+            "code": "HKL01-KV-0DC06",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-수술": { 
+            "code": "HKL01-KV-0DC07",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-실손": { 
+            "code": "HKL01-KV-0DC08",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-치아": { 
+            "code": "HKL01-KV-0DC09",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-기타": { 
+            "code": "HKL01-KV-0DC10",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-청구사항-사고분할": { 
+            "code": "HKL01-KV-0DC11",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-사고일시": { 
+            "code": "HKL01-KV-0DD",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "청구내용-사고장소": { 
+            "code": "HKL01-KV-0DE",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "청구내용-사고경위": { 
+            "code": "HKL01-KV-0DF",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "청구내용-병명": { 
+            "code": "HKL01-KV-0DG",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "청구내용-실손타사가입-예": { 
+            "code": "HKL01-KV-0DH01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-실손타사가입-아니오": { 
+            "code": "HKL01-KV-0DH02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "청구내용-실손타사가입-보험회사": { 
+            "code": "HKL01-KV-0DH03",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "안내방법-진행과정-동의": { 
+            "code": "HKL01-KV-0EA01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-진행과정-미동의": { 
+            "code": "HKL01-KV-0EA02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-담당설계사-동의": { 
+            "code": "HKL01-KV-0EB01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-담당설계사-미동의": { 
+            "code": "HKL01-KV-0EB02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-지금내역-문자": { 
+            "code": "HKL01-KV-0EC01",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-지금내역-우편": { 
+            "code": "HKL01-KV-0EC02",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-지금내역-Email": { 
+            "code": "HKL01-KV-0EC03",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "안내방법-지금내역-미신청": { 
+            "code": "HKL01-KV-0EC04",
+            "name_en": "",
+            "date_type": "checkbox"
+        },
+        "수익자서명-성명": { 
+            "code": "HKL01-KV-0FA",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "수익자서명-서명": { 
+            "code": "HKL01-KV-0FB",
+            "name_en": "",
+            "date_type": "text"
         }
     },
-    "수술확인서": {
-        "치료일": { 
-            "code": "MD-CS-HTD",
-            "name_en": "Hospital Treatment Date"
-        },
-        "퇴원일자": { 
-            "code": "MD-CS-HTED",
-            "name_en": "Hospitalization Treatment End Date"
-        },
-        "진단일": { 
-            "code": "MD-CS-DD",
-            "name_en": "Diagonsis Date"
-        },
-        "입원기간": { 
-            "code": "MD-CS-HTP",
-            "name_en": "Hospitalization Treatment Period"
-        },
-        "의사면허번호": { 
-            "code": "MD-CS-DLN",
-            "name_en": "Medical Doctor's License Number"
-        },
-        "환자명": { 
-            "code": "MD-CS-PN",
-            "name_en": "Patient Address"
-        },
-        "병원 전화번호 및 주소": { 
-            "code": "HTNA",
-            "name_en": "Hospital Telephone Number and Address"
-        },
-        "상병명": { 
-            "code": "MD-CS-MDN",
-            "name_en": "Disease Name"
-        },
-        "의사명": { 
-            "code": "MD-CS-MDN",
-            "name_en": "Medical Doctor Name"
-        },
-        "등록번호": { 
-            "code": "MD-CS-SM",
-            "name_en": "Service Mark"
-        },
-        "병원 전화번호": { 
-            "code": "MD-CS-HTN",
-            "name_en": "Hospital Telephone Number"
-        },
-        "치료종료일": { 
-            "code": "MD-CS-HED",
-            "name_en": "Hospital Treatment End Date"
-        },
-        "입원일자": { 
-            "code": "MD-CS-HTSD",
-            "name_en": "Hospitalization Treatment Start Date"
-        },
-        "치료시작일": { 
-            "code": "MD-CS-HSD",
-            "name_en": "Hospital Treatment Start Date"
-        },
-        "병원 주소": { 
-            "code": "MD-CS-HA",
-            "name_en": "Hospital Address"
-        },
-        "통원종료일": { 
-            "code": "MD-CS-OTED",
-            "name_en": "Outpatient Treatment End Date"
-        },
-        "통원기간": { 
-            "code": "MD-CS-OTP",
-            "name_en": "Outpatient Treatment Period"
-        },
-        "상병명 및 코드": { 
-            "code": "DNC",
-            "name_en": "Disease Name and Code"
-        },
-        "발행일": { 
-            "code": "MD-CS-ID",
-            "name_en": "Issue Date"
-        },
-        "환자 주소": { 
-            "code": "MD-CS-PA",
-            "name_en": "Patient Name"
-        },
-        "통원시작일": { 
-            "code": "MD-CS-OTSD",
-            "name_en": "Outpatient Treatment Start Date"
-        },
-        "치료기간": { 
-            "code": "MD-CS-HP",
-            "name_en": "Hospital Treatment Period"
-        },
-        "연번호": { 
-            "code": "MD-CS-YN",
-            "name_en": "Year Code"
-        },
-        "상병코드": { 
-            "code": "MD-CS-MDC",
-            "name_en": "Disease Code"
-        },
-        "병원명": { 
-            "code": "MD-CS-HN",
-            "name_en": "Hospital Name"
-        },
-        "입퇴원일자": { 
-            "code": "HTSED",
-            "name_en": "Hospitalization Treatment Start and End Date"
-        },
-        "수술명": { 
-            "code": "MD-CS-MSN",
-            "name_en": "Medical Surgery Name"
-        },
-        "수술일자": { 
-            "code": "MD-CS-MSD",
-            "name_en": "Medical Surgery Date"
-        }
-    },
-    "통원확인서": {
-        "통원종료일": { 
-            "code": "MD-COT-OTED",
-            "name_en": "Outpatient Treatment End Date"
-        },
-        "통원기간": { 
-            "code": "MD-COT-OTP",
-            "name_en": "Outpatient Treatment Period"
-        },
-        "상병코드": { 
-            "code": "MD-COT-MDC",
-            "name_en": "Disease Code"
-        },
-        "상병명": { 
-            "code": "MD-COT-MDN",
-            "name_en": "Disease Name"
-        },
-        "환자 주소": { 
-            "code": "MD-COT-PN",
-            "name_en": "Patient Name"
-        },
-        "진단일": { 
-            "code": "MD-COT-DD",
-            "name_en": "Diagonsis Date"
-        },
-        "병원 전화번호": { 
-            "code": "MD-COT-HTN",
-            "name_en": "Hospital Telephone Number"
-        },
-        "통원시작일": { 
-            "code": "MD-COT-OTSD",
-            "name_en": "Outpatient Treatment Start Date"
-        },
-        "등록번호": { 
-            "code": "MD-COT-SM",
-            "name_en": "Service Mark"
-        },
-        "의사면허번호": { 
-            "code": "MD-COT-DLN",
-            "name_en": "Medical Doctor's License Number"
-        },
-        "상병명 및 코드": { 
-            "code": "DNC",
-            "name_en": "Disease Name and Code"
-        },
-        "의사명": { 
-            "code": "MD-COT-MDN",
-            "name_en": "Medical Doctor Name"
-        },
-        "발행일": { 
-            "code": "MD-COT-ID",
-            "name_en": "Issue Date"
-        },
-        "퇴원일자": { 
-            "code": "MD-COT-HTED",
-            "name_en": "Hospitalization Treatment End Date"
-        },
-        "환자명": { 
-            "code": "MD-COT-PA",
-            "name_en": "Patient Address"
-        },
-        "병원 주소": { 
-            "code": "MD-COT-HA",
-            "name_en": "Hospital Address"
-        },
-        "치료종료일": { 
-            "code": "MD-COT-HED",
-            "name_en": "Hospital Treatment End Date"
-        },
-        "입원기간": { 
-            "code": "MD-COT-HTP",
-            "name_en": "Hospitalization Treatment Period"
-        },
-        "연번호": { 
-            "code": "MD-COT-YN",
-            "name_en": "Year Code"
-        },
-        "병원명": { 
-            "code": "MD-COT-HN",
-            "name_en": "Hospital Name"
-        },
-        "치료시작일": { 
-            "code": "MD-COT-HSD",
-            "name_en": "Hospital Treatment Start Date"
-        },
-        "치료일": { 
-            "code": "MD-COT-HTD",
-            "name_en": "Hospital Treatment Date"
-        },
-        "입원일자": { 
-            "code": "MD-COT-HTSD",
-            "name_en": "Hospitalization Treatment Start Date"
-        },
-        "병원 주소 및 전화번호": { 
-            "code": "HTNA",
-            "name_en": "Hospital Telephone Number and Address"
-        },
-        "치료기간": { 
-            "code": "MD-COT-HP",
-            "name_en": "Hospital Treatment Period"
-        },
-        "입퇴원일자": { 
-            "code": "HTSED",
-            "name_en": "Hospitalization Treatment Start and End Date"
-        }
-    },
-    "입퇴원확인서":{
-        "의사명": { 
-            "code": "MD-CAD-MDN",
-            "name_en": "Medical Doctor Name"
-        },
-        "통원기간": { 
-            "code": "MD-CAD-OTP",
-            "name_en": "Outpatient Treatment Period"
-        },
-        "상병명": { 
-            "code": "MD-CAD-MDN",
-            "name_en": "Disease Name"
-        },
-        "병원 주소 및 전화번호": { 
-            "code": "HTNA",
-            "name_en": "Hospital Telephone Number and Address"
-        },
-        "병원 주소": { 
-            "code": "MD-CAD-HA",
-            "name_en": "Hospital Address"
-        },
-        "치료기간": { 
-            "code": "MD-CAD-HP",
-            "name_en": "Hospital Treatment Period"
-        },
-        "발행일": { 
-            "code": "MD-CAD-ID",
-            "name_en": "Issue Date"
-        },
-        "환자 주소": { 
-            "code": "MD-CAD-PA",
-            "name_en": "Patient Address"
-        },
-        "상병코드": { 
-            "code": "MD-CAD-MDC",
-            "name_en": "Disease Code"
-        },
-        "통원 종료일": { 
-            "code": "MD-CAD-OTED",
-            "name_en": "Outpatient Treatment End Date"
-        },
-        "병원 전화번호": { 
-            "code": "MD-CAD-HTN",
-            "name_en": "Hospital Telephone Number"
-        },
-        "입원 시작일": { 
-            "code": "MD-CAD-HTSD",
-            "name_en": "Hospitalization Treatment Start Date"
-        },
-        "진단일": { 
-            "code": "MD-CAD-DD",
-            "name_en": "Diagonsis Date"
-        },
-        "의사 면허번호": { 
-            "code": "MD-CAD-DLN",
-            "name_en": "Medical Doctor's License Number"
-        },
-        "치료 종료일": { 
-            "code": "MD-CAD-HED",
-            "name_en": "Hospital Treatment End Date"
-        },
-        "치료일(통원일)": { 
-            "code": "MD-CAD-HTD",
-            "name_en": "Hospital Treatment Date"
-        },
-        "등록번호": { 
-            "code": "MD-CAD-SM",
-            "name_en": "Service Mark"
-        },
-        "연번호": { 
-            "code": "MD-CAD-YN",
-            "name_en": "Year Code"
-        },
-        "입원기간": { 
-            "code": "MD-CAD-HTP",
-            "name_en": "Hospitalization Treatment Period"
-        },
-        "입원 종료일": { 
-            "code": "MD-CAD-HTED",
-            "name_en": "Hospitalization Treatment End Date"
-        },
-        "상병명 및 코드": { 
-            "code": "DNC",
-            "name_en": "Disease Name and Code"
-        },
-        "병원명": { 
-            "code": "MD-CAD-HN",
-            "name_en": "Hospital Name"
-        },
-        "치료 시작일": { 
-            "code": "MD-CAD-HSD",
-            "name_en": "Hospital Treatment Start Date"
-        },
-        "환자명": { 
-            "code": "MD-CAD-PN",
-            "name_en": "Patient Name"
-        },
-        "통원 시작일": { 
-            "code": "MD-CAD-OTSD",
-            "name_en": "Outpatient Treatment Start Date"
-        },
-        "입퇴원기간": { 
-            "code": "HTSED",
-            "name_en": "Hospitalization Treatment Start and End Date"
-        }
-    },
-    "보험금청구서":{
-        "청구사항-기타": { 
-            "code": "CNO",
-            "name_en": "Claim Note Others"
-        },
-        "실손타사가입-예": { 
-            "code": "OIY",
-            "name_en": "Other Insurance Yes"
-        },
-        "청구사항-치아": { 
-            "code": "CNS",
-            "name_en": "Claim Note Stomatology"
-        },
-        "청구사항-사고분할": { 
-            "code": "CNA",
-            "name_en": "Claim Note Accident Split"
-        },
-        "청구사항-입원": { 
-            "code": "CNH",
-            "name_en": "Claim Note Hospitalization"
-        },
-        "청구사항-통원": { 
-            "code": "CNOP",
-            "name_en": "Claim Note OutPatient"
-        },
-        "청구사항-수술": { 
-            "code": "CNS",
-            "name_en": "Claim Note Surgery"
-        },
-        "청구사항-진단": { 
-            "code": "CND",
-            "name_en": "Claim Note Diagnosis"
-        },
-        "청구유형-재해": { 
-            "code": "CTA",
-            "name_en": "Claim Type Accident"
-        },
-        "청구유형-기타": { 
-            "code": "CTO",
-            "name_en": "Claim Type Others"
-        },
-        "청구유형-교통재해": { 
-            "code": "CTT",
-            "name_en": "Claim Type Transport"
-        },
-        "청구범위-일부청구": { 
-            "code": "CRP",
-            "name_en": "Claim Range Partical"
-        },
-        "청구유형-질병": { 
-            "code": "CTD",
-            "name_en": "Claim Type Disease"
-        },
-        "청구사항-재해사망": { 
-            "code": "CNAD",
-            "name_en": "Claim Note Accident Death"
-        },
-        "실손타사가입-아니오": { 
-            "code": "OIN",
-            "name_en": "Other Insurance No"
-        },
-        "청구범위-전체청구": { 
-            "code": "CRT",
-            "name_en": "Claim Range Total"
-        },
-        "청구사항-일반사망": { 
-            "code": "CNGD",
-            "name_en": "Claim Note General Death"
-        },
-        "청구사항-장해": { 
-            "code": "CNO",
-            "name_en": "Claim Note Obstacle"
-        },
-        "청구사항-실손": { 
-            "code": "CNI",
-            "name_en": "Claim Note Indemnity"
+    "진단서류": {
+        "HKL01-KV- DNC": { 
+            "code": "HKL01-KV- DNC",
+            "name_kr": "상병명 및 코드",
+            "name_en": "Disease Name and Code",
+            "date_type": "text"
+        },
+        "HKL01-KV- HTNA": { 
+            "code": "HKL01-KV- HTNA",
+            "name_kr": "병원 전화번호 및 주소",
+            "name_en": "Hospital Telephone Number and Address",
+            "date_type": "text"
+        },
+        "HKL01-KV- HTSED": { 
+            "code": "HKL01-KV- HTSED",
+            "name_kr": "입퇴원일자",
+            "name_en": "Hospitalization Treatment Start and End Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-DC": { 
+            "code": "HKL01-KV-DC",
+            "name_kr": "작성일",
+            "name_en": "Date Created",
+            "date_type": "text"
+        },
+        "HKL01-KV-DO": { 
+            "code": "HKL01-KV-DO",
+            "name_kr": "의사소견",
+            "name_en": "Doctor's Opinion",
+            "date_type": "text"
+        },
+        "HKL01-KV-PC": { 
+            "code": "HKL01-KV-PC",
+            "name_kr": "환자 코드",
+            "name_en": "Patient Code",
+            "date_type": "text"
+        },
+        "HKL01-KV-PN1": { 
+            "code": "HKL01-KV-PN1",
+            "name_kr": "환자명",
+            "name_en": "Patient Name",
+            "date_type": "text"
+        },
+        "HKL01-KV-PRN1": { 
+            "code": "HKL01-KV-PRN1",
+            "name_kr": "주민등록번호",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "HKL01-KV-HTSD": { 
+            "code": "HKL01-KV-HTSD",
+            "name_kr": "입원일자",
+            "name_en": "Hospitalization Treatment Start Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-DSN": { 
+            "code": "HKL01-KV-DSN",
+            "name_kr": "상병명",
+            "name_en": "Disease Name",
+            "date_type": "text"
+        },
+        "HKL01-KV-DCN": { 
+            "code": "HKL01-KV-DCN",
+            "name_kr": "의사명",
+            "name_en": "Doctor Name",
+            "date_type": "text"
+        },
+        "HKL01-KV-HTED": { 
+            "code": "HKL01-KV-HTED",
+            "name_kr": "퇴원일자",
+            "name_en": "Hospitalization Treatment End Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-OTSD": { 
+            "code": "HKL01-KV-OTSD",
+            "name_kr": "통원시작일",
+            "name_en": "Outpatient Treatment Start Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-SM": { 
+            "code": "HKL01-KV-SM",
+            "name_kr": "등록번호",
+            "name_en": "Service Mark",
+            "date_type": "text"
+        },
+        "HKL01-KV-HN": { 
+            "code": "HKL01-KV-HN",
+            "name_kr": "병원명",
+            "name_en": "Hospital Name",
+            "date_type": "text"
+        },
+        "HKL01-KV-MDC": { 
+            "code": "HKL01-KV-MDC",
+            "name_kr": "상병코드",
+            "name_en": "Disease Code",
+            "date_type": "text"
+        },
+        "HKL01-KV-HP": { 
+            "code": "HKL01-KV-HP",
+            "name_kr": "치료기간",
+            "name_en": "Hospital Treatment Period",
+            "date_type": "text"
+        },
+        "HKL01-KV-HA": { 
+            "code": "HKL01-KV-HA",
+            "name_kr": "병원 주소",
+            "name_en": "Hospital Address",
+            "date_type": "text"
+        },
+        "HKL01-KV-ID": { 
+            "code": "HKL01-KV-ID",
+            "name_kr": "발행일",
+            "name_en": "Issue Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-OTP": { 
+            "code": "HKL01-KV-OTP",
+            "name_kr": "통원기간",
+            "name_en": "Outpatient Treatment Period",
+            "date_type": "text"
+        },
+        "HKL01-KV-YN": { 
+            "code": "HKL01-KV-YN",
+            "name_kr": "연번호",
+            "name_en": "Year Number",
+            "date_type": "text"
+        },
+        "HKL01-KV-HTP": { 
+            "code": "HKL01-KV-HTP",
+            "name_kr": "입원기간",
+            "name_en": "Hospitalization Treatment Period",
+            "date_type": "text"
+        },
+        "HKL01-KV-DLN": { 
+            "code": "HKL01-KV-DLN",
+            "name_kr": "의사면허번호",
+            "name_en": "Medical Doctor's License Number",
+            "date_type": "text"
+        },
+        "HKL01-KV-HTN": { 
+            "code": "HKL01-KV-HTN",
+            "name_kr": "병원 전화번호",
+            "name_en": "Hospital Telephone Number",
+            "date_type": "text"
+        },
+        "HKL01-KV-DD": { 
+            "code": "HKL01-KV-DD",
+            "name_kr": "진단일",
+            "name_en": "Diagonsis Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-HSD": { 
+            "code": "HKL01-KV-HSD",
+            "name_kr": "치료시작일",
+            "name_en": "Hospital Treatment Start Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-OTED": { 
+            "code": "HKL01-KV-OTED",
+            "name_kr": "통원종료일",
+            "name_en": "Outpatient Treatment End Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-PA": { 
+            "code": "HKL01-KV-PA",
+            "name_kr": "환자 주소",
+            "name_en": "Patient Address",
+            "date_type": "text"
+        },
+        "HKL01-KV-HD": { 
+            "code": "HKL01-KV-HD",
+            "name_kr": "치료일",
+            "name_en": "Hospital Treatment Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-HED": { 
+            "code": "HKL01-KV-HED",
+            "name_kr": "치료종료일",
+            "name_en": "Hospital Treatment End Date",
+            "date_type": "text"
+        },
+        "HKL01-KV-MSN": { 
+            "code": "HKL01-KV-MSN",
+            "name_kr": "수술명",
+            "name_en": "",
+            "date_type": "text"
+        },
+        "HKL01-KV-MSD": { 
+            "code": "HKL01-KV-MSD",
+            "name_kr": "수술일자",
+            "name_en": "",
+            "date_type": "text"
         }
     },
     "처방전": {
-        "의사면허번호": { 
-            "code": "MD-PRS-LN",
-            "name_en": "License Number"
+        "HKL01-KV-DND": { 
+            "code": "HKL01-KV-DND",
+            "name_kr": "교부일및교부번호",
+            "name_en": "",
+            "date_type": "text"
         },
-        "요양기관번호": { 
-            "code": "MD-PRS-MIB",
-            "name_en": "Medical Institution numBer"
+        "HKL01-KV-MDN": { 
+            "code": "HKL01-KV-MDN",
+            "name_kr": "의사명",
+            "name_en": "Medical Doctor Name",
+            "date_type": "text"
         },
-        "상병코드": { 
-            "code": "MD-PRS-DCC",
-            "name_en": "Disease Classification Code"
+        "HKL01-KV-PMC": { 
+            "code": "HKL01-KV-PMC",
+            "name_kr": "처방의약품코드",
+            "name_en": "Prescription Medicine Code",
+            "date_type": "text"
         },
-        "의사명": { 
-            "code": "MDN",
-            "name_en": "Medical Doctor Name"
+        "HKL01-KV-PMNC": { 
+            "code": "HKL01-KV-PMNC",
+            "name_kr": "처방의약품및코드",
+            "name_en": "Prescription Medicine Name and Code",
+            "date_type": "text"
         },
-        "처방의약품및코드": { 
-            "code": "PMNC",
-            "name_en": "Prescription Medicine Name and Code"
+        "HKL01-KV-PN2": { 
+            "code": "HKL01-KV-PN2",
+            "name_kr": "환자명",
+            "name_en": "Patient Name",
+            "date_type": "text"
         },
-        "병원주소": { 
-            "code": "MD-PRS-MIA",
-            "name_en": "Medical Institution Address"
+        "HKL01-KV-PRN2": { 
+            "code": "HKL01-KV-PRN2",
+            "name_kr": "주민등록번호",
+            "name_en": "Patient Registration Number",
+            "date_type": "text"
         },
-        "1일 투여횟수": { 
-            "code": "MD-PRS-DDC",
-            "name_en": "Daily Dosage Count"
+        "HKL01-KV-TDD": { 
+            "code": "HKL01-KV-TDD",
+            "name_kr": "총투약일수",
+            "name_en": "Total Dosage Days",
+            "date_type": "text"
         },
-        "처방의약품": { 
-            "code": "MD-PRS-PMN",
-            "name_en": "Prescription Medicine Name"
+        "HKL01-KV-DN": { 
+            "code": "HKL01-KV-DN",
+            "name_kr": "교부번호",
+            "name_en": "Delivery Number",
+            "date_type": "text"
         },
-        "주민등록번호": { 
-            "code": "MD-PRS-PRN",
-            "name_en": "Patient Registration Number"
+        "HKL01-KV-MIM": { 
+            "code": "HKL01-KV-MIM",
+            "name_kr": "병원명",
+            "name_en": "Medical Institution naMe",
+            "date_type": "text"
         },
-        "교부번호": { 
-            "code": "MD-PRS-DN",
-            "name_en": "Delivery Number"
+        "HKL01-KV-DSG": { 
+            "code": "HKL01-KV-DSG",
+            "name_kr": "1회 투약량",
+            "name_en": "Dosage",
+            "date_type": "text"
         },
-        "병원명": { 
-            "code": "MD-PRS-MIM",
-            "name_en": "Medical Institution naMe"
+        "HKL01-KV-DLD": { 
+            "code": "HKL01-KV-DLD",
+            "name_kr": "교부일",
+            "name_en": "Delivery Date",
+            "date_type": "text"
         },
-        "병원전화번호": { 
-            "code": "MD-PRS-MIT",
-            "name_en": "Medical Institution Telephone Number"
+        "HKL01-KV-MIT": { 
+            "code": "HKL01-KV-MIT",
+            "name_kr": "병원전화번호",
+            "name_en": "Medical Institution Telephone Number",
+            "date_type": "text"
         },
-        "교부일": { 
-            "code": "MD-PRS-DLD",
-            "name_en": "Delivery Date"
+        "HKL01-KV-MIB": { 
+            "code": "HKL01-KV-MIB",
+            "name_kr": "요양기관번호",
+            "name_en": "Medical Institution numBer",
+            "date_type": "text"
         },
-        "1회 투약량": { 
-            "code": "MD-PRS-DSG",
-            "name_en": "Dosage"
+        "HKL01-KV-DDC": { 
+            "code": "HKL01-KV-DDC",
+            "name_kr": "1일 투여횟수",
+            "name_en": "Daily Dosage Count",
+            "date_type": "text"
         },
-        "총투약일수": { 
-            "code": "MD-PRS-TDD",
-            "name_en": "Total Dosage Days"
+        "HKL01-KV-DCC": { 
+            "code": "HKL01-KV-DCC",
+            "name_kr": "상병코드",
+            "name_en": "Disease Classification Code",
+            "date_type": "text"
         },
-        "처방의약품코드": { 
-            "code": "PMC",
-            "name_en": "Prescription Medicine Code"
+        "HKL01-KV-MIA": { 
+            "code": "HKL01-KV-MIA",
+            "name_kr": "병원주소",
+            "name_en": "Medical Institution Address",
+            "date_type": "text"
         },
-        "환자명": { 
-            "code": "MD-PRS-PN",
-            "name_en": "Patient Name"
+        "HKL01-KV-PMN": { 
+            "code": "HKL01-KV-PMN",
+            "name_kr": "처방의약품",
+            "name_en": "Prescription Medicine Name",
+            "date_type": "text"
+        },
+        "HKL01-KV-LN": { 
+            "code": "HKL01-KV-LN",
+            "name_kr": "의사면허번호",
+            "name_en": "License Number",
+            "date_type": "text"
         }
+    },
+
+    "database_initial_data": {
+        "category": [
+            {"category_name_kr": "기타 청구 서류", "category_code": "HKL01-DT-ETC", "category_client_code": "DT-01", "inference_doc_type": ""},
+            {"category_name_kr": "보험금 청구서", "category_code": "HKL01-DT-IB", "category_client_code": "DT-02", "inference_doc_type": ""},
+            {"category_name_kr": "통장사본", "category_code": "HKL01-DT-BB", "category_client_code": "DT-03", "inference_doc_type": ""},
+            {"category_name_kr": "주민등록등본", "category_code": "HKL01-DT-ARR", "category_client_code": "DT-04", "inference_doc_type": ""},
+            {"category_name_kr": "기본증명서", "category_code": "HKL01-DT-BC", "category_client_code": "DT-05", "inference_doc_type": ""},
+            {"category_name_kr": "제적등본", "category_code": "HKL01-DT-CE", "category_client_code": "DT-06", "inference_doc_type": ""},
+            {"category_name_kr": "가족관계증명서", "category_code": "HKL01-DT-CFR", "category_client_code": "DT-07", "inference_doc_type": ""},
+            {"category_name_kr": "혼인관계증명서", "category_code": "HKL01-DT-CM", "category_client_code": "DT-08", "inference_doc_type": ""},
+            {"category_name_kr": "운전면허증", "category_code": "HKL01-DT-DLC", "category_client_code": "DT-09", "inference_doc_type": ""},
+            {"category_name_kr": "주민등록증", "category_code": "HKL01-DT-RRC", "category_client_code": "DT-10", "inference_doc_type": ""},
+            {"category_name_kr": "입퇴원확인서", "category_code": "HKL01-DT-CAD", "category_client_code": "DT-11", "inference_doc_type": "HOSPITALIZATION"},
+            {"category_name_kr": "통원확인서", "category_code": "HKL01-DT-CHT", "category_client_code": "DT-12", "inference_doc_type": "OUTPATIENT"},
+            {"category_name_kr": "각종 병원 차트", "category_code": "HKL01-DT-CRT", "category_client_code": "DT-13", "inference_doc_type": ""},
+            {"category_name_kr": "수술확인서", "category_code": "HKL01-DT-CS", "category_client_code": "DT-14", "inference_doc_type": "OPERATION"},
+            {"category_name_kr": "병원 영수증", "category_code": "HKL01-DT-MB", "category_client_code": "DT-15", "inference_doc_type": ""},
+            {"category_name_kr": "각종 진단서", "category_code": "HKL01-DT-MC", "category_client_code": "DT-16", "inference_doc_type": "DIAGNOSIS"},
+            {"category_name_kr": "진료비 세부내역서", "category_code": "HKL01-DT-MED", "category_client_code": "DT-17", "inference_doc_type": ""},
+            {"category_name_kr": "약제비 계산서", "category_code": "HKL01-DT-PER", "category_client_code": "DT-18", "inference_doc_type": ""},
+            {"category_name_kr": "처방전", "category_code": "HKL01-DT-PRS", "category_client_code": "DT-19", "inference_doc_type": ""},
+            {"category_name_kr": "각종 검사 결과지", "category_code": "HKL01-DT-TR", "category_client_code": "DT-20", "inference_doc_type": ""},
+            {"category_name_kr": "신분증 진위확인서", "category_code": "HKL01-DT-FC", "category_client_code": "DT-21", "inference_doc_type": ""},
+            {"category_name_kr": "통장-운전면허증", "category_code": "HKL01-DT-BBD", "category_client_code": "DT-03", "inference_doc_type": ""},
+            {"category_name_kr": "통장-주민등록증", "category_code": "HKL01-DT-BBR", "category_client_code": "DT-03", "inference_doc_type": ""}
+        ],
+        "image": [
+
+        ],
+        "task": [
+
+        ],
+        "inference": [
+
+        ]
     }
 }

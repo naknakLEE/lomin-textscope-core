@@ -26,7 +26,7 @@ from app.routes import (
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
-from app.database.query import create_db_table
+from app.database.query import create_db_table, insert_initial_data
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import validation_exception_handler
@@ -43,6 +43,7 @@ def app_generator() -> FastAPI:
         db.init_app(app, **asdict(config()))
         if settings.DEVELOP:
             create_db_table(db)
+            insert_initial_data(db)
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
