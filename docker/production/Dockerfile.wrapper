@@ -33,7 +33,8 @@ COPY ./.env /workspace/.env
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
-    rm -rf /workspace/${APP_NAME}/assets
+    rm -rf /workspace/${APP_NAME}/assets && \
+    rm -rf /usr/bin/gcc
 
 WORKDIR /workspace/${APP_NAME}
 
