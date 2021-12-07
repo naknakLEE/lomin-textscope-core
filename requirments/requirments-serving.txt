@@ -20,3 +20,5 @@ pandas
 pdf2image==1.16.0
 imagecodecs==2020.5.30
 tifffile==2020.9.3
+
+transformers==4.12.5
