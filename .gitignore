@@ -167,6 +167,7 @@ Nuitka
 *.tif
 *.tiff
 *.JPG
+datasets/
 
 # security
 pyarmor*
@@ -180,4 +181,4 @@ linuxenv
 # kakaobank_wrapper/
 # bentoml_package/
 # bentoml_textscope/
-assets/heungkuklife.json
+# assets/heungkuklife.json

@@ -19,6 +19,7 @@ services:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
+      - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     runtime: nvidia
     tty: true
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}

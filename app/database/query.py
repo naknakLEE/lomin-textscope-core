@@ -34,6 +34,7 @@ def insert_initial_data(db: Session) -> None:
     finally:
         session.close()
 
+
 ### image
 def select_image_all(db: Session):
     '''

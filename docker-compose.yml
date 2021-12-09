@@ -178,15 +178,15 @@ services:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
     
-  # multiple_gpu_load_balancing:
-  #   image: nginx:1.21.1
-  #   container_name: multiple_gpu_load_balancing
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
-  #   networks:
-  #     our_net:
-  #       ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
+  multiple_gpu_load_balancing:
+    image: nginx:1.21.1
+    container_name: multiple_gpu_load_balancing
+    restart: unless-stopped
+    volumes:
+      - ./proxy/multiple_gpu_load_balancing.conf:/etc/nginx/nginx.conf
+    networks:
+      our_net:
+        ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
    
   nginx:
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}

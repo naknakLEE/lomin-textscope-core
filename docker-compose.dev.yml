@@ -34,6 +34,7 @@ services:
       - TERM=$TERM
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     tty: true
       
     deploy:
@@ -102,7 +103,7 @@ services:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
       context: ./
-      dockerfile: docker/base/Dockerfile.${WRAPPER_DOCKERFILE}
+      dockerfile: docker/base/Dockerfile.wrapper
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -118,7 +119,6 @@ services:
       - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-      - CUSTOMER=kakaobank
     working_dir: /workspace/textscope_wrapper/textscope_wrapper/app
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
