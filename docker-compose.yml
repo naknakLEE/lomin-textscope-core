@@ -80,6 +80,8 @@ services:
   postgres:
     container_name: postgres
     image: postgres:14 #TODO make Dockerfile
+    volumes:
+      - postgres_data:/var/lib/postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -292,6 +294,7 @@ volumes:
   prometheus_data: {}
   grafana_data: {}
   mysql_data: {}
+  postgres_data: {}
 
 networks:
   our_net:

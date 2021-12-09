@@ -1,7 +1,7 @@
 import base64
 import tempfile
 
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from os import environ
@@ -29,9 +29,9 @@ def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JS
 
 
 def get_pp_api_name(doc_type: str) -> Union[None, str]:
-    if doc_type.split("_")[0] in pp_mapping_table.get("general_pp", []):
+    if doc_type in pp_mapping_table.get("general_pp", []):
         return "kv"
-    elif doc_type.split("_")[0] in pp_mapping_table.get("bankbook", []):
+    elif doc_type in pp_mapping_table.get("bankbook", []):
         return "bankbook"
     elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
         return "seal_imp_cert"
@@ -94,3 +94,68 @@ def file_validation(files: Union[Path, List[Path]]) -> List:
                 fake_files.append((file.name, str(e)))
                 pass
     return fake_files
+
+def set_predictions(
+    general_detection_result: Dict,
+    kv_detection_result: Dict,
+    recogniton_result: Dict,
+) -> Tuple[Dict, Dict]:
+    # kv detection phase
+    classes = kv_detection_result.get("classes", [])
+    scores = kv_detection_result.get("scores", [])
+    boxes = kv_detection_result.get("boxes", [])
+    texts = kv_detection_result.get("texts", [])
+    kv_predictions = list()
+    for class_, score_, box_, text_ in zip(classes, scores, boxes, texts):
+        prediction = {
+            "class": class_,
+            "score": score_,
+            "box": box_,
+            "text": text_,
+        }
+        kv_predictions.append(prediction)
+
+    # general detection phase
+    classes = general_detection_result.get("classes", [])
+    scores = general_detection_result.get("scores", [])
+    boxes = general_detection_result.get("boxes", [])
+    texts = recogniton_result.get("texts", [])
+    general_predictions = list()
+    for class_, score_, box_, text_ in zip(classes, scores, boxes, texts):
+        prediction = {
+            "class": class_,
+            "score": score_,
+            "box": box_,
+            "text": text_,
+        }
+        general_predictions.append(prediction)
+    
+    return {
+        "kv_predictions": kv_predictions,
+        "general_predictions": general_predictions 
+    }
+
+
+def set_ocr_response(
+    general_detection_result: Dict,
+    kv_detection_result: Dict,
+    recognition_result: Dict,
+    classification_result: Dict,
+) -> Dict:
+    predictions = set_predictions(
+        kv_detection_result=kv_detection_result,
+        general_detection_result=general_detection_result,
+        recogniton_result=recognition_result,
+    )
+    doc_type = classification_result.get("doc_type")
+    class_score = classification_result.get("scores").get(doc_type)
+    response = dict(
+        predictions=predictions,
+        class_score=class_score,
+        image_height=general_detection_result.get("image_height"),
+        image_width=general_detection_result.get("image_width"),
+        id_type=kv_detection_result.get("id_type"),
+        rec_preds=recognition_result.get("rec_preds", []),
+        doc_type=doc_type,
+    )
+    return response
