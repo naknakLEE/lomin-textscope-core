@@ -8,16 +8,20 @@ from pydantic import Json
 from fastapi.param_functions import Form
 
 class InferenceTypeEnum(Enum):
-    CLS = "cls"
-    KV = "kv"
-    GOCR = "gocr"
-    RECO = "reco"
+    DU_CLS_MODEL = "cls"
+    DU_KV_MODEL_1 = "kv"
+    DU_KV_MODEL_2 = "kv"
+    LIFE_INSURANCE = "kv"
+    GENERAL_OCR = "gocr"
+    RECOGNITION = "reco"
     
 class InferenceSequenceEnum(Enum):
-    CLS = 1
-    KV = 2
-    GOCR = 3
-    RECO = 4
+    DU_CLS_MODEL = 1
+    DU_KV_MODEL_1 = 2
+    DU_KV_MODEL_2 = 2
+    LIFE_INSURANCE = 2
+    GENERAL_OCR = 3
+    RECOGNITION = 4
 
 class UserToken(BaseModel):
     id: int
@@ -164,17 +168,19 @@ class CreateImage(BaseModel):
 class CreateTask(BaseModel):
     task_id: str
     image_pkey: int
+    
+class UpdateTask(BaseModel):
     category_pkey: int
     
 class CreateInference(BaseModel):
-    infernece_id: str
+    inference_id: str
     task_pkey: int
-    inference_type: InferenceTypeEnum
+    inference_type: str
     inference_img_path: str
     inference_result: dict
     start_datetime: datetime
     finish_datetime: datetime
-    inference_sequence: InferenceSequenceEnum
+    inference_sequence: int
 
 class PgCategory(BaseModel):
     category_pkey: int

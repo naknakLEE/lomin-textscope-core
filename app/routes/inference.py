@@ -1,12 +1,16 @@
 import re
 from httpx import Client
+from uuid import uuid4
 
 from datetime import datetime
 from typing import Dict
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
+from sqlalchemy.orm import Session
+
+from app import models
 from app.schemas import inference_responses
 from app.utils.utils import (
     set_json_response,
@@ -15,6 +19,12 @@ from app.utils.utils import (
 )
 from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings
+from app.database import query
+from app.database.connection import db
+from app.utils.save_data import (
+    save_inference_results,
+    save_updated_task
+)
 
 
 router = APIRouter()
@@ -28,7 +38,11 @@ router = APIRouter()
 
 
 @router.post("/ocr", status_code=200, responses=inference_responses)
-async def ocr(inputs: Dict = Body(...)) -> Dict:
+async def ocr(
+    background_tasks: BackgroundTasks,
+    inputs: Dict = Body(...),
+    db: Session = Depends(db.session),
+) -> Dict:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
@@ -43,6 +57,19 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
     if settings.DEVELOP:
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
+    
+    task_insert_data = models.CreateTask(
+        task_id=inputs.get('task_id'),
+        image_pkey=inputs.get('image_pkey')
+    )
+    
+    try:
+        task_insert_result = query.insert_task(db, task_insert_data)
+    except:
+        logger.exception()
+    
+    task_pkey = task_insert_result.pkey
+    
     with Client() as client:
         # ocr inference
         if settings.USE_OCR_PIPELINE:
@@ -115,11 +142,33 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
 
         logger.info(f'kvresults: {kv_inference_results}')
 
-        inference_results = set_ocr_response(
+        dump_inference_results = dict(
             general_detection_result=general_detection_result,
             kv_detection_result=kv_inference_results.get("kv", {}),
             recognition_result=recognition_result,
             classification_result=classification_result
+        )
+
+        dump_inference_results["kv_detection_result"].update(dict(
+            response_log=kv_inference_results.get("response_log")
+        ))
+
+        inference_results = set_ocr_response(**dump_inference_results)
+        
+        background_tasks.add_task(
+            func=save_updated_task,
+            db=db,
+            doc_type=inference_results.get("doc_type"),
+            task_pkey=task_pkey
+        )
+        
+        background_tasks.add_task(
+            func=save_inference_results,
+            db=db,
+            inference_id=request_id,
+            task_pkey=task_pkey,
+            inference_img_path=inputs.get('image_path'),
+            inference_results=dump_inference_results 
         )
 
     response_log.update(inference_results.get("response_log", {}))
