@@ -117,7 +117,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
 
         inference_results = set_ocr_response(
             general_detection_result=general_detection_result,
-            kv_detection_result=kv_inference_results["kv"],
+            kv_detection_result=kv_inference_results.get("kv", {}),
             recognition_result=recognition_result,
             classification_result=classification_result
         )

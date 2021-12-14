@@ -31,13 +31,15 @@
                 "code": "HKL01-KV-0AC01",
                 "name_kr": "피보험자인적사항-의료수급권자-해당",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "해당"
             },
             "medical_benefit_no_check": {
                 "code": "HKL01-KV-0AC02",
                 "name_kr": "피보험자인적사항-의료수급권자-비해당",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "비해당"
             },
             "applicant_phone_num": {
                 "code": "HKL01-KV-0AD",
@@ -67,37 +69,43 @@
                 "code": "HKL01-KV-0BA01",
                 "name_kr": "수익자인적사항-관계-본인",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "본인"
             },
             "insured_person_relation_father_check": {
                 "code": "HKL01-KV-0BA02",
                 "name_kr": "수익자인적사항-관계-부",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "부"
             },
             "insured_person_relation_mother_check": {
                 "code": "HKL01-KV-0BA03",
                 "name_kr": "수익자인적사항-관계-모",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "모"
             },
             "insured_person_children_check": {
                 "code": "HKL01-KV-0BA04",
                 "name_kr": "수익자인적사항-관계-자녀",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "자녀"
             },
             "insured_person_relation_spouse_check": {
                 "code": "HKL01-KV-0BA05",
                 "name_kr": "수익자인적사항-관계-배우자",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "배우자"
             },
             "insured_person_relation_other_check": {
                 "code": "HKL01-KV-0BA06",
                 "name_kr": "수익자인적사항-관계-기타",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "기타"
             },
             "insured_person_relation_other": {
                 "code": "HKL01-KV-0BA07",
@@ -133,13 +141,15 @@
                 "code": "HKL01-KV-0BD01",
                 "name_kr": "수익자인적사항-실제소유자-예",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "예"
             },
             "actual_owner_no_check": {
                 "code": "HKL01-KV-0BD02",
                 "name_kr": "수익자인적사항-실제소유자-아니오",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "아니오"
             },
             "beneficiary_phone_num": {
                 "code": "HKL01-KV-0BE",
@@ -229,49 +239,57 @@
                 "code": "HKL01-KV-0CD01",
                 "name_kr": "수령계좌및청구-일시금신청",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "일시금 신청"
             },
             "insurance_division_direct_multiple_check": {
                 "code": "HKL01-KV-0CD02",
                 "name_kr": "수령계좌및청구-매회직접청구",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "매회 직접청구"
             },
             "claim_range_all_check": {
                 "code": "HKL01-KV-0DA01",
                 "name_kr": "청구내용-청구범위-전체청구",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "전체 청구"
             },
             "claim_range_partial_check": {
                 "code": "HKL01-KV-0DA02",
                 "name_kr": "청구내용-청구범위-일부청구",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "일부 청구"
             },
             "claim_type_disease_check": {
                 "code": "HKL01-KV-0DB01",
                 "name_kr": "청구내용-청구유형-질병",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "질병"
             },
             "claim_type_accident_check": {
                 "code": "HKL01-KV-0DB02",
                 "name_kr": "청구내용-청구유형-재해",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "재해"
             },
             "claim_type_transport_accident_check": {
                 "code": "HKL01-KV-0DB03",
                 "name_kr": "청구내용-청구유형-교통재해",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "교통 재해"
             },
             "claim_type_other_check": {
                 "code": "HKL01-KV-0DB04",
                 "name_kr": "청구내용-청구유형-기타",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "기타"
             },
             "claim_type_other": {
                 "code": "HKL01-KV-0DB05",
@@ -283,67 +301,78 @@
                 "code": "HKL01-KV-0DC01",
                 "name_kr": "청구내용-청구사항-일반사망",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "일반 사망"
             },
             "claim_note_accident_death_check": {
                 "code": "HKL01-KV-0DC02",
                 "name_kr": "청구내용-청구사항-재해사망",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "재해 사망"
             },
             "claim_note_obstacle_check": {
                 "code": "HKL01-KV-0DC03",
                 "name_kr": "청구내용-청구사항-장해",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "장해"
             },
             "claim_note_diagnosis_check": {
                 "code": "HKL01-KV-0DC04",
                 "name_kr": "청구내용-청구사항-진단",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "진단"
             },
             "claim_note_hospitalization_check": {
                 "code": "HKL01-KV-0DC05",
                 "name_kr": "청구내용-청구사항-입원",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "입원"
             },
             "claim_note_hospital_visit_check": {
                 "code": "HKL01-KV-0DC06",
                 "name_kr": "청구내용-청구사항-통원",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "통원"
             },
             "claim_note_surgery_check": {
                 "code": "HKL01-KV-0DC07",
                 "name_kr": "청구내용-청구사항-수술",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "수술"
             },
             "claim_note_loss_check": {
                 "code": "HKL01-KV-0DC08",
                 "name_kr": "청구내용-청구사항-실손",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "실손"
             },
             "claim_note_stomatology_check": {
                 "code": "HKL01-KV-0DC09",
                 "name_kr": "청구내용-청구사항-치아",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "치아"
             },
             "claim_note_other_check": {
                 "code": "HKL01-KV-0DC10",
                 "name_kr": "청구내용-청구사항-기타",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "기타"
             },
             "claim_note_accident_split_check": {
                 "code": "HKL01-KV-0DC11",
                 "name_kr": "청구내용-청구사항-사고분할",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "사고분할"
             },
             "accident_date": {
                 "code": "HKL01-KV-0DD",
@@ -409,13 +438,15 @@
                 "code": "HKL01-KV-0DH01",
                 "name_kr": "청구내용-실손타사가입-예",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "예"
             },
             "loss_3rd_party_reg_no_check": {
                 "code": "HKL01-KV-0DH02",
                 "name_kr": "청구내용-실손타사가입-아니오",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "아니오"
             },
             "insurance_company": {
                 "code": "HKL01-KV-0DH03",
@@ -427,49 +458,57 @@
                 "code": "HKL01-KV-0EA01",
                 "name_kr": "안내방법-진행과정-동의",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "동의"
             },
             "process_notification_sms_no_check": {
                 "code": "HKL01-KV-0EA02",
                 "name_kr": "안내방법-진행과정-미동의",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "미동의"
             },
             "manager_in_charge_notification_yes_check": {
                 "code": "HKL01-KV-0EB01",
                 "name_kr": "안내방법-담당설계사-동의",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "동의"
             },
             "manager_in_charge_notification_no_check": {
                 "code": "HKL01-KV-0EB02",
                 "name_kr": "안내방법-담당설계사-미동의",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "미동의"
             },
             "insurance_payment_notification_sms_check": {
                 "code": "HKL01-KV-0EC01",
                 "name_kr": "안내방법-지금내역-문자",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "문자"
             },
             "insurance_payment_notification_post_check": {
                 "code": "HKL01-KV-0EC02",
                 "name_kr": "안내방법-지금내역-우편",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "우편"
             },
             "insurance_payment_notification_email_check": {
                 "code": "HKL01-KV-0EC03",
                 "name_kr": "안내방법-지금내역-Email",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "Email"
             },
             "insurance_payment_notification_no_check": {
                 "code": "HKL01-KV-0EC04",
                 "name_kr": "안내방법-지금내역-미신청",
                 "name_en": "None",
-                "data_type": "checkbox"
+                "data_type": "checkbox",
+                "value": "미신청"
             },
             "beneficiary_name_end_1": {
                 "code": "HKL01-KV-0FB01",

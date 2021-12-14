@@ -177,6 +177,10 @@ class Settings(BaseSettings):
     KEYWORDS_ALL: Dict = {}
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
     
+    # HEUNGKUK CONFIG
+    DURIEL_SUPPORT_DOCUMENT: List
+    INSURANCE_SUPPORT_DOCUMENT: List
+    
     # FILE CONFIG
     ZIP_PATH: str
     IMG_PATH: str

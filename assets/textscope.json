@@ -4,6 +4,21 @@
         "2100": "이미지 파일이 경로에 존재하지 않음",
         "3000": "알 수 없는 서버 내부 에러 발생"
     },
+    "DURIEL_SUPPORT_DOCUMENT": [
+        "DIAGNOSIS", 
+        "HOSPITALIZATION",
+        "OPERATION",
+        "OUTPATIENT"
+    ],
+    "INSURANCE_SUPPORT_DOCUMENT": [
+        "INSURANCE_CLAIM"
+    ],
+    "PARAMETER_FULL_NAME_MAPPING_TABLE": {
+        "lnbzDocClcd": "document type",
+        "doc_type": "hint doc_type",
+        "key_value": "hint key_value",
+        "edmsId": "edms id"
+    },
     "DOC_TYPE_SET": {
         "PASSPORT": [
             "J5",
