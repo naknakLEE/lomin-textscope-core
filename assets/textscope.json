@@ -8,7 +8,8 @@
         "DIAGNOSIS", 
         "HOSPITALIZATION",
         "OPERATION",
-        "OUTPATIENT"
+        "OUTPATIENT",
+        "PRESCRIPTION"
     ],
     "INSURANCE_SUPPORT_DOCUMENT": [
         "INSURANCE_CLAIM"
@@ -37,17 +38,19 @@
         ],
         "DURIEL_KV_MODEL_1": [
             "DIAGNOSIS",
-            "HOSPITALIZATION"
-        ],
-        "DURIEL_KV_MODEL_2": [
+            "HOSPITALIZATION",
             "OPERATION",
             "OUTPATIENT"
+        ],
+        "DURIEL_KV_MODEL_2": [
+            "PRESCRIPTION"
         ],
         "DURIEL_SUPPORT_DOCUMENT": [
             "DIAGNOSIS", 
             "HOSPITALIZATION",
             "OPERATION",
-            "OUTPATIENT"
+            "OUTPATIENT",
+            "PRESCRIPTION"
         ],
         "BUSINESS_REGISTRATION": [
             "A1",
@@ -391,7 +394,8 @@
             "DIAGNOSIS",
             "HOSPITALIZATION",
             "OPERATION",
-            "OUTPATIENT"
+            "OUTPATIENT",
+            "PRESCRIPTION"
         ],
         "seal_imp_cert": ["J8_인감증명서", "N2_법인인감증명서"],
         "ccr": ["N1_법인등기부 등본(등기사항 전부증명서)"],
