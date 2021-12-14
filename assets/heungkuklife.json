@@ -566,6 +566,155 @@
             }
         },
         "DIAGNOSIS": {
+            "1by1_mapping": {
+                "KV-B01": "HKL01-KV-YN",
+                "KV-B02": "HKL01-KV-ID",
+                "KV-B03": "HKL01-KV-DC",
+                "KV-B06": "HKL01-KV-DD",
+                "KV-B07": "HKL01-KV-DO",
+                "KV-B13": "HKL01-KV-PC",
+                "KV-B14": "HKL01-KV-PRN1",
+                "KV-B15": "HKL01-KV-PN1",
+                "KV-B16": "HKL01-KV-PA",
+                "KV-B17": "HKL01-KV-HN",
+                "KV-B18": "HKL01-KV-HA",
+                "KV-B19": "HKL01-KV-HTN",
+                "KV-B20": "HKL01-KV-DLN",
+                "KV-B21": "HKL01-KV-DCN",
+                "KV-B22": "HKL01-KV-DO"
+            },
+            "KV-B01":{
+                "code": "KV-B01",
+                "name_kr": "연번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B02":{
+                "code": "KV-B02",
+                "name_kr": "발행일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B03":{
+                "code": "KV-B03",
+                "name_kr": "작성일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B04":{
+                "code": "KV-B04",
+                "name_kr": "병명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B05":{
+                "code": "KV-B05",
+                "name_kr": "병명(질병)코드",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B06":{
+                "code": "KV-B06",
+                "name_kr": "진단일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B07":{
+                "code": "KV-B07",
+                "name_kr": "의사소견",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B08":{
+                "code": "KV-B08",
+                "name_kr": "수술명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B09":{
+                "code": "KV-B09",
+                "name_kr": "치료일(통원일)",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B10":{
+                "code": "KV-B10",
+                "name_kr": "입원일자/퇴원일자",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B11":{
+                "code": "KV-B11",
+                "name_kr": "입원기간",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B12":{
+                "code": "KV-B12",
+                "name_kr": "수술일자",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B13":{
+                "code": "KV-B13",
+                "name_kr": "환자등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B14":{
+                "code": "KV-B14",
+                "name_kr": "주민등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B15":{
+                "code": "KV-B15",
+                "name_kr": "환자성명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B16":{
+                "code": "KV-B16",
+                "name_kr": "환자주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B17":{
+                "code": "KV-B17",
+                "name_kr": "병원명(의료기관명)",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B18":{
+                "code": "KV-B18",
+                "name_kr": "병원주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B19":{
+                "code": "KV-B19",
+                "name_kr": "병원전화번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B20":{
+                "code": "KV-B20",
+                "name_kr": "의사면허번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B21":{
+                "code": "KV-B21",
+                "name_kr": "의사명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B22":{
+                "code": "KV-B22",
+                "name_kr": "비고(소견)",
+                "name_en": "",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -766,6 +915,155 @@
             }
         },
         "HOSPITALIZATION": {
+            "1by1_mapping": {
+                "KV-B01": "HKL01-KV-YN",
+                "KV-B02": "HKL01-KV-ID",
+                "KV-B03": "HKL01-KV-DC",
+                "KV-B06": "HKL01-KV-DD",
+                "KV-B07": "HKL01-KV-DO",
+                "KV-B13": "HKL01-KV-PC",
+                "KV-B14": "HKL01-KV-PRN1",
+                "KV-B15": "HKL01-KV-PN1",
+                "KV-B16": "HKL01-KV-PA",
+                "KV-B17": "HKL01-KV-HN",
+                "KV-B18": "HKL01-KV-HA",
+                "KV-B19": "HKL01-KV-HTN",
+                "KV-B20": "HKL01-KV-DLN",
+                "KV-B21": "HKL01-KV-DCN",
+                "KV-B22": "HKL01-KV-DO"
+            },
+            "KV-B01":{
+                "code": "KV-B01",
+                "name_kr": "연번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B02":{
+                "code": "KV-B02",
+                "name_kr": "발행일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B03":{
+                "code": "KV-B03",
+                "name_kr": "작성일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B04":{
+                "code": "KV-B04",
+                "name_kr": "병명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B05":{
+                "code": "KV-B05",
+                "name_kr": "병명(질병)코드",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B06":{
+                "code": "KV-B06",
+                "name_kr": "진단일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B07":{
+                "code": "KV-B07",
+                "name_kr": "의사소견",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B08":{
+                "code": "KV-B08",
+                "name_kr": "수술명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B09":{
+                "code": "KV-B09",
+                "name_kr": "치료일(통원일)",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B10":{
+                "code": "KV-B10",
+                "name_kr": "입원일자/퇴원일자",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B11":{
+                "code": "KV-B11",
+                "name_kr": "입원기간",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B12":{
+                "code": "KV-B12",
+                "name_kr": "수술일자",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B13":{
+                "code": "KV-B13",
+                "name_kr": "환자등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B14":{
+                "code": "KV-B14",
+                "name_kr": "주민등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B15":{
+                "code": "KV-B15",
+                "name_kr": "환자성명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B16":{
+                "code": "KV-B16",
+                "name_kr": "환자주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B17":{
+                "code": "KV-B17",
+                "name_kr": "병원명(의료기관명)",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B18":{
+                "code": "KV-B18",
+                "name_kr": "병원주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B19":{
+                "code": "KV-B19",
+                "name_kr": "병원전화번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B20":{
+                "code": "KV-B20",
+                "name_kr": "의사면허번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B21":{
+                "code": "KV-B21",
+                "name_kr": "의사명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B22":{
+                "code": "KV-B22",
+                "name_kr": "비고(소견)",
+                "name_en": "",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -966,6 +1264,155 @@
             }
         },
         "OUTPATIENT": {
+            "1by1_mapping": {
+                "KV-B01": "HKL01-KV-YN",
+                "KV-B02": "HKL01-KV-ID",
+                "KV-B03": "HKL01-KV-DC",
+                "KV-B06": "HKL01-KV-DD",
+                "KV-B07": "HKL01-KV-DO",
+                "KV-B13": "HKL01-KV-PC",
+                "KV-B14": "HKL01-KV-PRN1",
+                "KV-B15": "HKL01-KV-PN1",
+                "KV-B16": "HKL01-KV-PA",
+                "KV-B17": "HKL01-KV-HN",
+                "KV-B18": "HKL01-KV-HA",
+                "KV-B19": "HKL01-KV-HTN",
+                "KV-B20": "HKL01-KV-DLN",
+                "KV-B21": "HKL01-KV-DCN",
+                "KV-B22": "HKL01-KV-DO"
+            },
+            "KV-B01":{
+                "code": "KV-B01",
+                "name_kr": "연번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B02":{
+                "code": "KV-B02",
+                "name_kr": "발행일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B03":{
+                "code": "KV-B03",
+                "name_kr": "작성일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B04":{
+                "code": "KV-B04",
+                "name_kr": "병명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B05":{
+                "code": "KV-B05",
+                "name_kr": "병명(질병)코드",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B06":{
+                "code": "KV-B06",
+                "name_kr": "진단일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B07":{
+                "code": "KV-B07",
+                "name_kr": "의사소견",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B08":{
+                "code": "KV-B08",
+                "name_kr": "수술명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B09":{
+                "code": "KV-B09",
+                "name_kr": "치료일(통원일)",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B10":{
+                "code": "KV-B10",
+                "name_kr": "입원일자/퇴원일자",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B11":{
+                "code": "KV-B11",
+                "name_kr": "입원기간",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B12":{
+                "code": "KV-B12",
+                "name_kr": "수술일자",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B13":{
+                "code": "KV-B13",
+                "name_kr": "환자등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B14":{
+                "code": "KV-B14",
+                "name_kr": "주민등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B15":{
+                "code": "KV-B15",
+                "name_kr": "환자성명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B16":{
+                "code": "KV-B16",
+                "name_kr": "환자주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B17":{
+                "code": "KV-B17",
+                "name_kr": "병원명(의료기관명)",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B18":{
+                "code": "KV-B18",
+                "name_kr": "병원주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B19":{
+                "code": "KV-B19",
+                "name_kr": "병원전화번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B20":{
+                "code": "KV-B20",
+                "name_kr": "의사면허번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B21":{
+                "code": "KV-B21",
+                "name_kr": "의사명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-B22":{
+                "code": "KV-B22",
+                "name_kr": "비고(소견)",
+                "name_en": "",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -1166,6 +1613,104 @@
             }
         },
         "PRESCRIPTION": {
+            "1by1_mapping": {
+                "KV-C03": "HKL01-KV-PRN2",
+                "KV-C04": "HKL01-KV-MIB",
+                "KV-C05": "HKL01-KV-MIM",
+                "KV-C06": "HKL01-KV-MIA",
+                "KV-C07": "HKL01-KV-MIT",
+                "KV-C08": "HKL01-KV-LN",
+                "KV-C09": "HKL01-KV-MDN",
+                "KV-C10": "HKL01-KV-DCC",
+                "KV-C12": "HKL01-KV-TDD",
+                "KV-C13": "HKL01-KV-DSG",
+                "KV-C14": "HKL01-KV-DDC"
+            },
+            "KV-C01":{
+                "code": "KV-C01",
+                "name_kr": "교부번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C02":{
+                "code": "KV-C02",
+                "name_kr": "교부일",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C03":{
+                "code": "KV-C03",
+                "name_kr": "주민등록번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C04":{
+                "code": "KV-C04",
+                "name_kr": "요양기관번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C05":{
+                "code": "KV-C05",
+                "name_kr": "병원명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C06":{
+                "code": "KV-C06",
+                "name_kr": "병원주소",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C07":{
+                "code": "KV-C07",
+                "name_kr": "병원전화번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C08":{
+                "code": "KV-C08",
+                "name_kr": "의사면허번호",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C09":{
+                "code": "KV-C09",
+                "name_kr": "의사명",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C10":{
+                "code": "KV-C10",
+                "name_kr": "상병코드",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C11":{
+                "code": "KV-C11",
+                "name_kr": "처방의약품",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C12":{
+                "code": "KV-C12",
+                "name_kr": "총투약일수",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C13":{
+                "code": "KV-C13",
+                "name_kr": "1회투약량",
+                "name_en": "",
+                "date_type": "text"
+            },
+            "KV-C14":{
+                "code": "KV-C14",
+                "name_kr": "1일투여횟수",
+                "name_en": "",
+                "date_type": "text"
+            },
+            
             "HKL01-KV-DND": { 
                 "code": "HKL01-KV-DND",
                 "name_kr": "교부일및교부번호",
