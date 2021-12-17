@@ -8,7 +8,7 @@ from app.utils.logging import logger
 
 from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
+load_dotenv("/workspace/.env")
 
 async def save_updated_task(
     db: Session,

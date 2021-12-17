@@ -5,14 +5,14 @@
         "3000": "알 수 없는 서버 내부 에러 발생"
     },
     "DURIEL_SUPPORT_DOCUMENT": [
-        "DIAGNOSIS", 
-        "HOSPITALIZATION",
-        "OPERATION",
-        "OUTPATIENT",
-        "PRESCRIPTION"
+        "HKL01-DT-MC", 
+        "HKL01-DT-CAD",
+        "HKL01-DT-CS",
+        "HKL01-DT-CHT",
+        "HKL01-DT-PRS"
     ],
     "INSURANCE_SUPPORT_DOCUMENT": [
-        "INSURANCE_CLAIM"
+        "HKL01-DT-IB"
     ],
     "PARAMETER_FULL_NAME_MAPPING_TABLE": {
         "lnbzDocClcd": "document type",
@@ -36,21 +36,21 @@
         "DURIEL_CLS_MODEL": [
             "du_cls_model"
         ],
-        "DURIEL_KV_MODEL_1": [
-            "DIAGNOSIS",
-            "HOSPITALIZATION",
-            "OPERATION",
-            "OUTPATIENT"
+        "DURIEL_KV_MODEL_DIAGNOSIS": [
+            "HKL01-DT-MC",
+            "HKL01-DT-CAD",
+            "HKL01-DT-CS",
+            "HKL01-DT-CHT"
         ],
-        "DURIEL_KV_MODEL_2": [
-            "PRESCRIPTION"
+        "DURIEL_KV_MODEL_PRESCRIPTION": [
+            "HKL01-DT-PRS"
         ],
         "DURIEL_SUPPORT_DOCUMENT": [
-            "DIAGNOSIS", 
-            "HOSPITALIZATION",
-            "OPERATION",
-            "OUTPATIENT",
-            "PRESCRIPTION"
+            "HKL01-DT-MC", 
+            "HKL01-DT-CAD",
+            "HKL01-DT-CS",
+            "HKL01-DT-CHT",
+            "HKL01-DT-PRS"
         ],
         "BUSINESS_REGISTRATION": [
             "A1",
@@ -58,7 +58,7 @@
             "사업자등록증"
         ],
         "LIFE_INSURANCE": [
-            "INSURANCE_CLAIM"
+            "HKL01-DT-IB"
         ],
         "TRANSACTION_BANK_BOOK": [
             "A2",
@@ -383,19 +383,20 @@
         "accident_date",
         "application_date",
         "beneficiary_address",
-        "accident_details"
+        "accident_details",
+        "HKL01-KV-MDC"
     ],
     "PP_MAPPING_TABLE": {
         "general_pp": [
             "Z2",
             "Z3",
             "사업자등록증",
-            "INSURANCE_CLAIM",
-            "DIAGNOSIS",
-            "HOSPITALIZATION",
-            "OPERATION",
-            "OUTPATIENT",
-            "PRESCRIPTION"
+            "HKL01-DT-IB",
+            "HKL01-DT-MC",
+            "HKL01-DT-CAD",
+            "HKL01-DT-CS",
+            "HKL01-DT-CHT",
+            "HKL01-DT-PRS"
         ],
         "seal_imp_cert": ["J8_인감증명서", "N2_법인인감증명서"],
         "ccr": ["N1_법인등기부 등본(등기사항 전부증명서)"],

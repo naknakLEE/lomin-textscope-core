@@ -9,16 +9,16 @@ from fastapi.param_functions import Form
 
 class InferenceTypeEnum(Enum):
     DU_CLS_MODEL = "cls"
-    DU_KV_MODEL_1 = "kv"
-    DU_KV_MODEL_2 = "kv"
+    DU_KV_MODEL_DIAGNOSIS = "kv"
+    DU_KV_MODEL_PRESCRIPTION = "kv"
     LIFE_INSURANCE = "kv"
     GENERAL_OCR = "gocr"
     RECOGNITION = "reco"
     
 class InferenceSequenceEnum(Enum):
     DU_CLS_MODEL = 1
-    DU_KV_MODEL_1 = 2
-    DU_KV_MODEL_2 = 2
+    DU_KV_MODEL_DIAGNOSIS = 2
+    DU_KV_MODEL_PRESCRIPTION = 2
     LIFE_INSURANCE = 2
     GENERAL_OCR = 3
     RECOGNITION = 4
