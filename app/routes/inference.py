@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from datetime import datetime
 from typing import Dict
-from fastapi import APIRouter, Body, BackgroundTasks, Depends
+from fastapi import APIRouter, Body, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -63,10 +63,14 @@ async def ocr(
         image_pkey=inputs.get('image_pkey')
     )
     
-    try:
-        task_insert_result = query.insert_task(db, task_insert_data)
-    except:
-        logger.exception()
+    task_insert_result = query.insert_task(db, task_insert_data)
+    if not task_insert_result:
+        logger.warning(f'not found image : {task_insert_result}')
+        error = models.Error(
+            error_code="ER-INF-CKV-4003",
+            error_message="이미 등록된 task id"
+        )
+        raise HTTPException(status_code=400, detail=error.dict())
     
     task_pkey = task_insert_result.pkey
     
