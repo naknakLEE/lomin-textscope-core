@@ -37,6 +37,8 @@ def get_pp_api_name(doc_type: str) -> Union[None, str]:
         return "seal_imp_cert"
     elif doc_type in pp_mapping_table.get("ccr", []):
         return "ccr"
+    elif doc_type in pp_mapping_table.get("busan_bank", []):
+        return "busan_bank"
     elif settings.CUSTOMER == "kakaobank" and doc_type in document_type_set:
         return document_type_set.get(doc_type)
     return None
