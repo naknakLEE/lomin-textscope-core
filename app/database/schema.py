@@ -377,7 +377,7 @@ class Image(Base, WooriBaseMixin):
 
     image_pkey = Column(Integer, primary_key=True, comment='1')
     image_id = Column(String(50), nullable=False, comment='uuuu-uuuu-uuuu-uuuu')
-    image_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
+    image_path = Column(String(500), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
     image_type = Column(String(30), nullable=False, comment="['training', 'inference']")
     image_description = Column(Text, comment='이미지 설명')
     category_pkey = Column(ForeignKey('category.category_pkey'), comment='category_a, 주민등록등본')

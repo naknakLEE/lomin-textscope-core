@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 
 from app.wrapper import pp, pipeline, settings
 from app.schemas import inference_responses
-from app.utils.utils import set_json_response, get_pp_api_name
+from app.utils.utils import set_json_response, get_pp_api_name, print_error_log
 from app.common.const import get_settings
 from app.utils.logging import logger
 
@@ -27,6 +27,36 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 """
 
 
+def request_pp_result_vis(client, kv: Dict, inputs: Dict) -> None:
+    try:
+        classes = list()
+        texts = list()
+        boxes = list()
+        for key, values in kv.items():
+            for value in values:
+                for bbox in value.get("bboxes"):
+                    boxes.append(bbox)
+                    texts.append("")
+                    classes.append("{} {}".format(key, value.get("text")))
+        
+        client.post(
+            url=f"{model_server_url}/visualize",
+            json={
+                "classes": classes,
+                "texts": texts,
+                "boxes": boxes,
+                "scores": None,
+                "image_path": inputs.get("image_path"),
+                "page": inputs.get("page", 1),
+                "request_id": inputs.get("request_id"),
+                "model_name": "pp"
+            }
+        )
+    except Exception:
+        print_error_log()
+
+
+
 @router.post("/ocr", status_code=200, responses=inference_responses)
 async def ocr(inputs: Dict = Body(...)) -> Dict:
     """
@@ -41,6 +71,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
     response_log = dict()
     response = dict()
     if settings.DEVELOP:
+        # inputs["doc_type"] = "법인등기부등본"
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
     with Client() as client:
@@ -81,6 +112,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
             if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
             inference_results["kv"] = post_processing_results["result"]
+            request_pp_result_vis(client, inference_results["kv"], inputs)
             inference_results["texts"] = post_processing_results["texts"]
 
         # convert preds to texts
