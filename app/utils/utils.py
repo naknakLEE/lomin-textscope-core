@@ -1,3 +1,4 @@
+import sys
 import base64
 import tempfile
 
@@ -11,6 +12,9 @@ from io import BytesIO
 from PIL import Image
 from app.common.const import get_settings
 from datetime import datetime
+
+from app.utils.logging import logger
+
 
 settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
@@ -97,3 +101,17 @@ def file_validation(files: Union[Path, List[Path]]) -> List:
                 fake_files.append((file.name, str(e)))
                 pass
     return fake_files
+
+
+def print_error_log() -> None:
+    error = sys.exc_info()
+    exc_type, exc_value, exc_traceback = error
+    error_log = {
+        'filename': exc_traceback.tb_frame.f_code.co_filename,
+        'lineno'  : exc_traceback.tb_lineno,
+        'name'    : exc_traceback.tb_frame.f_code.co_name,
+        'type'    : exc_type.__name__,
+        'message' : str(exc_value),
+    }
+    logger.info("error log detail: {}", error_log)
+    del(exc_type, exc_value, exc_traceback, error_log)

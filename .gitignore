@@ -167,6 +167,7 @@ Nuitka
 *.tif
 *.tiff
 datasets
+images
 
 # security
 pyarmor*

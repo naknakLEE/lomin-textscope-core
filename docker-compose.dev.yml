@@ -44,7 +44,7 @@ services:
             device_ids: ['0']
             capabilities: [gpu]
     working_dir: /workspace/inference_server
-    # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   
   web:
@@ -103,9 +103,9 @@ services:
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
       - CUSTOMER=kakaobank
-    working_dir: /workspace/textscope_wrapper/textscope_wrapper/app
+    working_dir: /workspace/textscope_wrapper/textscope_wrapper
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
-    # command: python3 main.py
+    command: python3 main.py
 
   nginx:
     ports:
