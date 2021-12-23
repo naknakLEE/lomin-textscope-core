@@ -8,6 +8,7 @@ from datetime import datetime
 
 from app import wrapper
 from app.common import settings
+from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
 
 model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
@@ -221,3 +222,88 @@ def single(
         )
     )
     return (ocr_response.status_code, ocr_response.json(), response_log)
+
+
+def heungkuk_life(
+    client: Client,
+    inputs: Dict,
+    response_log: Dict,
+    route_name: str = "ocr",
+    hint: Optional[Dict] = None,
+) -> Tuple[int, Dict, Dict]:
+    inference_start_time = datetime.now()
+    # General detection
+    agamotto_result = wrapper.detection.agamotto(client, inputs).get("response")
+
+    # Recognition
+    tiamo_result = wrapper.recognition.tiamo(client, inputs, agamotto_result).get("response")
+    duriel_inputs = {**agamotto_result, "texts": tiamo_result["texts"]}
+
+    # Classification
+    duriel_classification_result = wrapper.classification.duriel(client, inputs, duriel_inputs).get("response")
+    
+    # Apply doc type hint
+    hint = inputs.get("hint", {})
+    if "doc_type" in hint:
+        apply_cls_hint_result = apply_cls_hint(
+            cls_result=duriel_classification_result,
+            doc_type_hint=hint.get("doc_type"),
+        )
+    doc_type = duriel_classification_result.get("doc_type")
+
+    # Apply static doc type
+    if inputs.get("static_doc_type", None) is not None:
+        doc_type = inputs.get("static_doc_type", None)
+    score_result = duriel_classification_result.get("scores")
+    duriel_classification_result["score"] = score_result.get(doc_type)
+    inputs["doc_type"] = doc_type
+
+    # Kv detection
+    kv_result = dict()
+    logger.info("duriel support document: {}", settings.DURIEL_SUPPORT_DOCUMENT)
+    logger.info("insurance support document: {}", settings.INSURANCE_SUPPORT_DOCUMENT)
+    logger.info("classification doc type: {}", doc_type)
+    if doc_type in settings.DURIEL_SUPPORT_DOCUMENT:
+        kv_result = wrapper.detection.duriel(client, inputs, duriel_inputs, doc_type).get("response")
+    elif doc_type in settings.INSURANCE_SUPPORT_DOCUMENT:
+        kv_result = wrapper.detection.agamotto(client, inputs).get("response")
+        tiamo_inputs = {
+            "valid_boxes": kv_result.get("boxes", []),
+            "classes": kv_result.get("classes", []),
+            "valid_scores": kv_result.get("scores", []),
+            "image_path": inputs.get("image_path"),
+            "page": inputs.get("page"),
+            "request_id": inputs.get("request_id")
+        }
+        tiamo_result = wrapper.tiamo(tiamo_inputs).get("response")[-1]
+        kv_result["texts"] = tiamo_result.get("text")
+    logger.debug("kv result: {}", kv_result)
+    ocr_response = dict(
+        general_detection_result=agamotto_result,
+        kv_detection_result=kv_result,
+        recognition_result=tiamo_result,
+        classification_result=duriel_classification_result,
+        class_score=duriel_classification_result.get("score", 0.0),
+        image_height=agamotto_result.get("image_height"),
+        image_width=agamotto_result.get("image_width"),
+        id_type=kv_result.get("id_type", None),
+        rec_preds=tiamo_result.get("rec_preds", []),
+        doc_type=duriel_classification_result.get("doc_type"),
+        apply_cls_hint_result=apply_cls_hint_result,
+    )
+
+    inference_end_time = datetime.now()
+    logger.info(
+        f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}"
+    )
+    response_log.update(
+        dict(
+            inference_request_start_time=inference_start_time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            inference_request_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            inference_request_time=inference_end_time - inference_start_time,
+        )
+    )
+    return (kv_result.get("status_code"), ocr_response, response_log)
+

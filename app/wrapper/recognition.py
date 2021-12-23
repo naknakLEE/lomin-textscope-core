@@ -14,14 +14,17 @@ def tiamo(
     inputs: Dict,
     inference_result: Dict,
     hint: Optional[Dict] = None,
+    route_name: Optional[str] = None,
 ) -> Tuple[int, Dict]:
-    route_name = inputs.get("route_name")
     inference_inputs = dict(
         valid_boxes=inference_result.get("boxes", []),
         classes=inference_result.get("classes", []),
+        valid_scores=inference_result.get("scores", []),
         image_path=inputs.get("image_path"),
         page=inputs.get("page"),
+        request_id=inputs.get("request_id")
     )
+    route_name = "tiamo" if route_name is None else route_name
     recognition_response = client.post(
         f"{recognition_server_url}/{route_name}",
         json=inference_inputs,
@@ -30,7 +33,7 @@ def tiamo(
     )
     recognition_result = recognition_response.json()
     rec_preds = recognition_result.get("rec_preds")
-    recognition_result["texts"] = pp.convert_preds_to_texts(client, rec_preds)
+    _, recognition_result["texts"] = pp.convert_preds_to_texts(client, rec_preds)
     return dict(
         status_code=recognition_response.status_code,
         response=recognition_result,

@@ -21,6 +21,7 @@ from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings
 from app.database import query
 from app.database.connection import db
+from app.utils.hint import apply_cls_hint
 from app.utils.save_data import (
     save_inference_results,
     save_updated_task
@@ -86,6 +87,13 @@ async def ocr(
                 response_log=response_log,
             )
             response_log = dict()
+        elif inputs.get("use_heungkuk_life_pipeline_api"):
+            status_code, inference_results, response_log = pipeline.single(
+                client=client, 
+                inputs=inputs,
+                response_log=response_log,
+                route_name="heungkuk_life_pipeline",
+            )
         else:
             status_code, inference_results, response_log = pipeline.single(
                 client=client, 
@@ -94,7 +102,7 @@ async def ocr(
                 route_name="heungkuk_life_pipeline",
             )
         
-        if status_code < 200 or status_code >= 400:
+        if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             return set_json_response(code="3000", message="모델 서버 문제 발생")
 
         logger.info(f'inf results : {inference_results}')
@@ -104,6 +112,7 @@ async def ocr(
         classification_result = inference_results.get('classification_result')
         recognition_result = inference_results.get('recognition_result')
         
+
         pp_inference_results = dict(
             boxes=kv_inference_results.get('boxes'),
             scores=kv_inference_results.get('scores'),
@@ -114,6 +123,7 @@ async def ocr(
             image_height=inference_results.get("image_height"),
             image_width=inference_results.get("image_width")
         )
+
 
         # ocr post processing
         if settings.DEVELOP:
