@@ -50,6 +50,8 @@ def request_pp_result_vis(client, kv: Dict, inputs: Dict, anlge: float) -> None:
                 "request_id": inputs.get("request_id"),
                 "model_name": "pp",
                 "angle": anlge,
+                "use_rotate": inputs.get("use_rotate", True),
+                "use_finegrained_rotate": inputs.get("use_finegrained_rotate", True),
             }
         logger.info("vis inputs: {}", vis_inputs)
         client.post(
