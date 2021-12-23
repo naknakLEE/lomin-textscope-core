@@ -27,21 +27,20 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 """
 
 
-def request_pp_result_vis(client, kv: Dict, inputs: Dict) -> None:
+def request_pp_result_vis(client, kv: Dict, inputs: Dict, anlge: float) -> None:
     try:
         classes = list()
         texts = list()
         boxes = list()
         for key, values in kv.items():
             for value in values:
+                if not isinstance(value.get("bboxes"), list): continue
                 for bbox in value.get("bboxes"):
                     boxes.append(bbox)
-                    texts.append("")
+                    texts.append(value.get("text"))
                     classes.append("{} {}".format(key, value.get("text")))
         
-        client.post(
-            url=f"{model_server_url}/visualize",
-            json={
+        vis_inputs = {
                 "classes": classes,
                 "texts": texts,
                 "boxes": boxes,
@@ -49,8 +48,13 @@ def request_pp_result_vis(client, kv: Dict, inputs: Dict) -> None:
                 "image_path": inputs.get("image_path"),
                 "page": inputs.get("page", 1),
                 "request_id": inputs.get("request_id"),
-                "model_name": "pp"
+                "model_name": "pp",
+                "angle": anlge,
             }
+        logger.info("vis inputs: {}", vis_inputs)
+        client.post(
+            url=f"{model_server_url}/visualize",
+            json=vis_inputs
         )
     except Exception:
         print_error_log()
@@ -112,7 +116,7 @@ async def ocr(inputs: Dict = Body(...)) -> Dict:
             if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
             inference_results["kv"] = post_processing_results["result"]
-            request_pp_result_vis(client, inference_results["kv"], inputs)
+            request_pp_result_vis(client, inference_results["kv"], inputs, inference_results.get("angle", 0.0))
             inference_results["texts"] = post_processing_results["texts"]
 
         # convert preds to texts
