@@ -2,10 +2,6 @@
 	path = lovit
 	url = git@github.com:Lomin-ai/lovit.git
 	branch = develop
-[submodule "textscope_wrapper"]
-	path = textscope_wrapper
-	url = git@github.com:Lomin-ai/textscope-wrapper.git
-	branch = lomin
 [submodule "inference_server"]
 	path = inference_server
 	url = git@github.com:Lomin-ai/inference_server.git
@@ -14,3 +10,6 @@
 	path = pp_server
 	url = git@github.com:Lomin-ai/pp_server.git
 	branch = develop
+[submodule "textscope-wrapper"]
+	path = textscope_wrapper
+	url = git@github.com:Lomin-ai/textscope-wrapper.git
