@@ -148,9 +148,9 @@ class Inference(Base, HeungkukBaseMixin):
     task_pkey = Column(ForeignKey('task.pkey'))
     inference_type = Column(String(5), comment="['cls', 'kv', 'gocr', 'reco']")
     inference_img_path = Column(String(300), nullable=False)
-    inference_result = Column(JSON, nullable=False)
-    start_datetime = Column(DateTime, nullable=False)
-    finish_datetime = Column(DateTime, nullable=False)
+    inference_result = Column(JSON, nullable=True)
+    start_datetime = Column(DateTime, nullable=True)
+    finish_datetime = Column(DateTime, nullable=True)
     create_datetime = Column(DateTime, default=datetime.now())
     inference_sequence = Column(Integer, comment='inference 순서 1->2->3->4')
 

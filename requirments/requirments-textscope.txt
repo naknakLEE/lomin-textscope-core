@@ -27,3 +27,6 @@ python-jose==3.3.0
 # for postgresql
 psycopg2-binary==2.9.2
 sqlacodegen==3.0.0b2
+
+# for hint
+soynlp==0.0.493

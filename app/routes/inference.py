@@ -146,6 +146,10 @@ async def ocr(
 
         logger.info(f'kvresults: {kv_inference_results}')
 
+        # key-value model을 안타는 doc_type
+        if kv_inference_results["kv"] is None:
+            kv_inference_results["kv"] = dict()
+    
         dump_inference_results = dict(
             general_detection_result=general_detection_result,
             kv_detection_result=kv_inference_results.get("kv", {}),

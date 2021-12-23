@@ -177,9 +177,9 @@ class CreateInference(BaseModel):
     task_pkey: int
     inference_type: str
     inference_img_path: str
-    inference_result: dict
-    start_datetime: datetime
-    finish_datetime: datetime
+    inference_result: Optional[dict]
+    start_datetime: Optional[datetime]
+    finish_datetime: Optional[datetime]
     inference_sequence: int
 
 class PgCategory(BaseModel):
