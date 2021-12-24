@@ -163,6 +163,7 @@ Nuitka
 *.pkl
 *.docker*
 *.zip
+datasets/
 
 # security
 pyarmor*
