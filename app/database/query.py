@@ -22,7 +22,7 @@ def insert_initial_data(db: Session) -> None:
         session = next(db.session())
         with open('/workspace/assets/heungkuklife.json', "r") as f:
             json_database_initial_data = json.load(f)
-        database_initial_data = json_database_initial_data['database_initial_data']
+        database_initial_data = json_database_initial_data['DATABASE_INITIAL_DATA']
         for object_table in Base.metadata.sorted_tables:
             table_initial_data = database_initial_data[object_table.name]
             if len(table_initial_data) == 0:
@@ -33,6 +33,7 @@ def insert_initial_data(db: Session) -> None:
         logger.error(ex)
     finally:
         session.close()
+
 
 ### image
 def select_image_all(db: Session):
@@ -46,7 +47,7 @@ def select_image_all(db: Session):
     try:
         res = dao.get_all(db)
     except Exception as e:
-        logger.warning(f'insert error: {e}')
+        logger.warning(f'image select error: {e}')
         res = None
     return res
 
@@ -55,19 +56,19 @@ def select_image(db: Session, **kwargs):
     try:
         res = dao.get(db, **kwargs)
     except Exception as e:
-        logger.warning(f'insert error: {e}')
+        logger.warning(f'image select error: {e}')
         res = None
     return res
 
 def insert_image(db: Session, data: models.CreateImage):
     dao = schema.Image
     try:
-        dao.create(db, **data.dict())
+        result = dao.create(db, **data.dict())
     except Exception as e:
-        logger.warning(f'insert error: {e}')
+        logger.warning(f'image insert error: {e}')
         db.rollback()
         return False
-    return True
+    return result
 
 
 ### category
@@ -76,7 +77,7 @@ def select_category(db: Session, **kwargs):
     try:
         res = dao.get(db, **kwargs)
     except Exception as e:
-        logger.warning(f'insert error: {e}')
+        logger.warning(f'category select error: {e}')
         res = None
     return res
 
@@ -85,20 +86,30 @@ def select_category(db: Session, **kwargs):
 def insert_task(db: Session, data: models.CreateTask):
     dao = schema.Task
     try:
-        dao.create(db, **data.dict())
+        result = dao.create(db, **data.dict())
     except Exception as e:
-        logger.warning(f'insert error: {e}')
+        logger.warning(f'task insert error: {e}')
         db.rollback()
         return False
-    return True
+    return result
+
+def update_task(db: Session, pkey: int, data: models.UpdateTask):
+    dao = schema.Task
+    try:
+        result = dao.update(db, pkey=pkey, **data.dict())
+    except Exception as e:
+        logger.warning(f'task update error: {e}')
+        db.rollback()
+        return False
+    return result
 
 ### inference
 def insert_inference(db: Session, data: models.CreateInference):
     dao = schema.Inference
     try:
-        dao.create(db, **data.dict())
+        result = dao.create(db, **data.dict())
     except Exception as e:
-        logger.warning(f'insert error: {e}')
+        logger.warning(f'inference insert error: {e}')
         db.rollback()
         return False
-    return True
+    return result

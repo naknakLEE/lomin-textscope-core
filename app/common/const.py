@@ -37,9 +37,9 @@ class Settings(BaseSettings):
     MYSQL_IP_PORT: int
     POSTGRES_IP_PORT: int
     GENERAL_DETECTION_SERVICE_PORT: int = 5000
-    RECOGNITION_SERVICE_PORT: int = 5001
-    CLASSIFICATION_SERVICE_PORT: int = 5002
-    KV_DETECTION_SERVICE_PORT: int = 5003
+    RECOGNITION_SERVICE_PORT: int = 5000
+    CLASSIFICATION_SERVICE_PORT: int = 5000
+    KV_DETECTION_SERVICE_PORT: int = 5000
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
@@ -177,6 +177,10 @@ class Settings(BaseSettings):
     KEYWORDS_ALL: Dict = {}
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
     
+    # HEUNGKUK CONFIG
+    DURIEL_SUPPORT_DOCUMENT: List
+    INSURANCE_SUPPORT_DOCUMENT: List
+    
     # FILE CONFIG
     ZIP_PATH: str
     IMG_PATH: str
@@ -189,6 +193,10 @@ class Settings(BaseSettings):
         'tiff'
     ]
     KEY_LENGTH_TABLE: Dict = {}
+
+    # PP CONFIG
+    KV_HINT_CER_THRESHOLD: float = 0.2
+    CLS_HINT_SCORE_THRESHOLD: float = 0.9
 
 
     class Config:

@@ -16,8 +16,8 @@ def select_image(image_id: str, db: Session = Depends(db.session)):
     return query.select_image(db, image_id=image_id)
 
 @router.get("/select/category")
-def select_category(category_code: str, db: Session = Depends(db.session)):
-    return query.select_category(db, category_code=category_code)
+def select_category(inference_doc_type: str, db: Session = Depends(db.session)):
+    return query.select_category(db, inference_doc_type=inference_doc_type)
 
 @router.post("/create/task")
 def create_task(

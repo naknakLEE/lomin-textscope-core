@@ -2,6 +2,9 @@ set -eux
 
 . /workspace/.env
 
+export ARTIFACT_NAME_LIST=$ARTIFACT_NAME_LIST
+export CUSTOMER=$CUSTOMER
+
 APP_NAME=${INFERENCE_SERVER_APP_NAME}
 
 cd /workspace/${APP_NAME}
