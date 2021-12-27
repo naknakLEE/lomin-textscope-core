@@ -143,6 +143,16 @@ class Settings(BaseSettings):
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
+    FAKE_USER_INFORMATION_GUEST: Dict = {
+        "username": "guest",
+        "full_name": "guest",
+        "email": "guest@lomin.ai",
+        "password": "guest",
+        "status": "active",
+        "is_superuser": False,
+        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+    }
+
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}
     LENGTH_SET: Dict = {}
