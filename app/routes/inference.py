@@ -1,22 +1,25 @@
 from httpx import Client
 
-from datetime import datetime
 from typing import Dict, Tuple, Optional, List
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
+from datetime import datetime
+from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 from app.wrapper import pp, pipeline, settings
 from app.schemas import inference_responses
+from app.utils.auth import get_current_active_user
 from app.utils.utils import set_json_response, get_pp_api_name, print_error_log
 from app.common.const import get_settings
 from app.utils.logging import logger
+from app.database.connection import db
 
 
 settings = get_settings()
 router = APIRouter()
 
-model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
+model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
 
@@ -62,7 +65,11 @@ def request_pp_result_vis(client, kv: Dict, inputs: Dict, anlge: float) -> None:
 
 
 @router.post("/ocr", status_code=200, responses=inference_responses)
-async def ocr(inputs: Dict = Body(...)) -> Dict:
+async def ocr(
+    inputs: Dict = Body(...),
+    current_user: dict = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
+) -> Dict:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
