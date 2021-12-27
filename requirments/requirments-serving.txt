@@ -15,6 +15,7 @@ shapely==1.8a1
 regex==2021.10.8
 imgaug==0.4.0
 pandas
+transformers==4.15.0
 
 # for tiff
 pdf2image==1.16.0

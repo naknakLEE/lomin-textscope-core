@@ -29,7 +29,7 @@ RUN pip3 install -r /workspace/requirments-pp.txt
 
 COPY ./lovit /workspace/lovit
 WORKDIR /workspace/lovit
-RUN python3 setup.py install && \
+RUN python3 setup.py build develop && \
     rm -rf /workspace/lovit
 
 COPY ./.env /workspace/

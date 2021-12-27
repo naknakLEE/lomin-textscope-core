@@ -24,7 +24,7 @@ RUN pip3 install --upgrade pip && \
 RUN pip3 install torch==1.8.1+cpu torchvision==0.9.1+cpu -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 
 WORKDIR /workspace/lovit
-RUN python3 setup.py install && \
+RUN python3 setup.py build develop && \
     rm -r /workspace/lovit
 
 WORKDIR /workspace
