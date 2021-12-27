@@ -5,8 +5,8 @@ from typing import Dict, Tuple, Optional
 from app.common import settings
 
 
-kv_detection_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.KV_DETECTION_SERVICE_PORT}"
-general_detection_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.GENERAL_DETECTION_SERVICE_PORT}"
+kv_detection_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.KV_DETECTION_SERVICE_PORT}"
+general_detection_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.GENERAL_DETECTION_SERVICE_PORT}"
 
 
 def general(

@@ -10,7 +10,7 @@ from app import wrapper
 from app.common import settings
 from app.utils.logging import logger
 
-model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
+model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {
