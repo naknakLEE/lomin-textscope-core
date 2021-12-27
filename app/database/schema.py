@@ -31,6 +31,9 @@ from app.common.const import get_settings
 from app.models import UserUpdate, User, UsersScheme, UserInDB
 
 
+settings = get_settings()
+
+
 ModelType = TypeVar("ModelType", bound=Base)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -529,12 +532,12 @@ ALTER TABLE inference
 
 '''
 
-# def create_db_table() -> None:
-#     try:
-#         settings = get_settings()
-#         session = next(db.session())
-#         Base.metadata.create_all(db._engine)
-#         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
-#         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
-#     finally:
-#         session.close()
+def create_db_table() -> None:
+    try:
+        session = next(db.session())
+        Base.metadata.create_all(db._engine)
+        Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
+        Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
+        Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION_GUEST)
+    finally:
+        session.close()
