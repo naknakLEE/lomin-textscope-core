@@ -45,7 +45,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     settings.SECRET_KEY,
                     algorithms=[settings.ALGORITHM],
                 )
-                # print('\033[96m' + f"{payload}" + '\033[m')
                 request.state.email = payload.get("sub")
             response = await call_next(request)
             await api_logger(request=request, response=response)
@@ -53,7 +52,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             error = await exception_handler(e)
             error_dict = dict(
                 status=error.status_code,
-                msg=error.msg,
+            msg=error.msg,
                 detail=error.detail,
                 code=error.code,
             )

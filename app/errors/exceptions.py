@@ -56,7 +56,7 @@ class NotFoundUserException(APIException):
         super().__init__(
             status_code=StatusCode.HTTP_404,
             msg=f"Incorrect email or password",
-            detail=f"Not Found User email: {email}",
+            detail=f"Not Found User: {email}",
             code=8400,
             exc=exc,
         )

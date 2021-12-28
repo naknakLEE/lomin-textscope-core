@@ -163,6 +163,15 @@ class PgDataset(BaseModel):
         orm_mode = True
 
 
+class LoginForm:
+    def __init__(
+        self,
+        cn: str = Form(...),
+        password: str = Form(...)
+    ):
+        self.cn = cn
+        self.password = password
+    
 
 
 class OAuth2PasswordRequestForm:

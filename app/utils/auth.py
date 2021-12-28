@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Any
 import time
 
+from ldap3 import Server, ALL
 from fastapi import Depends, HTTPException, status, Security
 from fastapi.param_functions import Form
 from fastapi.security import (
@@ -135,3 +136,9 @@ async def get_current_active_user(
     if current_user.status == "disabled":
         raise HTTPException(status_code=400, detail="Disabled user")
     return current_user
+
+
+async def initialize_ldap():
+    server = Server("LDAP://openldap:389", get_info=ALL)
+    return server
+

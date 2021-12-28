@@ -24,6 +24,7 @@ objectClass: groupOfNames
 member: cn=ldap-torkel,ou=users,dc=lomin,dc=ai
 member: cn=ldap-daniel,ou=users,dc=lomin,dc=ai
 member: cn=ldap-leo,ou=users,dc=lomin,dc=ai
+member: cn=guest,ou=users,dc=lomin,dc=ai
 
 # -- POSIX --
 

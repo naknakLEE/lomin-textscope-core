@@ -9,6 +9,16 @@ objectClass: organizationalPerson
 sn: ldap-admin
 cn: ldap-admin
 
+dn: cn=guest,ou=users,dc=lomin,dc=ai
+mail: guest@lomin.ai
+userPassword: guest
+objectClass: person
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+sn: guest
+cn: guest
+
 dn: cn=ldap-limbee,ou=users,dc=lomin,dc=ai
 mail: b.lim@lomin.ai
 userPassword: lomin

@@ -54,7 +54,7 @@ class Settings(BaseSettings):
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
-    USE_AUTO_LOG: bool
+    USE_AUTO_LOG: bool = True
 
     # DATABASE CONFIG
     BASE_DIR: str = base_dir
