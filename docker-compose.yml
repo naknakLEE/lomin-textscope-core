@@ -170,31 +170,31 @@ services:
   #     our_net:
   #       ipv4_address: ${MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}
    
-  nginx:
-    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
-    build:
-      context: ./
-      dockerfile: docker/production/Dockerfile.nginx
-      args:
-        CONF_NAME: nginx
-        MAINTAINER: ${MAINTAINER}
-    container_name: nginx
-    volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
-      - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
-    restart: unless-stopped
-    networks:
-      our_net:
-        ipv4_address: ${NGINX_IP_ADDR}
+  # nginx:
+  #   image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
+  #   build:
+  #     context: ./
+  #     dockerfile: docker/production/Dockerfile.nginx
+  #     args:
+  #       CONF_NAME: nginx
+  #       MAINTAINER: ${MAINTAINER}
+  #   container_name: nginx
+  #   volumes:
+  #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+  #     - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
+  #   restart: unless-stopped
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${NGINX_IP_ADDR}
 
-  nginx-exporter:
-    image: nginx/nginx-prometheus-exporter:0.9.0
-    container_name: nginx_exporter
-    command:
-      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
-    networks:
-      our_net:
-        ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
+  # nginx-exporter:
+  #   image: nginx/nginx-prometheus-exporter:0.9.0
+  #   container_name: nginx_exporter
+  #   command:
+  #     - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
+  #   networks:
+  #     our_net:
+  #       ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
 
   gpu_telemetry:
     image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
@@ -226,6 +226,8 @@ services:
       - --storage.tsdb.path=/prometheus
       - --web.console.libraries=/usr/share/prometheus/console_libraries
       - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.listen-address=0.0.0.0:9090
+      - --storage.tsdb.retention=90d
     networks:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
@@ -246,10 +248,15 @@ services:
   grafana:
     image: grafana/grafana:8.1.4-ubuntu
     container_name: grafana
+    environment:
+      - PROMETHEUS_IP_ADDR=${PROMETHEUS_IP_ADDR}
+      - PROMETHEUS_IP_PORT=${PROMETHEUS_IP_PORT}
     volumes: 
       - grafana_data:/var/lib/grafana
       - ./ldap/grafana.ini:/etc/grafana/grafana.ini
       - ./ldap/ldap.toml:/etc/grafana/ldap.toml
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     depends_on: 
       - prometheus
     restart: always
@@ -257,26 +264,42 @@ services:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
 
-  openldap:
-    image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
-    container_name: ldap
-    build: ./openldap
-    environment:
-      SLAPD_PASSWORD: lomin
-      SLAPD_DOMAIN: lomin.ai
-      SLAPD_ADDITIONAL_MODULES: memberof
-    ports:
-      - "389:389"
-    networks:
-      our_net:
-          ipv4_address: ${OPENLDAP_IP_ADDR}
+  # openldap:
+  #   image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
+  #   container_name: ldap
+  #   build: ./openldap
+  #   environment:
+  #     SLAPD_PASSWORD: lomin
+  #     SLAPD_DOMAIN: lomin.ai
+  #     SLAPD_ADDITIONAL_MODULES: memberof
+  #   ports:
+  #     - "389:389"
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${OPENLDAP_IP_ADDR}
 
 
 volumes: 
-  prometheus_data: {}
-  grafana_data: {}
-  mysql_data: {}
+  prometheus_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/prometheus_data
   postgres_data: {}
+  grafana_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/grafana_data
+  # mysql_data:
+  #   driver: local
+  #   driver_opts:
+  #     o: bind
+  #     type: none
+  #     device: /docker/data/mysql_data
+
 
 networks:
   our_net:

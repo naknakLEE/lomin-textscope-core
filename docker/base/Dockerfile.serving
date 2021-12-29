@@ -8,7 +8,8 @@ RUN apt-get install -y git  && \
     apt-get install wget && \
     apt-get -y install python3-pip && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
-    apt-get -y install libgl1-mesa-glx libglib2.0-0
+    apt-get -y install libgl1-mesa-glx libglib2.0-0 &&\
+    apt-get -y install vim
 
 WORKDIR /bin
 RUN wget "http://stedolan.github.io/jq/download/linux64/jq" && \

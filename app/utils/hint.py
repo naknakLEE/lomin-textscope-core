@@ -1,11 +1,7 @@
 from os import system
 
 from typing import Optional, Dict, List
-try:
-    from soynlp.hangle import levenshtein
-except:
-    system("pip3 install soynlp==0.0.493")
-    from soynlp.hangle import levenshtein
+from soynlp.hangle import levenshtein
 
 from utils.logging import logger
 from common.const import get_settings

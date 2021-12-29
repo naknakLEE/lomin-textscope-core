@@ -286,7 +286,7 @@ def heungkuk_life(
             "page": inputs.get("page"),
             "request_id": inputs.get("request_id")
         }
-        tiamo_result = wrapper.recognition.tiamo(tiamo_inputs).get("response")[-1]
+        tiamo_result = wrapper.recognition.tiamo(client, inputs, tiamo_inputs).get("response")
         kv_result["texts"] = tiamo_result.get("text")
     logger.info(f"{task_id}-kv result:\n{pretty_dict(kv_result)}")
     ocr_response = dict(

@@ -102,7 +102,7 @@ async def ocr(
                 route_name="heungkuk_life_pipeline",
             )
         else:
-            status_code, inference_results, response_log = pipeline.single(
+            status_code, inference_results, response_log = pipeline.heungkuk_life(
                 client=client, 
                 inputs=inputs,
                 response_log=response_log,
@@ -171,7 +171,7 @@ async def ocr(
             kv_inference_results["texts"] = texts
 
         # key-value model을 안타는 doc_type
-        if kv_inference_results["kv"] is None:
+        if not "kv" in kv_inference_results:
             kv_inference_results["kv"] = dict()
     
         dump_inference_results = dict(

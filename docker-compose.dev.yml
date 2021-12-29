@@ -123,14 +123,14 @@ services:
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 
-  nginx:
-    ports:
-      - 8050:80
-      - 443:443
+  # nginx:
+  #   ports:
+  #     - 8050:80
+  #     - 443:443
     
-  nginx-exporter:
-    ports:
-      - 9113:9113
+  # nginx-exporter:
+  #   ports:
+  #     - 9113:9113
 
   gpu_telemetry:
     ports:
