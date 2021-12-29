@@ -123,13 +123,15 @@ def set_predictions(
     scores = kv_detection_result.get("scores", [])
     boxes = kv_detection_result.get("boxes", [])
     texts = kv_detection_result.get("texts", [])
+    merged_count = kv_detection_result.get("merged_count", [])
     kv_predictions = list()
-    for class_, score_, box_, text_ in zip(classes, scores, boxes, texts):
+    for class_, score_, box_, text_, merged_count_ in zip(classes, scores, boxes, texts, merged_count):
         prediction = {
             "class": class_,
             "score": score_,
             "box": box_,
             "text": text_,
+            "merged_count": merged_count_
         }
         kv_predictions.append(prediction)
 
