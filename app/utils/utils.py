@@ -1,5 +1,6 @@
 import base64
 import tempfile
+import json
 
 from typing import Dict, Union, List, Tuple
 from fastapi.responses import JSONResponse
@@ -15,6 +16,23 @@ from datetime import datetime
 settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
 document_type_set = settings.DOCUMENT_TYPE_SET
+
+def pretty_dict(
+    data: Dict,
+    indent: int = 4,
+    sort_keys: bool = True,
+    ensure_ascii: bool = False,
+
+):
+    if isinstance(data, dict):
+        data = jsonable_encoder(data)
+        return json.dumps(data, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
+    elif isinstance(data, list):
+        data = jsonable_encoder(dict(data=data))
+        return json.dumps(dict(data=data), indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
+    else:
+        data = jsonable_encoder(data.dict())
+        return json.dumps(data, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
 
 def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JSONResponse:
     return JSONResponse(

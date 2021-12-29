@@ -15,7 +15,8 @@ from app.schemas import inference_responses
 from app.utils.utils import (
     set_json_response,
     get_pp_api_name,
-    set_ocr_response
+    set_ocr_response,
+    pretty_dict
 )
 from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings
@@ -55,9 +56,15 @@ async def ocr(
     post_processing_results = dict()
     response_log = dict()
     response = dict()
+    task_id = inputs.get('task_id')
+    
+    logger.success(f'{task_id}-api request start:\n{pretty_dict(inputs)}')
+    
     if settings.DEVELOP:
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
+            logger.debug(f'{task_id}-set test doc type: origin doc type={inputs.get("doc_type")}\
+                         test doc type={inputs.get("test_doc_type")}')
     
     task_insert_data = models.CreateTask(
         task_id=inputs.get('task_id'),
@@ -66,7 +73,7 @@ async def ocr(
     
     task_insert_result = query.insert_task(db, task_insert_data)
     if not task_insert_result:
-        logger.warning(f'not found image : {task_insert_result}')
+        logger.error(f'{task_id}-task id insert error: {pretty_dict(task_insert_data)}')
         error = models.Error(
             error_code="ER-INF-CKV-4003",
             error_message="이미 등록된 task id"
@@ -105,13 +112,15 @@ async def ocr(
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             return set_json_response(code="3000", message="모델 서버 문제 발생")
 
-        logger.info(f'inf results : {inference_results}')
+        logger.debug(f'{task_id}-inference results:\n{inference_results}')
 
         kv_inference_results = inference_results.get('kv_detection_result')
         general_detection_result = inference_results.get('general_detection_result')
         classification_result = inference_results.get('classification_result')
         recognition_result = inference_results.get('recognition_result')
         
+        logger.info(f'{task_id}-kv inference results:\n{pretty_dict(kv_inference_results)}')
+        logger.info(f'{task_id}-classification inference results:\n{pretty_dict(classification_result)}')
 
         pp_inference_results = dict(
             boxes=kv_inference_results.get('boxes'),
@@ -119,9 +128,11 @@ async def ocr(
             classes=kv_inference_results.get("classes"),
             texts=kv_inference_results.get("texts"),
             id_type=inference_results.get("id_type"),
-            doc_type=inference_results.get("doc_type"),
+            # doc_type=inference_results.get("doc_type"),
+            doc_type="HKL01-DT-IB",
             image_height=inference_results.get("image_height"),
-            image_width=inference_results.get("image_width")
+            image_width=inference_results.get("image_width"),
+            task_id=task_id
         )
 
 
@@ -129,8 +140,10 @@ async def ocr(
         if settings.DEVELOP:
             if inputs.get("test_class", None) is not None:
                 inference_results["doc_type"] = inputs.get("test_class")
+                logger.debug(f'{task_id}-set test class: origin={inference_results.get("doc_type")}\
+                     test_class={inputs.get("test_class")}')
         post_processing_type = get_pp_api_name(inference_results.get("doc_type"))
-        logger.info(f'pp type: {post_processing_type}')
+        logger.info(f'{task_id}-pp type:{post_processing_type}')
         if post_processing_type is not None and len(recognition_result["rec_preds"]) > 0:
             status_code, post_processing_results, response_log = pp.post_processing(
                 client=client, 
@@ -144,6 +157,9 @@ async def ocr(
             kv_inference_results["kv"] = post_processing_results["result"]
             kv_inference_results["texts"] = post_processing_results["texts"]
 
+        logger.info(f'{task_id}-post-processed kv result:\n{pretty_dict(kv_inference_results.get("kv"))}')
+        logger.info(f'{task_id}-post-processed text result:\n{pretty_dict(kv_inference_results.get("texts"))}')
+
         # convert preds to texts
         if convert_preds_to_texts is not None and "texts" not in kv_inference_results:
             status_code, texts = pp.convert_preds_to_texts(
@@ -153,8 +169,6 @@ async def ocr(
             if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="텍스트 변환 과정에서 발생")
             kv_inference_results["texts"] = texts
-
-        logger.info(f'kvresults: {kv_inference_results}')
 
         # key-value model을 안타는 doc_type
         if kv_inference_results["kv"] is None:
@@ -192,10 +206,16 @@ async def ocr(
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)
-    logger.debug(f"{request_id} inference results: {inference_results}")
-    if post_processing_results.get("result", None) is not None or post_processing_type is None:
-        response.update(code="1200")
-        response.update(minQlt="00")
+    logging_response = dict(
+        predictions=response.get('predictions'),
+        class_score=response.get('class_score'),
+        image_height=response.get("image_height"),
+        image_width=response.get("image_width"),
+        id_type=response.get("id_type"),
+        doc_type=response.get('doc_type'),
+    )
+
+    logger.info(f'{task_id}-output:\n{pretty_dict(logging_response)}')
     logger.info(
         f"OCR api total time: \t{datetime.now() - start_time}"
     )

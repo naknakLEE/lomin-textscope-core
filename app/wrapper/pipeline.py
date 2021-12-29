@@ -10,6 +10,7 @@ from app import wrapper
 from app.common import settings
 from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
+from app.utils.utils import pretty_dict
 
 model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
 # TODO: move to json file
@@ -232,15 +233,24 @@ def heungkuk_life(
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict, Dict]:
     inference_start_time = datetime.now()
+    task_id = inputs.get('task_id')
+    logger.success(f'{task_id}-inference pipeline start:\n{pretty_dict(inputs)}')
     # General detection
     agamotto_result = wrapper.detection.agamotto(client, inputs).get("response")
+    logger.debug(f'{task_id}-general detection result:\n{pretty_dict(agamotto_result)}')
 
     # Recognition
     tiamo_result = wrapper.recognition.tiamo(client, inputs, agamotto_result).get("response")
+    logger.debug(f'{task_id}-recognition result:\n{pretty_dict(tiamo_result)}')
     duriel_inputs = {**agamotto_result, "texts": tiamo_result["texts"]}
 
     # Classification
     duriel_classification_result = wrapper.classification.duriel(client, inputs, duriel_inputs).get("response")
+    logger.debug(f'{task_id}-classification result:\n{pretty_dict(duriel_classification_result)}')
+    
+    doc_type = duriel_classification_result.get('doc_type')
+    score_result = duriel_classification_result.get("scores")
+    duriel_classification_result["score"] = score_result.get(doc_type)
     
     # Apply doc type hint
     hint = inputs.get("hint", {})
@@ -249,6 +259,7 @@ def heungkuk_life(
             cls_result=duriel_classification_result,
             doc_type_hint=hint.get("doc_type"),
         )
+        logger.info(f'{task_id}-apply doc type hint: {apply_cls_hint_result}')
     doc_type = duriel_classification_result.get("doc_type")
 
     # Apply static doc type
@@ -275,9 +286,9 @@ def heungkuk_life(
             "page": inputs.get("page"),
             "request_id": inputs.get("request_id")
         }
-        tiamo_result = wrapper.tiamo(tiamo_inputs).get("response")[-1]
+        tiamo_result = wrapper.recognition.tiamo(tiamo_inputs).get("response")[-1]
         kv_result["texts"] = tiamo_result.get("text")
-    logger.debug("kv result: {}", kv_result)
+    logger.info(f"{task_id}-kv result:\n{pretty_dict(kv_result)}")
     ocr_response = dict(
         general_detection_result=agamotto_result,
         kv_detection_result=kv_result,
@@ -305,5 +316,6 @@ def heungkuk_life(
             inference_request_time=inference_end_time - inference_start_time,
         )
     )
+    logger.success(f'{task_id}-output:\n{pretty_dict(ocr_response)}')
     return (kv_result.get("status_code"), ocr_response, response_log)
 
