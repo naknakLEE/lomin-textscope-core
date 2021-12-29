@@ -1,96 +1,71 @@
 version: '2.3'
 
 services:
-  # management1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-management
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndb_mgmd
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_MANAGEMENT_IP_ADDR}
-    
-  # ndb1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-ndb1
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndbd
-  #   depends_on: 
-  #     - management1
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_NDB1_IP_ADDR}
-
-  # ndb2:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql-ndb2
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.cnf
-  #   command: ndbd
-  #   depends_on:
-  #     - management1
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_NDB2_IP_ADDR}
-    
-  # mysql1:
-  #   image: mysql/mysql-cluster:8.0
-  #   container_name: mysql
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - ./mysql.conf/my.cnf:/etc/my.cnf
-  #     - ./mysql.conf/mysql-cluster.cnf:/etc/mysql-cluster.conf
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-  #     MYSQL_DATABASE: ${CUSTOMER}
-  #     MYSQL_USER: ${CUSTOMER}
-  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-  #     MYSQL_ROOT_HOST: '%'
-  #     # - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-  #     # - TZ=Asia/Seoul
-  #   command: mysqld
-  #   depends_on:
-  #     - management1
-  #     - ndb1
-  #     - ndb2
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_IP_ADDR}
-
-
-  # mysql1:
-  #   image: mysql:8.0.25
-  #   container_name: mysql
-  #   volumes:
-  #     - mysql_data:/var/lib/mysql
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-  #     - TZ=Asia/Seoul
-  #   restart: always
-  #   networks:
-  #     our_net:
-  #         ipv4_address: ${MYSQL_IP_ADDR}
-
-  postgres:
-    container_name: postgres
-    image: postgres:14 #TODO make Dockerfile
+  pg-cleaner-d:
+    image: pg-cleaner-d
+    container_name: pg-cleaner-d
+    restart: on-failure
+    build:
+      context: ./cleaner
+      dockerfile: dockerfile
     volumes:
-      - postgres_data:/var/lib/postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DATABASE}
-    ports:
-      - "55432:5432"
+      - ./cleaner/entrypoint.sh:/usr/sbin/entrypoint.sh
+      - ./cleaner/cron/root:/etc/cron.d/root
+      - ./cleaner/files/:/root/files/
     networks:
+      - our_net
+      - ha_net
+  pg_node-0:
+    image: docker.io/bitnami/postgresql-repmgr:11
+    container_name: pg_node-0
+    hostname: pg_node-0
+    restart: unless-stopped
+    ports:
+      - "55433:5432"
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgres
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
+      - REPMGR_PASSWORD=repmgr
+      - REPMGR_PRIMARY_HOST=pg_node-0
+      - REPMGR_PARTNER_NODES=pg_node-0,pg_node-2
+      - REPMGR_NODE_NAME=pg_node-0
+      - REPMGR_NODE_NETWORK_NAME=pg_node-0
+    networks:
+      - ha_net
+      - our_net
+    volumes:
+      - postgres_data:/bitnami/postgresql
+  master_pgpool:
+    image: docker.io/bitnami/pgpool:4
+    container_name: master_pgpool
+    hostname: master_pgpool
+    restart: unless-stopped
+    ports:
+      - "${PGPOOL_IP_PORT}:5432"
+    environment:
+      - PGPOOL_BACKEND_NODES=0:pg_node-0:5432,1:pg_node-2:5432
+      - PGPOOL_SR_CHECK_USER=${PGPOOL_SR_CHECK_USER}
+      - PGPOOL_SR_CHECK_PASSWORD=${PGPOOL_SR_CHECK_PASSWORD}
+      - PGPOOL_ENABLE_LDAP=no
+      - PGPOOL_POSTGRES_USERNAME=${POSTGRES_USER}
+      - PGPOOL_POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGPOOL_ADMIN_USERNAME=${PGPOOL_ADMIN_USERNAME}
+      - PGPOOL_ADMIN_PASSWORD=${PGPOOL_ADMIN_PASSWORD}
+      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_AUTO_FAILBACK=yes
+      - PGPOOL_BACKEND_APPLICATION_NAMES=0:pg_node-0:5432,1:pg_node-2:5432
+    networks:
+      ha_net:
+        ipv4_address: 11.100.10.10
       our_net:
-        ipv4_address: ${POSTGRES_IP_ADDR}
+        ipv4_address: ${MASTER_PGPOOL_IP_ADDR}
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     container_name: pgadmin
@@ -111,6 +86,8 @@ services:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
+      - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
+      - /home/mir/Downloads/hg_life/life_insurance/life_insurance_test_set:/DATA_SHARE/life_insurance_test_set
     restart: unless-stopped
     extra_hosts:
       - ${LDAP_HOST}
@@ -141,7 +118,8 @@ services:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     depends_on: 
-      - postgres
+      - master_pgpool
+      - pg_node-0
     cap_add:
       - SYS_PTRACE
     networks:
@@ -169,10 +147,14 @@ services:
       - CUSTOMER=${CUSTOMER}
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
+      - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
+      - /home/mir/Downloads/hg_life/life_insurance/life_insurance_test_set:/DATA_SHARE/life_insurance_test_set
     restart: unless-stopped
     extra_hosts:
       - ${DATABASE_HOST}
-    # depends_on: 
+    depends_on: 
+      - master_pgpool
+      - pg_node-0
     #   - mysql1
     networks:
       our_net:
@@ -301,3 +283,5 @@ networks:
     ipam:
       config:
         - subnet: 10.254.0.0/16
+  ha_net:
+    external: true
