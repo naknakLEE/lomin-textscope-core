@@ -49,7 +49,7 @@ RUN pip3 uninstall -y BentoML && \
 COPY ./requirments/requirments-training.txt /workspace/requirments-training.txt
 RUN pip3 install -r /workspace/requirments-training.txt
 
-COPY ./${APP_NAME} /workspace/${APP_NAME}
+# COPY ./${APP_NAME} /workspace/${APP_NAME}
 # RUN cp -r /workspace/${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/ && \
 #     cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
 #     cp /workspace/${APP_NAME}/assets/modified_bentoml_file/onnx.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/onnx.py

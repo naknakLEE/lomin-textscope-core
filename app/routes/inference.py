@@ -1,7 +1,11 @@
+import pdf2image
+import xml.etree.ElementTree as ET
+
 from httpx import Client
 
 from typing import Dict, Tuple, Optional, List
 from fastapi import APIRouter, Body, Depends
+from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
@@ -14,6 +18,7 @@ from app.utils.utils import set_json_response, get_pp_api_name, print_error_log
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import db
+from app.utils.pdf2txt import pdf2txt, get_pdf_text_info
 
 
 settings = get_settings()
@@ -30,24 +35,31 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 """
 
 
-def request_pp_result_vis(client, kv: Dict, inputs: Dict, anlge: float) -> None:
+def request_visualize(client, result: Dict, inputs: Dict, anlge: float) -> None:
     try:
         classes = list()
         texts = list()
         boxes = list()
-        for key, values in kv.items():
-            for value in values:
-                if not isinstance(value.get("bboxes"), list): continue
-                for bbox in value.get("bboxes"):
-                    boxes.append(bbox)
-                    texts.append(value.get("text"))
-                    classes.append("{} {}".format(key, value.get("text")))
-        
+        scores = None
+        if "boxes" in result:
+            classes = result.get("classes")
+            texts = result.get("texts")
+            boxes = result.get("boxes")
+            scores = result.get("scores")
+        else:
+            for key, values in result.items():
+                for value in values:
+                    if not isinstance(value.get("bboxes"), list): continue
+                    for bbox in value.get("bboxes"):
+                        boxes.append(bbox)
+                        texts.append(value.get("text"))
+                        classes.append("{} {}".format(key, value.get("text")))
+
         vis_inputs = {
                 "classes": classes,
                 "texts": texts,
                 "boxes": boxes,
-                "scores": None,
+                "scores": scores,
                 "image_path": inputs.get("image_path"),
                 "page": inputs.get("page", 1),
                 "request_id": inputs.get("request_id"),
@@ -85,6 +97,13 @@ async def ocr(
         # inputs["doc_type"] = "법인등기부등본"
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
+
+    if inputs.get("use_general_ocr") and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]:
+        parsed_text_info = get_pdf_text_info(inputs)
+        if len(parsed_text_info) > 0:
+            with Client() as client:
+                request_visualize(client=client, result=parsed_text_info, inputs=inputs, anlge=0.0)
+            return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info}))
     with Client() as client:
         # ocr inference
         if settings.USE_OCR_PIPELINE:
@@ -123,7 +142,7 @@ async def ocr(
             if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
             inference_results["kv"] = post_processing_results["result"]
-            request_pp_result_vis(client, inference_results["kv"], inputs, inference_results.get("angle", 0.0))
+            request_visualize(client, inference_results["kv"], inputs, inference_results.get("angle", 0.0))
             inference_results["texts"] = post_processing_results["texts"]
 
         # convert preds to texts
