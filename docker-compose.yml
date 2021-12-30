@@ -84,6 +84,7 @@ services:
     container_name: serving
     environment:
       - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
       - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
@@ -114,6 +115,7 @@ services:
     container_name: web
     environment:
       - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
@@ -131,6 +133,7 @@ services:
     container_name: pp
     environment:
       - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
@@ -145,6 +148,7 @@ services:
     container_name: wrapper
     environment:
       - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
       - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
