@@ -3,8 +3,8 @@ from os import system
 from typing import Optional, Dict, List
 from soynlp.hangle import levenshtein
 
-from utils.logging import logger
-from common.const import get_settings
+from app.utils.logging import logger
+from app.common.const import get_settings
 
 
 settings = get_settings()

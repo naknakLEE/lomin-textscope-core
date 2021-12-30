@@ -16,7 +16,7 @@ class InferenceTypeEnum(Enum):
     RECOGNITION = "reco"
     
 class InferenceSequenceEnum(Enum):
-    DU_CLS_MODEL = 1
+    DU_SINGLE_CLS_MODEL = 1
     DU_KV_MODEL_DIAGNOSIS = 2
     DU_KV_MODEL_PRESCRIPTION = 2
     LIFE_INSURANCE = 2
