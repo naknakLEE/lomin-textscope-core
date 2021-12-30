@@ -34,7 +34,7 @@
             "J5"
         ],
         "DURIEL_CLS_MODEL": [
-            "du_cls_model"
+            "du_single_cls_model"
         ],
         "DURIEL_KV_MODEL_DIAGNOSIS": [
             "HKL01-DT-MC",

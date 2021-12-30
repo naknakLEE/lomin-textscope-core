@@ -128,8 +128,7 @@ async def ocr(
             classes=kv_inference_results.get("classes"),
             texts=kv_inference_results.get("texts"),
             id_type=inference_results.get("id_type"),
-            # doc_type=inference_results.get("doc_type"),
-            doc_type="HKL01-DT-IB",
+            doc_type=inference_results.get("doc_type")
             image_height=inference_results.get("image_height"),
             image_width=inference_results.get("image_width"),
             task_id=task_id

@@ -39,7 +39,7 @@ def duriel(
     client: Client,
     inputs: Dict,
     inference_result: Dict,
-    doc_type: str = "du_cls_model",
+    doc_type: str = "du_single_cls_model",
     hint: Optional[Dict] = None,
     route_name: Optional[str] = None,
 ) -> Tuple[int, Dict]:
