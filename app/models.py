@@ -8,7 +8,7 @@ from pydantic import Json
 from fastapi.param_functions import Form
 
 class InferenceTypeEnum(Enum):
-    DU_CLS_MODEL = "cls"
+    DU_SINGLE_CLS_MODEL = "cls"
     DU_KV_MODEL_DIAGNOSIS = "kv"
     DU_KV_MODEL_PRESCRIPTION = "kv"
     LIFE_INSURANCE = "kv"

@@ -206,12 +206,12 @@ async def ocr(
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)
     logging_response = dict(
-        predictions=response.get('predictions'),
-        class_score=response.get('class_score'),
-        image_height=response.get("image_height"),
-        image_width=response.get("image_width"),
-        id_type=response.get("id_type"),
-        doc_type=response.get('doc_type'),
+        predictions=inference_results.get('predictions'),
+        class_score=inference_results.get('class_score'),
+        image_height=inference_results.get("image_height"),
+        image_width=inference_results.get("image_width"),
+        id_type=inference_results.get("id_type"),
+        doc_type=inference_results.get('doc_type'),
     )
 
     logger.info(f'{task_id}-output:\n{pretty_dict(logging_response)}')
