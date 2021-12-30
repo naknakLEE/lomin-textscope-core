@@ -19,7 +19,8 @@ RUN apt-get update && \
     apt-get -y install python3-pip && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
-    apt-get -y install libmysqlclient-dev
+    apt-get -y install libmysqlclient-dev && \
+    apt-get -y install vim
 
 RUN pip3 install --upgrade pip
 
