@@ -32,3 +32,14 @@ fastapi_profiler==1.0.0
 pyinstrument==3.4.2      
 loguru==0.5.3  
 pillow
+
+# visualize
+ray[default]==1.9.1
+opencv-python==4.5.3.56
+tifffile==2020.9.3
+-f https://download.pytorch.org/whl/torch_stable.html
+torch==1.8.1+cpu
+-f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.9.1+cpu
+matplotlib==3.3.4
+fvcore==0.1.5.post20211023

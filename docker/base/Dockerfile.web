@@ -9,7 +9,8 @@ RUN apt-get update && \
     apt-get -y install python3-pip && \
     apt-get -y install libmysqlclient-dev && \
     apt-get -y install poppler-utils && \
-    apt-get -y install python-dev libldap2-dev libsasl2-dev libssl-dev
+    apt-get -y install python-dev libldap2-dev libsasl2-dev libssl-dev && \
+    apt-get -y install libgl1-mesa-glx libglib2.0-0
     
 # korean
 RUN apt-get install -y apt-utils locales

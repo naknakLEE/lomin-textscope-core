@@ -414,8 +414,9 @@ class Visualize(Base, WooriBaseMixin):
 
     visualize_pkey = Column(Integer, primary_key=True, autoincrement=True)
     task_id = Column(String(50), nullable=False)
-    inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
+    inference_type = Column(String(10), nullable=False, comment="['kv', 'gocr']")
     inference_img_path = Column(String(200), nullable=False)
+    visualization_type = Column(String(20), nullable=True)
 
 
 '''

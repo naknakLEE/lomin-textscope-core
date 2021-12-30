@@ -18,7 +18,8 @@ RUN apt-get update && \
     locale-gen ko_KR.UTF-8 && \
     apt-get -y install python3-pip && \
     apt-get -y install libmysqlclient-dev && \
-    apt-get -y install poppler-utils
+    apt-get -y install poppler-utils && \
+    apt-get -y install libgl1-mesa-glx libglib2.0-0
 
 RUN pip3 install --upgrade pip
 

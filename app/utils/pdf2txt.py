@@ -27,7 +27,6 @@ class Pdf2Image():
             data_dir = PurePath("/workspace", "assets").as_posix()
         self.data_dir = data_dir
         self.load_lexicon()
-        self.font_files = [_ for _ in os.listdir(os.path.join(self.data_dir, 'fonts')) if os.path.splitext(os.path.basename(_))[-1].lower() == '.ttf']
 
     @lru_cache(maxsize=10)
     def save_xml(
@@ -181,7 +180,7 @@ def get_pdf_text_info(inputs: Dict):
     return parsed_text_info    
 
 
-pdf2txt = Pdf2Image("/workspace/inference_server/assets")
+pdf2txt = Pdf2Image("/workspace/assets")
 
 
 if __name__ == "__main__":

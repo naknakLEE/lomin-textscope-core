@@ -1,9 +1,6 @@
-import pdf2image
-import xml.etree.ElementTree as ET
-
 from httpx import Client
 
-from typing import Dict, Tuple, Optional, List
+from typing import Dict
 from fastapi import APIRouter, Body, Depends
 from pathlib import Path
 from datetime import datetime
@@ -18,7 +15,8 @@ from app.utils.utils import set_json_response, get_pp_api_name, print_error_log
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import db
-from app.utils.pdf2txt import pdf2txt, get_pdf_text_info
+from app.utils.pdf2txt import get_pdf_text_info
+from app.utils.visualizer import visualizer
 
 
 settings = get_settings()
@@ -33,46 +31,6 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 입력 데이터: 토큰, ocr에 사용할 파일 <br/>
 응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
 """
-
-
-def request_visualize(client, result: Dict, inputs: Dict, anlge: float) -> None:
-    try:
-        classes = list()
-        texts = list()
-        boxes = list()
-        scores = None
-        if "boxes" in result:
-            classes = result.get("classes")
-            texts = result.get("texts")
-            boxes = result.get("boxes")
-            scores = result.get("scores")
-        else:
-            for key, values in result.items():
-                for value in values:
-                    if not isinstance(value.get("bboxes"), list): continue
-                    for bbox in value.get("bboxes"):
-                        boxes.append(bbox)
-                        texts.append(value.get("text"))
-                        classes.append("{} {}".format(key, value.get("text")))
-
-        vis_inputs = {
-                "classes": classes,
-                "texts": texts,
-                "boxes": boxes,
-                "scores": scores,
-                "image_path": inputs.get("image_path"),
-                "page": inputs.get("page", 1),
-                "request_id": inputs.get("request_id"),
-                "model_name": "pp",
-                "angle": anlge,
-            }
-        logger.info("vis inputs: {}", vis_inputs)
-        client.post(
-            url=f"{model_server_url}/visualize",
-            json=vis_inputs
-        )
-    except Exception:
-        print_error_log()
 
 
 
@@ -101,8 +59,7 @@ async def ocr(
     if inputs.get("use_general_ocr") and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]:
         parsed_text_info = get_pdf_text_info(inputs)
         if len(parsed_text_info) > 0:
-            with Client() as client:
-                request_visualize(client=client, result=parsed_text_info, inputs=inputs, anlge=0.0)
+            visualizer.save_vis_image.remote(result=parsed_text_info, inputs=inputs, anlge=0.0)
             return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info}))
     with Client() as client:
         # ocr inference
@@ -142,7 +99,6 @@ async def ocr(
             if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
             inference_results["kv"] = post_processing_results["result"]
-            request_visualize(client, inference_results["kv"], inputs, inference_results.get("angle", 0.0))
             inference_results["texts"] = post_processing_results["texts"]
 
         # convert preds to texts
@@ -155,6 +111,7 @@ async def ocr(
                 return set_json_response(code="3000", message="텍스트 변환 과정에서 발생")
             inference_results["texts"] = texts
 
+    visualizer.save_vis_image.remote(inference_results, inputs, inference_results.get("angle", 0.0))
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)
