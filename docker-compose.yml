@@ -5,6 +5,8 @@ services:
     image: pg-cleaner-d
     container_name: pg-cleaner-d
     restart: on-failure
+    environment:
+      - TZ=Asia/Seoul
     build:
       context: ./cleaner
       dockerfile: dockerfile
@@ -15,28 +17,29 @@ services:
     networks:
       - our_net
       - ha_net
-  pg_node-0:
+  pg_node-9:
     image: docker.io/bitnami/postgresql-repmgr:11
-    container_name: pg_node-0
-    hostname: pg_node-0
+    container_name: pg_node-9
+    hostname: pg_node-9
     restart: unless-stopped
     ports:
-      - "55433:5432"
+      - "5432:5432"
     environment:
+      - TZ=Asia/Seoul
       - POSTGRESQL_POSTGRES_PASSWORD=postgres
       - POSTGRESQL_USERNAME=${POSTGRES_USER}
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
       - REPMGR_PASSWORD=repmgr
-      - REPMGR_PRIMARY_HOST=pg_node-0
-      - REPMGR_PARTNER_NODES=pg_node-0,pg_node-2
-      - REPMGR_NODE_NAME=pg_node-0
-      - REPMGR_NODE_NETWORK_NAME=pg_node-0
+      - REPMGR_PRIMARY_HOST=pg_node-9
+      - REPMGR_PARTNER_NODES=pg_node-9,pg_node-8
+      - REPMGR_NODE_NAME=pg_node-9
+      - REPMGR_NODE_NETWORK_NAME=pg_node-9
+    extra_hosts:
+      - "pg_node-8:192.168.0.8"
     networks:
-      - ha_net
-      - our_net
-    volumes:
-      - postgres_data:/bitnami/postgresql
+      our_net:
+        ipv4_address: ${POSTGRES_NODE_IP_ADDR}
   master_pgpool:
     image: docker.io/bitnami/pgpool:4
     container_name: master_pgpool
@@ -44,8 +47,11 @@ services:
     restart: unless-stopped
     ports:
       - "${PGPOOL_IP_PORT}:5432"
+    extra_hosts:
+      - "pg_node-8:192.168.0.8"
     environment:
-      - PGPOOL_BACKEND_NODES=0:pg_node-0:5432,1:pg_node-2:5432
+      - TZ=Asia/Seoul
+      - PGPOOL_BACKEND_NODES=0:pg_node-9:5432,1:pg_node-8:5432
       - PGPOOL_SR_CHECK_USER=${PGPOOL_SR_CHECK_USER}
       - PGPOOL_SR_CHECK_PASSWORD=${PGPOOL_SR_CHECK_PASSWORD}
       - PGPOOL_ENABLE_LDAP=no
@@ -55,12 +61,12 @@ services:
       - PGPOOL_ADMIN_PASSWORD=${PGPOOL_ADMIN_PASSWORD}
       - PGPOOL_ENABLE_LOAD_BALANCING=yes
       - PGPOOL_AUTO_FAILBACK=yes
-      - PGPOOL_BACKEND_APPLICATION_NAMES=0:pg_node-0:5432,1:pg_node-2:5432
+      - PGPOOL_BACKEND_APPLICATION_NAMES=0:pg_node-9:5432,1:pg_node-8:5432
+    depends_on:
+      - pg_node-9
     networks:
-      ha_net:
-        ipv4_address: 11.100.10.10
       our_net:
-        ipv4_address: ${MASTER_PGPOOL_IP_ADDR}
+        ipv4_address: ${POSTGRES_IP_ADDR}
     healthcheck:
       test: ["CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh"]
       interval: 10s
@@ -73,6 +79,9 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      TZ: Asia/Seoul
+    depends_on:
+      - master_pgpool
     ports:
       - "5050:80"
     networks:
@@ -121,7 +130,6 @@ services:
     restart: unless-stopped
     depends_on: 
       - master_pgpool
-      - pg_node-0
     cap_add:
       - SYS_PTRACE
     networks:
@@ -158,8 +166,6 @@ services:
       - ${DATABASE_HOST}
     depends_on: 
       - master_pgpool
-      - pg_node-0
-    #   - mysql1
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
