@@ -9,8 +9,7 @@ RUN apt-get update && \
     apt-get -y install python3-pip && \
     apt-get -y install libmysqlclient-dev && \
     apt-get -y install poppler-utils &&\
-    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
-    apt-get -y install vim
+    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
     
 # korean
 RUN apt-get install -y apt-utils locales

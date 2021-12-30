@@ -21,8 +21,7 @@ RUN apt-get update && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
     apt-get -y install libmysqlclient-dev && \
     apt-get install -y libprotobuf-dev protobuf-compiler && \
-    apt-get -y install cmake && \
-    apt-get -y install vim
+    apt-get -y install cmake &&
 
 
 # ARG TEXTSCOPE_BASE_IMAGE_VERSION
