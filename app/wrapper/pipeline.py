@@ -241,7 +241,6 @@ def heungkuk_life(
 
     # Recognition
     tiamo_result = wrapper.recognition.tiamo(client, inputs, agamotto_result).get("response")
-    logger.debug(f'{task_id}-recognition result:\n{pretty_dict(tiamo_result)}')
     duriel_inputs = {**agamotto_result, "texts": tiamo_result["texts"]}
 
     # Classification
