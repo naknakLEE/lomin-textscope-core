@@ -156,8 +156,9 @@ async def ocr(
             kv_inference_results["kv"] = post_processing_results["result"]
             kv_inference_results["texts"] = post_processing_results["texts"]
 
-        logger.info(f'{task_id}-post-processed kv result:\n{pretty_dict(kv_inference_results.get("kv"))}')
-        logger.info(f'{task_id}-post-processed text result:\n{pretty_dict(kv_inference_results.get("texts"))}')
+        if kv_inference_results.get("kv", None):
+            logger.info(f'{task_id}-post-processed kv result:\n{pretty_dict(kv_inference_results.get("kv", {}))}')
+            logger.info(f'{task_id}-post-processed text result:\n{pretty_dict(kv_inference_results.get("texts", {}))}')
 
         # convert preds to texts
         if convert_preds_to_texts is not None and "texts" not in kv_inference_results:
