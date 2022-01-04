@@ -600,13 +600,13 @@
             },
             "KV-B10":{
                 "code": "KV-B10",
-                "name_kr": "입원일자/퇴원일자",
+                "name_kr": "입원일자",
                 "name_en": "",
                 "date_type": "text"
             },
             "KV-B11":{
                 "code": "KV-B11",
-                "name_kr": "입원기간",
+                "name_kr": "퇴원일자",
                 "name_en": "",
                 "date_type": "text"
             },
@@ -949,13 +949,13 @@
             },
             "KV-B10":{
                 "code": "KV-B10",
-                "name_kr": "입원일자/퇴원일자",
+                "name_kr": "입원일자",
                 "name_en": "",
                 "date_type": "text"
             },
             "KV-B11":{
                 "code": "KV-B11",
-                "name_kr": "입원기간",
+                "name_kr": "퇴원일자",
                 "name_en": "",
                 "date_type": "text"
             },
@@ -1298,13 +1298,13 @@
             },
             "KV-B10":{
                 "code": "KV-B10",
-                "name_kr": "입원일자/퇴원일자",
+                "name_kr": "입원일자",
                 "name_en": "",
                 "date_type": "text"
             },
             "KV-B11":{
                 "code": "KV-B11",
-                "name_kr": "입원기간",
+                "name_kr": "퇴원일자",
                 "name_en": "",
                 "date_type": "text"
             },
@@ -1647,13 +1647,13 @@
             },
             "KV-B10":{
                 "code": "KV-B10",
-                "name_kr": "입원일자/퇴원일자",
+                "name_kr": "입원일자",
                 "name_en": "",
                 "date_type": "text"
             },
             "KV-B11":{
                 "code": "KV-B11",
-                "name_kr": "입원기간",
+                "name_kr": "퇴원일자",
                 "name_en": "",
                 "date_type": "text"
             },
@@ -1934,7 +1934,8 @@
                 "KV-C10": "HKL01-KV-DCC",
                 "KV-C12": "HKL01-KV-TDD",
                 "KV-C13": "HKL01-KV-DSG",
-                "KV-C14": "HKL01-KV-DDC"
+                "KV-C14": "HKL01-KV-DDC",
+                "KV-C15": "HKL01-KV-PN2"
             },
             "KV-C01":{
                 "code": "KV-C01",
