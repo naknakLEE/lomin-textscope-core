@@ -180,6 +180,7 @@ class Settings(BaseSettings):
     # HEUNGKUK CONFIG
     DURIEL_SUPPORT_DOCUMENT: List
     INSURANCE_SUPPORT_DOCUMENT: List
+    COMMA_KEY: List = []
     
     # FILE CONFIG
     ZIP_PATH: str

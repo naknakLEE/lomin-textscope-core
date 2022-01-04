@@ -379,12 +379,28 @@
         "business_address_value", 
         "business_addresshq_value",
         "business_workcond_value",
-        "business_worktype_value",
+        "business_worktype_value"
+    ],
+    "COMMA_KEY": [
         "accident_date",
+        "HKL01-KV-MDC",
         "application_date",
-        "beneficiary_address",
-        "accident_details",
-        "HKL01-KV-MDC"
+        "HKL01-KV-HTSED",
+        "HKL01-KV-DC",
+        "HKL01-KV-HTSD",
+        "HKL01-KV-HTED",
+        "HKL01-KV-OTSD",
+        "HKL01-KV-HP",
+        "HKL01-KV-OTP",
+        "HKL01-KV-HTP",
+        "HKL01-KV-DD",
+        "HKL01-KV-HSD",
+        "HKL01-KV-OTED",
+        "HKL01-KV-HD",
+        "HKL01-KV-HED",
+        "HKL01-KV-MSD",
+        "HKL01-KV-DLD",
+        "HKL01-KV-DCC"
     ],
     "PP_MAPPING_TABLE": {
         "general_pp": [
