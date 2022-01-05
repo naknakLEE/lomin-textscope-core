@@ -1,2 +1,2 @@
-30 4 * * * /root/files/db_clean.sh >> /root/files/log.log
+0 0 */7 * * /root/files/db_clean.sh >> /root/files/log.log
 
