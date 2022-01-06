@@ -2021,8 +2021,12 @@
                 "name_en": "",
                 "date_type": "text"
             },
-            
-            "HKL01-KV-DND": { 
+            "KV-C15":{
+                "code": "KV-C15",
+                "name_kr": "환자성명",
+                "name_en": "",
+                "date_type": "text"
+            },
                 "code": "HKL01-KV-DND",
                 "name_kr": "교부일및교부번호",
                 "name_en": "",
