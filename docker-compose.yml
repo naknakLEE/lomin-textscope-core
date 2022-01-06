@@ -1,6 +1,39 @@
 version: '2.3'
 
 services:
+  elasticsearch:
+    image: docker.io/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
+    build:
+      context: elasticsearch
+      dockerfile: Dockerfile.elasticsearch
+    container_name: elasticsearch
+    restart: on-failure
+    volumes:
+      - esdata:/usr/share/elasticsearch/data:rw
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - cluster.name=ts-cluster
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    networks:
+      - our_net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.2
+    container_name: kibana
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - our_net
   pg-cleaner-d:
     image: pg-cleaner-d
     container_name: pg-cleaner-d
@@ -290,19 +323,9 @@ services:
 
 
 volumes: 
-  prometheus_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/prometheus_data
+  prometheus_data: {}
   postgres_data: {}
-  grafana_data:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: /docker/data/grafana_data
+  grafana_data: {}
   # mysql_data:
   #   driver: local
   #   driver_opts:

@@ -31,3 +31,12 @@ sqlacodegen==3.0.0b2
 
 # for hint
 soynlp==0.0.493
+
+# elasticsearch
+numpy==1.19.5
+elasticsearch==7.16.2
+pyyaml==6.0 
+omegaconf==2.1.1
+alive_progress==2.1.0
+hydra-core==1.1.1
+jamo==0.4.1
