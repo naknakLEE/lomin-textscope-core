@@ -181,6 +181,21 @@ class Settings(BaseSettings):
     DURIEL_SUPPORT_DOCUMENT: List
     INSURANCE_SUPPORT_DOCUMENT: List
     COMMA_KEY: List = []
+    NTOC: Dict = {
+        "1" : "I",
+        "2" : "Z",
+        "8" : "S",
+        "0" : "C",
+        "3" : "S"
+    }
+    CTON: Dict = {
+        "I" : "1",
+        "Z" : "2",
+        "S" : "8",
+        "C" : "0",
+        "O" : "0",
+        "B" : "8"
+    }
     
     # FILE CONFIG
     ZIP_PATH: str
