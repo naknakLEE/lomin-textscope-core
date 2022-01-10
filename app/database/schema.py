@@ -224,6 +224,7 @@ class BaseMixin:
         return query.all()
 
 class WooriBaseMixin:
+    created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
     def all_columns(self) -> List:
         return [
             c
