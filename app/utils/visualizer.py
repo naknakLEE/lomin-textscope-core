@@ -193,7 +193,7 @@ class Visualizer(object):
         classes = list()
         texts = list()
         boxes = list()
-        scores = None
+        scores = list()
         if "boxes" in result:
             classes = result.get("classes")
             texts = result.get("texts")
@@ -201,13 +201,19 @@ class Visualizer(object):
             scores = result.get("scores")
         else:
             for key, values in result.items():
-                for value in values:
-                    if not isinstance(value.get("bboxes"), list):
-                        continue
-                    for bbox in value.get("bboxes"):
-                        boxes.append(bbox)
-                        texts.append(value.get("text"))
-                        classes.append("{} {}".format(key, value.get("text")))
+                if isinstance(values, list):
+                    for value in values:
+                        if not isinstance(value.get("bboxes"), list):
+                            continue
+                        for bbox in value.get("bboxes"):
+                            boxes.append(bbox)
+                            texts.append(value.get("text"))
+                            classes.append("{} {}".format(key, value.get("text")))
+                elif isinstance(values, dict):
+                    boxes.append(values.get("box"))
+                    texts.append(values.get("text"))
+                    classes.append(values.get("class"))
+                    scores.append(values.get("score"))
 
         image_array = load_image(
             {"image_path": inputs.get("image_path"), "page": inputs.get("page", 1)}
@@ -219,7 +225,7 @@ class Visualizer(object):
             "image": image_array,
             "detection_boxes": boxes,
             "detection_classes": classes,
-            "detection_scores": scores,
+            "detection_scores": scores if len(scores) > 0 else None,
             "texts": texts,
             "request_id": inputs.get("request_id"),
             "image_path": inputs.get("image_path"),
