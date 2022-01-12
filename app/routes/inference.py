@@ -34,7 +34,6 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 """
 
 
-
 @router.post("/ocr", status_code=200, responses=inference_responses)
 async def ocr(
     inputs: Dict = Body(...),
@@ -49,9 +48,6 @@ async def ocr(
     start_time = datetime.now()
     # Apply doc type hint
     hint = inputs.get("hint", {})
-    if "doc_type" in hint and hint.get("doc_type").get("trust"):
-        cls_hint_result = apply_cls_hint(doc_type_hint=hint.get("doc_type"))
-        inputs["doc_type"] = cls_hint_result.get("doc_type")
     request_id = inputs.get("request_id")
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     post_processing_results = dict()
@@ -61,6 +57,10 @@ async def ocr(
         # inputs["doc_type"] = "법인등기부등본"
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
+    if "doc_type" in hint and hint.get("doc_type").get("trust"):
+        cls_hint_result = apply_cls_hint(doc_type_hint=hint.get("doc_type"))
+        response.update(apply_cls_hint_result=cls_hint_result)
+        inputs["doc_type"] = cls_hint_result.get("doc_type")
 
     if inputs.get("use_general_ocr") and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]:
         parsed_text_info = get_pdf_text_info(inputs)
