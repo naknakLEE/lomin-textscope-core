@@ -383,7 +383,8 @@
     ],
     "COMMA_KEY": [
         "HKL01-KV-MDC",
-        "HKL01-KV-DCC"
+        "HKL01-KV-DCC",
+        "HKL01-KV-DNC"
     ],
     "NTOC": {
         "1" : "I",
