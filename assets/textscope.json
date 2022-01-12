@@ -21,7 +21,9 @@
             "R6",
             "W2", 
             "Z3",
-            "J5"
+            "J5",
+            "신분증",
+            "idcard"
         ],
         "DURIEL_CLS_MODEL": [
             "du_cls_model"
@@ -55,6 +57,7 @@
             "AC",
             "Z1",
             "RF",
+            "bankbook",
             "통장사본"
         ],
         "CERTIFIED_COPY_OF_CORPORATE_REGISTRATION": [
@@ -378,6 +381,8 @@
     ],
     "PP_MAPPING_TABLE": {
         "general_pp": [
+            "신분증",
+            "idcard",
             "Z2",
             "Z3",
             "사업자등록증",
@@ -390,7 +395,7 @@
         ],
         "seal_imp_cert": ["J8_인감증명서", "N2_법인인감증명서"],
         "ccr": ["N1_법인등기부 등본(등기사항 전부증명서)"],
-        "bankbook": ["Z1", "통장사본"],
+        "bankbook": ["Z1", "통장사본", "bankbook"],
         "busan_bank": ["법인등기부등본"]
     },
     "RETURN_CLASS_MAPPING_TABLE": {    
