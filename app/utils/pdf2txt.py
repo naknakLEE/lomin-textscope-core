@@ -174,6 +174,7 @@ def get_pdf_text_info(inputs: Dict):
     textbox = page.findall("textbox")
     
     parsed_text_info = {}
+    image_size = (0,0)
     if len(textbox) > 0:
         pages = convert_path_to_image(pdf_path=pdf_path)
         text_info = pdf2txt(
@@ -182,8 +183,9 @@ def get_pdf_text_info(inputs: Dict):
             pdf_path=pdf_path,
             xml_path=xml_path
         )
+        image_size = pages[page_num].size
         parsed_text_info = parse_pdf_text(text_info)
-    return parsed_text_info    
+    return parsed_text_info, image_size    
 
 
 pdf2txt = Pdf2Image("/workspace/assets")
