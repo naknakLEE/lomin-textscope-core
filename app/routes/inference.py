@@ -17,6 +17,7 @@ from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
 from app.utils.visualizer import visualizer
+from app.utils.hint import apply_cls_hint
 
 
 settings = get_settings()
@@ -46,6 +47,11 @@ async def ocr(
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
     start_time = datetime.now()
+    # Apply doc type hint
+    hint = inputs.get("hint", {})
+    if "doc_type" in hint and hint.get("doc_type").get("trust"):
+        cls_hint_result = apply_cls_hint(doc_type_hint=hint.get("doc_type"))
+        inputs["doc_type"] = cls_hint_result.get("doc_type")
     request_id = inputs.get("request_id")
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     post_processing_results = dict()
