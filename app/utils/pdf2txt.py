@@ -156,6 +156,12 @@ def parse_pdf_text(text_info: Dict) -> Dict:
     }
 
 
+@lru_cache(maxsize=10)
+def convert_path_to_image(pdf_path):
+    pages = pdf2image.convert_from_path(pdf_path=pdf_path)
+    return pages
+
+
 def get_pdf_text_info(inputs: Dict):
     xml_path = "/tmp/temp.xml"
     pdf_path = inputs.get("image_path")
@@ -169,7 +175,7 @@ def get_pdf_text_info(inputs: Dict):
     
     parsed_text_info = {}
     if len(textbox) > 0:
-        pages = pdf2image.convert_from_path(pdf_path=pdf_path)
+        pages = convert_path_to_image(pdf_path=pdf_path)
         text_info = pdf2txt(
             pages=pages, 
             page_num=page_num, 
