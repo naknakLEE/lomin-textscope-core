@@ -29,7 +29,7 @@ def select_category_pkey_by_name(category_name: str, db: Session = Depends(db.se
 @router.post("/insert/inference")
 def insert_inference_result(data: Dict = Body(...), db: Session = Depends(db.session)):
     logger.info(data)
-    return query.insert_inference_result(db, **data)
+    return query.insert_inference_result(db, data)
 
 @router.post("/create/image")
 def insert_image(data: Dict = Body(...),  db: Session = Depends(db.session)):

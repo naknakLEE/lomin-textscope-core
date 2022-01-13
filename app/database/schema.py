@@ -357,7 +357,6 @@ class Model(Base, WooriBaseMixin):
     model_version = Column(String(50))
     model_path = Column(String(50))
     model_type = Column(String(50))
-    create_datetime = Column(DateTime)
 
     category = relationship('Category', back_populates='model')
 
@@ -399,11 +398,10 @@ class Inference(Base, WooriBaseMixin):
     inference_pkey = Column(Integer, primary_key=True)
     task_id = Column(String(50), nullable=False)
     inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
-    create_datetime = Column(DateTime, nullable=True)
     inference_result = Column(JSON)
     image_pkey = Column(ForeignKey('image.image_pkey'))
     start_datetime = Column(DateTime, nullable=True)
-    finsh_datetime = Column(DateTime, nullable=True)
+    finish_datetime = Column(DateTime, nullable=True)
     inference_img_path = Column(String(200), nullable=True)
 
     image = relationship('Image', back_populates='inference')
@@ -433,7 +431,6 @@ CREATE TABLE model
     model_version      varchar(50)     NULL, 
     model_path         varchar(50)     NULL, 
     model_type         varchar(50)     NULL, 
-    create_datetime    timestamp       NULL, 
      PRIMARY KEY (model_pkey)
 );
 
@@ -514,7 +511,6 @@ CREATE TABLE inference
     task_id               varchar(50)    NOT NULL, 
     inference_result      json           NULL, 
     inference_type        varchar(5)     NOT NULL, 
-    create_datetime       timestamp      NULL, 
     image_pkey            integer        NULL, 
     start_datetime        timestamp      NULL, 
     finsh_datetime        timestamp      NULL, 
