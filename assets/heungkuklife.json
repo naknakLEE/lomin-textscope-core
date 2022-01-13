@@ -542,7 +542,8 @@
                 "KV-B19": "HKL01-KV-HTN",
                 "KV-B20": "HKL01-KV-DLN",
                 "KV-B21": "HKL01-KV-DCN",
-                "KV-B22": "HKL01-KV-DO"
+                "KV-B22": "HKL01-KV-DO",
+                "KV-B23": "HKL01-KV-MIB1"
             },
             "KV-B01":{
                 "code": "KV-B01",
@@ -676,6 +677,12 @@
                 "name_en": "",
                 "date_type": "text"
             },
+            "KV-B23":{
+                "code": "KV-B23",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -770,6 +777,12 @@
                 "code": "HKL01-KV-HN",
                 "name_kr": "병원명",
                 "name_en": "Hospital Name",
+                "date_type": "text"
+            },
+            "HKL01-KV-MIB1": { 
+                "code": "HKL01-KV-MIB1",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
                 "date_type": "text"
             },
             "HKL01-KV-MDC": { 
@@ -891,7 +904,8 @@
                 "KV-B19": "HKL01-KV-HTN",
                 "KV-B20": "HKL01-KV-DLN",
                 "KV-B21": "HKL01-KV-DCN",
-                "KV-B22": "HKL01-KV-DO"
+                "KV-B22": "HKL01-KV-DO",
+                "KV-B23": "HKL01-KV-MIB1"
             },
             "KV-B01":{
                 "code": "KV-B01",
@@ -1025,6 +1039,12 @@
                 "name_en": "",
                 "date_type": "text"
             },
+            "KV-B23":{
+                "code": "KV-B23",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -1119,6 +1139,12 @@
                 "code": "HKL01-KV-HN",
                 "name_kr": "병원명",
                 "name_en": "Hospital Name",
+                "date_type": "text"
+            },
+            "HKL01-KV-MIB1": { 
+                "code": "HKL01-KV-MIB1",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
                 "date_type": "text"
             },
             "HKL01-KV-MDC": { 
@@ -1240,7 +1266,8 @@
                 "KV-B19": "HKL01-KV-HTN",
                 "KV-B20": "HKL01-KV-DLN",
                 "KV-B21": "HKL01-KV-DCN",
-                "KV-B22": "HKL01-KV-DO"
+                "KV-B22": "HKL01-KV-DO",
+                "KV-B23": "HKL01-KV-MIB1"
             },
             "KV-B01":{
                 "code": "KV-B01",
@@ -1374,6 +1401,12 @@
                 "name_en": "",
                 "date_type": "text"
             },
+            "KV-B23":{
+                "code": "KV-B23",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -1468,6 +1501,12 @@
                 "code": "HKL01-KV-HN",
                 "name_kr": "병원명",
                 "name_en": "Hospital Name",
+                "date_type": "text"
+            },
+            "HKL01-KV-MIB1": { 
+                "code": "HKL01-KV-MIB1",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
                 "date_type": "text"
             },
             "HKL01-KV-MDC": { 
@@ -1589,7 +1628,8 @@
                 "KV-B19": "HKL01-KV-HTN",
                 "KV-B20": "HKL01-KV-DLN",
                 "KV-B21": "HKL01-KV-DCN",
-                "KV-B22": "HKL01-KV-DO"
+                "KV-B22": "HKL01-KV-DO",
+                "KV-B23": "HKL01-KV-MIB1"
             },
             "KV-B01":{
                 "code": "KV-B01",
@@ -1723,6 +1763,12 @@
                 "name_en": "",
                 "date_type": "text"
             },
+            "KV-B23":{
+                "code": "KV-B23",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
+                "date_type": "text"
+            },
             "NONE": {
                 "code": "NONE",
                 "name_kr": "테스트",
@@ -1817,6 +1863,12 @@
                 "code": "HKL01-KV-HN",
                 "name_kr": "병원명",
                 "name_en": "Hospital Name",
+                "date_type": "text"
+            },
+            "HKL01-KV-MIB1": { 
+                "code": "HKL01-KV-MIB1",
+                "name_kr": "요양기관번호",
+                "name_en": "Medical Institution numBer",
                 "date_type": "text"
             },
             "HKL01-KV-MDC": { 
@@ -1958,7 +2010,7 @@
             "KV-C04":{
                 "code": "KV-C04",
                 "name_kr": "요양기관번호",
-                "name_en": "",
+                "name_en": "Medical Institution numBer",
                 "date_type": "text"
             },
             "KV-C05":{
