@@ -46,8 +46,6 @@ async def ocr(
     응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
     """
     start_time = datetime.now()
-    # Apply doc type hint
-    hint = inputs.get("hint", {})
     request_id = inputs.get("request_id")
     convert_preds_to_texts = inputs.get("convert_preds_to_texts", None)
     post_processing_results = dict()
@@ -57,8 +55,12 @@ async def ocr(
         # inputs["doc_type"] = "법인등기부등본"
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
-    if "doc_type" in hint and hint.get("doc_type").get("trust"):
-        cls_hint_result = apply_cls_hint(doc_type_hint=hint.get("doc_type"))
+
+    # Apply doc type hint
+    hint = inputs.get("hint", {})
+    if hint is not None and "doc_type" in hint:
+        doc_type_hint = hint if isinstance(hint.get("doc_type"), str) else hint.get("doc_type")
+        cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
         response.update(apply_cls_hint_result=cls_hint_result)
         inputs["doc_type"] = cls_hint_result.get("doc_type")
 
