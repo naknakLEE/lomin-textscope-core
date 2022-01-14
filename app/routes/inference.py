@@ -17,6 +17,7 @@ from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
 from app.utils.visualizer import visualizer
+from app.utils.hint import apply_cls_hint
 
 
 settings = get_settings()
@@ -31,7 +32,6 @@ pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 입력 데이터: 토큰, ocr에 사용할 파일 <br/>
 응답 데이터: 상태 코드, 최소 퀄리티 보장 여부, 신뢰도, 문서 타입, ocr결과(문서에 따라 다른 결과 반환)
 """
-
 
 
 @router.post("/ocr", status_code=200, responses=inference_responses)
@@ -56,11 +56,19 @@ async def ocr(
         if inputs.get("test_doc_type", None) is not None:
             inputs["doc_type"] = inputs["test_doc_type"]
 
+    # Apply doc type hint
+    hint = inputs.get("hint", {})
+    if hint is not None and "doc_type" in hint:
+        doc_type_hint = hint if isinstance(hint.get("doc_type"), str) else hint.get("doc_type")
+        cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
+        response.update(apply_cls_hint_result=cls_hint_result)
+        inputs["doc_type"] = cls_hint_result.get("doc_type")
+
     if inputs.get("use_general_ocr") and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]:
-        parsed_text_info = get_pdf_text_info(inputs)
+        parsed_text_info, image_size = get_pdf_text_info(inputs)
         if len(parsed_text_info) > 0:
             visualizer.save_vis_image.remote(result=parsed_text_info, inputs=inputs, anlge=0.0)
-            return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info}))
+            return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info, "response_log": {"original_image_size": image_size}}))
     with Client() as client:
         # ocr inference
         if settings.USE_OCR_PIPELINE:

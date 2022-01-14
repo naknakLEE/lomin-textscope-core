@@ -80,6 +80,10 @@ class Settings(BaseSettings):
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
 
+    # HINT CONFIG
+    KV_HINT_CER_THRESHOLD: float = 0.2
+    CLS_HINT_SCORE_THRESHOLD: float = 0.2
+
     # SERVING CONFIG
     OCR_PIPELINE: bool = False
     USE_OCR_PIPELINE: bool = False

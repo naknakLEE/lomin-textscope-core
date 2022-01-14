@@ -2,6 +2,7 @@ import json
 from requests.sessions import session
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
+from typing import Dict
 
 
 from app import models
@@ -109,7 +110,10 @@ def select_category(db: Session, model_id: str):
     res = query.all()
     return res
 
-def insert_inference_result(db: Session, task_id: str, inference_result: json, inference_type: str, image_pkey: int):
+def insert_inference_result(
+    db: Session, 
+    data: Dict,
+):
     '''
             INSERT INTO
             inference
@@ -127,8 +131,19 @@ def insert_inference_result(db: Session, task_id: str, inference_result: json, i
             1
         )
     '''
+    inference_result = data.get("inference_result", {})
+    response_log = inference_result.get("response_log", {})
     try:
-        db.add(schema.Inference(task_id = task_id, inference_result = inference_result, inference_type = inference_type, image_pkey = image_pkey))
+        db.add(schema.Inference(
+            task_id=data.get("task_id"), 
+            inference_result=inference_result, 
+            inference_type=data.get("inference_type"), 
+            image_pkey=data.get("image_pkey"),
+            start_datetime=response_log.get("inference_start_time"),
+            finish_datetime=response_log.get("inference_end_time"),
+            inference_img_path=response_log.get("image_path")
+
+        ))
         db.commit()  
     except Exception as ex:
         logger.warning(f"insert error: {ex}")

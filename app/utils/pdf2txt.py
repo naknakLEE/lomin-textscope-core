@@ -156,11 +156,16 @@ def parse_pdf_text(text_info: Dict) -> Dict:
     }
 
 
+@lru_cache(maxsize=10)
+def convert_path_to_image(pdf_path):
+    pages = pdf2image.convert_from_path(pdf_path=pdf_path)
+    return pages
+
+
 def get_pdf_text_info(inputs: Dict):
     xml_path = "/tmp/temp.xml"
     pdf_path = inputs.get("image_path")
     page_num = inputs.get("page", 1) - 1
-    pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))
 
     doc = ET.parse(xml_path)
     pages = doc.findall("page")
@@ -168,16 +173,18 @@ def get_pdf_text_info(inputs: Dict):
     textbox = page.findall("textbox")
     
     parsed_text_info = {}
+    image_size = (0,0)
     if len(textbox) > 0:
-        pages = pdf2image.convert_from_path(pdf_path=pdf_path)
+        pages = convert_path_to_image(pdf_path=pdf_path)
         text_info = pdf2txt(
             pages=pages, 
             page_num=page_num, 
             pdf_path=pdf_path,
             xml_path=xml_path
         )
+        image_size = pages[page_num].size
         parsed_text_info = parse_pdf_text(text_info)
-    return parsed_text_info    
+    return parsed_text_info, image_size    
 
 
 pdf2txt = Pdf2Image("/workspace/assets")
@@ -206,17 +213,6 @@ if __name__ == "__main__":
     texts = text_info.get("texts")
     boxes = text_info.get("boxes")
     image_array = np.array(pages[args.page_num])
-    # detection_result_visualization(
-    #     image=image_array,
-    #     detection_boxes=boxes, 
-    #     detection_classes=texts, 
-    #     detection_scores=[], 
-    #     texts=texts, 
-    #     request_id="",
-    #     image_path=args.save_path,
-    #     save_dir=None,
-    #     model_name=None,
-    # )
 
     profiler.stop()
     print(profiler.output_text(unicode=True, color=True, show_all=True))
