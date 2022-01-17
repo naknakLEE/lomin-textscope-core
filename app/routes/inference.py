@@ -187,21 +187,21 @@ async def ocr(
 
         inference_results = set_ocr_response(**dump_inference_results)
         
-        background_tasks.add_task(
-            func=save_updated_task,
-            db=db,
-            doc_type=inference_results.get("doc_type"),
-            task_pkey=task_pkey
-        )
+        # background_tasks.add_task(
+        #     func=save_updated_task,
+        #     db=db,
+        #     doc_type=inference_results.get("doc_type"),
+        #     task_pkey=task_pkey
+        # )
         
-        background_tasks.add_task(
-            func=save_inference_results,
-            db=db,
-            inference_id=request_id,
-            task_pkey=task_pkey,
-            inference_img_path=inputs.get('image_path'),
-            inference_results=dump_inference_results 
-        )
+        # background_tasks.add_task(
+        #     func=save_inference_results,
+        #     db=db,
+        #     inference_id=request_id,
+        #     task_pkey=task_pkey,
+        #     inference_img_path=inputs.get('image_path'),
+        #     inference_results=dump_inference_results 
+        # )
 
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
