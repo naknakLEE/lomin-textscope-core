@@ -141,7 +141,6 @@ class Pdf2Image():
 
 
     def __call__(self, pages, page_num, pdf_path, xml_path) -> Image:
-        self.save_xml(pdf_path, xml_path)
         page = pages[page_num]
         text_info = self.read_xml(xml_path=xml_path, page_num=page_num, page_size=page.size)
         return text_info
@@ -166,6 +165,7 @@ def get_pdf_text_info(inputs: Dict):
     xml_path = "/tmp/temp.xml"
     pdf_path = inputs.get("image_path")
     page_num = inputs.get("page", 1) - 1
+    pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))
 
     doc = ET.parse(xml_path)
     pages = doc.findall("page")
