@@ -16,7 +16,6 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
-from app.utils.visualizer import visualizer
 from app.utils.hint import apply_cls_hint
 
 
@@ -67,7 +66,6 @@ async def ocr(
     if inputs.get("use_general_ocr") and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]:
         parsed_text_info, image_size = get_pdf_text_info(inputs)
         if len(parsed_text_info) > 0:
-            visualizer.save_vis_image.remote(result=parsed_text_info, inputs=inputs, anlge=0.0)
             return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info, "response_log": {"original_image_size": image_size}}))
     with Client() as client:
         # ocr inference
@@ -119,7 +117,6 @@ async def ocr(
                 return set_json_response(code="3000", message="텍스트 변환 과정에서 발생")
             inference_results["texts"] = texts
 
-    visualizer.save_vis_image.remote(inference_results, inputs, inference_results.get("angle", 0.0))
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)
