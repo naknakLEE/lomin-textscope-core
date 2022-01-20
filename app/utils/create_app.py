@@ -41,7 +41,7 @@ def app_generator() -> FastAPI:
 
     if settings.USE_TEXTSCOPE_DATABASE:
         db.init_app(app, **asdict(config()))
-        if settings.DEVELOP:
+        if settings.INITIAL_DB:
             create_db_table(db)
             insert_initial_data(db)
 

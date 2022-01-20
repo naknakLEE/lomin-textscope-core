@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     TEST_MODE: bool = False
     POOL_SIZE: int = 50
     MAX_OVERFLOW: int = 20000
+    INITIAL_DB: bool
 
     # AUTHORIZATION SETTING
     SECRET_KEY: str
