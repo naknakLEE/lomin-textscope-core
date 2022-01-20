@@ -55,3 +55,17 @@ def convert_preds_to_texts(
         timeout=settings.TIMEOUT_SECOND,
     )
     return (convert_response.status_code, convert_response.json())
+
+def convert_texts_to_preds(
+    client: Client, texts: List, id_type: str = ""
+) -> Tuple[int, Dict]:
+    request_data = dict(
+        texts=texts,
+        id_type="",
+    )
+    convert_response = client.post(
+        f"{pp_server_url}/convert/text_to_recognition",
+        json=jsonable_encoder(request_data),
+        timeout=settings.TIMEOUT_SECOND,
+    )
+    return (convert_response.status_code, convert_response.json())

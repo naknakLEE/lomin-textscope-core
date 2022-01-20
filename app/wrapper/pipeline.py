@@ -1,4 +1,5 @@
 import json
+import re
 
 from httpx import Client
 
@@ -7,6 +8,7 @@ from operator import attrgetter
 from datetime import datetime
 
 from app import wrapper
+from app.wrapper import pp
 from app.common import settings
 from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
@@ -83,6 +85,16 @@ route_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 
 inference_pipeline = inference_pipeline_list.get(settings.CUSTOMER)
 
+def substitute_spchar_to_alpha(decoded_texts):
+    removed_texts = list()
+    for text in decoded_texts:
+        found_spchar = re.findall(r"[\[\]\|]", text)
+        if found_spchar:
+            logger.info(f'find special charaters {found_spchar}')
+        removed_texts.append(
+            re.sub(r"[\[\]\|]", "I", text)
+        )
+    return removed_texts
 
 # TODO: move to utils
 def get_name_list(items: Dict, key: str, separator: str = ",") -> List:
@@ -241,6 +253,13 @@ def heungkuk_life(
 
     # Recognition
     tiamo_result = wrapper.recognition.tiamo(client, inputs, agamotto_result).get("response")
+    removed_spchar_texts = substitute_spchar_to_alpha(tiamo_result["texts"])
+    pred_encode_status, encoded_texts = pp.convert_texts_to_preds(
+        client=client,
+        texts=removed_spchar_texts
+    )
+    tiamo_result["texts"] = removed_spchar_texts
+    tiamo_result["rec_preds"] = encoded_texts
     duriel_inputs = {**agamotto_result, "texts": tiamo_result["texts"]}
 
     # Classification
@@ -318,6 +337,9 @@ def heungkuk_life(
     elif doc_type in settings.INSURANCE_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.agamotto(client, inputs).get("response")
         tiamo_inputs = {
+            "valid_boxes": kv_result.get("boxes", []),
+            "classes": kv_result.get("classes", []),
+            "valid_scores": kv_result.get("scores", []),
             "image_path": inputs.get("image_path"),
             "page": inputs.get("page"),
             "request_id": inputs.get("request_id")

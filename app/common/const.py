@@ -179,6 +179,7 @@ class Settings(BaseSettings):
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
     
     # HEUNGKUK CONFIG
+    DETECTION_MERGE_THRESHOLD = (0.05, 0.5) # x_iou, y_iou
     DURIEL_SUPPORT_DOCUMENT: List
     INSURANCE_SUPPORT_DOCUMENT: List
     COMMA_KEY: List = []
