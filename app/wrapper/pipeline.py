@@ -275,12 +275,49 @@ def heungkuk_life(
     logger.info("classification doc type: {}", doc_type)
     if doc_type in settings.DURIEL_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.duriel(client, inputs, duriel_inputs, doc_type).get("response")
+        try:
+            if doc_type == "HKL01-DT-PRS":
+                from app.wrapper import pp
+                status_code, post_processing_results, response_log = pp.post_processing(
+                    client=client, 
+                    request_id=inputs.get("request_id"),
+                    response_log=response_log, 
+                    inference_results={**kv_result, "image_width": agamotto_result.get("image_width", 2000), "image_height": agamotto_result.get("image_height", 2000)}, 
+                    post_processing_type="diseases_box", 
+                )
+                tiamo_inputs = {
+                    "image_path": inputs.get("image_path"),
+                    "page": inputs.get("page"),
+                    "request_id": inputs.get("request_id")
+                }
+                dcc_texts = wrapper.recognition.tiamo(client, tiamo_inputs, post_processing_results.get("result").get("preds")).get("response", {}).get("texts")
+                print("dcc texts: ", dcc_texts)
+                if status_code < 200 or status_code >= 400 or post_processing_results is None:
+                    logger.info("Diseases box pp 과정에서 문제 발생, {}", post_processing_results)
+                else:
+                    classes = kv_result.get("classes")
+                    dcc_indexes = list()
+                    for i in range(len(classes)):
+                        if "HKL01-KV-DCC" == classes[i]:
+                            dcc_indexes.append(i)
+                    for index in sorted(dcc_indexes, reverse=True):
+                        del kv_result["classes"][index]
+                        del kv_result["scores"][index]
+                        del kv_result["texts"][index]
+                        del kv_result["boxes"][index]
+
+                    post_processed_results = post_processing_results.get("result", {}).get("preds")
+                    kv_result["classes"].extend(post_processed_results.get("classes"))
+                    kv_result["scores"].extend(post_processed_results.get("scores"))
+                    kv_result["texts"].extend(dcc_texts)
+                    kv_result["boxes"].extend(post_processed_results.get("boxes"))
+                    logger.info("Diseases pp result, {}", post_processing_results)
+        except Exception:
+            logger.exception("DCC pp")
+
     elif doc_type in settings.INSURANCE_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.agamotto(client, inputs).get("response")
         tiamo_inputs = {
-            "valid_boxes": kv_result.get("boxes", []),
-            "classes": kv_result.get("classes", []),
-            "valid_scores": kv_result.get("scores", []),
             "image_path": inputs.get("image_path"),
             "page": inputs.get("page"),
             "request_id": inputs.get("request_id")
