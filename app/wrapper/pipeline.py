@@ -253,13 +253,14 @@ def heungkuk_life(
 
     # Recognition
     tiamo_result = wrapper.recognition.tiamo(client, inputs, agamotto_result).get("response")
-    removed_spchar_texts = substitute_spchar_to_alpha(tiamo_result["texts"])
-    pred_encode_status, encoded_texts = pp.convert_texts_to_preds(
-        client=client,
-        texts=removed_spchar_texts
-    )
-    tiamo_result["texts"] = removed_spchar_texts
-    tiamo_result["rec_preds"] = encoded_texts
+    if settings.SUBSTITUTE_SPCHAR_TO_ALPHA:
+        removed_spchar_texts = substitute_spchar_to_alpha(tiamo_result["texts"])
+        pred_encode_status, encoded_texts = pp.convert_texts_to_preds(
+            client=client,
+            texts=removed_spchar_texts
+        )
+        tiamo_result["texts"] = removed_spchar_texts
+        tiamo_result["rec_preds"] = encoded_texts
     duriel_inputs = {**agamotto_result, "texts": tiamo_result["texts"]}
 
     # Classification
@@ -295,8 +296,7 @@ def heungkuk_life(
     if doc_type in settings.DURIEL_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.duriel(client, inputs, duriel_inputs, doc_type).get("response")
         try:
-            if doc_type == "HKL01-DT-PRS":
-                from app.wrapper import pp
+            if doc_type == "HKL01-DT-PRS" and settings.FORCE_MERGE_DCC_BOX:
                 status_code, post_processing_results, response_log = pp.post_processing(
                     client=client, 
                     request_id=inputs.get("request_id"),
@@ -309,28 +309,30 @@ def heungkuk_life(
                     "page": inputs.get("page"),
                     "request_id": inputs.get("request_id")
                 }
-                dcc_texts = wrapper.recognition.tiamo(client, tiamo_inputs, post_processing_results.get("result").get("preds")).get("response", {}).get("texts")
-                print("dcc texts: ", dcc_texts)
-                if status_code < 200 or status_code >= 400 or post_processing_results is None:
-                    logger.info("Diseases box pp 과정에서 문제 발생, {}", post_processing_results)
-                else:
-                    classes = kv_result.get("classes")
-                    dcc_indexes = list()
-                    for i in range(len(classes)):
-                        if "HKL01-KV-DCC" == classes[i]:
-                            dcc_indexes.append(i)
-                    for index in sorted(dcc_indexes, reverse=True):
-                        del kv_result["classes"][index]
-                        del kv_result["scores"][index]
-                        del kv_result["texts"][index]
-                        del kv_result["boxes"][index]
+                is_diseases_box = post_processing_results.get("result").get("preds")
+                if is_diseases_box:
+                    dcc_texts = wrapper.recognition.tiamo(client, tiamo_inputs, is_diseases_box).get("response", {}).get("texts")
+                    print("dcc texts: ", dcc_texts)
+                    if status_code < 200 or status_code >= 400 or post_processing_results is None:
+                        logger.info("Diseases box pp 과정에서 문제 발생, {}", post_processing_results)
+                    else:
+                        classes = kv_result.get("classes")
+                        dcc_indexes = list()
+                        for i in range(len(classes)):
+                            if "HKL01-KV-DCC" == classes[i]:
+                                dcc_indexes.append(i)
+                        for index in sorted(dcc_indexes, reverse=True):
+                            del kv_result["classes"][index]
+                            del kv_result["scores"][index]
+                            del kv_result["texts"][index]
+                            del kv_result["boxes"][index]
 
-                    post_processed_results = post_processing_results.get("result", {}).get("preds")
-                    kv_result["classes"].extend(post_processed_results.get("classes"))
-                    kv_result["scores"].extend(post_processed_results.get("scores"))
-                    kv_result["texts"].extend(dcc_texts)
-                    kv_result["boxes"].extend(post_processed_results.get("boxes"))
-                    logger.info("Diseases pp result, {}", post_processing_results)
+                        post_processed_results = post_processing_results.get("result", {}).get("preds")
+                        kv_result["classes"].extend(post_processed_results.get("classes"))
+                        kv_result["scores"].extend(post_processed_results.get("scores"))
+                        kv_result["texts"].extend(dcc_texts)
+                        kv_result["boxes"].extend(post_processed_results.get("boxes"))
+                        logger.info("Diseases pp result, {}", post_processing_results)
         except Exception:
             logger.exception("DCC pp")
 

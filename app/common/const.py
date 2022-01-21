@@ -1,6 +1,6 @@
 import json
 
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
 from functools import lru_cache
 from os import path, environ
@@ -179,7 +179,9 @@ class Settings(BaseSettings):
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
     
     # HEUNGKUK CONFIG
-    DETECTION_MERGE_THRESHOLD = (0.05, 0.5) # x_iou, y_iou
+    DETECTION_MERGE_THRESHOLD: Tuple = (0.05, 0.5) # x_iou, y_iou
+    SUBSTITUTE_SPCHAR_TO_ALPHA: bool = False
+    FORCE_MERGE_DCC_BOX: bool = False
     DURIEL_SUPPORT_DOCUMENT: List
     INSURANCE_SUPPORT_DOCUMENT: List
     COMMA_KEY: List = []

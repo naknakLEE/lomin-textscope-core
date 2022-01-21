@@ -1,4 +1,8 @@
 {
+    "DETECTION_MERGE_THRESHOLD": [
+        0.05,
+        0.5
+    ],
     "PARAMETER_ERROR_SET": {
         "2000": "Request ID와 Image path 파라미터가 누락됨",
         "2100": "이미지 파일이 경로에 존재하지 않음",
