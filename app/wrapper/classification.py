@@ -52,6 +52,7 @@ def duriel(
         "image_size": (inference_result.get("image_height"), inference_result.get("image_width")),
         "request_id": inputs.get("request_id"),
         "image_path": inputs.get("image_path"),
+        "angle":inputs.get("angle"),
         "page": inputs.get("page"),
         "doc_type": doc_type
     }

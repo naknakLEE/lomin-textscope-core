@@ -247,6 +247,14 @@ def heungkuk_life(
     inference_start_time = datetime.now()
     task_id = inputs.get('task_id')
     logger.success(f'{task_id}-inference pipeline start:\n{pretty_dict(inputs)}')
+
+    # Rotate
+    rectify = inputs.get("rectify", {})
+    if rectify.get("rotation_90n", False) or rectify.get("rotation_fine", False):
+        rotate_result = wrapper.rotate.longinus(client, inputs).get("response")
+        inputs["angle"] = rotate_result.get("angle")
+        logger.debug(f'{task_id}-rotate result:\n{pretty_dict(rotate_result)}')
+
     # General detection
     agamotto_result = wrapper.detection.agamotto(client, inputs).get("response")
     logger.debug(f'{task_id}-general detection result:\n{pretty_dict(agamotto_result)}')
@@ -338,15 +346,7 @@ def heungkuk_life(
 
     elif doc_type in settings.INSURANCE_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.agamotto(client, inputs).get("response")
-        tiamo_inputs = {
-            "valid_boxes": kv_result.get("boxes", []),
-            "classes": kv_result.get("classes", []),
-            "valid_scores": kv_result.get("scores", []),
-            "image_path": inputs.get("image_path"),
-            "page": inputs.get("page"),
-            "request_id": inputs.get("request_id")
-        }
-        tiamo_result = wrapper.recognition.tiamo(client, tiamo_inputs, kv_result).get("response")
+        tiamo_result = wrapper.recognition.tiamo(client, inputs, kv_result).get("response")
         kv_result["texts"] = tiamo_result.get("texts")
     logger.info(f"{task_id}-kv result:\n{pretty_dict(kv_result)}")
     ocr_response = dict(

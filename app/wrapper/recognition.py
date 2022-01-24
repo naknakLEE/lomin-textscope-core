@@ -22,7 +22,8 @@ def tiamo(
         valid_scores=inference_result.get("scores", []),
         image_path=inputs.get("image_path"),
         page=inputs.get("page"),
-        request_id=inputs.get("request_id")
+        request_id=inputs.get("request_id"),
+        angle=inputs.get("angle"),
     )
     route_name = "tiamo" if route_name is None else route_name
     recognition_response = client.post(

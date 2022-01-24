@@ -37,6 +37,12 @@
             "Z3",
             "J5"
         ],
+        "ROTATE": [
+            "ROTATE"
+        ],
+        "CHECKBOX_MODEL": [
+            "checkbox"
+        ],  
         "DURIEL_CLS_MODEL": [
             "du_single_cls_model"
         ],
