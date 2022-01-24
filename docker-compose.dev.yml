@@ -104,7 +104,7 @@ services:
       - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-      - CUSTOMER=kakaobank
+      - CUSTOMER=${CUSTOMER}
     working_dir: /workspace/textscope_wrapper/textscope_wrapper
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py

@@ -166,6 +166,7 @@ Nuitka
 *.pdf
 *.tif
 *.tiff
+pyinstrument-results
 datasets
 images
 
