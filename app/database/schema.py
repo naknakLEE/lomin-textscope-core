@@ -119,7 +119,7 @@ class Image(Base, HeungkukBaseMixin):
 
     pkey = Column(Integer, primary_key=True, unique=True, autoincrement=True)
     image_id = Column(String(50), nullable=False, unique=True)
-    image_path = Column(String(300), unique=True, nullable=False)
+    image_path = Column(String(300), nullable=False)
     image_description = Column(String(50), nullable=True)
     create_datetime = Column(DateTime, default=datetime.now())
 
