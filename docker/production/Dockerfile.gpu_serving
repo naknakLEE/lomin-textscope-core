@@ -22,7 +22,8 @@ RUN apt-get update && \
     apt-get install -y git  && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
-    apt-get -y install poppler-utils
+    apt-get -y install poppler-utils && \
+    apt-get -y install fonts-nanum-coding
 
 RUN pip3 install --upgrade pip && \
     pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
