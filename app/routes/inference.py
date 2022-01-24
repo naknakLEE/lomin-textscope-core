@@ -66,7 +66,7 @@ async def ocr(
     if (
         inputs.get("use_general_ocr") 
         and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]
-        and inputs.get("use_text_extraction_instead_of_ocr")
+        and inputs.get("use_text_extraction")
     ):
         parsed_text_info, image_size = get_pdf_text_info(inputs)
         if len(parsed_text_info) > 0:
