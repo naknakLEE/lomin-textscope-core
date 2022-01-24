@@ -63,7 +63,11 @@ async def ocr(
         response.update(apply_cls_hint_result=cls_hint_result)
         inputs["doc_type"] = cls_hint_result.get("doc_type")
 
-    if inputs.get("use_general_ocr") and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]:
+    if (
+        inputs.get("use_general_ocr") 
+        and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]
+        and inputs.get("use_text_extraction_instead_of_ocr")
+    ):
         parsed_text_info, image_size = get_pdf_text_info(inputs)
         if len(parsed_text_info) > 0:
             return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info, "response_log": {"original_image_size": image_size}}))
