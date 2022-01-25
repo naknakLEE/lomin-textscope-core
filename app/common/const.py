@@ -84,13 +84,14 @@ class Settings(BaseSettings):
     KV_HINT_CER_THRESHOLD: float = 0.2
     CLS_HINT_SCORE_THRESHOLD: float = 0.2
 
-    # SERVING CONFIG
+    # OCR CONFIG
     OCR_PIPELINE: bool = False
     USE_OCR_PIPELINE: bool = False
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"
     PYINSTRUMENT_RENDERER: str = "html"
+    CLASS_MAPPING_TABLE: Dict = {}
 
     # KAKAOBANK_WRAPPER_CONFIG
     DOCUMENT_TYPE_SET = {

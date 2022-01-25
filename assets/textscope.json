@@ -77,164 +77,34 @@
             "ER"
         ]
     },
-    "DOC_MAPPING_TABLE": {
-        "주민등록증": {
-            "title": "rrc_title",
-            "rrc_name": "rrc_name",
-            "rrc_regnum": "rrc_regnum",
-            "rrc_issue_date": "rrc_issue_date"
-        },
-        "재외국민등록증": {
-            "title": "rrc_title",
-            "rrc_name": "rrc_name",
-            "rrc_regnum": "rrc_regnum",
-            "rrc_issue_date": "rrc_issue_date"
-        },
-        "운전면허증": {
-            "title": "dlc_title",
-            "dlc_name_ko": "dlc_name",
-            "dlc_regnum": "dlc_regnum",
-            "dlc_issue_date": "dlc_issue_date",
-            "dlc_license_num": "dlc_license_num",
-            "dlc_valid_date": "dlc_exp_date"
-        },
-        "외국인등록증": {
-            "title": "arc_title",
-            "name_en": "arc_name",
-            "id_arc": "arc_regnum",
-            "issue_date": "arc_issue_date"
-        },
-        "외국국적동포거소신고증": {
-            "title": "arc_title",
-            "name_en": "arc_name",
-            "id_arc": "arc_regnum",
-            "issue_date": "arc_issue_date"
-        },
-        "영주증": {
-            "title": "arc_title",
-            "name_en": "arc_name",
-            "id_arc": "arc_regnum",
-            "issue_date": "arc_issue_date"
-        },
-        "여권": {
-            "pp_title": "pp_title",
-            "pp_name": "pp_name",
-            "pp_regnum": "pp_regnum",
-            "pp_issue_date": "pp_issue_date"
-        },
-        "고유번호증": {
-            "business_num_value": "cun_regnum_business",
-            "business_name_value": "cun_name",
-            "business_address_value": "cun_address_business"
-        },
-        "사업자등록증": {
-            "business_num_value": "cbr_regnum_business",
-            "business_regnum_value": "cbr_regnum_corp",
-            "business_repre_value": "cbr_ceo_name",
-            "business_name_value": "cbr_name",
-            "business_address_value": "cbr_address_business",
-            "business_worktype_value": "cbr_work_type",
-            "business_workcond_value": "cbr_work_cond",
-            "business_addresshq_value": "cbr_address_headquarter"
-        },
-        "사업자등록증명": {
-            "business_num_value": "cbr_regnum_business",
-            "business_regnum_value": "cbr_regnum_corp",
-            "business_repre_value": "cbr_ceo_name",
-            "business_name_value": "cbr_name",
-            "business_address_value": "cbr_address_business",
-            "business_worktype_value": "cbr_work_type",
-            "business_workcond_value": "cbr_work_cond",
-            "business_addresshq_value": "cbr_address_headquarter"
-        }
-    },
-    "DOC_KEY_SET": {
-        "REPRESENTATIVE_ID": [
-            "rrc_title",
-            "rrc_name",
-            "rrc_regnum",
-            "rrc_issue_date"
-        ],
-        "DRIVER_LICENSE_KEY": [
-            "dlc_title",
-            "dlc_name",
-            "dlc_regnum",
-            "dlc_issue_date",
-            "dlc_license_num",
-            "dlc_exp_date"
-        ],
-        "FOREIGNER_SET_KEY": [
-            "arc_title",
-            "arc_name",
-            "arc_regnum",
-            "arc_issue_date"
-        ],
-        "PASSPORT_KEY": [
-            "pp_title",
-            "pp_name",
-            "pp_regnum",
-            "pp_issue_date"
-        ],
-        "CORPORATE_SEAL_CERTIFICATE": [
-            "ccr_title",
-            "ccr_issue_date",
-            "ccr_num_pages",
-            "ccr_issued_stock"
-        ],
-        "BUSINESS_REGISTRATION": [
-            "cbr_regnum_business",
-            "cbr_regnum_corp",
-            "cbr_name",
-            "cbr_address_business",
-            "cbr_address_headquarter",
-            "cbr_work_type",
-            "cbr_work_cond"
-        ],
-        "UniqueNumber": [
-            "cun_regnum_business",
-            "cun_name",
-            "cun_address_business"
-        ],
-        "CopyOfPassbook": [
-            "bb_account_num",
-            "bb_account_holder",
-            "bb_bank"
-        ],
-        "ResidentRegistrationCardAndOverseasNationalRegistrationCard": [
-            "rrc_title",
-            "rrc_name",
-            "rrc_regnum",
-            "rrc_issue_date"
-        ],
-        "DriverLicense": [
-            "dlc_title",
-            "dlc_name",
-            "dlc_regnum",
-            "dlc_issue_date",
-            "dlc_license_num",
-            "dlc_exp_date"
-        ],
-        "AlienRegistrationCardAndForeignNationalityResidenceReportAndPermanentResidenceCard": [
-            "arc_title",
-            "arc_name",
-            "arc_regnum",
-            "arc_issue_date"
-        ],
-        "Passport": [
-            "pp_title",
-            "pp_name",
-            "pp_regnum",
-            "pp_issue_date"
-        ],
-        "CertificateOfAllCorporateRegistrationDetails": [
-            "ccr_title",
-            "ccr_issue_date",
-            "ccr_num_pages",
-            "ccr_issued_stock"
-        ],
-        "SealCertificate": [
-            "crs_issue_date"
-        ]
+    "CLASS_MAPPING_TABLE": {
+        "rrc_name": "rrc_name",
+        "rrc_regnum": "rrc_regnum",
+        "rrc_issue_date": "rrc_issue_date",
+        "dlc_title_ko": "dlc_title",
+        "dlc_name_ko": "dlc_name",
+        "dlc_regnum": "dlc_regnum",
+        "dlc_issue_date": "dlc_issue_date",
+        "dlc_license_num": "dlc_license_num",
+        "dlc_valid_date": "dlc_exp_date",
+        "name_en": "arc_name",
+        "id_arc": "arc_regnum",
+        "issue_date": "arc_issue_date",
+        "bank_name_value": "bb_bank",
+        "account_num_value": "bb_account_num",
+        "account_name_value": "bb_account_holder",
+        "pp_title": "pp_title",
+        "pp_name": "pp_name",
+        "pp_regnum": "pp_regnum",
+        "pp_issue_date": "pp_issue_date",
+        "business_num_value": "cbr_regnum_business",
+        "business_regnum_value": "cbr_regnum_corp",
+        "business_repre_value": "cbr_ceo_name",
+        "business_name_value": "cbr_name",
+        "business_address_value": "cbr_address_business",
+        "business_worktype_value": "cbr_work_type",
+        "business_workcond_value": "cbr_work_cond",
+        "business_addresshq_value": "cbr_address_headquarter"
     },
     "ALLOWED_CHARACTERS_SET": {
         "number_hiphen": [
@@ -349,23 +219,6 @@
         "kv_model",
         "general_ocr"
     ],
-    "LOOKUP_TABLE": {
-        "REPRESENTATIVE_ID": [
-            "bg",
-            "arc_nationality",
-            "arc_visa",
-            "dlc_license_num",
-            "dlc_license_region",
-            "dlc_serial_num",
-            "expiration_date",
-            "id",
-            "issue_date",
-            "name"
-        ],
-        "GENERAL_OCR": [
-            "text"
-        ]
-    },
     "SPACING_KEY": [
         "account_name_value", 
         "business_name_value", 
@@ -383,28 +236,47 @@
         "general_pp": [
             "신분증",
             "idcard",
-            "Z2",
+            "J1",
+            "L3",
+            "R6",
+            "W2", 
             "Z3",
+            "J5",
+            "Z2",
             "사업자등록증",
             "HKL01-DT-IB",
             "HKL01-DT-MC",
             "HKL01-DT-CAD",
             "HKL01-DT-CS",
             "HKL01-DT-CHT",
-            "HKL01-DT-PRS"
+            "HKL01-DT-PRS",
+            "ID-ARB",
+            "ID-ARC",
+            "ID-DLC",
+            "ID-OKC",
+            "ID-ONC",
+            "ID-PRC",
+            "ID-RRC"
         ],
-        "seal_imp_cert": ["J8_인감증명서", "N2_법인인감증명서"],
-        "ccr": ["N1_법인등기부 등본(등기사항 전부증명서)"],
-        "bankbook": ["Z1", "통장사본", "bankbook"],
-        "busan_bank": ["법인등기부등본"]
-    },
-    "RETURN_CLASS_MAPPING_TABLE": {    
-        "A2": "Z1_1_거래통장_가상계좌발급확인서",
-        "A1": "Z2_3_사업자등록증_사업자등록증명",
-        "N2": "N2_법인인감증명서",
-        "N1": "N1_법인등기부 등본(등기사항 전부증명서)",
-        "J1": "Z3_7_신분증_주민등록증",
-        "L3": "Z3_5_신분증_운전면허증",
-        "R6": "Z3_4_신분증_외국인등록증"
+        "seal_imp_cert": [
+            "J8_인감증명서", 
+            "N2_법인인감증명서"
+        ],
+        "ccr": [
+            "N1_법인등기부 등본(등기사항 전부증명서)"
+        ],
+        "bankbook": [
+            "A2",
+            "AC",
+            "Z1",
+            "RF",
+            "Z1", 
+            "통장사본", 
+            "bankbook",
+            "FN-BB"
+        ],
+        "busan_bank": [
+            "법인등기부등본"
+        ]
     }
 }
