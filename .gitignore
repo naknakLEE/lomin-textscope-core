@@ -125,7 +125,6 @@ core
 pyminifier
 encrypted_file
 build-folder
-grafana
 fil
 onnxruntime
 
@@ -183,3 +182,4 @@ app/lovit/
 # kakaobank_wrapper/
 # bentoml_package/
 # bentoml_textscope/
+# assets/heungkuklife.json

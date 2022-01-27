@@ -5,7 +5,7 @@
 [submodule "textscope_wrapper"]
 	path = textscope_wrapper
 	url = git@github.com:Lomin-ai/textscope-wrapper.git
-	branch = lomin
+	branch = develop
 [submodule "kbcard_wrapper"]
 	path = kbcard_wrapper
 	url = git@github.com:Lomin-ai/wrapper-kbcard-frc-2107.git

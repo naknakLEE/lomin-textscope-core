@@ -9,7 +9,7 @@ image_repository_list="${IMAGE_REPOSITORY_LIST}"
 saved_dir="${base_path}/build-folder/saved-docker-images/${CUSTOMER}"
 
 echo "docker image download start!"
-mkdir -p saved_dir
+mkdir -p ${saved_dir}
 
 echo "start docker image download process!"
 for image in ${image_repository_list}

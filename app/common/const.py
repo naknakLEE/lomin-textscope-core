@@ -1,6 +1,6 @@
 import json
 
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
 from functools import lru_cache
 from os import path, environ
@@ -11,7 +11,7 @@ base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
     encoding = settings.__config__.env_file_encoding
     customer_config = json.loads(
-        Path(f'/workspace/assets/{environ.get("CUSTOMER")}.json').read_text(encoding))
+        Path(f'/workspace/assets/textscope.json').read_text(encoding))
     config = customer_config
     return config
 
@@ -37,9 +37,10 @@ class Settings(BaseSettings):
     MYSQL_IP_PORT: int
     POSTGRES_IP_PORT: int
     GENERAL_DETECTION_SERVICE_PORT: int = 5000
-    RECOGNITION_SERVICE_PORT: int = 5001
-    CLASSIFICATION_SERVICE_PORT: int = 5002
-    KV_DETECTION_SERVICE_PORT: int = 5003
+    RECOGNITION_SERVICE_PORT: int = 5000
+    CLASSIFICATION_SERVICE_PORT: int = 5000
+    KV_DETECTION_SERVICE_PORT: int = 5000
+    ROTATE_SERVICE_PORT: int = 5000
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
@@ -64,6 +65,7 @@ class Settings(BaseSettings):
     TEST_MODE: bool = False
     POOL_SIZE: int = 50
     MAX_OVERFLOW: int = 20000
+    INITIAL_DB: bool = True
 
     # AUTHORIZATION SETTING
     SECRET_KEY: str
@@ -192,6 +194,16 @@ class Settings(BaseSettings):
     KEYWORDS_ALL: Dict = {}
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
     
+    # HEUNGKUK CONFIG
+    DETECTION_MERGE_THRESHOLD: Tuple = (0.05, 0.5) # x_iou, y_iou
+    SUBSTITUTE_SPCHAR_TO_ALPHA: bool = False
+    FORCE_MERGE_DCC_BOX: bool = False
+    DURIEL_SUPPORT_DOCUMENT: List = []
+    INSURANCE_SUPPORT_DOCUMENT: List = []
+    COMMA_KEY: List = []
+    NTOC: Dict = {}
+    CTON: Dict = {}
+    
     # FILE CONFIG
     ZIP_PATH: str
     IMG_PATH: str
@@ -205,6 +217,12 @@ class Settings(BaseSettings):
         'jpeg'
     ]
     KEY_LENGTH_TABLE: Dict = {}
+    DATABASE_INITIAL_DATA: Dict = {}
+    KV_CATEGORY_MAPPING: Dict = {}
+
+    # PP CONFIG
+    KV_HINT_CER_THRESHOLD: float = 0.2
+    CLS_HINT_SCORE_THRESHOLD: float = 0.9
 
 
     class Config:

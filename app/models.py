@@ -7,6 +7,21 @@ from pydantic.networks import EmailStr
 from pydantic import Json
 from fastapi.param_functions import Form
 
+class InferenceTypeEnum(Enum):
+    DU_SINGLE_CLS_MODEL = "cls"
+    DU_KV_MODEL_DIAGNOSIS = "kv"
+    DU_KV_MODEL_PRESCRIPTION = "kv"
+    LIFE_INSURANCE = "kv"
+    GENERAL_OCR = "gocr"
+    RECOGNITION = "reco"
+    
+class InferenceSequenceEnum(Enum):
+    DU_SINGLE_CLS_MODEL = 1
+    DU_KV_MODEL_DIAGNOSIS = 2
+    DU_KV_MODEL_PRESCRIPTION = 2
+    LIFE_INSURANCE = 2
+    GENERAL_OCR = 3
+    RECOGNITION = 4
 
 class UserToken(BaseModel):
     id: int
@@ -144,6 +159,28 @@ class PgImage(BaseModel):
 
     class Config:
         orm_mode = True
+
+class CreateImage(BaseModel):
+    image_id: str
+    image_path: str
+    image_description: Optional[str]
+    
+class CreateTask(BaseModel):
+    task_id: str
+    image_pkey: int
+    
+class UpdateTask(BaseModel):
+    category_pkey: int
+    
+class CreateInference(BaseModel):
+    inference_id: str
+    task_pkey: int
+    inference_type: str
+    inference_img_path: str
+    inference_result: Optional[dict]
+    start_datetime: Optional[datetime]
+    finish_datetime: Optional[datetime]
+    inference_sequence: int
 
 class PgCategory(BaseModel):
     category_pkey: int

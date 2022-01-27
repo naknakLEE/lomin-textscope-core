@@ -19,9 +19,9 @@ def apply_cls_hint(doc_type_hint: Dict, cls_result: Dict = {}) -> Dict:
     if doc_type_hint is None:
         logger.info("Doc type hint is None")
     else:
+        score = cls_result.get("score", 0.0)
         is_hint_used = doc_type_hint.get("use")
         is_hint_trust = doc_type_hint.get("trust")
-        score = cls_result.get("score", 0.0)
         if (is_hint_used and is_hint_trust) or (
             is_hint_used and score < cls_hint_score_threshold
         ):

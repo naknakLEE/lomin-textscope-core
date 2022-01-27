@@ -1,4 +1,5 @@
 import json
+import re
 
 from httpx import Client
 
@@ -7,10 +8,13 @@ from operator import attrgetter
 from datetime import datetime
 
 from app import wrapper
+from app.wrapper import pp
 from app.common import settings
+from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
+from app.utils.utils import pretty_dict
 
-model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+model_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {
@@ -81,6 +85,16 @@ route_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 
 inference_pipeline = inference_pipeline_list.get(settings.CUSTOMER)
 
+def substitute_spchar_to_alpha(decoded_texts):
+    removed_texts = list()
+    for text in decoded_texts:
+        found_spchar = re.findall(r"[\[\]\|]", text)
+        if found_spchar:
+            logger.info(f'find special charaters {found_spchar}')
+        removed_texts.append(
+            re.sub(r"[\[\]\|]", "I", text)
+        )
+    return removed_texts
 
 # TODO: move to utils
 def get_name_list(items: Dict, key: str, separator: str = ",") -> List:
@@ -200,6 +214,14 @@ def single(
     route_name: str = "ocr",
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict, Dict]:
+    # Apply doc type hint
+    hint = inputs.get("hint", {})
+    if hint is not None and "doc_type" in hint:
+        doc_type_hint = hint if isinstance(hint.get("doc_type"), str) else hint.get("doc_type")
+        cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
+        response_log.update(apply_cls_hint_result=cls_hint_result)
+        inputs["doc_type"] = cls_hint_result.get("doc_type")
+
     inference_start_time = datetime.now()
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
@@ -221,3 +243,157 @@ def single(
         )
     )
     return (ocr_response.status_code, ocr_response.json(), response_log)
+
+
+def heungkuk_life(
+    client: Client,
+    inputs: Dict,
+    response_log: Dict,
+    route_name: str = "ocr",
+    hint: Optional[Dict] = None,
+) -> Tuple[int, Dict, Dict]:
+    inference_start_time = datetime.now()
+    task_id = inputs.get('task_id')
+    logger.success(f'{task_id}-inference pipeline start:\n{pretty_dict(inputs)}')
+
+    # Rotate
+    rectify = inputs.get("rectify", {})
+    if rectify.get("rotation_90n", False) or rectify.get("rotation_fine", False):
+        rotate_result = wrapper.rotate.longinus(client, inputs).get("response")
+        inputs["angle"] = rotate_result.get("angle")
+        logger.debug(f'{task_id}-rotate result:\n{pretty_dict(rotate_result)}')
+
+    # General detection
+    agamotto_result = wrapper.detection.agamotto(client, inputs).get("response")
+    logger.debug(f'{task_id}-general detection result:\n{pretty_dict(agamotto_result)}')
+    response_log.update(agamotto_result.get("response_log", {}))
+    print("response log 0125: ", response_log)
+
+    # Recognition
+    tiamo_result = wrapper.recognition.tiamo(client, inputs, agamotto_result).get("response")
+    response_log.update(tiamo_result.get("response_log", {}))
+    if settings.SUBSTITUTE_SPCHAR_TO_ALPHA:
+        removed_spchar_texts = substitute_spchar_to_alpha(tiamo_result["texts"])
+        pred_encode_status, encoded_texts = pp.convert_texts_to_preds(
+            client=client,
+            texts=removed_spchar_texts
+        )
+        tiamo_result["texts"] = removed_spchar_texts
+        tiamo_result["rec_preds"] = encoded_texts
+    duriel_inputs = {**agamotto_result, "texts": tiamo_result["texts"]}
+
+    # Classification
+    duriel_classification_result = wrapper.classification.duriel(client, inputs, duriel_inputs).get("response")
+    logger.debug(f'{task_id}-classification result:\n{pretty_dict(duriel_classification_result)}')
+    response_log.update(duriel_classification_result.get("response_log", {}))
+    
+    doc_type = duriel_classification_result.get('doc_type')
+    score_result = duriel_classification_result.get("scores")
+    duriel_classification_result["score"] = score_result.get(doc_type)
+    
+    # Apply doc type hint
+    hint = inputs.get("hint", {})
+    if "doc_type" in hint:
+        apply_cls_hint_result = apply_cls_hint(
+            cls_result=duriel_classification_result,
+            doc_type_hint=hint.get("doc_type"),
+        )
+        logger.info(f'{task_id}-apply doc type hint: {apply_cls_hint_result}')
+    doc_type = duriel_classification_result.get("doc_type")
+
+    # Apply static doc type
+    if inputs.get("static_doc_type", None) is not None:
+        doc_type = inputs.get("static_doc_type", None)
+    score_result = duriel_classification_result.get("scores")
+    duriel_classification_result["score"] = score_result.get(doc_type)
+    inputs["doc_type"] = doc_type
+
+    # Kv detection
+    kv_result = dict()
+    logger.info("duriel support document: {}", settings.DURIEL_SUPPORT_DOCUMENT)
+    logger.info("insurance support document: {}", settings.INSURANCE_SUPPORT_DOCUMENT)
+    logger.info("classification doc type: {}", doc_type)
+    if doc_type in settings.DURIEL_SUPPORT_DOCUMENT:
+        kv_result = wrapper.detection.duriel(client, inputs, duriel_inputs, doc_type).get("response")
+        response_log.update(kv_result.get("response_log", {}))
+        try:
+            if doc_type == "HKL01-DT-PRS" and settings.FORCE_MERGE_DCC_BOX:
+                status_code, post_processing_results, response_log = pp.post_processing(
+                    client=client, 
+                    request_id=inputs.get("request_id"),
+                    response_log=response_log, 
+                    inference_results={**kv_result, "image_width": agamotto_result.get("image_width", 2000), "image_height": agamotto_result.get("image_height", 2000)}, 
+                    post_processing_type="diseases_box", 
+                )
+                tiamo_inputs = {
+                    "image_path": inputs.get("image_path"),
+                    "page": inputs.get("page"),
+                    "request_id": inputs.get("request_id")
+                }
+                is_diseases_box = post_processing_results.get("result").get("preds")
+                if is_diseases_box:
+                    dcc_texts = wrapper.recognition.tiamo(client, tiamo_inputs, is_diseases_box).get("response", {}).get("texts")
+                    print("dcc texts: ", dcc_texts)
+                    if status_code < 200 or status_code >= 400 or post_processing_results is None:
+                        logger.info("Diseases box pp 과정에서 문제 발생, {}", post_processing_results)
+                    else:
+                        classes = kv_result.get("classes")
+                        dcc_indexes = list()
+                        for i in range(len(classes)):
+                            if "HKL01-KV-DCC" == classes[i]:
+                                dcc_indexes.append(i)
+                        for index in sorted(dcc_indexes, reverse=True):
+                            del kv_result["classes"][index]
+                            del kv_result["scores"][index]
+                            del kv_result["texts"][index]
+                            del kv_result["boxes"][index]
+
+                        post_processed_results = post_processing_results.get("result", {}).get("preds")
+                        kv_result["classes"].extend(post_processed_results.get("classes"))
+                        kv_result["scores"].extend(post_processed_results.get("scores"))
+                        kv_result["texts"].extend(dcc_texts)
+                        kv_result["boxes"].extend(post_processed_results.get("boxes"))
+                        logger.info("Diseases pp result, {}", post_processing_results)
+        except Exception:
+            logger.exception("DCC pp")
+
+    elif doc_type in settings.INSURANCE_SUPPORT_DOCUMENT:
+        kv_result = wrapper.detection.agamotto(client, inputs).get("response")
+        response_log.update(kv_result.get("response_log", {}))
+        texts = wrapper.recognition.tiamo(client, inputs, kv_result).get("response", {}).get("texts")
+        kv_result["texts"] = texts
+    logger.info(f"{task_id}-kv result:\n{pretty_dict(kv_result)}")
+    ocr_response = dict(
+        boxes=agamotto_result.get('boxes'),
+        scores=agamotto_result.get('scores'),
+        classes=agamotto_result.get("classes"),
+        angle=inputs.get("angle", 0.0),
+        texts=tiamo_result.get("texts"),
+        rec_preds=tiamo_result.get("rec_preds"),
+        kv_result=kv_result,
+        recognition_result=tiamo_result,
+        classification_result=duriel_classification_result,
+        class_score=duriel_classification_result.get("score", 0.0),
+        image_height=agamotto_result.get("image_height"),
+        image_width=agamotto_result.get("image_width"),
+        id_type=kv_result.get("id_type", None),
+        doc_type=duriel_classification_result.get("doc_type"),
+        apply_cls_hint_result=apply_cls_hint_result,
+    )
+
+    inference_end_time = datetime.now()
+    logger.info(
+        f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}"
+    )
+    response_log.update(
+        dict(
+            inference_request_start_time=inference_start_time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            inference_request_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            inference_request_time=inference_end_time - inference_start_time,
+        )
+    )
+    logger.success(f'{task_id}-output:\n{pretty_dict(ocr_response)}')
+    return (kv_result.get("status_code"), ocr_response, response_log)
+

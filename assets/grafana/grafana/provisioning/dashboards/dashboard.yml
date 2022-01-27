@@ -1,0 +1,7 @@
+apiVersion: 1
+
+providers:
+  - name: 'Default'
+    folder: 'lomin-General'
+    options:
+      path: /etc/grafana/provisioning/dashboards
