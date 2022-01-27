@@ -21,8 +21,8 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
     networks:
-      - our_net
-
+      our_net:
+        ipv4_address: 10.254.0.35
   kibana:
     image: docker.elastic.co/kibana/kibana:7.16.2
     container_name: kibana
@@ -33,7 +33,9 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - our_net
+      our_net:
+        ipv4_address: 10.254.0.34
+
   pg-cleaner-d:
     image: pg-cleaner-d
     container_name: pg-cleaner-d
@@ -48,15 +50,38 @@ services:
       - ./cleaner/cron/root:/etc/cron.d/root
       - ./cleaner/files/:/root/files/
     networks:
-      - our_net
-      - ha_net
+      our_net:
+        ipv4_address: 10.254.0.33
+  pg_node-8:
+    image: docker.io/bitnami/postgresql-repmgr:11
+    container_name: pg_node-8
+    hostname: pg_node-8
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      - TZ=Asia/Seoul
+      - POSTGRESQL_POSTGRES_PASSWORD=postgres
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
+      - REPMGR_PASSWORD=repmgr
+      - REPMGR_PRIMARY_HOST=pg_node-9
+      - REPMGR_PARTNER_NODES=pg_node-9,pg_node-8
+      - REPMGR_NODE_NAME=pg_node-8
+      - REPMGR_NODE_NETWORK_NAME=pg_node-8
+    # extra_hosts:
+    #   - "pg_node-9:192.168.0.12"
+    networks:
+      our_net:
+        ipv4_address: ${POSTGRES_NODE_IP_ADDR}
   pg_node-9:
     image: docker.io/bitnami/postgresql-repmgr:11
     container_name: pg_node-9
     hostname: pg_node-9
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5434:5432"
     environment:
       - TZ=Asia/Seoul
       - POSTGRESQL_POSTGRES_PASSWORD=postgres
@@ -68,11 +93,11 @@ services:
       - REPMGR_PARTNER_NODES=pg_node-9,pg_node-8
       - REPMGR_NODE_NAME=pg_node-9
       - REPMGR_NODE_NETWORK_NAME=pg_node-9
-    extra_hosts:
-      - "pg_node-8:192.168.0.8"
+    # extra_hosts:
+    #   - "pg_node-8:192.168.0.12"
     networks:
       our_net:
-        ipv4_address: ${POSTGRES_NODE_IP_ADDR}
+        ipv4_address: 10.254.0.32
   master_pgpool:
     image: docker.io/bitnami/pgpool:4
     container_name: master_pgpool
@@ -80,10 +105,11 @@ services:
     restart: unless-stopped
     ports:
       - "${PGPOOL_IP_PORT}:5432"
-    extra_hosts:
-      - "pg_node-8:192.168.0.8"
+    # extra_hosts:
+    #   - "pg_node-9:192.168.0.12"
     environment:
       - TZ=Asia/Seoul
+      # - PGPOOL_USER_CONF_FILE=/opt/bitnami/pgpool/conf/pgpool_user.conf
       - PGPOOL_BACKEND_NODES=0:pg_node-9:5432,1:pg_node-8:5432
       - PGPOOL_SR_CHECK_USER=${PGPOOL_SR_CHECK_USER}
       - PGPOOL_SR_CHECK_PASSWORD=${PGPOOL_SR_CHECK_PASSWORD}
@@ -96,6 +122,7 @@ services:
       - PGPOOL_AUTO_FAILBACK=yes
       - PGPOOL_BACKEND_APPLICATION_NAMES=0:pg_node-9:5432,1:pg_node-8:5432
     depends_on:
+      - pg_node-8
       - pg_node-9
     networks:
       our_net:
@@ -103,8 +130,8 @@ services:
     healthcheck:
       test: ["CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 1s
+      retries: 2
 
   pgadmin:
     container_name: pgadmin
@@ -129,8 +156,6 @@ services:
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
-      - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
-      - /home/mir/Downloads/hg_life/life_insurance/life_insurance_test_set:/DATA_SHARE/life_insurance_test_set
     restart: unless-stopped
     extra_hosts:
       - ${LDAP_HOST}
@@ -192,8 +217,6 @@ services:
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
-      - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
-      - /home/mir/Downloads/hg_life/life_insurance/life_insurance_test_set:/DATA_SHARE/life_insurance_test_set
     restart: unless-stopped
     extra_hosts:
       - ${DATABASE_HOST}
@@ -323,9 +346,20 @@ services:
 
 
 volumes: 
-  prometheus_data: {}
+  prometheus_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/prometheus_data
   postgres_data: {}
-  grafana_data: {}
+  esdata: {}
+  grafana_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /docker/data/grafana_data
   # mysql_data:
   #   driver: local
   #   driver_opts:
@@ -339,5 +373,3 @@ networks:
     ipam:
       config:
         - subnet: 10.254.0.0/16
-  ha_net:
-    external: true
