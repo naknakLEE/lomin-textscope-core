@@ -70,14 +70,14 @@ do
         docker cp ${container}:/workspace/app.pyi ${build_folder_name}/${created_folder_name}/${container}/
     elif [ "${container}" = "serving" ]; then
         app_name="inference_server"
-        mkdir -p ${build_folder_name}/${created_folder_name}/${container}/assets/document_understanding
+        mkdir -p ${build_folder_name}/${created_folder_name}/${container}/assets/models/document_understanding
         docker cp ${container}:/workspace/${app_name}/ModelService ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/${app_name}/assets/textscope_${CUSTOMER}.json ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/bentoml_configuration.yml ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/gulim.ttc ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/modified_bentoml_file ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/bentoml-for-health-check ${build_folder_name}/${created_folder_name}/${container}/assets/        
-        docker cp ${container}:/workspace/${app_name}/assets/document_understanding/tokenizer ${build_folder_name}/${created_folder_name}/${container}/assets/document_understanding/tokenizer
+        docker cp ${container}:/workspace/${app_name}/assets/models/document_understanding/tokenizer ${build_folder_name}/${created_folder_name}/${container}/assets/models/document_understanding/tokenizer
         docker cp ${container}:/usr/local/lib/python3.6/dist-packages/bentoml/frameworks ${build_folder_name}/${created_folder_name}/${container}/
         mv ${build_folder_name}/${created_folder_name}/${container}/ModelService ${build_folder_name}/${created_folder_name}/${container}/CopiedModelService
     else
