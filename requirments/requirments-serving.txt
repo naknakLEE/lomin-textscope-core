@@ -14,9 +14,12 @@ scikit-image==0.17.2
 shapely==1.8a1
 regex==2021.10.8
 imgaug==0.4.0
-transformers==4.12.5
-pandas
 transformers==4.15.0
+bentoml==0.13.1
+ray[default]==1.9.2
+hydra-core==1.1.1
+pandas
+numpy
 
 # for tiff
 pdf2image==1.16.0
