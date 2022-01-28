@@ -46,7 +46,7 @@ services:
             device_ids: ['0']
             capabilities: [gpu]
     working_dir: /workspace/inference_server
-    # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   
   web:
