@@ -23,6 +23,10 @@ services:
     networks:
       our_net:
         ipv4_address: 10.254.0.35
+    logging:
+      options:
+        max-size: 100m
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.16.2
     container_name: kibana
@@ -35,6 +39,9 @@ services:
     networks:
       our_net:
         ipv4_address: 10.254.0.34
+    logging:
+      options:
+        max-size: 100m
 
   pg-cleaner-d:
     image: pg-cleaner-d
@@ -52,6 +59,10 @@ services:
     networks:
       our_net:
         ipv4_address: 10.254.0.33
+    logging:
+      options:
+        max-size: 100m
+
   pg_node-8:
     image: docker.io/bitnami/postgresql-repmgr:11
     container_name: pg_node-8
@@ -75,6 +86,10 @@ services:
     networks:
       our_net:
         ipv4_address: ${POSTGRES_NODE_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
+
   pg_node-9:
     image: docker.io/bitnami/postgresql-repmgr:11
     container_name: pg_node-9
@@ -98,6 +113,10 @@ services:
     networks:
       our_net:
         ipv4_address: 10.254.0.32
+    logging:
+      options:
+        max-size: 100m
+
   master_pgpool:
     image: docker.io/bitnami/pgpool:4
     container_name: master_pgpool
@@ -132,6 +151,9 @@ services:
       interval: 10s
       timeout: 1s
       retries: 2
+    logging:
+      options:
+        max-size: 100m
 
   pgadmin:
     container_name: pgadmin
@@ -147,6 +169,9 @@ services:
     networks:
       our_net:
         ipv4_address: ${PGADMIN_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
   
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
@@ -164,6 +189,9 @@ services:
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
 
   # serving_replica:
   #   image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
@@ -193,6 +221,9 @@ services:
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
 
   pp:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
@@ -208,6 +239,9 @@ services:
     networks:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
@@ -225,6 +259,9 @@ services:
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
     
   # multiple_gpu_load_balancing:
   #   image: nginx:1.21.1
@@ -269,6 +306,9 @@ services:
     networks:
       our_net:
         ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
     
   hardware_telemetry:
     image: prom/node-exporter:v1.2.2
@@ -277,6 +317,9 @@ services:
       our_net:
         ipv4_address: ${NODE_EXPORTER_IP_ADDR}
     entrypoint: /bin/node_exporter
+    logging:
+      options:
+        max-size: 100m
     
   prometheus:
     image: prom/prometheus:v2.30.0
@@ -297,6 +340,9 @@ services:
     networks:
       our_net:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
 
   # mysql-exporter:
   #   image: prom/mysqld-exporter:v0.13.0
@@ -329,6 +375,9 @@ services:
     networks:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
+    logging:
+      options:
+        max-size: 100m
 
   # openldap:
   #   image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
