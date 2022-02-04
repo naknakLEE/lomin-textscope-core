@@ -91,8 +91,6 @@ async def ocr(
         parsed_text_info, image_size = get_pdf_text_info(inputs)
         if len(parsed_text_info) > 0:
             return JSONResponse(content=jsonable_encoder({"inference_results": parsed_text_info, "response_log": {"original_image_size": image_size}}))
-            logger.debug(f'{task_id}-set test doc type: origin doc type={inputs.get("doc_type")}\
-                         test doc type={inputs.get("test_doc_type")}')
     
     task_insert_data = dict(
         task_id=inputs.get('task_id'),
@@ -107,8 +105,6 @@ async def ocr(
             error_message="이미 등록된 task id"
         )
         raise HTTPException(status_code=400, detail=error.dict())
-    
-    task_pkey = task_insert_result.id
     
     with Client() as client:
         # ocr inference
