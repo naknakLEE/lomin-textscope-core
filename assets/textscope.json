@@ -273,21 +273,31 @@
     "PP_MAPPING_TABLE": {
         "general_pp": [
             "Z2",
-            "Z3",
             "사업자등록증",
             "HKL01-DT-IB",
             "HKL01-DT-MC",
             "HKL01-DT-CAD",
             "HKL01-DT-CS",
             "HKL01-DT-CHT",
-            "HKL01-DT-PRS",
+            "HKL01-DT-PRS"
+        ],
+        "idcard": [
             "ID-ARB",
             "ID-ARC",
             "ID-DLC",
             "ID-OKC",
             "ID-ONC",
             "ID-PRC",
-            "ID-RRC"
+            "ID-RRC",
+            "Z3",
+            "J1",
+            "L3",
+            "R6",
+            "W2", 
+            "Z3",
+            "J5",
+            "신분증",
+            "idcard"
         ],
         "seal_imp_cert": [
             "J8_인감증명서", 

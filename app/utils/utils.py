@@ -51,6 +51,8 @@ def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JS
 
 
 def get_pp_api_name(doc_type: str) -> Union[None, str]:
+    if doc_type in pp_mapping_table.get("idcard", []):
+        return "idcard"
     if doc_type in pp_mapping_table.get("general_pp", []):
         return "kv"
     elif doc_type in pp_mapping_table.get("bankbook", []):
