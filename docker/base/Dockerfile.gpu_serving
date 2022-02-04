@@ -1,9 +1,9 @@
-ARG UBUNTU_VERSION=18.04
+ARG UBUNTU_VERSION=20.04
 
 FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
 
-ARG CUSTOMER="kakaobank"
-ARG PYTHON_VERSION=3.6
+ARG CUSTOMER="textscope"
+ARG PYTHON_VERSION=3.8
 ARG APP_NAME=inference_server
 
 ENV CONFIG_DIR=/workspace/inference_server/assets/conf
@@ -19,6 +19,11 @@ RUN apt-get update && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
     apt-get -y install poppler-utils && \
     apt-get -y install fonts-nanum-coding
+
+RUN apt-get -y install python3.8 curl && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3 get-pip.py --force-reinstall
 
 RUN apt install -y libprotobuf-dev protobuf-compiler && \
     apt-get -y install cmake
@@ -37,11 +42,7 @@ RUN python3 setup.py build develop && \
 COPY ./requirments/requirments-serving.txt /workspace/requirments-serving.txt
 RUN pip3 install -r /workspace/requirments-serving.txt
 
-RUN sed -i 's/task=task.to_json(),/task=InferenceTask(**{key: getattr(task, key) for key in task.__dict__ if key != "data" }),/' /usr/local/lib/python3.6/dist-packages/bentoml/service/inference_api.py
-
-# COPY ./${APP_NAME} /workspace/${APP_NAME}
-# RUN cp -r /workspace/${APP_NAME}/assets/bentoml-for-health-check/* /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/ && \
-#     cp /workspace/${APP_NAME}/assets/modified_bentoml_file/pytorch.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/pytorch.py && \
-#     cp /workspace/${APP_NAME}/assets/modified_bentoml_file/onnx.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/frameworks/onnx.py
+RUN sed -i 's/model: "torch.jit.ScriptModule" = torch.jit.load(weight_file, map_location=device_id)/model: "torch.jit.ScriptModule" = torch.jit.load(weight_file)/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/_internal/frameworks/pytorch.py && \
+    sed -i 's/task=task.to_json(),/task=InferenceTask(**{key: getattr(task, key) for key in task.__dict__ if key != "data" }),/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/service/inference_api.py
 
 WORKDIR /workspace/${APP_NAME}
