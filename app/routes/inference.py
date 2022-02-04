@@ -123,19 +123,12 @@ async def ocr(
             )
             response_log = dict()
         else:
-            status_code, inference_results, response_log = pipeline.heungkuk_life(
+            status_code, inference_results, response_log = pipeline.single(
                 client=client, 
                 inputs=inputs,
                 response_log=response_log,
                 route_name=inputs.get("route_name", "ocr"),
             )
-        # else:
-        #     status_code, inference_results, response_log = pipeline.single(
-        #         client=client, 
-        #         inputs=inputs,
-        #         response_log=response_log,
-        #         route_name=inputs.get("route_name", "ocr"),
-        #     )
         
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             return set_json_response(code="3000", message="모델 서버 문제 발생")
