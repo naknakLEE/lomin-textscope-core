@@ -2,7 +2,7 @@ bentoml==0.13.1
 typing==3.7.4.3
 pydantic[email,dotenv]==1.8.2
 imageio==2.9.0
-onnx==1.9.0
+onnx==1.10.0
 onnxruntime-gpu==1.10.0
 imutils==0.5.4
 loguru==0.5.3
