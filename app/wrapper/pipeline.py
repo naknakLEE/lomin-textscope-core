@@ -293,6 +293,7 @@ def heungkuk_life(
     
     # Apply doc type hint
     hint = inputs.get("hint", {})
+    apply_cls_hint_result = {}
     if "doc_type" in hint:
         apply_cls_hint_result = apply_cls_hint(
             cls_result=duriel_classification_result,
