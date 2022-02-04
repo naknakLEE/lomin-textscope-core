@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 from PIL import Image
 from typing import Optional, Dict
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from functools import lru_cache
 
 from pdfminer.layout import LAParams
@@ -34,7 +34,7 @@ class Pdf2Image():
         fname: str, 
         xml_path: str, 
         maxpages: int = 0, 
-        caching: bool = True, 
+        caching: bool = False, 
         debug: int = 0
     ) -> None:
         PDFDocument.debug = debug
@@ -94,6 +94,8 @@ class Pdf2Image():
                 textline_box_array = np.array(textline_box_list)
                 box_list.append(self.get_integrated_box(textline_box_array))
                 text_list.append("".join(textline_char_list).replace(" ", ""))
+                textline_char_list = list()
+                textline_box_list = list()
                 continue
             char_attr = text.attrib
             
@@ -162,7 +164,8 @@ def convert_path_to_image(pdf_path):
 
 
 def get_pdf_text_info(inputs: Dict):
-    xml_path = "/tmp/temp.xml"
+    xml_dir = "/tmp"
+    xml_path = PurePath(xml_dir, Path(inputs.get("image_path", "")).stem + ".xml")
     pdf_path = inputs.get("image_path")
     page_num = inputs.get("page", 1) - 1
     pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))
