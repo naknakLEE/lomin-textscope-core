@@ -34,7 +34,7 @@ class Pdf2Image():
         fname: str, 
         xml_path: str, 
         maxpages: int = 0, 
-        caching: bool = False, 
+        caching: bool = True, 
         debug: int = 0
     ) -> None:
         PDFDocument.debug = debug
