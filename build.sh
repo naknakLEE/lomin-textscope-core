@@ -20,6 +20,7 @@ fi
 container_list="${CONTAINER_LIST}"
 created_folder_name="${CUSTOMER}-build"
 build_folder_name="${BUILD_FOLER}"
+inference_server_build_folder_name="${INFERENCE_APP_NAME}/${BUILD_FOLER}"
 
 # remove previous build folder
 rm -rf ./${build_folder_name}/${created_folder_name}
@@ -28,7 +29,7 @@ rm -rf ./${build_folder_name}/${created_folder_name}
 # docker-compose -f docker-compose.yml -f docker-compose.base.yml build
 docker-compose -f docker-compose.build.yml build --parallel
 docker-compose -f docker-compose.yml -f docker-compose.build.yml up -d
-docker exec -it serving bash -c "sh /workspace/assets/envelop_serving_files.sh"
+docker exec -it serving bash -c "sh /workspace/inference_server/assets/envelop_serving_files.sh"
 
 # create build task process folder for lovit and wrapper
 mkdir -p ${build_folder_name}/${created_folder_name}/wrapper
@@ -70,16 +71,14 @@ do
         docker cp ${container}:/workspace/app.pyi ${build_folder_name}/${created_folder_name}/${container}/
     elif [ "${container}" = "serving" ]; then
         app_name="inference_server"
-        mkdir -p ${build_folder_name}/${created_folder_name}/${container}/assets/document_understanding
-        docker cp ${container}:/workspace/${app_name}/ModelService ${build_folder_name}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/textscope_${CUSTOMER}.json ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/bentoml_configuration.yml ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/gulim.ttc ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/modified_bentoml_file ${build_folder_name}/${created_folder_name}/${container}/assets/ &&
-        docker cp ${container}:/workspace/${app_name}/assets/bentoml-for-health-check ${build_folder_name}/${created_folder_name}/${container}/assets/        
-        docker cp ${container}:/workspace/${app_name}/assets/document_understanding/tokenizer ${build_folder_name}/${created_folder_name}/${container}/assets/document_understanding/tokenizer
-        docker cp ${container}:/usr/local/lib/python3.6/dist-packages/bentoml/frameworks ${build_folder_name}/${created_folder_name}/${container}/
-        mv ${build_folder_name}/${created_folder_name}/${container}/ModelService ${build_folder_name}/${created_folder_name}/${container}/CopiedModelService
+        mkdir -p ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/document_understanding
+        mkdir -p ${inference_server_build_folder_name}/${created_folder_name}/lovit
+        docker cp ${container}:/root/bentoml/bentos/textscope_model_service ${inference_server_build_folder_name}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/bentoml_configuration.yml ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/modified_bentoml_file ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/ &&
+        docker cp ${container}:/workspace/${app_name}/assets/models/document_understanding/tokenizer ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/document_understanding/tokenizer &&
+        docker cp ${container}:/workspace/lovit.cpython-38-x86_64-linux-gnu.so ${inference_server_build_folder_name}/${created_folder_name}/lovit/ &&
+        docker cp ${container}:/workspace/lovit.pyi ${inference_server_build_folder_name}/${created_folder_name}/lovit/
     else
         echo "not found!"
     fi

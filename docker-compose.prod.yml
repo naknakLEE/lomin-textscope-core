@@ -3,8 +3,8 @@ version: '2.3'
 services:
   serving:
     build:
-      context: ./
-      dockerfile: docker/production/Dockerfile.gpu_serving
+      context: inference_server
+      dockerfile: ./Dockerfile.production
       args:
         MAINTAINER: ${MAINTAINER}
         APP_NAME: inference_server
@@ -22,7 +22,7 @@ services:
       - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     runtime: nvidia
     tty: true
-    command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: bentoml serve textscope_model_service --host 0.0.0.0
 
   # serving_replica:
   #   tty: true

@@ -14,7 +14,7 @@ services:
       our_net:
         ipv4_address: ${POSTGRES_IP_ADDR}
   elasticsearch:
-    image: docker.io/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
+    image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
     build:
       context: elasticsearch
       dockerfile: Dockerfile.elasticsearch
@@ -79,6 +79,7 @@ services:
       - ${LDAP_HOST}
     cap_add:
       - SYS_PTRACE
+    runtime: nvidia
     networks:
       our_net:
         ipv4_address: ${SERVING_IP_ADDR}

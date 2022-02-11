@@ -1,12 +1,10 @@
 version: '3.8'
 
 services:
-  
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
-      context: ./
-      dockerfile: docker/base/Dockerfile.gpu_serving
+      context: inference_server
       args:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
@@ -46,7 +44,7 @@ services:
             device_ids: ['0']
             capabilities: [gpu]
     working_dir: /workspace/inference_server
-    command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: sh assets/run-dev.sh
 
   
   web:

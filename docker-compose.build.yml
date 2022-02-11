@@ -10,8 +10,8 @@ services:
       - CUSTOMER=${CUSTOMER}
     runtime: nvidia
     build:
-      context: ./
-      dockerfile: docker/build/Dockerfile.gpu_serving
+      context: inference_server
+      dockerfile: Dockerfile.build
       args:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
