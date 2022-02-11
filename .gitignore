@@ -125,7 +125,6 @@ core
 pyminifier
 encrypted_file
 build-folder
-grafana
 fil
 onnxruntime
 
@@ -166,6 +165,7 @@ Nuitka
 *.pdf
 *.tif
 *.tiff
+pyinstrument-results
 datasets
 images
 
@@ -176,8 +176,10 @@ linuxenv
 *.v2c
 *.c2v
 
-# # other repo
+# other repo
+app/lovit/
 # kbcard_wrapper/
 # kakaobank_wrapper/
 # bentoml_package/
 # bentoml_textscope/
+# assets/heungkuklife.json

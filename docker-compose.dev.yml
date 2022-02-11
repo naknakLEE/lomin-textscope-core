@@ -1,12 +1,10 @@
 version: '3.8'
 
 services:
-  
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
-      context: ./
-      dockerfile: docker/base/Dockerfile.gpu_serving
+      context: inference_server
       args:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
@@ -35,6 +33,7 @@ services:
       - TERM=$TERM
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     tty: true
       
     deploy:
@@ -45,7 +44,7 @@ services:
             device_ids: ['0']
             capabilities: [gpu]
     working_dir: /workspace/inference_server
-    # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: sh assets/run-dev.sh
 
   
   web:
@@ -104,19 +103,19 @@ services:
       - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-      - CUSTOMER=kakaobank
+      - CUSTOMER=${CUSTOMER}
     working_dir: /workspace/textscope_wrapper/textscope_wrapper
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 
-  nginx:
-    ports:
-      - 8050:80
-      - 443:443
+  # nginx:
+  #   ports:
+  #     - 8050:80
+  #     - 443:443
     
-  nginx-exporter:
-    ports:
-      - 9113:9113
+  # nginx-exporter:
+  #   ports:
+  #     - 9113:9113
 
   gpu_telemetry:
     ports:

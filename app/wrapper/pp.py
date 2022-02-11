@@ -10,7 +10,7 @@ from app.wrapper import pp_server_url
 
 def post_processing(
     client: Client,
-    inference_results: Dict,
+    inputs: Dict,
     post_processing_type: str,
     response_log: Dict,
     request_id: str,
@@ -21,13 +21,13 @@ def post_processing(
             "%Y-%m-%d %H:%M:%S"
         )
     )
-    inference_results["img_size"] = (
-        inference_results["image_height"],
-        inference_results["image_width"],
+    inputs["img_size"] = (
+        inputs["image_height"],
+        inputs["image_width"],
     )
     pp_response = client.post(
         f"{pp_server_url}/post_processing/{post_processing_type}",
-        json=inference_results,
+        json=inputs,
         timeout=settings.TIMEOUT_SECOND,
     )
     post_processing_end_time = datetime.now()
@@ -51,6 +51,20 @@ def convert_preds_to_texts(
     )
     convert_response = client.post(
         f"{pp_server_url}/convert/recognition_to_text",
+        json=jsonable_encoder(request_data),
+        timeout=settings.TIMEOUT_SECOND,
+    )
+    return (convert_response.status_code, convert_response.json())
+
+def convert_texts_to_preds(
+    client: Client, texts: List, id_type: str = ""
+) -> Tuple[int, Dict]:
+    request_data = dict(
+        texts=texts,
+        id_type="",
+    )
+    convert_response = client.post(
+        f"{pp_server_url}/convert/text_to_recognition",
         json=jsonable_encoder(request_data),
         timeout=settings.TIMEOUT_SECOND,
     )

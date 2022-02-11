@@ -2,10 +2,11 @@ import requests
 import time
 import base64
 
+from uuid import uuid4
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, HTTPException
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -21,6 +22,18 @@ from app.utils.utils import cal_time_elapsed_seconds
 settings = get_settings()
 router = APIRouter()
 
+class Error400(models.CommonErrorResponse):
+    error = models.Error(
+        error_code='400',
+        error_message='already exist'
+    )
+
+class Error404(models.CommonErrorResponse):
+    error = models.Error(
+        error_code='404',
+        error_message='not found'
+    )
+
 
 @router.get("/status", response_model=models.StatusResponse)
 def check_status() -> Any:
@@ -34,7 +47,7 @@ def check_status() -> Any:
     try:
         is_serving_server_working = "False"
         serving_server_addr = (
-            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_HEALTH_CHECK_IP_PORT}"
+            f"http://serving:{settings.SERVING_IP_PORT}"
         )
         serving_server_status_check_url = f"{serving_server_addr}/livez"
         response = requests.get(serving_server_status_check_url)
@@ -45,7 +58,7 @@ def check_status() -> Any:
 
     try:
         is_pp_server_working = "False"
-        pp_server_addr = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
+        pp_server_addr = f"http://pp:{settings.PP_IP_PORT}"
         pp_server_status_check_url = f"{pp_server_addr}/status"
         response = requests.get(pp_server_status_check_url)
         if response.status_code == 200:
@@ -69,6 +82,38 @@ def check_status() -> Any:
     )
     return JSONResponse(content=jsonable_encoder(status))
 
+@router.get('/image')
+def get_image(
+    image_path: str,
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    response = dict()
+    response_log = dict()
+    request_datetime = datetime.now()
+    
+    result = query.select_image(session, image_path=image_path)
+    if not result:
+        raise HTTPException(status_code=404, detail=vars(Error404().error))
+    image_id = result.image_id
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed
+    ))
+    
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+        image_id=image_id
+    ))
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
 @router.post('/image')
 def upload_image(
     request: dict = Body(...),
@@ -82,10 +127,6 @@ def upload_image(
     image_name = inputs.get('file_name')
     image_id = inputs.get('image_id')
     decoded_image_data = base64.b64decode(image_data)
-    
-    inference_result = query.select_inference_all(session)
-    if inference_result:
-        res = query.delete_inference_all(session)
     
     root_path = Path(settings.IMG_PATH)
     
@@ -103,9 +144,8 @@ def upload_image(
         dao_image_params = {
                     'image_id': image_id,
                     'image_path': str(save_path),
-                    'image_type': 'inference'
                 }
-        image_pkey = query.insert_image(session, **dao_image_params)
+        image_pkey = query.insert_image(session, dao_image_params)
     else:
         # @TODO: file not saved
         pass

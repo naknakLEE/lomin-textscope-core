@@ -9,7 +9,7 @@
 [submodule "inference_server"]
 	path = inference_server
 	url = git@github.com:Lomin-ai/inference_server.git
-	branch = develop
+	branch = 0.2.0
 [submodule "pp_server"]
 	path = pp_server
 	url = git@github.com:Lomin-ai/pp_server.git
