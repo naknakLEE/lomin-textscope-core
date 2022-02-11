@@ -6,7 +6,7 @@ from app.common import settings
 from app.wrapper import pp
 
 
-recognition_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.RECOGNITION_SERVICE_PORT}"
+recognition_server_url = f"http://serving:{settings.RECOGNITION_SERVICE_PORT}"
 
 
 def tiamo(

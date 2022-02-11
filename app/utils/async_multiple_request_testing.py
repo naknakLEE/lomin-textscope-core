@@ -1,7 +1,7 @@
 # import cv2
 
 # API_ADDR = "v1/inference/pipeline"
-# URL = f"http://{settings.WEB_IP_ADDR}:{settings.WEB_IP_PORT}/{API_ADDR}"
+# URL = f"http://web:{settings.WEB_IP_PORT}/{API_ADDR}"
 
 # image_dir = "./others/assets/000000000000000IMG_4825.jpg"
 # img = cv2.imread(image_dir)

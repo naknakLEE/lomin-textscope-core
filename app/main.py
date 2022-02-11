@@ -15,6 +15,7 @@ args = {
     "app": "main:app",
     "host": "0.0.0.0",
     "port": 8000,
+    "workers": settings.TEXTSCOPE_CORE_WORKERS
 }
 if settings.DEVELOP:
     args["reload"] = True

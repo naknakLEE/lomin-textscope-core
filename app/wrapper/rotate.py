@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 from app.common import settings
 
 
-rotate_server_url = f"http://{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR}:{settings.ROTATE_SERVICE_PORT}"
+rotate_server_url = f"http://serving:{settings.ROTATE_SERVICE_PORT}"
 
 
 def longinus(
