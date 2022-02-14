@@ -244,8 +244,7 @@ volumes:
 
 networks:
   our_net:
+    name: our_net
     ipam:
       config:
         - subnet: 10.254.0.0/16
-  ha_net:
-    external: true
