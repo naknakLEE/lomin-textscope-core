@@ -198,8 +198,11 @@ services:
           ipv4_address: ${PROMETHEUS_IP_ADDR}
 
   grafana:
-    image: grafana/grafana:8.1.4-ubuntu
+    image: docker.lomin.ai/ts-grafana:${TEXTSCOPE_VERSION}
     container_name: grafana
+    build:
+      context: ./
+      dockerfile: grafana/Dockerfile
     environment:
       - PROMETHEUS_IP_ADDR=${PROMETHEUS_IP_ADDR}
       - PROMETHEUS_IP_PORT=${PROMETHEUS_IP_PORT}
