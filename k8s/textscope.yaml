@@ -444,7 +444,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: env-config-serving
-  namespace: serving
+  namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   NVIDIA_VISIBLE_DEVICES: all
   BENTOML_CONFIG: /workspace/inference_server/assets/bentoml_configuration.yml
@@ -453,7 +453,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: env-config-elasticsearch
-  namespace: elasticsearch
+  namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   cluster.name: ts-cluster
   discovery.type: single-node
@@ -466,7 +466,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: env-config-postgres
-  namespace: postgres
+  namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   POSTGRES_USER: lomin
   POSTGRES_PASSWORD: 1q2w3e4r
@@ -476,7 +476,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: env-config-ldap
-  namespace: ldap
+  namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   SLAPD_PASSWORD: lomin
   SLAPD_DOMAIN: lomin.ai

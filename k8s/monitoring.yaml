@@ -77,11 +77,6 @@ spec:
         ports:
           - containerPort: 3000
             protocol: TCP
-       
-        resources:
-          requests:
-            cpu: 250m
-            memory: 750Mi
         volumeMounts:
           - mountPath: /var/lib/grafana
             name: grafana-pv
@@ -294,7 +289,7 @@ spec:
           - name: config-volume
             mountPath: /etc/config
           - name: prometheus-data-pvc
-            mountPath: /etc/prometheus/data
+            mountPath: /data
       volumes:
         - name: config-volume
           configMap:
