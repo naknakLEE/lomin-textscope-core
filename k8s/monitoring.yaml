@@ -1,0 +1,326 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kibana
+  name: kibana
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:7.16.2
+        imagePullPolicy: IfNotPresent
+        workingDir: /workspace/pp_server/pp_server/app
+        ports:
+          - containerPort: 5601
+            protocol: TCP
+        env:
+          - name: ELASTICSEARCH_URL
+            value: "http://elasticsearch:9200"
+  selector:
+    matchLabels:
+      app: kibana
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: textscope
+  labels:
+    app: kibana
+spec:
+  selector:
+    app: kibana
+  ports:
+    - protocol: TCP
+      port: 5601
+      targetPort: 5601
+      name: http
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: docker.lomin.ai/ts-grafana:0.1.12
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 3000
+            protocol: TCP
+        env:
+          - name: PROMETHEUS_IP_ADDR
+            value: "http://elasticsearch:9200"
+          - name: PROMETHEUS_IP_PORT
+            value: "9090"
+  selector:
+    matchLabels:
+      app: grafana
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: textscope
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      name: http
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pgadmin
+  name: pgadmin
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+      - name: pgadmin
+        image: dpage/pgadmin4
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        env:
+          - name: PGADMIN_DEFAULT_EMAIL
+            value: "admin@lomin.ai"
+          - name: PGADMIN_DEFAULT_PASSWORD
+            value: "1q2w3e4r"
+          - name: TZ
+            value: "Asia/Seoul"
+  selector:
+    matchLabels:
+      app: pgadmin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin
+  namespace: textscope
+  labels:
+    app: pgadmin
+spec:
+  selector:
+    app: pgadmin
+  ports:
+    - protocol: TCP
+      port: 5050
+      targetPort: 80
+      name: http
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dcgm-exporter
+  name: dcgm-exporter
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dcgm-exporter
+    spec:
+      containers:
+      - name: dcgm-exporter
+        image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 9400
+            protocol: TCP
+  selector:
+    matchLabels:
+      app: dcgm-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dcgm-exporter
+  namespace: textscope
+  labels:
+    app: dcgm-exporter
+spec:
+  selector:
+    app: dcgm-exporter
+  ports:
+    - protocol: TCP
+      port: 9400
+      targetPort: 9400
+      name: http
+  type: "ClusterIP"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: node-exporter
+  name: node-exporter
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+    spec:
+      containers:
+      - name: node-exporter
+        image: prom/node-exporter:v1.2.2
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 9100
+            protocol: TCP
+  selector:
+    matchLabels:
+      app: node-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter
+  namespace: textscope
+  labels:
+    app: node-exporter
+spec:
+  selector:
+    app: node-exporter
+  ports:
+    - protocol: TCP
+      port: 9100
+      targetPort: 9100
+      name: http
+  type: "ClusterIP"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.30.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - --storage.tsdb.retention.time=15d
+          - --config.file=/etc/config/prometheus.yml
+          - --storage.tsdb.path=/data
+          - --web.console.libraries=/etc/prometheus/console_libraries
+          - --web.console.templates=/etc/prometheus/consoles
+          - --web.enable-lifecycle
+        ports:
+          - containerPort: 9090
+            protocol: TCP
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+          - name: storage-volume
+            mountPath: /data
+            subPath: ""
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus
+        - name: storage-volume
+          emptyDir:
+            {}
+  selector:
+    matchLabels:
+      app: prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: textscope
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
+      name: http
+  type: "ClusterIP"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    component: "server"
+    app: prometheus
+    release: prometheus
+    chart: prometheus-14.6.1
+    heritage: Helm
+  name: prometheus
+  namespace: textscope
+data:
+  alerting_rules.yml: |
+    {}
+  alerts: |
+    {}
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s # By default, scrape targets every 15 seconds.
+      external_labels:
+        monitor: 'codelab-monitor'
+    scrape_configs:
+      - job_name: 'prometheus'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['prometheus:9090']
+      - job_name: 'general exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['node-exporter:9100']
+      - job_name: 'nvidia-gpu-exporter'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['dcgm-exporter:9400']
+  recording_rules.yml: |
+    {}
+  rules: |
+    {}
