@@ -34,7 +34,7 @@ spec:
           protocol: TCP
         envFrom:
           - configMapRef:
-              name: env-config-textscope
+              name: env-config-postgres
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
             name: postgres-pv
@@ -103,7 +103,7 @@ spec:
           protocol: TCP
         envFrom:
           - configMapRef:
-              name: env-config-textscope
+              name: env-config-elasticsearch
         volumeMounts:
           - mountPath: /usr/share/elasticsearch/data
             name: elasticsearch-pv
@@ -169,7 +169,7 @@ spec:
           protocol: TCP
         envFrom:
           - configMapRef:
-              name: env-config-textscope
+              name: env-config-ldap
         volumeMounts:
           - mountPath: /var/lib/ldap
             name: openldap-pv
@@ -324,7 +324,7 @@ spec:
         command: ['sh', 'assets/run-dev.sh']
         envFrom:
           - configMapRef:
-              name: env-config-textscope
+              name: env-config-serving
         ports:
         - containerPort: 5000
           protocol: TCP
@@ -443,20 +443,41 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-config-textscope
-  namespace: textscope
+  name: env-config-serving
+  namespace: serving
 data:  # Example vars that will get picked up by Flask application
   NVIDIA_VISIBLE_DEVICES: all
   BENTOML_CONFIG: /workspace/inference_server/assets/bentoml_configuration.yml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config-elasticsearch
+  namespace: elasticsearch
+data:  # Example vars that will get picked up by Flask application
   cluster.name: ts-cluster
   discovery.type: single-node
   http.host: 0.0.0.0
   transport.host: 127.0.0.1
   ES_JAVA_OPTS: -Xms512m -Xmx512m
   xpack.security.enabled: "false"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config-postgres
+  namespace: postgres
+data:  # Example vars that will get picked up by Flask application
   POSTGRES_USER: lomin
   POSTGRES_PASSWORD: 1q2w3e4r
   POSTGRES_DB: textscope
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config-ldap
+  namespace: ldap
+data:  # Example vars that will get picked up by Flask application
   SLAPD_PASSWORD: lomin
   SLAPD_DOMAIN: lomin.ai
   SLAPD_ADDITIONAL_MODULES: memberof
