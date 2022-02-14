@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data-pvc
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,6 +35,13 @@ spec:
         envFrom:
           - configMapRef:
               name: env-config-textscope
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: postgres-pv
+      volumes:
+        - name: postgres-pv
+          persistentVolumeClaim:
+            claimName: postgres-data-pvc
   selector:
     matchLabels:
       app: postgres
@@ -41,6 +62,20 @@ spec:
       port: 5432
       targetPort: 5432
   type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-pvc
+  labels:
+    app: elasticsearch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -69,6 +104,13 @@ spec:
         envFrom:
           - configMapRef:
               name: env-config-textscope
+        volumeMounts:
+          - mountPath: /usr/share/elasticsearch/data
+            name: elasticsearch-pv
+      volumes:
+        - name: elasticsearch-pv
+          persistentVolumeClaim:
+            claimName: elasticsearch-data-pvc
   selector:
     matchLabels:
       app: elasticsearch
@@ -89,6 +131,20 @@ spec:
       targetPort: 9200
       name: http
   type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openldap-data-pvc
+  labels:
+    app: openldap
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -114,6 +170,13 @@ spec:
         envFrom:
           - configMapRef:
               name: env-config-textscope
+        volumeMounts:
+          - mountPath: /var/lib/ldap
+            name: openldap-pv
+      volumes:
+        - name: openldap-pv
+          persistentVolumeClaim:
+            claimName: openldap-data-pvc
   selector:
     matchLabels:
       app: openldap
