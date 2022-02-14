@@ -1,3 +1,31 @@
+# Source: pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data-pvc
+  labels:
+    app: grafana
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data-pvc
+  labels:
+    app: prometheus
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+# Source: deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,36 +53,6 @@ spec:
   selector:
     matchLabels:
       app: kibana
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kibana
-  namespace: textscope
-  labels:
-    app: kibana
-spec:
-  selector:
-    app: kibana
-  ports:
-    - protocol: TCP
-      port: 5601
-      targetPort: 5601
-      name: http
-  type: LoadBalancer
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: grafana-data-pvc
-  labels:
-    app: grafana
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -93,24 +91,6 @@ spec:
     matchLabels:
       app: grafana
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: grafana
-  namespace: textscope
-  labels:
-    app: grafana
-spec:
-  selector:
-    app: grafana
-  ports:
-    - protocol: TCP
-      port: 3000
-      targetPort: 3000
-      name: http
-  sessionAffinity: None
-  type: LoadBalancer
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -143,23 +123,6 @@ spec:
     matchLabels:
       app: pgadmin
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: pgadmin
-  namespace: textscope
-  labels:
-    app: pgadmin
-spec:
-  selector:
-    app: pgadmin
-  ports:
-    - protocol: TCP
-      port: 5050
-      targetPort: 80
-      name: http
-  type: LoadBalancer
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -185,23 +148,6 @@ spec:
     matchLabels:
       app: dcgm-exporter
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: dcgm-exporter
-  namespace: textscope
-  labels:
-    app: dcgm-exporter
-spec:
-  selector:
-    app: dcgm-exporter
-  ports:
-    - protocol: TCP
-      port: 9400
-      targetPort: 9400
-      name: http
-  type: "ClusterIP"
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -226,36 +172,6 @@ spec:
   selector:
     matchLabels:
       app: node-exporter
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: node-exporter
-  namespace: textscope
-  labels:
-    app: node-exporter
-spec:
-  selector:
-    app: node-exporter
-  ports:
-    - protocol: TCP
-      port: 9100
-      targetPort: 9100
-      name: http
-  type: "ClusterIP"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: prometheus-data-pvc
-  labels:
-    app: prometheus
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -301,6 +217,24 @@ spec:
     matchLabels:
       app: prometheus
 ---
+# Source: service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: textscope
+  labels:
+    app: kibana
+spec:
+  selector:
+    app: kibana
+  ports:
+    - protocol: TCP
+      port: 5601
+      targetPort: 5601
+      name: http
+  type: LoadBalancer
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -318,6 +252,76 @@ spec:
       name: http
   type: "ClusterIP"
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: textscope
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      name: http
+  sessionAffinity: None
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin
+  namespace: textscope
+  labels:
+    app: pgadmin
+spec:
+  selector:
+    app: pgadmin
+  ports:
+    - protocol: TCP
+      port: 5050
+      targetPort: 80
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dcgm-exporter
+  namespace: textscope
+  labels:
+    app: dcgm-exporter
+spec:
+  selector:
+    app: dcgm-exporter
+  ports:
+    - protocol: TCP
+      port: 9400
+      targetPort: 9400
+      name: http
+  type: "ClusterIP"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter
+  namespace: textscope
+  labels:
+    app: node-exporter
+spec:
+  selector:
+    app: node-exporter
+  ports:
+    - protocol: TCP
+      port: 9100
+      targetPort: 9100
+      name: http
+  type: "ClusterIP"
+---
+# Source: config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:

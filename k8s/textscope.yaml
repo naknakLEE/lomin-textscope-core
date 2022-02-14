@@ -1,3 +1,4 @@
+# Source: pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -12,6 +13,35 @@ spec:
       storage: 5Gi
   storageClassName: standard
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data-pvc
+  labels:
+    app: elasticsearch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openldap-data-pvc
+  labels:
+    app: openldap
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+# Source: deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,7 +64,7 @@ spec:
           protocol: TCP
         envFrom:
           - configMapRef:
-              name: env-config-postgres
+              name: postgres
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
             name: postgres-pv
@@ -45,37 +75,6 @@ spec:
   selector:
     matchLabels:
       app: postgres
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: textscope
-  labels:
-    app: postgres
-spec:
-  selector:
-    app: postgres
-  ports:
-    - name: https
-      protocol: TCP
-      port: 5432
-      targetPort: 5432
-  type: LoadBalancer
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: elasticsearch-data-pvc
-  labels:
-    app: elasticsearch
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: standard
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -103,7 +102,7 @@ spec:
           protocol: TCP
         envFrom:
           - configMapRef:
-              name: env-config-elasticsearch
+              name: elasticsearch
         volumeMounts:
           - mountPath: /usr/share/elasticsearch/data
             name: elasticsearch-pv
@@ -114,37 +113,6 @@ spec:
   selector:
     matchLabels:
       app: elasticsearch
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: elasticsearch
-  namespace: textscope
-  labels:
-    app: elasticsearch
-spec:
-  selector:
-    app: elasticsearch
-  ports:
-    - protocol: TCP
-      port: 9200
-      targetPort: 9200
-      name: http
-  type: LoadBalancer
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: openldap-data-pvc
-  labels:
-    app: openldap
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: standard
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -169,7 +137,7 @@ spec:
           protocol: TCP
         envFrom:
           - configMapRef:
-              name: env-config-ldap
+              name: ldap
         volumeMounts:
           - mountPath: /var/lib/ldap
             name: openldap-pv
@@ -180,23 +148,6 @@ spec:
   selector:
     matchLabels:
       app: openldap
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: openldap
-  namespace: textscope
-  labels:
-    app: openldap
-spec:
-  selector:
-    app: openldap
-  ports:
-    - protocol: TCP
-      port: 389
-      targetPort: 389
-      name: http
-  type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -233,23 +184,6 @@ spec:
     matchLabels:
       app: web
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: web
-  namespace: textscope
-  labels:
-    app: web
-spec:
-  selector:
-    app: web
-  ports:
-    - protocol: TCP
-      port: 8000
-      targetPort: 8000
-      name: http
-  type: LoadBalancer
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -285,23 +219,6 @@ spec:
     matchLabels:
       app: pp
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: pp
-  namespace: textscope
-  labels:
-    app: pp
-spec:
-  selector:
-    app: pp
-  ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
-      name: http
-  type: LoadBalancer
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -324,7 +241,7 @@ spec:
         command: ['sh', 'assets/run-dev.sh']
         envFrom:
           - configMapRef:
-              name: env-config-serving
+              name: serving
         ports:
         - containerPort: 5000
           protocol: TCP
@@ -339,23 +256,6 @@ spec:
   selector:
     matchLabels:
       app: serving
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: serving
-  namespace: textscope
-  labels:
-    app: serving
-spec:
-  selector:
-    app: serving
-  ports:
-    - protocol: TCP
-      port: 5000
-      targetPort: 5000
-      name: http
-  type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -392,22 +292,6 @@ spec:
     matchLabels:
       app: wrapper
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: wrapper
-  namespace: textscope
-  labels:
-    app: wrapper
-spec:
-  selector:
-    app: wrapper
-  ports:
-    - name: http
-      targetPort: 8090  # port the container accepts traffic on
-      port: 8090  # port other pods use to access the Service
-      protocol: TCP
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -440,10 +324,130 @@ spec:
                 port:
                   number: 8090
 ---
+# Source: service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: textscope
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: https
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: textscope
+  labels:
+    app: elasticsearch
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+    - protocol: TCP
+      port: 9200
+      targetPort: 9200
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: textscope
+  labels:
+    app: openldap
+spec:
+  selector:
+    app: openldap
+  ports:
+    - protocol: TCP
+      port: 389
+      targetPort: 389
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: textscope
+  labels:
+    app: web
+spec:
+  selector:
+    app: web
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pp
+  namespace: textscope
+  labels:
+    app: pp
+spec:
+  selector:
+    app: pp
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: serving
+  namespace: textscope
+  labels:
+    app: serving
+spec:
+  selector:
+    app: serving
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wrapper
+  namespace: textscope
+  labels:
+    app: wrapper
+spec:
+  selector:
+    app: wrapper
+  ports:
+    - name: http
+      targetPort: 8090  # port the container accepts traffic on
+      port: 8090  # port other pods use to access the Service
+      protocol: TCP
+---
+# Source: config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-config-serving
+  name: serving
   namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   NVIDIA_VISIBLE_DEVICES: all
@@ -452,7 +456,7 @@ data:  # Example vars that will get picked up by Flask application
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-config-elasticsearch
+  name: elasticsearch
   namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   cluster.name: ts-cluster
@@ -465,7 +469,7 @@ data:  # Example vars that will get picked up by Flask application
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-config-postgres
+  name: postgres
   namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   POSTGRES_USER: lomin
@@ -475,7 +479,7 @@ data:  # Example vars that will get picked up by Flask application
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-config-ldap
+  name: ldap
   namespace: textscope
 data:  # Example vars that will get picked up by Flask application
   SLAPD_PASSWORD: lomin
