@@ -1,12 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional, Any
-import time
 
 from ldap3 import Server, ALL
-from fastapi import Depends, HTTPException, status, Security
-from fastapi.param_functions import Form
+from fastapi import Depends, HTTPException, Security
 from fastapi.security import (
-    OAuth2PasswordBearer,
     HTTPAuthorizationCredentials,
     HTTPBearer,
     SecurityScopes,
@@ -41,18 +38,19 @@ def get_password_hash(password) -> str:
     return pwd_context.hash(password)
 
 
-def get_user(email: EmailStr, session: Session) -> UserInDB:
+def get_user(email: EmailStr, session: Session) -> Optional[UserInDB]:
     user = is_email_exist(email, session)
     if user:
         user_dict = {
             "username": user.username,
             "full_name": user.full_name,
             "email": user.email,
-            "status": user.status,
+            "status": user.status.name,
             "is_superuser": user.is_superuser,
             "hashed_password": user.hashed_password,
         }
         return UserInDB(**user_dict)
+    return None
 
 
 def is_username_exist(username: str, session: Session) -> Any:
@@ -126,7 +124,7 @@ async def get_current_user(
     print("\033[96m" + f"{token_data}" + "\033[m")
     for scope in security_scopes.scopes:
         if scope not in token_data.scopes:
-            raise ex.JWTScopeException(authenticate_value)
+            raise ex.JWTScopeException(authenticate_value=authenticate_value)
     return user
 
 
@@ -141,4 +139,3 @@ async def get_current_active_user(
 async def initialize_ldap():
     server = Server("LDAP://openldap:389", get_info=ALL)
     return server
-

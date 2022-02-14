@@ -1,0 +1,55 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: true
+default_language_version:
+  python: python3.6
+repos:
+  # Use to verify format and syntax validation to python file
+  - repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+      - id: autoflake
+        verbose: true
+        args:
+          - --in-place
+          - --remove-all-unused-imports
+          - --expand-star-imports
+          - --remove-duplicate-keys
+          - --remove-unused-variables
+  # Use to verify format and syntax validation to python file
+  - repo: https://github.com/psf/black
+    rev: 21.12b0
+    hooks:
+      - id: black
+        verbose: true
+        args:
+          - --target-version
+          - py36
+          - --quiet
+  # Use to format file which exclude python file
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.5.1
+    hooks:
+      - id: prettier
+        verbose: true
+  # Use to check static type for python
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.931
+    hooks:
+      - id: mypy
+        verbose: true
+        args:
+          - --ignore-missing-imports
+          - --pretty
+  # Use to identify basic issue before upload from git
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude: tests/resources/*
+      - id: name-tests-test
+        verbose: true
+        exclude: utils/*
+        args:
+          - --django

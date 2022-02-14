@@ -1,7 +1,6 @@
 import os
 import uvicorn
 
-from multiprocessing.managers import SyncManager
 
 from app.common.const import get_settings
 from app.utils.create_app import app_generator
@@ -15,7 +14,7 @@ args = {
     "app": "main:app",
     "host": "0.0.0.0",
     "port": 8000,
-    "workers": settings.TEXTSCOPE_CORE_WORKERS
+    "workers": settings.TEXTSCOPE_CORE_WORKERS,
 }
 if settings.DEVELOP:
     args["reload"] = True

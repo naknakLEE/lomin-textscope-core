@@ -1,14 +1,12 @@
 import logging
 import os
 
-from typing import Generator, Any
+from typing import Generator, Dict, Callable
 from fastapi import FastAPI
 from sqlalchemy import create_engine
-import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine
-from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy_utils.functions import database_exists, create_database
 
 
@@ -34,7 +32,7 @@ class SQLAlchemy:
         pool_size = kwargs.setdefault("POOL_SIZE", 30)
         max_overflow = kwargs.setdefault("MAX_OVERFLOW", 60)
 
-        check_same_thread = {}
+        check_same_thread: Dict = {}
         engine_config = dict(
             name_or_url=database_url,
             connect_args=check_same_thread,
@@ -46,21 +44,24 @@ class SQLAlchemy:
         )
         if os.environ["API_ENV"] == "test":
             del engine_config["pool_size"], engine_config["max_overflow"]
-        self._engine = create_engine(
-            **engine_config
+        self._engine = create_engine(**engine_config)
+        self._session = sessionmaker(
+            autocommit=False, autoflush=False, bind=self._engine
         )
-        self._session = sessionmaker(autocommit=False, autoflush=False, bind=self._engine)
 
         @app.on_event("startup")
         def startup() -> None:
-            self._engine.connect()
-            logging.info("DB connected.")
+            if self._engine:
+                self._engine.connect()
+                logging.info("DB connected.")
 
         @app.on_event("shutdown")
         def shutdown() -> None:
-            self._session.close_all()
-            self._engine.dispose()
-            logging.info("DB disconnected")
+            if self._session:
+                self._session.close_all()
+            if self._engine:
+                self._engine.dispose()
+                logging.info("DB disconnected")
 
     def get_db(self) -> Generator:
         if self._session is None:
@@ -73,7 +74,7 @@ class SQLAlchemy:
             db_session.close()
 
     @property
-    def session(self) -> Generator:
+    def session(self) -> Callable:
         return self.get_db
 
     @property

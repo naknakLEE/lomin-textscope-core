@@ -10,5 +10,3 @@ adminPassword="lomin"
 for file in `ls /etc/ldap/prepopulate/*.ldif`; do
   ldapadd -x -D $adminUserDn -w $adminPassword -f "$file"
 done
-
-

@@ -1,11 +1,11 @@
-version: '2.3'
+version: "2.3"
 
 services:
   mysql1:
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
       - TZ=Asia/Seoul
-  
+
   serving:
     build:
       context: ./
@@ -16,7 +16,7 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUSTOMER: ${CUSTOMER}
         PYTHON_VERSION: ${PYTHON_VERSION}
-    ports: 
+    ports:
       - 8052:5000
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
@@ -36,13 +36,13 @@ services:
     #         device_ids: ['0']
     #         capabilities: [gpu]
     tty: true
-    depends_on: 
+    depends_on:
       - mysql1
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   # serving_replica:
   #   tty: true
-  #   depends_on: 
+  #   depends_on:
   #     - mysql1
   #   environment:
   #     - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
@@ -56,7 +56,7 @@ services:
   #   #       - driver: nvidia
   #   #         device_ids: ['1']
   #   #         capabilities: [gpu]
-  #   depends_on: 
+  #   depends_on:
   #     - mysql1
   #   command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
@@ -68,7 +68,7 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
     tty: true
-    depends_on: 
+    depends_on:
       - mysql1
     command: python3 /workspace/main.py
 
@@ -82,7 +82,7 @@ services:
     environment:
       - PYTHONPATH=/workspace
     tty: true
-    depends_on: 
+    depends_on:
       - mysql1
     command: python3 /workspace/pp_server/main.py
 
@@ -94,10 +94,10 @@ services:
         CUSTOMER: ${CUSTOMER}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
-    ports: 
+    ports:
       - 8050:8090
     tty: true
-    depends_on: 
+    depends_on:
       - mysql1
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper

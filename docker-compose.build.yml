@@ -1,4 +1,4 @@
-version: '2.3'
+version: "2.3"
 
 services:
   serving:
@@ -25,7 +25,6 @@ services:
         SO_EXTENTION: ${SO_EXTENTION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
 
-
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
@@ -33,13 +32,11 @@ services:
       - CUSTOMER=${CUSTOMER}
     runtime: nvidia
 
-
   wrapper:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     container_name: wrapper
     environment:
       - CUSTOMER=${CUSTOMER}
-
 
   web:
     image: docker.lomin.ai/ts-web-build:${TEXTSCOPE_BASE_IMAGE_VERSION}

@@ -56,6 +56,7 @@ def convert_preds_to_texts(
     )
     return (convert_response.status_code, convert_response.json())
 
+
 def convert_texts_to_preds(
     client: Client, texts: List, id_type: str = ""
 ) -> Tuple[int, Dict]:

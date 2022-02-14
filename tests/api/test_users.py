@@ -35,7 +35,7 @@ def test_create_user_new_email(
     print("\033[096m" + f"500 error: {response.json()}" + "\033[m")
     assert 200 <= response.status_code < 300
     created_user = response.json()
-    user = Users.get(email=email)
+    user = Users.get(session=get_db, email=email)
     assert user
     assert user.email == created_user["email"]
 
@@ -46,14 +46,16 @@ def test_get_existing_user(
     email = random_email()
     password = random_lower_string()
     user = Users.create(get_db, email=email, password=password)
-    user_email = user.email
-    response = client.get(f"admin/users/{user_email}", headers=superuser_token_headers)
-    # print('\033[96m' + f"test_get_existing_user: {response.json()}" + '\033[0m')
-    assert 200 <= response.status_code < 300
-    api_user = response.json()
-    existing_user = Users.get_by_email(get_db, email=email)
-    assert existing_user
-    assert existing_user.email == api_user["email"]
+    if user:
+        user_email = user.email
+        response = client.get(
+            f"admin/users/{user_email}", headers=superuser_token_headers
+        )
+        assert 200 <= response.status_code < 300
+        api_user = response.json()
+        existing_user = Users.get_by_email(get_db, email=email)
+        assert existing_user
+        assert existing_user.email == api_user["email"]
 
 
 def test_create_user_existing_username(

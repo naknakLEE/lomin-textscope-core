@@ -12,10 +12,10 @@ RUN apt-get update && \
     apt-get -y install python-dev libldap2-dev libsasl2-dev libssl-dev && \
     apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
     DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
-    
+
 # korean
 RUN apt-get install -y apt-utils locales
-RUN locale-gen ko_KR.UTF-8 
+RUN locale-gen ko_KR.UTF-8
 ENV LC_ALL ko_KR.UTF-8
 
 RUN pip3 install --upgrade pip

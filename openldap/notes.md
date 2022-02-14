@@ -26,25 +26,24 @@ Otherwise perform same actions for `ldap_dev_posix.toml` config.
 ## Groups & Users
 
 admins
-  ldap-admin
-  ldap-torkel
+ldap-admin
+ldap-torkel
 backend
-  ldap-carl
-  ldap-torkel
-  ldap-leo
+ldap-carl
+ldap-torkel
+ldap-leo
 frontend
-  ldap-torkel
-  ldap-tobias
-  ldap-daniel
+ldap-torkel
+ldap-tobias
+ldap-daniel
 editors
-  ldap-editors
+ldap-editors
 no groups
-  ldap-viewer
-
+ldap-viewer
 
 ## Groups & Users (POSIX)
 
 admins
-  ldap-posix-admin
+ldap-posix-admin
 no groups
-  ldap-posix
+ldap-posix

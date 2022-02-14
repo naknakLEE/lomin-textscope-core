@@ -1,20 +1,8 @@
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-from itertools import cycle
-from fastapi import Depends, APIRouter, HTTPException, Body
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import Session
-from pydantic.networks import EmailStr
+from typing import Dict
+from fastapi import APIRouter
 
-from app.utils.auth import get_current_active_user
-from app.database.connection import db
 # from app.database.schema import Usage, Users, UserUpdate
-from app.utils.auth import get_password_hash
-from app.errors import exceptions as ex
 from app.common.const import get_settings
-from app.schemas import admin_users_responses
-from app import models
-from app.database import query
 
 
 settings = get_settings()

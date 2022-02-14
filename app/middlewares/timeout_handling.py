@@ -1,17 +1,9 @@
 import time
 import asyncio
-import signal
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from fastapi import Request, Response
-from fastapi.responses import JSONResponse
-from datetime import datetime
-from jose import jwt
-from contextlib import contextmanager
 
-from app.database.connection import db
-from app.utils.logger import api_logger
-from app.errors.exceptions import exception_handler
 from app.common.const import get_settings
 from app.errors import exceptions as ex
 
@@ -45,7 +37,9 @@ future = asyncio.wait_for(loop.run_in_executor(None, time.sleep, 2), timeout)
 
 
 class TimeoutMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         try:
             # return loop.run_until_complete(future)
             # with timeout(1):

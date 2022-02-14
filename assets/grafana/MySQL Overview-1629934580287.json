@@ -10,9 +10,7 @@
         "limit": 100,
         "name": "PMM Annotations",
         "showIn": 0,
-        "tags": [
-          "pmm_annotation"
-        ],
+        "tags": ["pmm_annotation"],
         "type": "tags"
       }
     ]
@@ -28,9 +26,7 @@
       "icon": "dashboard",
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "QAN"
-      ],
+      "tags": ["QAN"],
       "targetBlank": false,
       "title": "Query Analytics",
       "type": "link",
@@ -40,9 +36,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "OS"
-      ],
+      "tags": ["OS"],
       "targetBlank": false,
       "title": "OS",
       "type": "dashboards"
@@ -51,9 +45,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "MySQL"
-      ],
+      "tags": ["MySQL"],
       "targetBlank": false,
       "title": "MySQL",
       "type": "dashboards"
@@ -62,9 +54,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "MongoDB"
-      ],
+      "tags": ["MongoDB"],
       "targetBlank": false,
       "title": "MongoDB",
       "type": "dashboards"
@@ -73,9 +63,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "HA"
-      ],
+      "tags": ["HA"],
       "targetBlank": false,
       "title": "HA",
       "type": "dashboards"
@@ -84,9 +72,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "Cloud"
-      ],
+      "tags": ["Cloud"],
       "targetBlank": false,
       "title": "Cloud",
       "type": "dashboards"
@@ -95,9 +81,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "Insight"
-      ],
+      "tags": ["Insight"],
       "targetBlank": false,
       "title": "Insight",
       "type": "dashboards"
@@ -106,9 +90,7 @@
       "asDropdown": true,
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "PMM"
-      ],
+      "tags": ["PMM"],
       "targetBlank": false,
       "title": "PMM",
       "type": "dashboards"
@@ -801,9 +783,7 @@
         "mode": "time",
         "name": null,
         "show": true,
-        "values": [
-          "total"
-        ]
+        "values": ["total"]
       },
       "yaxes": [
         {
@@ -4915,10 +4895,7 @@
   "refresh": "5s",
   "schemaVersion": 27,
   "style": "dark",
-  "tags": [
-    "Percona",
-    "MySQL"
-  ],
+  "tags": ["Percona", "MySQL"],
   "templating": {
     "list": [
       {
@@ -5047,17 +5024,7 @@
       "1d"
     ],
     "status": "Stable",
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
-    ],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"],
     "type": "timepicker"
   },
   "timezone": "browser",

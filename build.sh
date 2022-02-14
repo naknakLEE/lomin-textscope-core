@@ -47,14 +47,14 @@ fi
 # copy config
 config_file_list="${CONFIG_FILE_LIST}"
 for file in ${config_file_list}
-do 
+do
     echo ${file}
     cp -r ./${file} ${build_folder_name}/${created_folder_name}/assets/
 done
 
 # copy textscope
 for container in ${container_list}
-do 
+do
     echo ${container}
     mkdir -p ${build_folder_name}/${created_folder_name}/${container}
     if [ "${container}" = "pp" ]; then

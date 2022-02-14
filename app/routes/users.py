@@ -1,17 +1,7 @@
-from datetime import datetime
-from typing import Any, Optional, List, Dict
-from fastapi import Depends, APIRouter, Body
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import Session
-from pydantic.networks import EmailStr
+from typing import Dict
+from fastapi import APIRouter
 
-from app.utils.auth import get_current_active_user
-from app.database.connection import db
 # from app.database.schema import Users, Usage
-from app.utils.auth import get_password_hash
-from app.errors import exceptions as ex
-from app.schemas import users_me_responses
-from app import models
 
 
 router = APIRouter()
