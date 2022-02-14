@@ -11,7 +11,7 @@ scrape_configs:
   - job_name: 'prometheus'
     scrape_interval: 15s
     static_configs:
-      - targets: ['10.254.0.9:9090']
+      - targets: ['prometheus:9090']
   # - job_name: 'textscope'
   #   scrape_interval: 15s
   #   static_configs:
@@ -19,11 +19,11 @@ scrape_configs:
   - job_name: 'general exporter'
     scrape_interval: 15s
     static_configs:
-      - targets: ['10.254.0.13:9100']
+      - targets: ['node-exporter:9100']
   - job_name: 'nvidia-gpu-exporter'
     scrape_interval: 5s
     static_configs:
-      - targets: ['10.254.0.12:9400']
+      - targets: ['dcgm-exporter:9400']
   
   
 
