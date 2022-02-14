@@ -1,0 +1,120 @@
+
+  
+version: 2.1
+
+orbs: 
+  aws-cli: circleci/aws-cli@2.0.6 
+  gh: circleci/github-cli@1.0
+
+workflows:
+  develop-PR:
+    jobs:
+      - docker-build:
+          context: 
+            - .env
+            - aws
+          filters:   
+            branches:
+              only: 
+                - /feature\/.*/
+      - docker-up:
+          context: .env
+          requires:
+            - docker-build
+          filters: 
+            branches:
+              only: 
+                - /feature\/.*/
+      - unit_test:
+          requires:
+            - docker-up
+      - docker-down:
+          requires:
+            - unit_test
+
+
+jobs:
+  docker-build:
+    machine: true
+    resource_class: lomin/inhak-pc
+    working_directory: ~/textscope
+    steps:
+      - checkout
+      - run: 
+          name: CI Preparations
+          command: |
+            pip3 install boto3 botocore hydra-core python-dotenv alive_progress awscli
+      - aws-cli/install
+      - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run:
+          name: check running container and rm container
+          command: |
+            app="serving"
+            if docker ps | awk -v app="$app" 'NR > 1 && $NF == app{ret=1; exit} END{exit !ret}'; then
+              docker stop "$app" && docker rm -f "$app"
+            fi
+      - run:
+          name: Install Submodules
+          command: |
+            git submodule init
+            git submodule update
+      - run: echo "$env2" | base64 --decode > .env
+      - run: sudo rm -rf inference_server/ModelService
+      - run: 
+          name: model download & textscope build
+          command: |
+            sh init.sh
+
+  docker-up:
+    machine: true
+    resource_class: lomin/inhak-pc
+    working_directory: ~/textscope
+    steps:
+      - run: 
+          name: down
+          command: |
+            docker-compose down
+      - run: 
+          name: up
+          command: |
+            docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+      - run:
+          name: Run on fail status
+          command: |
+              docker-compose down
+          when: on_fail
+
+  unit_test:
+    machine: true
+    resource_class: lomin/inhak-pc
+    working_directory: ~/textscope
+    steps:
+      - run: 
+          name: run test
+          command: |
+            docker exec web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
+      - store_test_results:
+          path: test_results
+      - store_artifacts:
+          path: test_results
+          destination: v0.1.0
+      - run:
+          name: Run on fail status
+          command: |
+              docker-compose down
+          when: on_fail
+    
+  docker-down:
+    machine: true
+    resource_class: lomin/inhak-pc
+    working_directory: ~/textscope
+    steps:
+      - run: 
+          name: down
+          command: |
+            docker-compose down
+      - run:
+          name: Run on fail status
+          command: |
+              docker-compose down
+          when: on_fail
