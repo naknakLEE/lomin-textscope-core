@@ -16,7 +16,6 @@ spec:
       - name: kibana
         image: docker.elastic.co/kibana/kibana:7.16.2
         imagePullPolicy: IfNotPresent
-        workingDir: /workspace/pp_server/pp_server/app
         ports:
           - containerPort: 5601
             protocol: TCP
@@ -44,6 +43,19 @@ spec:
       name: http
   type: LoadBalancer
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data-pvc
+  labels:
+    app: grafana
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,11 +77,23 @@ spec:
         ports:
           - containerPort: 3000
             protocol: TCP
+       
+        resources:
+          requests:
+            cpu: 250m
+            memory: 750Mi
+        volumeMounts:
+          - mountPath: /var/lib/grafana
+            name: grafana-pv
         env:
           - name: PROMETHEUS_IP_ADDR
             value: "http://elasticsearch:9200"
           - name: PROMETHEUS_IP_PORT
             value: "9090"
+      volumes:
+        - name: grafana-pv
+          persistentVolumeClaim:
+            claimName: grafana-data-pvc
   selector:
     matchLabels:
       app: grafana
@@ -89,6 +113,7 @@ spec:
       port: 3000
       targetPort: 3000
       name: http
+  sessionAffinity: None
   type: LoadBalancer
 ---
 apiVersion: apps/v1
@@ -224,6 +249,19 @@ spec:
       name: http
   type: "ClusterIP"
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-data-pvc
+  labels:
+    app: prometheus
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -255,16 +293,15 @@ spec:
         volumeMounts:
           - name: config-volume
             mountPath: /etc/config
-          - name: storage-volume
-            mountPath: /data
-            subPath: ""
+          - name: prometheus-data-pvc
+            mountPath: /etc/prometheus/data
       volumes:
         - name: config-volume
           configMap:
             name: prometheus
-        - name: storage-volume
-          emptyDir:
-            {}
+        - name: prometheus-data-pvc
+          persistentVolumeClaim:
+            claimName: prometheus-data-pvc
   selector:
     matchLabels:
       app: prometheus
