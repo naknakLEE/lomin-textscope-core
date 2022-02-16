@@ -1,14 +1,4 @@
-import uvicorn
-import sys
-import os
-import asyncio
-
-from fastapi.encoders import jsonable_encoder
-from starlette.responses import JSONResponse
-from fastapi import FastAPI, Request, Depends
-from fastapi import Depends, File, UploadFile, APIRouter
-from fastapi.security import OAuth2PasswordBearer
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
 
@@ -19,19 +9,17 @@ from app.routes import (
     inference,
     admin,
     dataset,
-    categories,
     prediction,
-    dao
+    dao,
+    status
 )
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
-# from app.database.query import create_db_table, insert_initial_data
 from app.database.schema import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import validation_exception_handler
-from app.errors import exceptions as ex
 
 
 settings = get_settings()
@@ -74,6 +62,7 @@ def app_generator() -> FastAPI:
     app.add_route("/metrics", metrics_route)
 
     app.include_router(index.router, prefix="/v1")
+    app.include_router(status.router, tags=["Status"])
     app.include_router(inference.router, tags=["inference"], prefix="/v1/inference")
     app.include_router(users.router, tags=["Users"], prefix="/v1/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
