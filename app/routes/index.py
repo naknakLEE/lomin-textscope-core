@@ -47,7 +47,7 @@ def check_status() -> Any:
     try:
         is_serving_server_working = "False"
         serving_server_addr = (
-            f"http://serving:{settings.SERVING_IP_PORT}"
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
         )
         serving_server_status_check_url = f"{serving_server_addr}/livez"
         response = requests.get(serving_server_status_check_url)
@@ -58,7 +58,7 @@ def check_status() -> Any:
 
     try:
         is_pp_server_working = "False"
-        pp_server_addr = f"http://pp:{settings.PP_IP_PORT}"
+        pp_server_addr = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
         pp_server_status_check_url = f"{pp_server_addr}/status"
         response = requests.get(pp_server_status_check_url)
         if response.status_code == 200:

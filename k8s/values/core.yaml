@@ -17,7 +17,7 @@ serviceAccount:
 service:
   type: ClusterIP
   port: 80
-  targetport: 8000
+  targetport: 80
 
 autoscaling:
   enabled: true
