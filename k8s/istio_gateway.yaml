@@ -1,0 +1,35 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: textscope-gateway
+  namespace: textscope
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: textscope
+  namespace: textscope
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - textscope-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /docs
+    route:
+    - destination:
+        host: wrapper
+        port:
+          number: 8090
