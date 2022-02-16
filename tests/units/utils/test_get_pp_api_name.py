@@ -1,16 +1,8 @@
 import pytest
-import string
-import random
 from app.utils.utils import get_pp_api_name
 from app.errors.exceptions import ResourceDataError
+from tests.utils.utils import random_string
 from unittest.mock import patch
-
-
-def random_string():
-    characters = string.ascii_letters
-    word_lenght = random.randint(0, 10)
-    random_word_list = random.sample(characters, word_lenght)
-    return "".join(random_word_list)
 
 
 @pytest.mark.unit

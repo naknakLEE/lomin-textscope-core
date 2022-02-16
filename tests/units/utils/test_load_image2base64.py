@@ -86,8 +86,8 @@ class TestLoadImageToBase64:
         ],
     )
     def test_given_broken_image_supported_extension(self, img_path):
-        output = load_image2base64(img_path)
-        assert output is None
+        with pytest.raises(ResourceDataError):
+            load_image2base64(img_path)
 
     @pytest.mark.parametrize(
         "img_path",
@@ -100,8 +100,8 @@ class TestLoadImageToBase64:
         ],
     )
     def test_given_normal_image_unsupported_extension(self, img_path):
-        output = load_image2base64(img_path)
-        assert output is None
+        with pytest.raises(ValueError):
+            load_image2base64(img_path)
 
     @pytest.mark.parametrize(
         "img_path",
@@ -114,5 +114,5 @@ class TestLoadImageToBase64:
         ],
     )
     def test_given_broken_image_unsupported_extension(self, img_path):
-        output = load_image2base64(img_path)
-        assert output is None
+        with pytest.raises(ValueError):
+            load_image2base64(img_path)

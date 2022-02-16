@@ -23,6 +23,13 @@ fake_super_user_info = {
 }
 
 
+def random_string():
+    characters = string.ascii_letters
+    word_lenght = random.randint(0, 10)
+    random_word_list = random.sample(characters, word_lenght)
+    return "".join(random_word_list)
+
+
 def random_lower_string() -> str:
     return "".join(random.choices(string.ascii_lowercase, k=32))
 

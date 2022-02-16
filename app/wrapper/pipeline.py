@@ -186,7 +186,7 @@ def single(
     """doc type hint를 적용하고 inference 요청"""
     # Apply doc type hint
     hint = inputs.get("hint", {})
-    if hint is not None and "doc_type" in hint:
+    if hint is not None and hint.get("doc_type") is not None:
         doc_type_hint = hint.get("doc_type", {})
         cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
         response_log.update(apply_cls_hint_result=cls_hint_result)

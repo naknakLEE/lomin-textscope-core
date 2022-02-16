@@ -1,6 +1,7 @@
-from typing import Dict
+from typing import Dict, Optional, Any
 
 from app.utils.logging import logger
+from app.models import DocTypeHint
 from app.common.const import get_settings
 
 
@@ -9,28 +10,44 @@ kv_hint_cer_threshold = settings.KV_HINT_CER_THRESHOLD
 cls_hint_score_threshold = settings.CLS_HINT_SCORE_THRESHOLD
 
 
-def apply_cls_hint(doc_type_hint: Dict, cls_result: Dict = {}) -> Dict:
-    logger.info("Start apply cls hint")
-    is_hint_used = False
-    is_hint_trust = doc_type_hint.get("trust", False)
+def apply_cls_hint(
+    doc_type_hint: Optional[DocTypeHint],
+    cls_result: Dict = {},
+    hint_threshold: float = cls_hint_score_threshold,
+) -> Dict:
+    result: Dict[str, Any] = {
+        "doc_type": None,
+        "is_hint_used": False,
+        "is_hint_trusted": False,
+    }
     if doc_type_hint is None:
         logger.info("Doc type hint is None")
+        return result
+    logger.debug("Start apply cls hint")
+    hint_doc_type = doc_type_hint.doc_type
+    score = cls_result.get("score", 0.0)
+    use = doc_type_hint.use
+    trust = doc_type_hint.trust
+    if not use:
+        logger.info("hint use is False")
+        return result
+    if not cls_result and not trust:
+        logger.info("classification result is not exist and hint trust is False")
+        return result
+    if trust:
+        result.update(
+            dict(doc_type=hint_doc_type, is_hint_used=True, is_hint_trusted=True)
+        )
+        return result
+    if score < hint_threshold:
+        logger.debug(
+            "Change doc type from {} to {}",
+            cls_result.get("doc_type", "None"),
+            hint_doc_type,
+        )
+        result["doc_type"] = hint_doc_type
+        result["is_hint_used"] = True
     else:
-        score = cls_result.get("score", 0.0)
-        use = doc_type_hint.get("use", False)
-        trust = doc_type_hint.get("trust", False)
-        if (use and trust) or (use and score < cls_hint_score_threshold):
-            hint_doc_type = doc_type_hint.get("doc_type")
-            logger.info(
-                "Change doc type from {} to {}",
-                cls_result.get("doc_type", "None"),
-                hint_doc_type,
-            )
-            cls_result["doc_type"] = hint_doc_type
-            is_hint_used = True
-    logger.info("End apply cls hint")
-    return {
-        "doc_type": cls_result.get("doc_type", "None"),
-        "is_hint_used": is_hint_used,
-        "is_hint_trusted": is_hint_trust,
-    }
+        result["doc_type"] = cls_result.get("doc_type", None)
+    logger.debug("End apply cls hint")
+    return result

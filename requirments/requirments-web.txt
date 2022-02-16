@@ -29,6 +29,7 @@ soynlp==0.0.493
 tifffile==2020.9.3
 opencv-python==4.5.5.62
 pytest==7.0.1
+pytest-parallel==0.1.1
 
 # for development mode
 fastapi_cprofile==0.0.2

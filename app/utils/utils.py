@@ -131,8 +131,10 @@ def read_all_tiff_pages_with_tifffile(img_path, target_page=-1):
                 break
         except IndexError:  # Out of index
             break
+        except FileNotFoundError:
+            raise ResourceDataError(f"{img_path} is not exist")
         except:
-            return None
+            raise ResourceDataError(f"{img_path} is broken")
     return images
 
 
@@ -143,9 +145,10 @@ def read_tiff_page(img_path, target_page=0):
         np_image = np.array(tiff_images.convert("RGB"))
         np_image = np_image.astype(np.uint8)
         tiff_images.close()
-    except:
-        logger.exception("read tiff page")
-        return None
+    except FileNotFoundError as exc:
+        raise ResourceDataError(f"{img_path} is not exist", exc=exc)
+    except Exception as exc:
+        raise ResourceDataError(f"{img_path} is broken", exc=exc)
     return Image.fromarray(np_image)
 
 
@@ -153,9 +156,10 @@ def read_basic_image(image_path):
     try:
         cv2_img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
         pil_image = Image.fromarray(cv2_img[:, :, ::-1])
-    except:
-        logger.exception("read basic image")
-        return None
+    except FileNotFoundError as exc:
+        raise ResourceDataError(f"{image_path} is not exist", exc=exc)
+    except Exception as exc:
+        raise ResourceDataError(f"{image_path} is broken", exc=exc)
     return pil_image
 
 
@@ -163,34 +167,29 @@ def read_pdf_image(image_path, page=1):
     try:
         pages = convert_from_path(image_path)
         pil_image = pages[page - 1]
-    except:
-        logger.exception("read pdf image")
-        return None
+    except FileNotFoundError as exc:
+        raise ResourceDataError(f"{image_path} is not exist", exc=exc)
+    except Exception as exc:
+        raise ResourceDataError(f"{image_path} is broken", exc=exc)
     return pil_image
 
 
-def read_image(image_path: Path, page=1):
-    # @FIXME: return None -> raise exception of each case
+def read_image(image_path: Path, page=1, ext_allows: Optional[List] = None):
+    if ext_allows is None:
+        ext_allows = settings.IMAGE_VALIDATION
     ext = image_path.suffix.lower()
-    if ext in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
-        pil_image = read_basic_image(image_path)
-        if pil_image is None:
-            return None
-    elif ext in [".tif", ".tiff"]:
-        all_pages = read_all_tiff_pages_with_tifffile(image_path, page)
-        if all_pages is None:
-            pil_image = read_tiff_page(image_path, page - 1)
-            if pil_image is None:
-                return None
-        else:
+    if ext[1:] not in ext_allows:
+        raise ValueError(f"{ext} is not supported")
+    if ext in [".tif", ".tiff"]:
+        try:
+            all_pages = read_all_tiff_pages_with_tifffile(image_path, page)
             pil_image = all_pages[page - 1]
+        except:
+            pil_image = read_tiff_page(image_path, page - 1)
     elif ext in [".pdf"]:
         pil_image = read_pdf_image(image_path, page)
-        if pil_image is None:
-            return None
     else:
-        logger.error(f"{image_path.suffix.lower()} is not supported!")
-        return None
+        pil_image = read_basic_image(image_path)
     pil_image = pil_image.convert("RGB")
     return pil_image
 
@@ -205,16 +204,29 @@ def load_image2base64(img_path: Path) -> Optional[str]:
     return img_str.decode()
 
 
-def dir_structure_validation(path: Path) -> int:
-    if list(path.glob("*.*")):
-        return False
-    categories = list(path.iterdir())
-    whole_files = list(set(path.rglob("*")) - set(categories))
-    is_exist_sub_dir = set(len(file.parts) for file in whole_files if file.is_file())
-    is_only_file = [file.is_file() for file in whole_files]
-    is_not_empty_dir = [len(list(category.iterdir())) > 0 for category in categories]
-    result = len(is_exist_sub_dir) == 1 and all(is_only_file) and all(is_not_empty_dir)
-    return result
+def dir_structure_validation(path: Path, ext_allows: Optional[List] = None) -> int:
+    if ext_allows is None:
+        ext_allows = settings.IMAGE_VALIDATION
+    files_under_root = list(path.glob("*.*"))
+    category_dirs = list(path.iterdir())
+    if files_under_root:
+        raise ValueError("exist file under the root dir")
+    if not category_dirs:
+        raise ValueError("directory is empty")
+    for category_dir in category_dirs:
+        is_exist_sub_dir = list(
+            sub_dir for sub_dir in category_dir.iterdir() if sub_dir.is_dir()
+        )
+        files = list(category_dir.rglob("*.*"))
+        if is_exist_sub_dir:
+            raise ValueError(f"{category_dir} include sub dir")
+        if not files:
+            raise ValueError(f"{category_dir} is empty")
+        for file in files:
+            extension = file.suffix[1:]
+            if extension not in ext_allows:
+                raise ValueError(f"{extension} is not supported")
+    return True
 
 
 def image_file_validation(file: Path) -> bool:
