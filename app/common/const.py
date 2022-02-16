@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     BASE_PATH: str = "/workspace"
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
-    TEXTSCOPE_CORE_WORKERS: int = 10
+    TEXTSCOPE_CORE_WORKERS: int = 1
 
     # HINT CONFIG
     KV_HINT_CER_THRESHOLD: float = 0.2
