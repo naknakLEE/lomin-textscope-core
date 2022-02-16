@@ -11,7 +11,7 @@ from app.common.const import get_settings
 settings = get_settings()
 
 
-async def api_logger(request: Request = None, response=None, error=None) -> None:
+async def api_logger(request: Request, response=None, error=None) -> None:
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
@@ -50,12 +50,13 @@ async def api_logger(request: Request = None, response=None, error=None) -> None
         processed_time=str(processed_time),
     )
 
-
     if settings.USE_TEXTSCOPE_DATABASE and settings.USE_AUTO_LOG:
         if "ocr" in request.url.path.split("/"):
-            Usage.create_log(request.state.db, auto_commit=True, email=email, status_code=status_code)
+            Usage.create(
+                request.state.db, auto_commit=True, email=email, status_code=status_code
+            )
         if "metrics" not in request.url.path.split("/"):
-            Logs.create_log(request.state.db, auto_commit=True, **log_dict)
+            Logs.create(request.state.db, auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.exception("api logger")

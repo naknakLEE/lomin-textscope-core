@@ -1,18 +1,21 @@
 import sys
 import json
 import base64
-import tempfile
+import re
+import tifffile
+import cv2
+import numpy as np
 
-from typing import Dict, Union, List, Tuple
+from typing import Dict, List, Optional, Union
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from os import environ
 from pathlib import Path
 from pdf2image import convert_from_path
 from io import BytesIO
 from PIL import Image
 from app.common.const import get_settings
 from datetime import datetime
+from app.errors.exceptions import ResourceDataError
 
 from app.utils.logging import logger
 
@@ -21,24 +24,51 @@ settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
 document_type_set = settings.DOCUMENT_TYPE_SET
 
+
+# @FIXME: 이름과 기능이 맞지 않음
 def pretty_dict(
     data: Dict,
     indent: int = 4,
     sort_keys: bool = True,
     ensure_ascii: bool = False,
-
 ):
     if isinstance(data, dict):
         data = jsonable_encoder(data)
-        return json.dumps(data, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
+        return json.dumps(
+            data, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii
+        )
     elif isinstance(data, list):
         data = jsonable_encoder(dict(data=data))
-        return json.dumps(dict(data=data), indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
+        return json.dumps(
+            dict(data=data),
+            indent=indent,
+            sort_keys=sort_keys,
+            ensure_ascii=ensure_ascii,
+        )
     else:
         data = jsonable_encoder(data.dict())
-        return json.dumps(data, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii)
+        return json.dumps(
+            data, indent=indent, sort_keys=sort_keys, ensure_ascii=ensure_ascii
+        )
 
-def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JSONResponse:
+
+def substitute_spchar_to_alpha(decoded_texts):
+    removed_texts = list()
+    regex = r"[\[\]\|]"
+    if len(decoded_texts) > 1:
+        regex = r"\|"
+    for text in decoded_texts:
+        found_spchar = re.findall(regex, text)
+        if found_spchar:
+            logger.info(f"find special charaters {found_spchar}")
+        removed_texts.append(re.sub(regex, "I", text))
+    return "".join(removed_texts)
+
+
+# @TODO: delete
+def set_json_response(
+    code: str, ocr_result: Dict = {}, message: str = ""
+) -> JSONResponse:
     return JSONResponse(
         content=jsonable_encoder(
             dict(
@@ -50,7 +80,11 @@ def set_json_response(code: str, ocr_result: Dict = {}, message: str = "") -> JS
     )
 
 
-def get_pp_api_name(doc_type: str) -> Union[None, str]:
+def get_pp_api_name(
+    doc_type: str, customer: str = settings.CUSTOMER
+) -> Union[None, str]:
+    if not isinstance(pp_mapping_table, dict):
+        raise ResourceDataError(detail="pp mapping table is not a dict")
     if doc_type in pp_mapping_table.get("idcard", []):
         return "idcard"
     if doc_type in pp_mapping_table.get("general_pp", []):
@@ -63,107 +97,180 @@ def get_pp_api_name(doc_type: str) -> Union[None, str]:
         return "ccr"
     elif doc_type in pp_mapping_table.get("busan_bank", []):
         return "busan_bank"
-    elif settings.CUSTOMER == "kakaobank" and doc_type in document_type_set:
+    elif customer == "kakaobank" and doc_type in document_type_set:
         return document_type_set.get(doc_type)
     return None
 
-def cal_time_elapsed_seconds(start: datetime, end: datetime) -> str:
+
+def cal_time_elapsed_seconds(
+    start: datetime, end: datetime, rounding_digits: int = 3
+) -> str:
     elapsed = end - start
-    sec, microsec = elapsed.seconds, round(elapsed.microseconds / 1_000_000, 3)
-    return f'{sec + microsec}'
+    elapsed_string = str(round(elapsed.total_seconds(), rounding_digits))
+    return elapsed_string
+
 
 def basic_time_formatter(target_time: str):
-    return target_time.replace('.', '-', 2).replace('.', '', 1)[:-3]
+    return target_time.replace(".", "-", 2).replace(".", "", 1)[:-3]
 
-def load_image2base64(img_path):
+
+def read_all_tiff_pages_with_tifffile(img_path, target_page=-1):
+    images = []
+    page_count = 0
+    while True:  # we don't know how many page in tif file
+        try:
+            image = tifffile.imread(img_path, key=page_count)
+            if image.dtype == np.bool:
+                image = (image * 255).astype(np.uint8)
+            else:
+                image = image.astype(np.uint8)
+            images.append(Image.fromarray(image))
+            del image
+            page_count += 1
+            if page_count == target_page:
+                break
+        except IndexError:  # Out of index
+            break
+        except FileNotFoundError:
+            raise ResourceDataError(f"{img_path} is not exist")
+        except:
+            # @FIXME: 범용적인 message로 변경
+            # @TODO: traceback을 추가해서 에러 파악이 쉽도록 구성
+            raise ResourceDataError(f"{img_path} is broken")
+    return images
+
+
+def read_tiff_page(img_path, target_page=0):
+    try:
+        tiff_images = Image.open(img_path)
+        tiff_images.seek(target_page)
+        np_image = np.array(tiff_images.convert("RGB"))
+        np_image = np_image.astype(np.uint8)
+        tiff_images.close()
+    except FileNotFoundError as exc:
+        raise ResourceDataError(f"{img_path} is not exist", exc=exc)
+    except Exception as exc:
+        raise ResourceDataError(f"{img_path} is broken", exc=exc)
+    return Image.fromarray(np_image)
+
+
+def read_basic_image(image_path):
+    try:
+        cv2_img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
+        pil_image = Image.fromarray(cv2_img[:, :, ::-1])
+    except FileNotFoundError as exc:
+        raise ResourceDataError(f"{image_path} is not exist", exc=exc)
+    except Exception as exc:
+        raise ResourceDataError(f"{image_path} is broken", exc=exc)
+    return pil_image
+
+
+def read_pdf_image(image_path, page=1):
+    try:
+        pages = convert_from_path(image_path)
+        pil_image = pages[page - 1]
+    except FileNotFoundError as exc:
+        raise ResourceDataError(f"{image_path} is not exist", exc=exc)
+    except Exception as exc:
+        raise ResourceDataError(f"{image_path} is broken", exc=exc)
+    return pil_image
+
+
+def read_image(image_path: Path, page=1, ext_allows: List = settings.IMAGE_VALIDATION):
+    ext = image_path.suffix.lower()
+    if ext not in ext_allows:
+        raise ValueError(f"{ext} is not supported")
+    if ext in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
+        pil_image = read_basic_image(image_path)
+    elif ext in [".pdf"]:
+        pil_image = read_pdf_image(image_path, page)
+    else:  # ext in [".tiff", "tif"]
+        try:
+            all_pages = read_all_tiff_pages_with_tifffile(image_path, page)
+            pil_image = all_pages[page - 1]
+        except:
+            pil_image = read_tiff_page(image_path, page - 1)
+    pil_image = pil_image.convert("RGB")
+    return pil_image
+
+
+def load_image2base64(img_path: Path) -> Optional[str]:
+    image = read_image(img_path)
+    if image is None:
+        return None
     buffered = BytesIO()
-    pil_image = Image.open(img_path)
-    image_convert_rgb = pil_image.convert("RGB")
-    image_convert_rgb.save(buffered, format="JPEG")
-    img_str = base64.b64encode(buffered.getvalue()) 
-    return img_str
+    image.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue())
+    return img_str.decode()
 
-def dir_structure_validation(path: Path) -> int:
-    categories = list(path.iterdir())
-    whole_files = list(set(path.rglob('*')) - set(categories))
-    is_exist_sub_dir = set(len(file.parts) for file in whole_files if file.is_file())
-    is_only_file = [file.is_file() for file in whole_files]
-    is_not_empty_dir = [len(list(category.iterdir())) > 0 for category in categories]
-    result = len(is_exist_sub_dir) == 1 and all(is_only_file) and all(is_not_empty_dir)
-    return result
 
-def file_validation(files: Union[Path, List[Path]]) -> List:
+def dir_structure_validation(
+    path: Path, ext_allows: List = settings.IMAGE_VALIDATION
+) -> bool:
+    files_under_root = list(path.glob("*.*"))
+    category_dirs = list(path.iterdir())
+    if files_under_root:
+        raise ValueError("exist file under the root dir")
+    if not category_dirs:
+        raise ValueError("directory is empty")
+    for category_dir in category_dirs:
+        is_exist_sub_dir = list(
+            sub_dir for sub_dir in category_dir.iterdir() if sub_dir.is_dir()
+        )
+        files = list(category_dir.rglob("*.*"))
+        if is_exist_sub_dir:
+            raise ValueError(f"{category_dir} include sub dir")
+        if not files:
+            raise ValueError(f"{category_dir} is empty")
+        for file in files:
+            extension = file.suffix
+            if extension not in ext_allows:
+                raise ValueError(f"{extension} is not supported")
+    return True
+
+
+def image_file_validation(file: Path) -> bool:
     white_list = settings.IMAGE_VALIDATION
-    fake_files = list()
-    if not isinstance(files, list):
-        files = [files]
-    
-    for file in files:
-        file_format = file.suffix[1:].lower()
-        if file_format not in white_list:
-            fake_files.append((file.name, 'unsupported extension'))
 
-        if file_format == 'pdf':
-            try:
-                with tempfile.TemporaryDirectory() as temp_path:
-                    img = convert_from_path(file, output_folder=temp_path)
-            except Exception as e:
-                fake_files.append((file.name, str(e)))
-                pass
-        elif file_format == 'jpg' or\
-            file_format == 'png' or\
-            file_format == 'tif' or\
-            file_format == 'tiff':
-            try:
-                img = Image.open(file)
-            except Exception as e:
-                fake_files.append((file.name, str(e)))
-                pass
-    return fake_files
+    file_format = file.suffix[1:].lower()
+    if file_format not in white_list:
+        return False
+
+    image = read_image(file)
+    if image is None:
+        return False
+    return True
 
 
 def print_error_log() -> None:
-    error = sys.exc_info()
-    exc_type, exc_value, exc_traceback = error
-    error_log = {
-        'filename': exc_traceback.tb_frame.f_code.co_filename,
-        'lineno'  : exc_traceback.tb_lineno,
-        'name'    : exc_traceback.tb_frame.f_code.co_name,
-        'type'    : exc_type.__name__,
-        'message' : str(exc_value),
-    }
-    logger.info("error log detail: {}", error_log)
-    del(exc_type, exc_value, exc_traceback, error_log)
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    if exc_type is not None and exc_value is not None and exc_traceback is not None:
+        error_log = {
+            "filename": exc_traceback.tb_frame.f_code.co_filename,
+            "lineno": exc_traceback.tb_lineno,
+            "name": exc_traceback.tb_frame.f_code.co_name,
+            "type": exc_type.__name__,
+            "message": str(exc_value),
+        }
+        logger.info("error log detail: {}", error_log)
+        del (exc_type, exc_value, exc_traceback, error_log)
+    else:
+        return None
 
 
 def set_predictions(
-    general_detection_result: Dict,
-    kv_detection_result: Dict,
-    recogniton_result: Dict,
-) -> Tuple[Dict, Dict]:
-    # kv detection phase
-    classes = kv_detection_result.get("classes", [])
-    scores = kv_detection_result.get("scores", [])
-    boxes = kv_detection_result.get("boxes", [])
-    texts = kv_detection_result.get("texts", [])
-    merged_count = kv_detection_result.get("merged_count", [])
-    kv_predictions = list()
-    for class_, score_, box_, text_, merged_count_ in zip(classes, scores, boxes, texts, merged_count):
-        prediction = {
-            "class": class_,
-            "score": score_,
-            "box": box_,
-            "text": text_,
-            "merged_count": merged_count_
-        }
-        kv_predictions.append(prediction)
-
-    # general detection phase
-    classes = general_detection_result.get("classes", [])
-    scores = general_detection_result.get("scores", [])
-    boxes = general_detection_result.get("boxes", [])
-    texts = recogniton_result.get("texts", [])
-    general_predictions = list()
+    detection_result: Dict,
+    recognition_result: Dict,
+) -> List:
+    classes = detection_result.get("classes", [])
+    scores = detection_result.get("scores", [])
+    boxes = detection_result.get("boxes", [])
+    texts = (
+        detection_result.get("texts", [])
+        if "texts" in detection_result
+        else recognition_result.get("texts", [])
+    )
+    predictions = list()
     for class_, score_, box_, text_ in zip(classes, scores, boxes, texts):
         prediction = {
             "class": class_,
@@ -171,34 +278,27 @@ def set_predictions(
             "box": box_,
             "text": text_,
         }
-        general_predictions.append(prediction)
-    
-    return {
-        "kv_predictions": kv_predictions,
-        "general_predictions": general_predictions 
-    }
+        predictions.append(prediction)
+    return predictions
 
 
-def set_ocr_response(
-    general_detection_result: Dict,
-    kv_detection_result: Dict,
-    recognition_result: Dict,
-    classification_result: Dict,
-) -> Dict:
-    predictions = set_predictions(
-        kv_detection_result=kv_detection_result,
-        general_detection_result=general_detection_result,
-        recogniton_result=recognition_result,
+def set_ocr_response(inputs: Dict, sequence_list: List, result_set: Dict) -> Dict:
+    detection_method = "general_detection"
+    if "kv_detection" in sequence_list:
+        detection_method = "kv_detection"
+    classification_result = result_set.get("classification", {})
+    detection_result = result_set.get(detection_method, {})
+    recognition_result = result_set.get("recognition", {})
+    predicsions = set_predictions(
+        detection_result=detection_result,
+        recognition_result=recognition_result,
     )
-    doc_type = classification_result.get("doc_type")
-    class_score = classification_result.get("scores").get(doc_type)
-    response = dict(
-        predictions=predictions,
-        class_score=class_score,
-        image_height=general_detection_result.get("image_height"),
-        image_width=general_detection_result.get("image_width"),
-        id_type=kv_detection_result.get("id_type"),
+    return dict(
+        predicsions=predicsions,
+        class_score=classification_result.get("score", 0.0),
+        image_height=detection_result.get("image_height"),
+        image_width=detection_result.get("image_width"),
+        id_type=detection_result["id_type"],
         rec_preds=recognition_result.get("rec_preds", []),
-        doc_type=doc_type,
+        doc_type=classification_result.get("doc_type", "None"),
     )
-    return response

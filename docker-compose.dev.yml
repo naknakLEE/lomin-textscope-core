@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   serving:
@@ -17,7 +17,7 @@ services:
         DEMOMA_PATH: ${DEMOMA_PATH}
         SO_EXTENTION: ${SO_EXTENTION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    ports: 
+    ports:
       - 5000:5000
       - 5002:5002
       - 8266:8265
@@ -35,18 +35,17 @@ services:
       - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
       - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     tty: true
-      
+
     deploy:
       resources:
         reservations:
           devices:
-          - driver: nvidia
-            device_ids: ['0']
-            capabilities: [gpu]
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
     working_dir: /workspace/inference_server
     command: sh assets/run-dev.sh
 
-  
   web:
     image: docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
@@ -55,7 +54,7 @@ services:
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    ports: 
+    ports:
       - 8000:8000
       - 8267:8265
     volumes:
@@ -73,7 +72,7 @@ services:
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    ports: 
+    ports:
       - 8080:8080
     volumes:
       - ./:/workspace
@@ -92,13 +91,13 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
         CUSTOMER: ${CUSTOMER}
-    ports: 
+    ports:
       - 8090:8090
       - 11120:11120
     volumes:
       - ./:/workspace
     tty: true
-    environment: 
+    environment:
       - API_ENV=production
       - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8
@@ -112,7 +111,7 @@ services:
   #   ports:
   #     - 8050:80
   #     - 443:443
-    
+
   # nginx-exporter:
   #   ports:
   #     - 9113:9113
@@ -128,7 +127,7 @@ services:
   prometheus:
     ports:
       - 9090:9090
-    
+
   grafana:
     ports:
       - 3001:3000

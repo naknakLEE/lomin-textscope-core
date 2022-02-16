@@ -29,6 +29,7 @@ class TestConfig(Config):
 class ProdConfig(Config):
     DB_URL: str = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_IP_ADDR}:{settings.POSTGRES_IP_PORT}/{settings.POSTGRES_DATABASE}"
 
+
 def config() -> Any:
     config = dict(production=ProdConfig(), test=TestConfig())
     return config.get(os.environ["API_ENV"])

@@ -132,11 +132,6 @@ onnxruntime
 docker-compose.dev.yml
 *.test.*
 
-# DB data
-pgdata/
-sql_app.db
-*.db
-
 # models
 *.pt
 *.pth
@@ -168,6 +163,12 @@ Nuitka
 pyinstrument-results
 datasets
 images
+!tests/resources/**/*
+
+# DB data
+pgdata/
+sql_app.db
+*.db
 
 # security
 pyarmor*

@@ -1,6 +1,6 @@
 from httpx import Client
 
-from typing import Dict, Tuple
+from typing import Dict
 
 from app.common import settings
 
@@ -12,7 +12,7 @@ def longinus(
     client: Client,
     inputs: Dict,
     route_name: str = "rotate",
-) -> Tuple[int, Dict]:
+) -> Dict:
     rotate_response = client.post(
         f"{rotate_server_url}/{route_name}",
         json=inputs,
@@ -25,4 +25,3 @@ def longinus(
         response=rotate_result,
     )
     return response
-

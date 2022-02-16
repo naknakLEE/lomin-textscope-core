@@ -2,24 +2,20 @@ from fastapi import FastAPI
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
 
-from app.routes import (
-    auth,
-    index,
-    users,
-    inference,
-    admin,
-    dataset,
-    prediction,
-    dao,
-    status
-)
+from app.routes import auth, index, users, inference, admin, dataset, prediction, dao, status
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
+
+# from app.database.query import create_db_table, insert_initial_data
+from app.errors.exceptions import ResourceDataError
 from app.database.schema import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
-from app.middlewares.exception_handler import validation_exception_handler
+from app.middlewares.exception_handler import (
+    validation_exception_handler,
+    resource_exception_handler,
+)
 
 
 settings = get_settings()
@@ -54,6 +50,7 @@ def app_generator() -> FastAPI:
         )
 
     app.add_exception_handler(RuntimeError, validation_exception_handler)
+    app.add_exception_handler(ResourceDataError, resource_exception_handler)
 
     app.add_middleware(TimeoutMiddleware)
     app.add_middleware(LoggingMiddleware)
@@ -67,8 +64,12 @@ def app_generator() -> FastAPI:
     app.include_router(users.router, tags=["Users"], prefix="/v1/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
-    app.include_router(dataset.router, tags=["Training dataset"], prefix="/dataset/training")
-    app.include_router(prediction.router, tags=["Prediction Result"], prefix="/prediction")
+    app.include_router(
+        dataset.router, tags=["Training dataset"], prefix="/dataset/training"
+    )
+    app.include_router(
+        prediction.router, tags=["Prediction Result"], prefix="/prediction"
+    )
     app.include_router(dao.router, tags=["Dao"], prefix="/dao")
 
     return app

@@ -1,6 +1,6 @@
 from httpx import Client
 
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional
 
 from app.common import settings
 from app.wrapper import pp
@@ -15,7 +15,7 @@ def tiamo(
     inference_result: Dict,
     hint: Optional[Dict] = None,
     route_name: Optional[str] = None,
-) -> Tuple[int, Dict]:
+) -> Dict:
     inference_inputs = dict(
         valid_boxes=inference_result.get("boxes", []),
         classes=inference_result.get("classes", []),

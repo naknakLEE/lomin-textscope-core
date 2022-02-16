@@ -10,11 +10,4 @@ from app.wrapper import rotate
 from app.wrapper import pipeline
 
 
-__all__ = [
-    "classification",
-    "detection",
-    "pp",
-    "recognition",
-    "rotate",
-    "pipeline"
-]
+__all__ = ["classification", "detection", "pp", "recognition", "rotate", "pipeline"]

@@ -1,17 +1,32 @@
-version: '3.4'
+version: "3.4"
 
 services:
   wrapper:
     ports:
       - 5677:5677
-    command: ["sh", "-c", "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5677 -m main"]
-  
+    command:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5677 -m main",
+      ]
+
   web:
-    ports: 
+    ports:
       - 5678:5678
-    command: ["sh", "-c", "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5678 -m main"]
-  
+    command:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5678 -m main",
+      ]
+
   pp:
-    ports: 
+    ports:
       - 5679:5679
-    command: ["sh", "-c", "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5679 -m main"]
+    command:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5679 -m main",
+      ]

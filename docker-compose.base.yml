@@ -1,11 +1,11 @@
-version: '2.3'
+version: "2.3"
 
 services:
   # mysql1:
   #   environment:
   #     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
   #     - TZ=Asia/Seoul
-  
+
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
@@ -20,9 +20,9 @@ services:
       resources:
         reservations:
           devices:
-          - driver: nvidia
-            device_ids: ['0']
-            capabilities: [gpu]
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
 
   web:
     image: docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -51,4 +51,3 @@ services:
         USER: ${USER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUSTOMER: ${CUSTOMER}
-      

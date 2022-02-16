@@ -1,5 +1,4 @@
 import time
-import asyncio
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from fastapi import Request, Response
@@ -12,7 +11,6 @@ from app.database.connection import db
 from app.utils.logger import api_logger
 from app.errors.exceptions import exception_handler
 from app.common.const import get_settings
-from app.errors import exceptions as ex
 
 
 settings = get_settings()
@@ -52,13 +50,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             error = await exception_handler(e)
             error_dict = dict(
                 status=error.status_code,
-            msg=error.msg,
+                msg=error.msg,
                 detail=error.detail,
                 code=error.code,
             )
             response = JSONResponse(status_code=error.status_code, content=error_dict)
             await api_logger(request=request, error=error)
         finally:
-            if settings.USE_TEXTSCOPE_DATABASE: 
+            if settings.USE_TEXTSCOPE_DATABASE:
                 request.state.db.close()
         return response

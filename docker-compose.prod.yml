@@ -1,4 +1,4 @@
-version: '2.3'
+version: "2.3"
 
 services:
   serving:
@@ -13,7 +13,7 @@ services:
         CUSTOMER: ${CUSTOMER}
         PYTHON_VERSION: ${PYTHON_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    ports: 
+    ports:
       - 8052:5000
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
@@ -75,7 +75,7 @@ services:
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    ports: 
+    ports:
       - 8050:8090
     tty: true
     volumes:

@@ -159,9 +159,7 @@
       "id": 14,
       "options": {
         "fieldOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "defaults": {
             "color": {
               "mode": "thresholds"
@@ -313,9 +311,7 @@
       "links": [],
       "options": {
         "fieldOptions": {
-          "calcs": [
-            "sum"
-          ],
+          "calcs": ["sum"],
           "defaults": {
             "color": {
               "mode": "thresholds"

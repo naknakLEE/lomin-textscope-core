@@ -38,9 +38,9 @@ RUN python3 app/utils/azure_blob_container/download_blob_to_local.py && \
 #     python3 setup.py install
 
 # WORKDIR /root/bentoml/repository/MultiModelService/2021-06.textscope/MultiModelService
-# RUN mkdir assets && \ 
+# RUN mkdir assets && \
 #     mv /workspace/assets/textscope_idcard.json ./assets/textscope_idcard.json && \
-#     mv /workspace/.env .env && \ 
+#     mv /workspace/.env .env && \
 #     mv ./app/serving/multiple_model_service.py ./multiple_model_service.py && \
 #     python3 -m nuitka --module app --include-package=app && \
 #     python3 -m nuitka --module multiple_model_service.py

@@ -38,7 +38,7 @@ async def add_process_time_header(
         request.state.start = time.time()
         request.state.inspect = None
         request.state.user = None
-        request.state.db = db._session()
+        request.state.db = db._session
         ip = (
             request.headers["x-forwarded-for"]
             if "x-forwarded-for" in request.headers.keys()

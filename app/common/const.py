@@ -8,12 +8,15 @@ from pathlib import Path
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
+
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
     encoding = settings.__config__.env_file_encoding
     customer_config = json.loads(
-        Path(f'/workspace/assets/textscope.json').read_text(encoding))
+        Path(f"/workspace/assets/{environ.get('CUSTOMER')}.json").read_text(encoding)
+    )
     config = customer_config
     return config
+
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
@@ -111,7 +114,6 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
     FILE_MAX_BYTE: int = 1024 * 1024
     BACKUP_COUNT: int = 100000000
-    LOG_LEVEL: str = "DEBUG"
     BACKTRACE: str = "True"
     DIAGNOSE: str = "True"
     ENQUEUE: str = "True"
@@ -126,7 +128,7 @@ class Settings(BaseSettings):
         "full_name": "user",
         "email": "user@example.com",
         "password": "123456",
-        "status": "inactive",
+        "status": "INACTIVE",
         "is_superuser": True,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -136,7 +138,7 @@ class Settings(BaseSettings):
         "full_name": "garam",
         "email": "garam@example.com",
         "password": "123456",
-        "status": "inactive",
+        "status": "INACTIVE",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -146,7 +148,7 @@ class Settings(BaseSettings):
         "full_name": "tongo",
         "email": "tongo@example.com",
         "password": "123456",
-        "status": "inactive",
+        "status": "INACTIVE",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -156,7 +158,7 @@ class Settings(BaseSettings):
         "full_name": "guest",
         "email": "guest@lomin.ai",
         "password": "guest",
-        "status": "active",
+        "status": "ACTIVE",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -169,13 +171,10 @@ class Settings(BaseSettings):
     LOOKUP_TABLE: Dict = {}
     VALID_TYPE: Dict = {}
     TORCH_MODEL_NAME_SET: List = []
-    ESSENTIAL_KEYS: Dict = {}
-    DOC_TYPE_SET: Dict = {}
     DOC_KEY_SET: Dict = {}
     IDCARD_TYPE_SET: List = []
     KV_TYPE_SET: Dict = {}
     PARAMETER_ERROR_SET: Dict = {}
-    DOCUMENT_TYPE_SET: Dict = {}
     CLASSIFICATION_TARGET: List = []
     SPACING_KEY: List = []
     NOT_SUPPORTED_OCR_TARGET: List = []
@@ -187,16 +186,11 @@ class Settings(BaseSettings):
     PP_MAPPING_TABLE: Dict = {}
 
     # KAKAOBANK CONFIG
-    DOCUMENT_TYPE_LIST: List = []
-    DOCUMENT_TYPE_SET: Dict = {}
-    KEYWORDS: Dict = {}
     ESSENTIAL_KEYS: Dict = {}
-    VALID_TYPE: Dict = {}
-    KEYWORDS_ALL: Dict = {}
     PARAMETER_FULL_NAME_MAPPING_TABLE: Dict = {}
-    
+
     # HEUNGKUK CONFIG
-    DETECTION_MERGE_THRESHOLD: Tuple = (0.05, 0.5) # x_iou, y_iou
+    DETECTION_MERGE_THRESHOLD: Tuple = (0.05, 0.5)  # x_iou, y_iou
     SUBSTITUTE_SPCHAR_TO_ALPHA: bool = False
     FORCE_MERGE_DCC_BOX: bool = False
     DURIEL_SUPPORT_DOCUMENT: List = []
@@ -204,31 +198,28 @@ class Settings(BaseSettings):
     COMMA_KEY: List = []
     NTOC: Dict = {}
     CTON: Dict = {}
-    
+
     # FILE CONFIG
     ZIP_PATH: str
     IMG_PATH: str
     SUPPORT_SET_DIR: str
     IMAGE_VALIDATION: List = [
-        'jpg',
-        'png',
-        'pdf',
-        'tif',
-        'tiff',
-        'jpeg'
+        ".jpg",
+        ".png",
+        ".pdf",
+        ".tif",
+        ".tiff",
+        ".jpeg",
+        ".jp2",
+        ".bmp",
     ]
     KEY_LENGTH_TABLE: Dict = {}
     DATABASE_INITIAL_DATA: Dict = {}
     KV_CATEGORY_MAPPING: Dict = {}
 
-    # PP CONFIG
-    KV_HINT_CER_THRESHOLD: float = 0.2
-    CLS_HINT_SCORE_THRESHOLD: float = 0.9
-
-
     class Config:
         env_file = "/workspace/.env"
-        env_file_encoding = 'utf-8'
+        env_file_encoding = "utf-8"
 
         @classmethod
         def customise_sources(

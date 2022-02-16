@@ -1,4 +1,4 @@
-version: '2.3'
+version: "2.3"
 
 services:
   postgres:
@@ -51,7 +51,7 @@ services:
 
   pgadmin:
     container_name: pgadmin
-    image: dpage/pgadmin4 #TODO make Dockerfile  
+    image: dpage/pgadmin4 #TODO make Dockerfile
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
@@ -63,7 +63,7 @@ services:
     networks:
       our_net:
         ipv4_address: ${PGADMIN_IP_ADDR}
-  
+
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
     container_name: serving
@@ -93,13 +93,13 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    depends_on: 
+    depends_on:
       - postgres
     cap_add:
       - SYS_PTRACE
     networks:
       our_net:
-          ipv4_address: ${WEB_IP_ADDR}
+        ipv4_address: ${WEB_IP_ADDR}
 
   pp:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
@@ -114,7 +114,7 @@ services:
       - SYS_PTRACE
     networks:
       our_net:
-          ipv4_address: ${PP_IP_ADDR}
+        ipv4_address: ${PP_IP_ADDR}
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
@@ -129,12 +129,12 @@ services:
     restart: unless-stopped
     extra_hosts:
       - ${DATABASE_HOST}
-    depends_on: 
+    depends_on:
       - postgres
     networks:
       our_net:
-          ipv4_address: ${WRAPPER_IP_ADDR}
-   
+        ipv4_address: ${WRAPPER_IP_ADDR}
+
   # nginx:
   #   image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
   #   build:
@@ -168,7 +168,7 @@ services:
     networks:
       our_net:
         ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
-    
+
   hardware_telemetry:
     image: prom/node-exporter:v1.2.2
     container_name: hardware_telemetry
@@ -176,7 +176,7 @@ services:
       our_net:
         ipv4_address: ${NODE_EXPORTER_IP_ADDR}
     entrypoint: /bin/node_exporter
-    
+
   prometheus:
     image: prom/prometheus:v2.30.0
     container_name: prometheus
@@ -186,7 +186,7 @@ services:
       - ./.env:/etc/prometheus/.env
       - prometheus_data:/prometheus
     entrypoint: /bin/prometheus
-    command: 
+    command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --web.console.libraries=/usr/share/prometheus/console_libraries
@@ -195,7 +195,7 @@ services:
       - --storage.tsdb.retention=90d
     networks:
       our_net:
-          ipv4_address: ${PROMETHEUS_IP_ADDR}
+        ipv4_address: ${PROMETHEUS_IP_ADDR}
 
   grafana:
     image: docker.lomin.ai/ts-grafana:${TEXTSCOPE_VERSION}
@@ -206,18 +206,18 @@ services:
     environment:
       - PROMETHEUS_IP_ADDR=${PROMETHEUS_IP_ADDR}
       - PROMETHEUS_IP_PORT=${PROMETHEUS_IP_PORT}
-    volumes: 
+    volumes:
       - grafana_data:/var/lib/grafana
       - ./ldap/grafana.ini:/etc/grafana/grafana.ini
       - ./ldap/ldap.toml:/etc/grafana/ldap.toml
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-    depends_on: 
+    depends_on:
       - prometheus
     restart: always
     networks:
       our_net:
-          ipv4_address: ${GRAFANA_IP_ADDR}
+        ipv4_address: ${GRAFANA_IP_ADDR}
 
   openldap:
     image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
@@ -231,10 +231,9 @@ services:
       - "389:389"
     networks:
       our_net:
-          ipv4_address: ${OPENLDAP_IP_ADDR}
+        ipv4_address: ${OPENLDAP_IP_ADDR}
 
-
-volumes: 
+volumes:
   prometheus_data: {}
   postgres_data: {}
   grafana_data: {}
@@ -246,11 +245,9 @@ volumes:
   #     type: none
   #     device: /docker/data/mysql_data
 
-
 networks:
   our_net:
+    name: our_net
     ipam:
       config:
         - subnet: 10.254.0.0/16
-  ha_net:
-    external: true
