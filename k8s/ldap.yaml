@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openldap-data-pvc
+  labels:
+    app: openldap
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: openldap
+  name: openldap
+  namespace: textscope
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: openldap
+    spec:
+      containers:
+      - name: openldap
+        image: docker.lomin.ai/ts-openldap:0.1.12
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 389
+          protocol: TCP
+        envFrom:
+          - configMapRef:
+              name: ldap
+        volumeMounts:
+          - mountPath: /var/lib/ldap
+            name: openldap-pv
+      volumes:
+        - name: openldap-pv
+          persistentVolumeClaim:
+            claimName: openldap-data-pvc
+  selector:
+    matchLabels:
+      app: openldap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: textscope
+  labels:
+    app: openldap
+spec:
+  selector:
+    app: openldap
+  ports:
+    - protocol: TCP
+      port: 389
+      targetPort: 389
+      name: http
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ldap
+  namespace: textscope
+data:  # Example vars that will get picked up by Flask application
+  SLAPD_PASSWORD: lomin
+  SLAPD_DOMAIN: lomin.ai
+  SLAPD_ADDITIONAL_MODULES: memberof
