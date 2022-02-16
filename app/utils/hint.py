@@ -30,16 +30,14 @@ def apply_cls_hint(
     trust = doc_type_hint.trust
     if not use:
         logger.info("hint use is False")
-        return result
-    if not cls_result and not trust:
+    elif not cls_result and not trust:
         logger.info("classification result is not exist and hint trust is False")
-        return result
-    if trust:
+    elif trust:  # trust=True, cls_result is exist | trust=True, cls_result is not exist
+        logger.debug(f"Change doc type to reliable {hint_doc_type}")
         result.update(
             dict(doc_type=hint_doc_type, is_hint_used=True, is_hint_trusted=True)
         )
-        return result
-    if score < hint_threshold:
+    elif score < hint_threshold:  # trust=False, cls_result is not exist
         logger.debug(
             "Change doc type from {} to {}",
             cls_result.get("doc_type", "None"),

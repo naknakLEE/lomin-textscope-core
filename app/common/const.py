@@ -203,7 +203,16 @@ class Settings(BaseSettings):
     ZIP_PATH: str
     IMG_PATH: str
     SUPPORT_SET_DIR: str
-    IMAGE_VALIDATION: List = ["jpg", "png", "pdf", "tif", "tiff", "jpeg"]
+    IMAGE_VALIDATION: List = [
+        ".jpg",
+        ".png",
+        ".pdf",
+        ".tif",
+        ".tiff",
+        ".jpeg",
+        ".jp2",
+        ".bmp",
+    ]
     KEY_LENGTH_TABLE: Dict = {}
     DATABASE_INITIAL_DATA: Dict = {}
     KV_CATEGORY_MAPPING: Dict = {}

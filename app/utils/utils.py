@@ -134,6 +134,8 @@ def read_all_tiff_pages_with_tifffile(img_path, target_page=-1):
         except FileNotFoundError:
             raise ResourceDataError(f"{img_path} is not exist")
         except:
+            # @FIXME: 범용적인 message로 변경
+            # @TODO: traceback을 추가해서 에러 파악이 쉽도록 구성
             raise ResourceDataError(f"{img_path} is broken")
     return images
 
@@ -174,22 +176,20 @@ def read_pdf_image(image_path, page=1):
     return pil_image
 
 
-def read_image(image_path: Path, page=1, ext_allows: Optional[List] = None):
-    if ext_allows is None:
-        ext_allows = settings.IMAGE_VALIDATION
+def read_image(image_path: Path, page=1, ext_allows: List = settings.IMAGE_VALIDATION):
     ext = image_path.suffix.lower()
-    if ext[1:] not in ext_allows:
+    if ext not in ext_allows:
         raise ValueError(f"{ext} is not supported")
-    if ext in [".tif", ".tiff"]:
+    if ext in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
+        pil_image = read_basic_image(image_path)
+    elif ext in [".pdf"]:
+        pil_image = read_pdf_image(image_path, page)
+    else:  # ext in [".tiff", "tif"]
         try:
             all_pages = read_all_tiff_pages_with_tifffile(image_path, page)
             pil_image = all_pages[page - 1]
         except:
             pil_image = read_tiff_page(image_path, page - 1)
-    elif ext in [".pdf"]:
-        pil_image = read_pdf_image(image_path, page)
-    else:
-        pil_image = read_basic_image(image_path)
     pil_image = pil_image.convert("RGB")
     return pil_image
 
@@ -204,9 +204,9 @@ def load_image2base64(img_path: Path) -> Optional[str]:
     return img_str.decode()
 
 
-def dir_structure_validation(path: Path, ext_allows: Optional[List] = None) -> int:
-    if ext_allows is None:
-        ext_allows = settings.IMAGE_VALIDATION
+def dir_structure_validation(
+    path: Path, ext_allows: List = settings.IMAGE_VALIDATION
+) -> bool:
     files_under_root = list(path.glob("*.*"))
     category_dirs = list(path.iterdir())
     if files_under_root:
@@ -223,7 +223,7 @@ def dir_structure_validation(path: Path, ext_allows: Optional[List] = None) -> i
         if not files:
             raise ValueError(f"{category_dir} is empty")
         for file in files:
-            extension = file.suffix[1:]
+            extension = file.suffix
             if extension not in ext_allows:
                 raise ValueError(f"{extension} is not supported")
     return True

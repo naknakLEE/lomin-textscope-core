@@ -7,6 +7,7 @@ from operator import attrgetter
 from datetime import datetime
 
 from app import wrapper
+from app.models import DocTypeHint
 from app.wrapper import pp
 from app.common import settings
 from app.utils.hint import apply_cls_hint
@@ -188,6 +189,7 @@ def single(
     hint = inputs.get("hint", {})
     if hint is not None and hint.get("doc_type") is not None:
         doc_type_hint = hint.get("doc_type", {})
+        doc_type_hint = DocTypeHint(**doc_type_hint)
         cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
         response_log.update(apply_cls_hint_result=cls_hint_result)
         inputs["doc_type"] = cls_hint_result.get("doc_type")

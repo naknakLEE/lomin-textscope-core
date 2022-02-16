@@ -8,10 +8,14 @@ from app.common.config import config
 from app.common.const import get_settings
 
 # from app.database.query import create_db_table, insert_initial_data
+from app.errors.exceptions import ResourceDataError
 from app.database.schema import create_db_table
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
-from app.middlewares.exception_handler import validation_exception_handler
+from app.middlewares.exception_handler import (
+    validation_exception_handler,
+    resource_exception_handler,
+)
 
 
 settings = get_settings()
@@ -46,6 +50,7 @@ def app_generator() -> FastAPI:
         )
 
     app.add_exception_handler(RuntimeError, validation_exception_handler)
+    app.add_exception_handler(ResourceDataError, resource_exception_handler)
 
     app.add_middleware(TimeoutMiddleware)
     app.add_middleware(LoggingMiddleware)

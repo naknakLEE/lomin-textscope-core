@@ -212,6 +212,7 @@ def get_cls_kv_prediction(
     inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[
         0
     ]
+    # @FIXME: client에서 image visualize를 하는 부분이 따로 존재해서 제거 해도 될듯?
     img_str = load_image2base64(inference_img_path)
 
     image = None
