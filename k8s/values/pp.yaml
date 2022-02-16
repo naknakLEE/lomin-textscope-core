@@ -4,38 +4,13 @@ image:
   repository: docker.lomin.ai/ts-pp-base
   pullPolicy: IfNotPresent
   tag: 0.1.5
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-
-securityContext: {}
+  workingDir: /workspace/pp_server/pp_server/app
+  command: ["python3", "main.py"]
 
 service:
   type: ClusterIP
-  port: 8080
-
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-
-resources: {}
+  port: 80
+  targetport: 8080
 
 autoscaling:
   enabled: true
@@ -43,8 +18,11 @@ autoscaling:
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
+volume:
+  enabled: true
+  hostPath:
+    enabled: true
+    type: Directory
+    path: /home/shinuk/Documents/gallery/Textscope
+  mountPath: /workspace
+  name: pp

@@ -80,3 +80,19 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+configMap:
+  create: false
+  data: {}
+  name: textscope
+
+volumes:
+  enabled: false
+  persistentVolumeClaim:
+    enabled: false
+    claimName: ""
+  hostPath:
+    enabled: false
+    # type:
+  mountPath: "/workspace"
+  # name: 
