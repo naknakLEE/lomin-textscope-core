@@ -4,10 +4,10 @@ global:
   storageClass: ""
   postgresql:
     auth:
-      postgresPassword: ""
-      username: ""
-      password: ""
-      database: ""
+      postgresPassword: 1q2w3e4r
+      username: lomin
+      password: 1q2w3e4r
+      database: textscope
       existingSecret: ""
     service:
       ports:
@@ -38,10 +38,10 @@ image:
   debug: false
 auth:
   enablePostgresUser: true
-  postgresPassword: ""
-  username: ""
-  password: ""
-  database: ""
+  postgresPassword: 1q2w3e4r
+  username: lomin
+  password: 1q2w3e4r
+  database: textscope
   replicationUsername: repl_user
   replicationPassword: ""
   existingSecret: ""
