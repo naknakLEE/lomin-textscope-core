@@ -42,7 +42,7 @@ class SQLAlchemy:
             pool_size=pool_size,
             max_overflow=max_overflow,
         )
-        if os.environ["API_ENV"] == "test":
+        if os.getenv("API_ENV", "production") == "test":
             del engine_config["pool_size"], engine_config["max_overflow"]
         self._engine = create_engine(**engine_config)
         self._session = sessionmaker(

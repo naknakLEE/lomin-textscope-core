@@ -32,4 +32,4 @@ class ProdConfig(Config):
 
 def config() -> Any:
     config = dict(production=ProdConfig(), test=TestConfig())
-    return config.get(os.environ["API_ENV"])
+    return config.get(os.getenv("API_ENV", "production"))
