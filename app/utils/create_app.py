@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
 
-from app.routes import auth, index, users, inference, admin, dataset, prediction, dao, status
+from app.routes import auth, index, users, inference, admin, dataset, prediction, dao, status, ldap
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -60,7 +60,8 @@ def app_generator() -> FastAPI:
 
     app.include_router(index.router, prefix="/v1")
     app.include_router(status.router, tags=["Status"])
-    app.include_router(inference.router, tags=["inference"], prefix="/v1/inference")
+    app.include_router(ldap.router, tags=["Ldap"], prefix="/v1/ldap")
+    app.include_router(inference.router, tags=["Inference"], prefix="/v1/inference")
     app.include_router(users.router, tags=["Users"], prefix="/v1/users")
     app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
     app.include_router(admin.router, tags=["Admin"], prefix="/v1/admin")
