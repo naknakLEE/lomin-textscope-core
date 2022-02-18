@@ -6,11 +6,7 @@ from fastapi.responses import PlainTextResponse, JSONResponse
 from app.utils.utils import print_error_log
 from app.utils.auth import initialize_ldap
 from app.common.const import get_settings
-from rich import pretty
-from rich.traceback import install
 from rich.console import Console
-install(show_locals=True)
-pretty.install()
 console = Console()
 
 

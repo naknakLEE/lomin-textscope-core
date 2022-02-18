@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from dataclasses import asdict
 from prometheusrock import PrometheusMiddleware, metrics_route
+from rich import pretty
+from rich.traceback import install
+install(show_locals=True)
+pretty.install()
 
 from app.routes import auth, index, users, inference, admin, dataset, prediction, dao, status, ldap
 from app.database.connection import db
