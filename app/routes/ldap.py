@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse, JSONResponse
 from app.utils.utils import print_error_log
 from app.utils.auth import initialize_ldap
+from app.common.const import get_settings
 from rich import pretty
 from rich.traceback import install
 from rich.console import Console
@@ -13,11 +14,8 @@ pretty.install()
 console = Console()
 
 
+settings = get_settings()
 router = APIRouter()
-
-
-PASSWORD = "lomin"
-USER = f"cn=admin,dc=lomin,dc=ai"
 
 
 @router.get("/user/search/dc")
@@ -26,7 +24,7 @@ async def search_ldap_user(
     objectClass: str,
     ldap_server=Depends(initialize_ldap)
 ):
-    with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
+    with Connection(ldap_server, user=settings.LDAP_ADMIN_USER, password=settings.LDAP_ADMIN_PASSWORD) as conn:
         try:
             conn.search(
                 search_base=dc, # "cn=frontend,ou=groups,dc=lomin,dc=ai"
@@ -59,7 +57,7 @@ async def search_ldap_user(
     dc: str,
     ldap_server=Depends(initialize_ldap)
 ):
-    with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
+    with Connection(ldap_server, user=settings.LDAP_ADMIN_USER, password=settings.LDAP_ADMIN_PASSWORD) as conn:
         try:
             conn.search(
                 dc,
@@ -86,7 +84,7 @@ async def add_ldap_group(
     dn: str = "cn=group1,dc=lomin,dc=ai",
     ldap_server=Depends(initialize_ldap)
 ):
-    with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
+    with Connection(ldap_server, user=settings.LDAP_ADMIN_USER, password=settings.LDAP_ADMIN_PASSWORD) as conn:
         try:
             ldap_attr = {"objectClass": objectClass, "gidNumber": gidNumber}
             response = conn.add(dn, attributes=ldap_attr)
@@ -104,7 +102,7 @@ async def add_new_user_to_group(
     dn: str = "cn=testuser,cn=groups,dc=lomin,dc=ai",
     ldap_server=Depends(initialize_ldap)
 ):
-    with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
+    with Connection(ldap_server, user=settings.LDAP_ADMIN_USER, password=settings.LDAP_ADMIN_PASSWORD) as conn:
         ldap_attr = {"cn": cn, "sn": sn}
         try:
             response = conn.add(dn, object_class="inetOrgPerson", attributes=ldap_attr)
@@ -120,7 +118,7 @@ async def delete_user(
     dn: str = "cn=testuser,cn=testgroup,dc=lomin,dc=ai",
     ldap_server=Depends(initialize_ldap)
 ):
-    with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
+    with Connection(ldap_server, user=settings.LDAP_ADMIN_USER, password=settings.LDAP_ADMIN_PASSWORD) as conn:
         try:
             response = conn.delete(dn=dn)
         except LDAPException:
@@ -136,7 +134,7 @@ async def update_user(
     sn: str = "us",
     ldap_server=Depends(initialize_ldap)
 ):
-    with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
+    with Connection(ldap_server, user=settings.LDAP_ADMIN_USER, password=settings.LDAP_ADMIN_PASSWORD) as conn:
         try:
             conn.modify(
                 dn,
