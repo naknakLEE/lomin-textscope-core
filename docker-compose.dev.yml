@@ -31,7 +31,7 @@ services:
       - DISPLAY=$DISPLAY
       - NVIDIA_VISIBLE_DEVICES=all
       - TERM=$TERM
-      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - WARMUP_COUNT=0
       - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
       - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
     tty: true
@@ -55,7 +55,7 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8000:8000
+      - 8000:80
       - 8267:8265
     volumes:
       - ./:/workspace
@@ -73,7 +73,7 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8080:8080
+      - 8080:80
     volumes:
       - ./:/workspace
     tty: true
@@ -92,8 +92,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
         CUSTOMER: ${CUSTOMER}
     ports:
-      - 8090:8090
-      - 11120:11120
+      - 8090:80
     volumes:
       - ./:/workspace
     tty: true
