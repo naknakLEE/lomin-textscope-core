@@ -1,14 +1,13 @@
 from typing import List
 from ldap3 import Connection, MODIFY_REPLACE
 from ldap3.core.exceptions import LDAPException
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse, JSONResponse
 from app.utils.utils import print_error_log
 from app.utils.auth import initialize_ldap
 from rich import pretty
 from rich.traceback import install
 from rich.console import Console
-
 install(show_locals=True)
 pretty.install()
 console = Console()
@@ -22,8 +21,11 @@ USER = f"cn=admin,dc=lomin,dc=ai"
 
 
 @router.get("/user/search/dc")
-async def search_ldap_user(dc: str, objectClass: str):
-    ldap_server = await initialize_ldap()
+async def search_ldap_user(
+    dc: str, 
+    objectClass: str,
+    ldap_server=Depends(initialize_ldap)
+):
     with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
         try:
             conn.search(
@@ -52,8 +54,11 @@ async def search_ldap_user(dc: str, objectClass: str):
 
 
 @router.get("/user/search/cn")
-async def search_ldap_user(cn: str, dc: str):
-    ldap_server = await initialize_ldap()
+async def search_ldap_user(
+    cn: str, 
+    dc: str,
+    ldap_server=Depends(initialize_ldap)
+):
     with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
         try:
             conn.search(
@@ -76,9 +81,11 @@ async def search_ldap_user(cn: str, dc: str):
 
 @router.post("/group/create")
 async def add_ldap_group(
-    objectClass: List[str], gidNumber: str, dn: str = "cn=group1,dc=lomin,dc=ai"
+    objectClass: List[str], 
+    gidNumber: str, 
+    dn: str = "cn=group1,dc=lomin,dc=ai",
+    ldap_server=Depends(initialize_ldap)
 ):
-    ldap_server = await initialize_ldap()
     with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
         try:
             ldap_attr = {"objectClass": objectClass, "gidNumber": gidNumber}
@@ -95,8 +102,8 @@ async def add_new_user_to_group(
     cn: str = "test user",
     sn: str = "AD",
     dn: str = "cn=testuser,cn=groups,dc=lomin,dc=ai",
+    ldap_server=Depends(initialize_ldap)
 ):
-    ldap_server = await initialize_ldap()
     with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
         ldap_attr = {"cn": cn, "sn": sn}
         try:
@@ -109,8 +116,10 @@ async def add_new_user_to_group(
 
 
 @router.post("/user/delete")
-async def delete_user(dn: str = "cn=testuser,cn=testgroup,dc=lomin,dc=ai"):
-    ldap_server = await initialize_ldap()
+async def delete_user(
+    dn: str = "cn=testuser,cn=testgroup,dc=lomin,dc=ai",
+    ldap_server=Depends(initialize_ldap)
+):
     with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
         try:
             response = conn.delete(dn=dn)
@@ -122,9 +131,11 @@ async def delete_user(dn: str = "cn=testuser,cn=testgroup,dc=lomin,dc=ai"):
 
 @router.put("/user/update")
 async def update_user(
-    dn: str = "cn=user1,ou=users,o=company", givenName: str = "user2", sn: str = "us"
+    dn: str = "cn=user1,ou=users,o=company", 
+    givenName: str = "user2", 
+    sn: str = "us",
+    ldap_server=Depends(initialize_ldap)
 ):
-    ldap_server = await initialize_ldap()
     with Connection(ldap_server, user=USER, password=PASSWORD) as conn:
         try:
             conn.modify(
