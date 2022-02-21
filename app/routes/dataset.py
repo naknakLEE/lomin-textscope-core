@@ -71,7 +71,8 @@ def upload_cls_training_dataset(
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     # category validation
-    category_dirs = list(zip_folder_path.iterdir())
+    train_dataset_dir = zip_folder_path / "train"
+    category_dirs = list(train_dataset_dir.iterdir())
     is_category_dirs = [d.is_dir() for d in category_dirs]
     if not all(is_category_dirs):
         response = dict(
@@ -83,7 +84,7 @@ def upload_cls_training_dataset(
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     # sub directory validation
-    validation_result = dir_structure_validation(zip_folder_path)
+    validation_result = dir_structure_validation(train_dataset_dir)
     if not validation_result:
         response = dict(
             request_datetime=request_datetime,
@@ -94,7 +95,7 @@ def upload_cls_training_dataset(
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     # image validation
-    images = list(set(zip_folder_path.rglob("*")) - set(category_dirs))
+    images = list(set(zip_folder_path.rglob("**/*.*")) - set(category_dirs))
     for image in images:
         file_validation_result = image_file_validation(image)
         logger.info(f"file validation: {zip_file_name}, {file_validation_result}")
@@ -115,7 +116,8 @@ def upload_cls_training_dataset(
     dataset_pkey, dataset_id = query.insert_training_dataset(
         session, **dao_dataset_params
     )
-    new_categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
+    saved_dataset_dir = (save_path.parent / zip_file_name / "train")
+    new_categories = list(saved_dataset_dir.iterdir())
     support_set_path = Path(settings.SUPPORT_SET_DIR)
     pretrained_categories = [d for d in support_set_path.iterdir() if d.is_dir()]
 
@@ -137,7 +139,7 @@ def upload_cls_training_dataset(
         }
         query.insert_category(session, **dao_category_params)
 
-    if not exist_category_list:
+    if len(exist_category_list) > 0:
         for category in pretrained_categories:
             dao_category_params = {
                 "category_name_en": category.name,
