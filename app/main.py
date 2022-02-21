@@ -13,7 +13,7 @@ app = app_generator()
 args = {
     "app": "main:app",
     "host": "0.0.0.0",
-    "port": 8000,
+    "port": settings.WEB_IP_PORT,
     "workers": settings.TEXTSCOPE_CORE_WORKERS,
 }
 if settings.DEVELOP:
