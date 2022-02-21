@@ -224,7 +224,7 @@ def dir_structure_validation(
             raise ValueError(f"{category_dir} is empty")
         for file in files:
             extension = file.suffix
-            if extension not in ext_allows:
+            if extension.lower() not in ext_allows:
                 raise ValueError(f"{extension} is not supported")
     return True
 
