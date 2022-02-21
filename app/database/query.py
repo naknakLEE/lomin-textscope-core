@@ -77,10 +77,10 @@ def select_image(db: Session, **kwargs):
     return res
 
 
-def insert_image(db: Session, data):
+def insert_image(db: Session, **kwargs):
     dao = schema.Image
     try:
-        result = dao.create(db, **data)
+        result = dao.create(db, **kwargs)
     except Exception as e:
         logger.warning(f"image insert error: {e}")
         db.rollback()
