@@ -62,7 +62,7 @@ def select_image_all(db: Session):
     try:
         res = dao.get_all(db)
     except Exception as e:
-        logger.warning(f"image select error: {e}")
+        logger.error(f"image select error: {e}")
         res = None
     return res
 
@@ -72,7 +72,7 @@ def select_image(db: Session, **kwargs):
     try:
         res = dao.get(db, **kwargs)
     except Exception as e:
-        logger.warning(f"image select error: {e}")
+        logger.error(f"image select error: {e}")
         res = None
     return res
 
@@ -82,7 +82,7 @@ def insert_image(db: Session, **kwargs):
     try:
         result = dao.create(db, **kwargs)
     except Exception as e:
-        logger.warning(f"image insert error: {e}")
+        logger.error(f"image insert error: {e}")
         db.rollback()
         return False
     return result
@@ -94,7 +94,7 @@ def select_category(db: Session, **kwargs):
     try:
         res = dao.get(db, **kwargs)
     except Exception as e:
-        logger.warning(f"category select error: {e}")
+        logger.error(f"category select error: {e}")
         res = None
     return res
 
@@ -106,7 +106,7 @@ def insert_task(session: Session, data):
         result = dao.create(session, **data)
     except Exception:
         print_error_log()
-        # logger.warning(f'task insert error: {e}')
+        # logger.error(f'task insert error: {e}')
         # db.rollback()
         return False
     return result
@@ -117,7 +117,7 @@ def update_task(db: Session, pkey: int, data: models.UpdateTask):
     try:
         result = dao.update(db, pkey=pkey, **data.dict())
     except Exception as e:
-        logger.warning(f"task update error: {e}")
+        logger.error(f"task update error: {e}")
         db.rollback()
         return False
     return result
@@ -129,7 +129,7 @@ def insert_inference(db: Session, data: models.CreateInference):
     try:
         result = dao.create(db, **data.dict())
     except Exception as e:
-        logger.warning(f"inference insert error: {e}")
+        logger.error(f"inference insert error: {e}")
         db.rollback()
         return False
     return result
@@ -184,7 +184,7 @@ def insert_inference_result(
         )
         db.commit()
     except Exception as ex:
-        logger.warning(f"insert error: {ex}")
+        logger.error(f"insert error: {ex}")
         db.rollback()
         return False
 
@@ -222,7 +222,7 @@ def delete_dataset(db: Session, dataset_id: str):
         query = db.query(schema.Dataset).filter_by(dataset_id=dataset_id).delete()
     except Exception as ex:
         db.rollback()
-        logger.warning(f"delete error: {ex}")
+        logger.error(f"delete error: {ex}")
         return False
 
     db.commit()
@@ -247,7 +247,7 @@ def delete_inference_all(db: Session):
     try:
         db.query(schema.Inference).delete()
     except Exception as ex:
-        logger.warning(f"delete error: {ex}")
+        logger.error(f"delete error: {ex}")
         db.rollback()
         return False
     return True
@@ -426,14 +426,14 @@ def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
             logger.info(f"delete test: {category.category_pkey, q}")
         except Exception as ex:
             db.rollback()
-            logger.warning(f"delete error: {ex}")
+            logger.error(f"delete error: {ex}")
             return False
 
     try:
         query.delete()
     except Exception as ex:
         db.rollback()
-        logger.warning(f"delete error: {ex}")
+        logger.error(f"delete error: {ex}")
         return False
     db.commit()
     return True

@@ -55,7 +55,7 @@ def upload_cls_training_dataset(
             response_datetime=datetime.now(),
             message=f"zip file validation failed: {ex}",
         )
-        logger.warning(response.get("msg"))
+        logger.error(response.get("msg"))
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     zip_file_name = Path(file_name).stem
@@ -67,7 +67,7 @@ def upload_cls_training_dataset(
             response_datetime=datetime.now(),
             message=f"zip extraction failed",
         )
-        logger.warning(response.get("msg"))
+        logger.error(response.get("msg"))
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     # category validation
@@ -80,7 +80,7 @@ def upload_cls_training_dataset(
             response_datetime=datetime.now(),
             message=f"category directory validation failed",
         )
-        logger.warning(response.get("msg"))
+        logger.error(response.get("msg"))
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     # sub directory validation
@@ -91,7 +91,7 @@ def upload_cls_training_dataset(
             response_datetime=datetime.now(),
             message=f"directory structure validation failed",
         )
-        logger.warning(response.get("msg"))
+        logger.error(response.get("msg"))
         return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     # image validation
@@ -105,7 +105,7 @@ def upload_cls_training_dataset(
                 response_datetime=datetime.now(),
                 message=f"file validation failed",
             )
-            logger.warning(response.get("msg"))
+            logger.error(response.get("msg"))
             return JSONResponse(status_code=415, content=jsonable_encoder(response))
 
     dao_dataset_params = {
