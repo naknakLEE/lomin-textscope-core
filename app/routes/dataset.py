@@ -7,14 +7,15 @@ from typing import Dict
 from pathlib import Path
 from datetime import datetime
 from fastapi import APIRouter, Body, Depends
+from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
-from app.database.connection import db
+from app import models
+from app.errors import exceptions as ex
 from app.common.const import get_settings
 from app.utils.logging import logger
-from app import models
-from sqlalchemy.orm import Session
+from app.database.connection import db
 from app.utils.utils import (
     cal_time_elapsed_seconds,
     dir_structure_validation,
@@ -25,6 +26,7 @@ from app.database import query
 
 settings = get_settings()
 router = APIRouter()
+
 
 
 @router.post("/cls")
@@ -49,50 +51,28 @@ def upload_cls_training_dataset(
     try:
         with zipfile.ZipFile(save_path, "r") as zip_file:
             zip_file.extractall(save_path.parent)
-    except Exception as ex:
-        response = dict(
-            request_datetime=request_datetime,
-            response_datetime=datetime.now(),
-            message=f"zip file validation failed: {ex}",
-        )
-        logger.error(response.get("msg"))
-        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+    except Exception as exc:
+        msg = "Zip file validation"
+        logger.exception(msg)
+        raise ex.ExtractException(msg=msg, exc=exc)
 
     zip_file_name = Path(file_name).stem
     zip_folder_path = save_path.parent / zip_file_name
     is_exist = zip_folder_path.exists()
     if not is_exist:
-        response = dict(
-            request_datetime=request_datetime,
-            response_datetime=datetime.now(),
-            message=f"zip extraction failed",
-        )
-        logger.error(response.get("msg"))
-        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        raise ex.NotExistException(msg="Zip extraction failed")
 
     # category validation
     train_dataset_dir = zip_folder_path / "train"
     category_dirs = list(train_dataset_dir.iterdir())
     is_category_dirs = [d.is_dir() for d in category_dirs]
     if not all(is_category_dirs):
-        response = dict(
-            request_datetime=request_datetime,
-            response_datetime=datetime.now(),
-            message=f"category directory validation failed",
-        )
-        logger.error(response.get("msg"))
-        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        return ex.ValidationFailedException(msg="Category directory validation failed")
 
     # sub directory validation
     validation_result = dir_structure_validation(train_dataset_dir)
     if not validation_result:
-        response = dict(
-            request_datetime=request_datetime,
-            response_datetime=datetime.now(),
-            message=f"directory structure validation failed",
-        )
-        logger.error(response.get("msg"))
-        return JSONResponse(status_code=415, content=jsonable_encoder(response))
+        return ex.ValidationFailedException(msg="Directory structure validation failed")
 
     # image validation
     images = list(set(zip_folder_path.rglob("**/*.*")) - set(category_dirs))
@@ -100,13 +80,7 @@ def upload_cls_training_dataset(
         file_validation_result = image_file_validation(image)
         logger.info(f"file validation: {zip_file_name}, {file_validation_result}")
         if file_validation_result:
-            response = dict(
-                request_datetime=request_datetime,
-                response_datetime=datetime.now(),
-                message=f"file validation failed",
-            )
-            logger.error(response.get("msg"))
-            return JSONResponse(status_code=415, content=jsonable_encoder(response))
+            return ex.ValidationFailedException(msg="file validation failed")
 
     dao_dataset_params = {
         "dataset_id": inputs.get("dataset_id"),
@@ -118,12 +92,12 @@ def upload_cls_training_dataset(
     )
     saved_dataset_dir = save_path.parent / zip_file_name / "train"
     new_categories = list(saved_dataset_dir.iterdir())
-
     
     for category in new_categories:
         dao_category_params = {
             "category_name_en": category.name,
-            "category_code": "A01",
+            "category_name_kr": category.name,
+            "category_code": category.name,
             "is_pretrained": False,
         }
         category_pkey = query.insert_category(session, **dao_category_params)
@@ -135,7 +109,7 @@ def upload_cls_training_dataset(
                     "image_path": str(image),
                     "category_pkey": category_pkey,
                     "dataset_pkey": dataset_pkey,
-                    "image_type": "training",
+                    "image_type": "TRAINING",
                 }
                 query.insert_image(session, **dao_image_params)
 
@@ -150,7 +124,6 @@ def upload_cls_training_dataset(
             image_list=images,
         )
     )
-
     response.update(dict(response_log=response_log))
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))

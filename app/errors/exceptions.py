@@ -187,3 +187,37 @@ class ResourceDataError(Exception):
         self.detail = detail
         self.exc = exc
         super().__init__(exc)
+
+
+# TODO: status code 적합하게 변경
+class ExtractException(APIException):
+    def __init__(self, msg: str, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=415,
+            msg=msg,
+            detail="",
+            code="8500",
+            exc=exc,
+        )
+
+
+class NotExistException(APIException):
+    def __init__(self, msg: str, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=415,
+            msg=msg,
+            detail="",
+            code="8600",
+            exc=exc,
+        )
+    
+
+class ValidationFailedException(APIException):
+    def __init__(self, msg: str, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=415,
+            msg=msg,
+            detail="",
+            code="8700",
+            exc=exc,
+        )
