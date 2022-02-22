@@ -113,14 +113,15 @@ class Settings(BaseSettings):
     LOG_RETENTION: str = "30 days"
     LOG_LEVEL: str = "DEBUG"
     FILE_MAX_BYTE: int = 1024 * 1024
-    BACKUP_COUNT: int = 100000000
+    BACKUP_COUNT: int = 10
     BACKTRACE: str = "True"
     DIAGNOSE: str = "True"
     ENQUEUE: str = "True"
     COLORIZE: str = "True"
     SERIALIZE = "serialize"
     ENCODING: str = "utf-8"
-    FORMAT: str = "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"
+    FORMAT: str = "complex" # simple or complex
+    
 
     # FAKE DATA
     FAKE_SUPERUSER_INFORMATION: Dict = {
