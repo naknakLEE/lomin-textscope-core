@@ -120,6 +120,7 @@ def upload_image(
     image_data = inputs.get("file", "")
     image_name = inputs.get("file_name", "")
     image_id = inputs.get("image_id", "")
+    image_type = inputs.get("image_type", "NOTSET")
     decoded_image_data = base64.b64decode(image_data)
 
     root_path = Path(settings.IMG_PATH)
@@ -138,8 +139,9 @@ def upload_image(
         dao_image_params = {
             "image_id": image_id,
             "image_path": str(save_path),
+            "image_type": image_type
         }
-        query.insert_image(session, dao_image_params)
+        query.insert_image(session, **dao_image_params)
     else:
         # @TODO: file not saved
         pass
