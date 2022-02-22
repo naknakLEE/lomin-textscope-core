@@ -116,50 +116,17 @@ def upload_cls_training_dataset(
     dataset_pkey, dataset_id = query.insert_training_dataset(
         session, **dao_dataset_params
     )
-    saved_dataset_dir = (save_path.parent / zip_file_name / "train")
+    saved_dataset_dir = save_path.parent / zip_file_name / "train"
     new_categories = list(saved_dataset_dir.iterdir())
-    support_set_path = Path(settings.SUPPORT_SET_DIR)
-    pretrained_categories = [d for d in support_set_path.iterdir() if d.is_dir()]
 
-    exist_category_list = query.select_category_all(session)
-    exist_category_name_list = [
-        category.category_name_en for category in exist_category_list
-    ]
-
-    check_category_else_flag = False
-    for exist_category in exist_category_list:
-        if exist_category.category_name_en == "기타":
-            check_category_else_flag = True
-
-    if not check_category_else_flag:
-        dao_category_params = {
-            "category_name_en": "기타",
-            "category_code": "P01",
-            "is_pretrained": True,
-        }
-        query.insert_category(session, **dao_category_params)
-
-    if len(exist_category_list) > 0:
-        for category in pretrained_categories:
-            dao_category_params = {
-                "category_name_en": category.name,
-                "category_code": "P01",
-                "is_pretrained": True,
-            }
-            category_pkey = query.insert_category(session, **dao_category_params)
-
+    
     for category in new_categories:
-        if category.name not in exist_category_name_list:
-            dao_category_params = {
-                "category_name_en": category.name,
-                "category_code": "A01",
-                "is_pretrained": False,
-            }
-            category_pkey = query.insert_category(session, **dao_category_params)
-        else:
-            category_pkey = query.select_category_by_name(
-                session, category_name=category.name
-            )
+        dao_category_params = {
+            "category_name_en": category.name,
+            "category_code": "A01",
+            "is_pretrained": False,
+        }
+        category_pkey = query.insert_category(session, **dao_category_params)
 
         for image in images:
             if str(image).find(category.name) != -1:
