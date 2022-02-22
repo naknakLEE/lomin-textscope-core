@@ -1,7 +1,11 @@
 import os
+import logging
 
 from loguru import logger
+from rich.logging import RichHandler
+
 from app.common.const import get_settings
+
 
 settings = get_settings()
 
@@ -9,18 +13,19 @@ log_dir_path = settings.TEXTSCOPE_LOG_DIR_PATH
 os.makedirs(log_dir_path, exist_ok=True)
 log_path = os.path.join(log_dir_path, "server.log")
 
-logger.add(
-    log_path,
-    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-    rotation=settings.LOG_ROTATION,
-    retention=settings.LOG_RETENTION,
-    encoding=settings.ENCODING,
-    level=settings.LOG_LEVEL,
-    backtrace=settings.BACKTRACE,
-    diagnose=settings.DIAGNOSE,
-    enqueue=settings.ENQUEUE,
-    colorize=settings.COLORIZE,
+fileHandler = logging.handlers.RotatingFileHandler(
+	log_path,
+    mode='a',
+    maxBytes=10000000,
+    backupCount=10,
+    encoding=settings.ENCODING, 
+    delay=True
 )
-
-# handler = logging.handlers.SysLogHandler(address=("0.0.0.0", settings.KB_WRAPPER_IP_PORT))
-# logger.add(handler)
+logging.basicConfig(
+    level="NOTSET",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True, tracebacks_width=1000)]
+)
+logger = logging.getLogger('wrapper-textscope')
+logger.addHandler(fileHandler)
