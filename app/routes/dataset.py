@@ -6,7 +6,7 @@ import uuid
 from typing import Dict
 from pathlib import Path
 from datetime import datetime
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
@@ -31,9 +31,8 @@ router = APIRouter()
 
 @router.post("/cls")
 def upload_cls_training_dataset(
-    request: dict = Body(...), session: Session = Depends(db.session)
+    inputs: dict = Body(...), session: Session = Depends(db.session)
 ) -> JSONResponse:
-    inputs = request
     response = dict()
     request_datetime = datetime.now()
     response_log = dict()
@@ -54,25 +53,25 @@ def upload_cls_training_dataset(
     except Exception as exc:
         msg = "Zip file validation"
         logger.exception(msg)
-        raise ex.ExtractException(msg=msg, exc=exc)
+        raise HTTPException(status_code=415, detail=vars(ex.ExtractException(msg=msg, exc=str(exc))))
 
     zip_file_name = Path(file_name).stem
     zip_folder_path = save_path.parent / zip_file_name
     is_exist = zip_folder_path.exists()
     if not is_exist:
-        raise ex.NotExistException(msg="Zip extraction failed")
+        raise HTTPException(status_code=415, detail=vars(ex.NotExistException(msg="Zip extraction failed")))
 
     # category validation
     train_dataset_dir = zip_folder_path / "train"
     category_dirs = list(train_dataset_dir.iterdir())
     is_category_dirs = [d.is_dir() for d in category_dirs]
     if not all(is_category_dirs):
-        return ex.ValidationFailedException(msg="Category directory validation failed")
+        raise HTTPException(status_code=415, detail=vars(ex.ValidationFailedException(msg="Category directory validation failed")))
 
     # sub directory validation
     validation_result = dir_structure_validation(train_dataset_dir)
     if not validation_result:
-        return ex.ValidationFailedException(msg="Directory structure validation failed")
+        raise HTTPException(status_code=415, detail=vars(ex.ValidationFailedException(msg="Directory structure validation failed")))
 
     # image validation
     images = list(set(zip_folder_path.rglob("**/*.*")) - set(category_dirs))
@@ -80,7 +79,7 @@ def upload_cls_training_dataset(
         file_validation_result = image_file_validation(image)
         logger.info(f"file validation: {zip_file_name}, {file_validation_result}")
         if file_validation_result:
-            return ex.ValidationFailedException(msg="file validation failed")
+            raise HTTPException(status_code=415, detail=vars(ex.ValidationFailedException(msg="file validation failed")))
 
     dao_dataset_params = {
         "dataset_id": inputs.get("dataset_id"),
