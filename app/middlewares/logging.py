@@ -45,7 +45,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 )
                 request.state.email = payload.get("sub")
             response = await call_next(request)
-            await api_logger(request=request, response=response)
+            api_logger(request=request, response=response)
         except Exception as e:
             error = await exception_handler(e)
             error_dict = dict(
@@ -55,7 +55,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 code=error.code,
             )
             response = JSONResponse(status_code=error.status_code, content=error_dict)
-            await api_logger(request=request, error=error)
+            api_logger(request=request, error=error)
         finally:
             if settings.USE_TEXTSCOPE_DATABASE:
                 request.state.db.close()

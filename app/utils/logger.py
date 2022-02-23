@@ -11,7 +11,7 @@ from app.common.const import get_settings
 settings = get_settings()
 
 
-async def api_logger(request: Request, response=None, error=None) -> None:
+def api_logger(request: Request, response=None, error=None) -> None:
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
     error_log = None
