@@ -34,7 +34,7 @@ def get_logging_config_dict(
                     "formatter": "console",
                     "class": "rich.logging.RichHandler",
                     "rich_tracebacks": True,
-                    "tracebacks_show_locals": True,
+                    # "tracebacks_show_locals": True,
                     "show_path": get_debug_mode(),  # show log line # in debug mode
                 }
             }
@@ -141,5 +141,6 @@ def configure_logging(
 
 
 configure_logging()
+
 
 logger = logging.getLogger("textscope")
