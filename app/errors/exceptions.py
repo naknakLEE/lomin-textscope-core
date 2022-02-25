@@ -84,7 +84,7 @@ class PrivielgeException(APIException):
         )
 
 
-class AlreadyExistException(APIException):
+class AlreadyExistUserException(APIException):
     def __init__(self, email: str = None, exc: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
@@ -219,5 +219,15 @@ class ValidationFailedException(APIException):
             msg=msg,
             detail="",
             code="8700",
+            exc=exc,
+        )
+
+class AlreadyExistDataException(APIException):
+    def __init__(self, target: str = None, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"This {target} already exist",
+            detail="",
+            code="8800",
             exc=exc,
         )

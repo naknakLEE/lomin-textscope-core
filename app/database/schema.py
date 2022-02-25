@@ -1,6 +1,7 @@
 import enum
+import yaml
 from datetime import datetime
-from typing import Any, List, Optional, TypeVar, Dict
+from typing import Any, List, Optional, TypeVar, Dict, Union
 from sqlalchemy import (
     Column,
     Integer,
@@ -20,6 +21,7 @@ from passlib.context import CryptContext
 from pydantic.networks import EmailStr
 
 from app.database.connection import Base, db
+from app.utils.logging import logger
 from app.common.const import get_settings
 from app.models import User
 
@@ -39,6 +41,27 @@ class StatusEnum(enum.Enum):
     INACTIVE = 2
     DISABLED = 3
 
+
+exist_column_table = {
+    "Dataset": "dataset_id",
+    "Users": "email",
+    "Model": "model_id",
+    "Category": "category_name_kr,dataset_pkey,model_pkey",
+    "Image": "image_id,image_path",
+    "Inference": "task_id,inference_type"
+}
+
+exist_column_message_table = {
+    "Dataset": "dataset_id",
+    "Users": "email",
+    "Model": "model_id",
+    "Category": "category_name_kr,dataset_pkey,model_pkey",
+    "Image": "image_id,image_path",
+    "Inference": "task_id,inference_type"
+}
+
+
+
 class BaseMixin:
     # id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
@@ -49,6 +72,22 @@ class BaseMixin:
             for c in self.__table__.columns  # type: ignore
             if c.primary_key is False and c.name != "created_at"
         ]
+    
+    @classmethod
+    def check_raw_exists(cls, session, kwargs):
+        check_columns = exist_column_table.get(cls.__name__)
+        message = ""
+        if check_columns is None:
+            return (message)
+        inputs = {}
+        for check_column in check_columns.split(","):
+            inputs[check_column] = kwargs.get(check_column)
+        is_exist = cls.get(session, **inputs)
+        if is_exist:
+            message = f"This {check_columns} already exist"
+            logger.warning(f"{message}\n{yaml.dump([kwargs])}")
+            return (message)
+        return (message)
 
     @classmethod
     def get(cls, session: Session, **kwargs) -> Optional[ModelType]:
@@ -88,7 +127,10 @@ class BaseMixin:
     @classmethod
     def create(
         cls, session: Session, auto_commit=True, **kwargs
-    ) -> Optional[ModelType]:
+    ) -> Optional[Union[ModelType, str]]:
+        check_result = cls.check_raw_exists(session, kwargs)
+        if check_result:
+            return check_result
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name
@@ -146,6 +188,7 @@ class Logs(Base, BaseMixin):
     request_timestamp = Column(String(length=255), nullable=False)
     response_timestamp = Column(String(length=255), nullable=False)
     processed_time = Column(String(length=255), nullable=False)
+
 
 class Usage(Base, BaseMixin):
     __tablename__ = "usage"
@@ -225,7 +268,7 @@ class Dataset(Base, BaseMixin):
     dataset_pkey = Column(Integer, primary_key=True)
     root_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop')
     dataset_id = Column(String(50))
-    zip_file_name = Column(String(50))
+    dataset_dir_name = Column(String(50))
 
     image = relationship('Image', back_populates='dataset')
 
@@ -251,14 +294,16 @@ class Category(Base, BaseMixin):
     category_pkey = Column(Integer, primary_key=True)
     category_name_en = Column(String(50), comment='category_a')
     category_name_kr = Column(String(50), comment='주민등록등본')
-    model_pkey = Column(ForeignKey('model.model_pkey'))
     category_code = Column(String(50))
-    is_pretrained = Column(Boolean)
+    model_pkey = Column(ForeignKey('model.model_pkey'))
+    dataset_pkey = Column(ForeignKey('dataset.dataset_pkey'))
 
+    model = relationship('Datset', back_populates='category')
     model = relationship('Model', back_populates='category')
     image = relationship('Image', back_populates='category')
 
 
+# 중복된 데이터가 들어올 수 있으니 dataset pkey까지 사용해 저장 경로 만들도록 구성
 class Image(Base, BaseMixin):
     __tablename__ = 'image'
 
@@ -281,13 +326,11 @@ class Inference(Base, BaseMixin):
 
     inference_pkey = Column(Integer, primary_key=True)
     task_id = Column(String(50), nullable=False)
-    inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
-    create_datetime = Column(DateTime, nullable=True)
+    inference_type = Column(String(10), nullable=False, comment="['kv', 'gocr']")
     inference_result = Column(JSON)
     image_pkey = Column(ForeignKey('image.image_pkey'))
     start_datetime = Column(DateTime, nullable=True)
-    finsh_datetime = Column(DateTime, nullable=True)
-    inference_img_path = Column(String(200), nullable=True)
+    end_datetime = Column(DateTime, nullable=True)
 
     image = relationship('Image', back_populates='inference')
 
@@ -388,7 +431,7 @@ CREATE TABLE inference
     inference_img_path    varchar(300)    NULL,
     inference_result      json            NULL,
     start_datetime        timestamp       NULL,
-    finsh_datetime        timestamp       NULL,
+    end_datetime        timestamp       NULL,
     create_datetime       timestamp       NULL,
     inference_sequence    integer         NULL,
      PRIMARY KEY (pkey)

@@ -13,10 +13,11 @@ from pathlib import Path
 from pdf2image import convert_from_path
 from io import BytesIO
 from PIL import Image
-from app.common.const import get_settings
+from rich.progress import track
 from datetime import datetime
-from app.errors.exceptions import ResourceDataError
 
+from app.common.const import get_settings
+from app.errors.exceptions import ResourceDataError
 from app.utils.logging import logger
 
 
@@ -207,32 +208,34 @@ def load_image2base64(img_path: Path) -> Optional[str]:
 def dir_structure_validation(
     path: Path, ext_allows: List = settings.IMAGE_VALIDATION
 ) -> bool:
-    files_under_root = list(path.glob("*.*"))
-    category_dirs = list(path.iterdir())
-    if files_under_root:
-        raise ValueError("exist file under the root dir")
-    if not category_dirs:
-        raise ValueError("directory is empty")
-    for category_dir in category_dirs:
-        is_exist_sub_dir = list(
-            sub_dir for sub_dir in category_dir.iterdir() if sub_dir.is_dir()
-        )
-        files = list(category_dir.rglob("*.*"))
-        if is_exist_sub_dir:
-            raise ValueError(f"{category_dir} include sub dir")
-        if not files:
-            raise ValueError(f"{category_dir} is empty")
-        for file in files:
-            extension = file.suffix
-            if extension.lower() not in ext_allows:
-                raise ValueError(f"{extension} is not supported")
+    for folder_name in track(["train","val","test"], description="Folder structure validation"):
+        folder_path = path / folder_name
+        files_under_root = list(folder_path.glob("*.*"))
+        category_dirs = list(folder_path.iterdir())
+        if files_under_root:
+            raise ValueError("exist file under the root dir")
+        if not category_dirs:
+            raise ValueError("directory is empty")
+        for category_dir in category_dirs:
+            is_exist_sub_dir = list(
+                sub_dir for sub_dir in category_dir.iterdir() if sub_dir.is_dir()
+            )
+            files = list(category_dir.rglob("*.*"))
+            if is_exist_sub_dir:
+                raise ValueError(f"{category_dir} include sub dir")
+            if not files:
+                raise ValueError(f"{category_dir} is empty")
+            for file in files:
+                extension = file.suffix
+                if extension.lower() not in ext_allows:
+                    raise ValueError(f"{extension} is not supported")
     return True
 
 
 def image_file_validation(file: Path) -> bool:
     white_list = settings.IMAGE_VALIDATION
 
-    file_format = file.suffix[1:].lower()
+    file_format = file.suffix.lower()
     if file_format not in white_list:
         return False
 

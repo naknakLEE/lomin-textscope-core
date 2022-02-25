@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import Dict
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
@@ -77,13 +78,28 @@ def select_image(db: Session, **kwargs):
     return res
 
 
-def insert_image(db: Session, **kwargs):
+
+def insert_image(
+    session: Session,
+    image_path: str,
+    category_pkey: int,
+    dataset_pkey: int,
+    image_id: str = str(uuid.uuid4()),
+    image_type: str = "TRAINING",  
+):
     dao = schema.Image
     try:
-        result = dao.create(db, **kwargs)
+        result = dao.create(
+            session=session,
+            image_path=image_path,
+            category_pkey=category_pkey,
+            dataset_pkey=dataset_pkey,
+            image_id=image_id,
+            image_type=image_type,
+        )
     except Exception as e:
         logger.error(f"image insert error: {e}")
-        db.rollback()
+        session.rollback()
         return False
     return result
 
@@ -94,7 +110,7 @@ def select_category(db: Session, **kwargs):
     try:
         res = dao.get(db, **kwargs)
     except Exception as e:
-        logger.error(f"category select error: {e}")
+        logger.exception(f"category select error: {e}")
         res = None
     return res
 
@@ -160,8 +176,7 @@ def select_dataset(db: Session, dataset_id: str):
         .select_from(schema.Dataset)
         .filter(schema.Dataset.dataset_id == dataset_id)
     )
-    res = query.all()
-    return res
+    return query.first()
 
 
 def insert_inference_result(
@@ -189,22 +204,36 @@ def insert_inference_result(
         return False
 
 
-def insert_training_dataset(db: Session, **kwargs):
-    res = schema.Dataset.create(db, **kwargs)
-    if res:
-        return res.dataset_pkey, res.dataset_id
+def insert_training_dataset(
+    session: Session,
+    dataset_id: str,
+    root_path: str,
+    dataset_dir_name: str,
+):
+    res = schema.Dataset.create(session=session, dataset_id=dataset_id, root_path=root_path, dataset_dir_name=dataset_dir_name)
+    return res
 
 
-def insert_category(db: Session, **kwargs):
-    res = schema.Category.create(db, **kwargs)
-    if res:
-        return res.category_pkey
+def insert_category(
+    session: Session, 
+    category_name_en: str,
+    category_name_kr: str,
+    category_code: str,
+    dataset_pkey: int,
+):
+    res = schema.Category.create(
+        session=session,
+        category_name_en=category_name_en,
+        category_name_kr=category_name_kr,
+        category_code=category_code,
+        dataset_pkey=dataset_pkey,
+    )
+    return res.category_pkey
 
 
 def insert_inference_image(db: Session, **kwargs):
     res = schema.Image.create(db, **kwargs)
-    if res:
-        return res.image_pkey
+    return res.image_pkey
 
 
 def select_inference_img_path_from_taskid(db: Session, task_id: str):
@@ -226,6 +255,7 @@ def delete_dataset(db: Session, dataset_id: str):
         return False
 
     db.commit()
+    logger.info(f"Delete catetory successful")
     return True
 
 
@@ -387,7 +417,7 @@ def select_category_by_pkey(db: Session, category_pkey: int) -> schema.Category:
     return res
 
 
-def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
+def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
     """
     DELETE FROM
         image
@@ -407,33 +437,32 @@ def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
     WHERE
         is_pretrained = False
     """
-    query = db.query(schema.Category).filter(schema.Category.is_pretrained == False)
+    query = session.query(schema.Category)
 
     res = query.all()
 
     for category in res:
         try:
             q = (
-                db.query(schema.Image)
+                session.query(schema.Image)
                 .filter(
                     and_(
-                        schema.Image.category_pkey == category.category_pkey,
-                        schema.Image.dataset_pkey == dataset_pkey,
+                        schema.Image.category_pkey == category.category_pkey
                     )
                 )
                 .delete()
             )
-            logger.info(f"delete test: {category.category_pkey, q}")
-        except Exception as ex:
-            db.rollback()
-            logger.error(f"delete error: {ex}")
+        except Exception:
+            session.rollback()
+            logger.exception("Delete image failed")
             return False
 
     try:
         query.delete()
-    except Exception as ex:
-        db.rollback()
-        logger.error(f"delete error: {ex}")
+    except Exception:
+        session.rollback()
+        logger.exception(f"Delete catetory failed")
         return False
-    db.commit()
+    session.commit()
+    logger.info(f"Delete catetory successful")
     return True

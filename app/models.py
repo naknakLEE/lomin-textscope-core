@@ -148,7 +148,7 @@ class PgInference(BaseModel):
     create_datetime: Optional[datetime]
     image_pkey: Optional[int]
     start_datetime: Optional[datetime]
-    finsh_datetime: Optional[datetime]
+    end_datetime: Optional[datetime]
 
     class Config:
         orm_mode = True
