@@ -48,4 +48,5 @@ def apply_cls_hint(
     else:
         result["doc_type"] = cls_result.get("doc_type", None)
     logger.debug("End apply cls hint")
+    logger.debug(result)
     return result
