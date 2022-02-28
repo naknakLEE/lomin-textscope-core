@@ -237,9 +237,9 @@ class OAuth2PasswordRequestForm:
 
 
 class DocTypeHint(BaseModel):
-    use: bool = True  # 주어진 사전 지식을 후처리 프로세스에 사용할지 여부
-    trust: bool = True  # 주어진 사전 지식을 100% 신뢰할지 여부
-    doc_type: str = "A01"  # 서식 분류에 관한 사전지식
+    use: bool = False  # 주어진 사전 지식을 후처리 프로세스에 사용할지 여부
+    trust: bool = False  # 주어진 사전 지식을 100% 신뢰할지 여부
+    doc_type: str = ""  # 서식 분류에 관한 사전지식
 
 
 class KeyValueHint(BaseModel):

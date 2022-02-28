@@ -99,9 +99,13 @@ class BaseMixin:
 
     @classmethod
     def get_multi(
-        cls, session: Session, skip: int = 0, limit: int = 100
+        cls, session: Session, skip: int = 0, limit: int = 100, **kwargs
     ) -> Optional[ModelType]:
-        query = session.query(cls).offset(skip).limit(limit)
+        query = session.query(cls)
+        for key, val in kwargs.items():
+            col = getattr(cls, key)
+            query = query.filter(col == val)
+        query = query.offset(skip).limit(limit)
         return query.all() if query else None
 
     @classmethod
@@ -298,7 +302,7 @@ class Category(Base, BaseMixin):
     model_pkey = Column(ForeignKey('model.model_pkey'))
     dataset_pkey = Column(ForeignKey('dataset.dataset_pkey'))
 
-    model = relationship('Datset', back_populates='category')
+    # dataset = relationship('Datset', back_populates='category')
     model = relationship('Model', back_populates='category')
     image = relationship('Image', back_populates='category')
 

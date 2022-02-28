@@ -225,7 +225,7 @@ def heungkuk_life(
 ) -> Tuple[int, Dict, Dict]:
     inference_start_time = datetime.now()
     task_id = inputs.get("task_id")
-    logger.success(f"{task_id}-inference pipeline start:\n{pretty_dict(inputs)}")
+    logger.debug(f"{task_id}-inference pipeline start:\n{pretty_dict(inputs)}")
 
     # Rotate
     rectify = inputs.get("rectify", {})
@@ -273,14 +273,16 @@ def heungkuk_life(
 
     # Apply doc type hint
     hint = inputs.get("hint", {})
-    apply_cls_hint_result = {}
     if "doc_type" in hint:
-        apply_cls_hint_result = apply_cls_hint(
+        doc_type_hint = hint.get("doc_type", {})
+        doc_type_hint = DocTypeHint(**doc_type_hint)
+        cls_hint_result = apply_cls_hint(
             cls_result=duriel_classification_result,
-            doc_type_hint=hint.get("doc_type", {}),
+            doc_type_hint=doc_type_hint
         )
-        logger.info(f"{task_id}-apply doc type hint: {apply_cls_hint_result}")
-    doc_type = duriel_classification_result.get("doc_type")
+        response_log.update(apply_cls_hint_result=cls_hint_result)
+        doc_type = cls_hint_result.get("doc_type")
+        logger.info(f"{task_id}-apply doc type hint: {cls_hint_result}")
 
     # Apply static doc type
     if inputs.get("static_doc_type", None) is not None:
@@ -291,9 +293,6 @@ def heungkuk_life(
 
     # Kv detection
     kv_result: Dict = dict()
-    logger.info("duriel support document: {}", settings.DURIEL_SUPPORT_DOCUMENT)
-    logger.info("insurance support document: {}", settings.INSURANCE_SUPPORT_DOCUMENT)
-    logger.info("classification doc type: {}", doc_type)
     if doc_type in settings.DURIEL_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.duriel(
             client, inputs, duriel_inputs, doc_type
@@ -389,7 +388,7 @@ def heungkuk_life(
         image_width=agamotto_result.get("image_width"),
         id_type=kv_result.get("id_type", None),
         doc_type=duriel_classification_result.get("doc_type"),
-        apply_cls_hint_result=apply_cls_hint_result,
+        apply_cls_hint_result=cls_hint_result,
     )
 
     inference_end_time = datetime.now()
@@ -405,6 +404,6 @@ def heungkuk_life(
             inference_request_time=inference_end_time - inference_start_time,
         )
     )
-    logger.success(f"{task_id}-output:\n{pretty_dict(ocr_response)}")
+    logger.debug(f"{task_id}-output:\n{pretty_dict(ocr_response)}")
     kv_result_status_code: int = kv_result.get("status_code", 400)
     return (kv_result_status_code, ocr_response, response_log)

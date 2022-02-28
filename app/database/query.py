@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Dict
+from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 
@@ -82,8 +82,8 @@ def select_image(db: Session, **kwargs):
 def insert_image(
     session: Session,
     image_path: str,
-    category_pkey: int,
-    dataset_pkey: int,
+    category_pkey: Optional[int] = None,
+    dataset_pkey: Optional[int] = None,
     image_id: str = str(uuid.uuid4()),
     image_type: str = "TRAINING",  
 ):
@@ -108,7 +108,7 @@ def insert_image(
 def select_category(db: Session, **kwargs):
     dao = schema.Category
     try:
-        res = dao.get(db, **kwargs)
+        res = dao.get_multi(db, skip=0, limit=1000, **kwargs)
     except Exception as e:
         logger.exception(f"category select error: {e}")
         res = None
@@ -189,12 +189,11 @@ def insert_inference_result(
         db.add(
             schema.Inference(
                 task_id=data.get("task_id"),
-                image_id=data.get("image_id"),
+                image_pkey=data.get("image_pkey"),
                 inference_result=inference_result,
                 inference_type=data.get("inference_type"),
                 start_datetime=response_log.get("inference_start_time"),
-                finish_datetime=response_log.get("inference_end_time"),
-                inference_img_path=response_log.get("image_path"),
+                end_datetime=response_log.get("inference_end_time"),
             )
         )
         db.commit()

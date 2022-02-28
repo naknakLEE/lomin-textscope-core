@@ -1,6 +1,3 @@
-import os
-
-os.environ["API_ENV"] = "dev"
 import uvicorn
 
 from app.common.const import get_settings

@@ -70,6 +70,13 @@ class Settings(BaseSettings):
     MAX_OVERFLOW: int = 20000
     INITIAL_DB: bool = True
 
+    # STORAGE CONFIG
+    MINIO_IP_ADDR: str = "minio"
+    MINIO_PORT: int = 9000
+    MINIO_ACCESS_KEY: str = "H7YX3286K2P7C8O94CM8"
+    MINIO_SECRET_KEY: str = "MSJsIpHGaA4BpxMQZXUyvgx+Ci0YrLJDpCj89C3J"
+    MINIO_REGION: str = "ap-northeast-2"
+
     # AUTHORIZATION SETTING
     SECRET_KEY: str
     ALGORITHM: str

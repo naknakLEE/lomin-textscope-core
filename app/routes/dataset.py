@@ -3,6 +3,7 @@ import zipfile
 import uuid
 import shutil
 
+from minio import Minio
 from typing import List
 from pathlib import Path
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -27,19 +28,23 @@ from app.database import query
 console = Console()
 settings = get_settings()
 router = APIRouter()
+minio_client = Minio(
+    f"{settings.MINIO_IP_ADDR}:{settings.MINIO_PORT}",
+    secure=False,
+    access_key=settings.MINIO_ACCESS_KEY,
+    secret_key=settings.MINIO_SECRET_KEY,
+    region=settings.MINIO_REGION,
+)
 
 
-def extract_zip_file(encoded_file, zip_file_path: Path, save_path: Path):
+def extract_zip_file(object_name, zip_file_path: Path, save_path: Path):
     with console.status("Save zip file..."):
-        with zip_file_path.open("wb") as file:
-            decoded_file = base64.b64decode(encoded_file)
-            file.write(decoded_file)
+        minio_client.fget_object("datasets", object_name, zip_file_path.as_posix())
     
     with console.status("Extract zip file..."):
         try:
             with zipfile.ZipFile(zip_file_path, "r") as zip_file:
                 zip_file.extractall(save_path)
-            zip_file_path
         except Exception as exc:
             msg = "Zip file validation"
             logger.exception(msg)
@@ -104,11 +109,10 @@ def insert_dataset_related_data(
 def upload_cls_training_dataset(
     inputs: dict = Body(...), session: Session = Depends(db.session)
 ) -> JSONResponse:
-    encoded_file = inputs.get("file", "")
     dataset_id = inputs.get("dataset_id")
-    file_name = inputs.get("file_name", "")
+    object_name = inputs.get("object_name", "")
 
-    dataset_dir_name = Path(file_name).stem
+    dataset_dir_name = Path(object_name).stem
     save_path = Path(settings.ZIP_PATH) / dataset_dir_name / dataset_id
     is_exist = save_path.exists()
     if is_exist:
@@ -118,7 +122,7 @@ def upload_cls_training_dataset(
         )
     save_path.mkdir(exist_ok=True, parents=True)
 
-    zip_file_path = save_path / file_name
+    zip_file_path = save_path / object_name
     dataset_path = save_path / dataset_dir_name
     logger.info("Zip file path: {}".format(zip_file_path.as_posix()))
     logger.info("Save path: {}".format(save_path.as_posix()))
@@ -126,7 +130,7 @@ def upload_cls_training_dataset(
     with console.status("Glob image paths..."):
         image_paths = list(dataset_path.rglob('*.*'))
 
-    extract_zip_file(encoded_file, zip_file_path, save_path)
+    extract_zip_file(object_name, zip_file_path, save_path)
     
     check_dataset_validation(dataset_path, image_paths)
 

@@ -18,8 +18,8 @@ def select_image(image_id: str, db: Session = Depends(db.session)):
 
 
 @router.get("/select/category")
-def select_category(model_id: str, db: Session = Depends(db.session)):
-    return query.select_category(db, model_id=model_id)
+def select_category(dataset_pkey: str, db: Session = Depends(db.session)):
+    return query.select_category(db, dataset_pkey=dataset_pkey)
 
 
 @router.get("/select/dataset")
