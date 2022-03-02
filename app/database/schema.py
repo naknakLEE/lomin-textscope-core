@@ -271,7 +271,7 @@ class Dataset(Base, BaseMixin):
 
     dataset_pkey = Column(Integer, primary_key=True)
     root_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop')
-    dataset_id = Column(String(50))
+    dataset_id = Column(String(100))
     dataset_dir_name = Column(String(50))
 
     image = relationship('Image', back_populates='dataset')
@@ -281,7 +281,7 @@ class Model(Base, BaseMixin):
     __tablename__ = 'model'
 
     model_pkey = Column(Integer, primary_key=True)
-    model_id = Column(String(50), nullable=False)
+    model_id = Column(String(100), nullable=False)
     model_name_kr = Column(String(50))
     model_name_en = Column(String(100))
     model_version = Column(String(50))
@@ -312,8 +312,8 @@ class Image(Base, BaseMixin):
     __tablename__ = 'image'
 
     image_pkey = Column(Integer, primary_key=True, comment='1')
-    image_id = Column(String(50), nullable=False, comment='uuuu-uuuu-uuuu-uuuu')
-    image_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
+    image_id = Column(String(100), nullable=False, comment='uuuu-uuuu-uuuu-uuuu')
+    image_path = Column(String(500), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
     image_type = Column(String(30), nullable=False, comment="['training', 'inference']")
     image_description = Column(Text, comment='이미지 설명')
     category_pkey = Column(ForeignKey('category.category_pkey'), comment='category_a, 주민등록등본')
@@ -329,7 +329,7 @@ class Inference(Base, BaseMixin):
     __table_args__ = {'comment': 'test1'}
 
     inference_pkey = Column(Integer, primary_key=True)
-    task_id = Column(String(50), nullable=False)
+    task_id = Column(String(100), nullable=False)
     inference_type = Column(String(10), nullable=False, comment="['kv', 'gocr']")
     inference_result = Column(JSON)
     image_pkey = Column(ForeignKey('image.image_pkey'))
@@ -344,7 +344,7 @@ class Visualize(Base, BaseMixin):
     __table_args__ = {"extend_existing": True}
 
     visualize_pkey = Column(Integer, primary_key=True, autoincrement=True)
-    task_id = Column(String(50), nullable=False)
+    task_id = Column(String(100), nullable=False)
     inference_type = Column(String(5), nullable=False, comment="['kv', 'gocr']")
     inference_img_path = Column(String(200), nullable=False)
 
