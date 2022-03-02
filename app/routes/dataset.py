@@ -28,7 +28,7 @@ from app.database import query
 console = Console()
 settings = get_settings()
 router = APIRouter()
-minio_client = Minio(
+mc = Minio(
     f"{settings.MINIO_IP_ADDR}:{settings.MINIO_PORT}",
     secure=False,
     access_key=settings.MINIO_ACCESS_KEY,
@@ -39,7 +39,7 @@ minio_client = Minio(
 
 def extract_zip_file(object_name, zip_file_path: Path, save_path: Path):
     with console.status("Save zip file..."):
-        minio_client.fget_object("datasets", object_name, zip_file_path.as_posix())
+        mc.fget_object("datasets", object_name, zip_file_path.as_posix())
     
     with console.status("Extract zip file..."):
         try:
@@ -175,4 +175,5 @@ def delete_cls_train_dataset(
         dataset_pkey=target_dataset.dataset_pkey
     )
     query.delete_dataset(session, dataset_id)
+    mc.remove_object("datasets", target_path.name + ".zip")
     return PlainTextResponse(content="\n", status_code=200)
