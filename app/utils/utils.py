@@ -212,8 +212,9 @@ def dir_structure_validation(
         folder_path = path / folder_name
         files_under_root = list(folder_path.glob("*.*"))
         category_dirs = list(folder_path.iterdir())
-        if files_under_root:
-            raise ValueError("exist file under the root dir")
+        for file_under_root in files_under_root:
+            if file_under_root.suffix.lower() in ext_allows:
+                raise ValueError("exist file under the root dir")
         if not category_dirs:
             raise ValueError("directory is empty")
         for category_dir in category_dirs:
