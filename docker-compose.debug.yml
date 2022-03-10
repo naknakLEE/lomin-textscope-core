@@ -30,3 +30,15 @@ services:
         "-c",
         "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5679 -m main",
       ]
+
+  serving:
+    ports:
+      - 5680:5680
+    command:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && 
+        python3 inference_server/model_registration.py &&
+        python3 /tmp/debugpy  --listen 0.0.0.0:5680 -m bentoml serve inference_server.textscope_model_service:svc --reload --host 0.0.0.0",
+      ]
