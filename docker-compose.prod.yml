@@ -11,12 +11,11 @@ services:
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUSTOMER: ${CUSTOMER}
-        PYTHON_VERSION: ${PYTHON_VERSION}
+        PYTHON_VERSION: 3.8
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
       - 8052:5000
     environment:
-      - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
       - ARTIFACT_NAME_LIST=${ARTIFACT_NAME_LIST}
@@ -45,7 +44,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
-    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:80
     # command: python3 /workspace/main.py
 
   pp:
@@ -62,7 +61,7 @@ services:
       - PYTHONPATH=/workspace
     tty: true
     working_dir: /workspace/pp_server
-    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
+    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:80
     # command: python3 /workspace/pp_server/main.py
 
   wrapper:
@@ -76,12 +75,12 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8050:8090
+      - 8050:80
     tty: true
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
-    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
-    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
+    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:80
     # command: python3 /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app/main.py
 
   grafana:

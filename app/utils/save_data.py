@@ -21,7 +21,6 @@ async def save_updated_task(db: Session, doc_type: str, task_pkey: int):
 
 async def save_inference_results(
     db: Session,
-    inference_id: str,
     task_pkey: int,
     inference_img_path: str,
     inference_results: dict,
@@ -57,7 +56,6 @@ async def save_inference_results(
             inference_sequence = models.InferenceSequenceEnum[model_name.upper()].value
 
         create_data = dict(
-            inference_id=inference_id,
             task_pkey=task_pkey,
             inference_img_path=inference_img_path,
             inference_type=inference_type,

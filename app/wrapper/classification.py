@@ -6,7 +6,9 @@ from app.common import settings
 
 
 supported_class = ["처방전", "보험금청구서"]
-classification_server_url = f"http://serving:{settings.CLASSIFICATION_SERVICE_PORT}"
+classification_server_url = (
+    f"http://{settings.SERVING_IP_ADDR}:{settings.CLASSIFICATION_SERVICE_PORT}"
+)
 
 
 def longinus(

@@ -1,6 +1,20 @@
 version: "2.3"
 
 services:
+  minio:
+    container_name: minio
+    image: quay.io/minio/minio:RELEASE.2022-02-24T22-12-01Z
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - ${MINIO_PORT}:9000
+      - 9001:9001
+    networks:
+      - our_net
+    volumes:
+      - minio_data:/data
+    command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
   postgres:
     container_name: postgres
     image: postgres:14 #TODO make Dockerfile
@@ -11,8 +25,7 @@ services:
     ports:
       - "55432:5432"
     networks:
-      our_net:
-        ipv4_address: ${POSTGRES_IP_ADDR}
+      - our_net
   elasticsearch:
     image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
     build:
@@ -33,8 +46,7 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
     networks:
-      our_net:
-        ipv4_address: ${ELASTICSEARCH_IP_ADDR}
+      - our_net
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.16.2
@@ -46,8 +58,7 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      our_net:
-        ipv4_address: ${KIBANA_IP_ADDR}
+      - our_net
 
   pgadmin:
     container_name: pgadmin
@@ -61,8 +72,7 @@ services:
     ports:
       - "5050:80"
     networks:
-      our_net:
-        ipv4_address: ${PGADMIN_IP_ADDR}
+      - our_net
 
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
@@ -72,8 +82,6 @@ services:
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
-      - /home/mir/Downloads/hklife:/DATA_SHARE/hklife
-      - /home/mir/Downloads/hg_life/life_insurance/life_insurance_test_set:/DATA_SHARE/life_insurance_test_set
     restart: unless-stopped
     extra_hosts:
       - ${LDAP_HOST}
@@ -81,8 +89,7 @@ services:
       - SYS_PTRACE
     runtime: nvidia
     networks:
-      our_net:
-        ipv4_address: ${SERVING_IP_ADDR}
+      - our_net
 
   web:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
@@ -95,11 +102,11 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
+      - minio
     cap_add:
       - SYS_PTRACE
     networks:
-      our_net:
-        ipv4_address: ${WEB_IP_ADDR}
+      - our_net
 
   pp:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
@@ -113,8 +120,7 @@ services:
     cap_add:
       - SYS_PTRACE
     networks:
-      our_net:
-        ipv4_address: ${PP_IP_ADDR}
+      - our_net
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
@@ -131,9 +137,9 @@ services:
       - ${DATABASE_HOST}
     depends_on:
       - postgres
+      - minio
     networks:
-      our_net:
-        ipv4_address: ${WRAPPER_IP_ADDR}
+      - our_net
 
   # nginx:
   #   image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
@@ -149,8 +155,7 @@ services:
   #     - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
   #   restart: unless-stopped
   #   networks:
-  #     our_net:
-  #       ipv4_address: ${NGINX_IP_ADDR}
+  #     - our_net
 
   # nginx-exporter:
   #   image: nginx/nginx-prometheus-exporter:0.9.0
@@ -158,23 +163,20 @@ services:
   #   command:
   #     - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
   #   networks:
-  #     our_net:
-  #       ipv4_address: ${NGINX_EXPORTER_IP_ADDR}
+  #     - our_net
 
   gpu_telemetry:
     image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
     container_name: gpu_telemetry
     runtime: nvidia
     networks:
-      our_net:
-        ipv4_address: ${DCGM_EXPORTER_IP_ADDR}
+      - our_net
 
   hardware_telemetry:
     image: prom/node-exporter:v1.2.2
     container_name: hardware_telemetry
     networks:
-      our_net:
-        ipv4_address: ${NODE_EXPORTER_IP_ADDR}
+      - our_net
     entrypoint: /bin/node_exporter
 
   prometheus:
@@ -194,8 +196,7 @@ services:
       - --web.listen-address=0.0.0.0:9090
       - --storage.tsdb.retention=90d
     networks:
-      our_net:
-        ipv4_address: ${PROMETHEUS_IP_ADDR}
+      - our_net
 
   grafana:
     image: docker.lomin.ai/ts-grafana:${TEXTSCOPE_VERSION}
@@ -216,8 +217,7 @@ services:
       - prometheus
     restart: always
     networks:
-      our_net:
-        ipv4_address: ${GRAFANA_IP_ADDR}
+      - our_net
 
   openldap:
     image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
@@ -230,14 +230,14 @@ services:
     ports:
       - "389:389"
     networks:
-      our_net:
-        ipv4_address: ${OPENLDAP_IP_ADDR}
+      - our_net
 
 volumes:
   prometheus_data: {}
   postgres_data: {}
   grafana_data: {}
   esdata: {}
+  minio_data: {}
   # mysql_data:
   #   driver: local
   #   driver_opts:

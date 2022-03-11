@@ -4,9 +4,11 @@ from typing import Dict, Optional
 
 from app.common import settings
 
-kv_detection_server_url = f"http://serving:{settings.KV_DETECTION_SERVICE_PORT}"
+kv_detection_server_url = (
+    f"http://{settings.SERVING_IP_ADDR}:{settings.KV_DETECTION_SERVICE_PORT}"
+)
 general_detection_server_url = (
-    f"http://serving:{settings.GENERAL_DETECTION_SERVICE_PORT}"
+    f"http://{settings.SERVING_IP_ADDR}:{settings.GENERAL_DETECTION_SERVICE_PORT}"
 )
 
 

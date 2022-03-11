@@ -1,6 +1,5 @@
 import requests
 import base64
-
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
@@ -15,10 +14,12 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
 from app.utils.utils import cal_time_elapsed_seconds
+from app.utils.minio import MinioService
 
 
 settings = get_settings()
 router = APIRouter()
+minio_client = MinioService()
 
 
 class Error400(models.CommonErrorResponse):
@@ -40,7 +41,9 @@ def check_status() -> Any:
     """
     try:
         is_serving_server_working = "False"
-        serving_server_addr = f"http://serving:{settings.SERVING_IP_PORT}"
+        serving_server_addr = (
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+        )
         serving_server_status_check_url = f"{serving_server_addr}/livez"
         response = requests.get(serving_server_status_check_url)
         if response.status_code == 200:
@@ -50,7 +53,7 @@ def check_status() -> Any:
 
     try:
         is_pp_server_working = "False"
-        pp_server_addr = f"http://pp:{settings.PP_IP_PORT}"
+        pp_server_addr = f"http://{settings.PP_IP_ADDR}"
         pp_server_status_check_url = f"{pp_server_addr}/status"
         response = requests.get(pp_server_status_check_url)
         if response.status_code == 200:
@@ -128,21 +131,30 @@ def upload_image(
     base_path.mkdir(parents=True, exist_ok=True)
 
     save_path = base_path.joinpath(image_name)
+    found = False
 
-    with save_path.open("wb") as file:
-        file.write(decoded_image_data)
+    if settings.USE_MINIO:
+        found = minio_client.put(
+            bucket_name=settings.MINIO_IMAGE_BUCKET,
+            object_name=image_name,
+            data=decoded_image_data,
+        )
+    else:
+        with save_path.open("wb") as file:
+            file.write(decoded_image_data)
+        if save_path.exists() and save_path.is_file():
+            found = True
 
-    is_exist = save_path.exists()
-    if is_exist:
+    if found:
         # @TODO: image data insert into db
         dao_image_params = {
             "image_id": image_id,
-            "image_path": str(save_path),
+            "image_path": save_path.as_posix(),
         }
         query.insert_image(session, dao_image_params)
     else:
         # @TODO: file not saved
-        pass
+        return HTTPException(status_code=400, detail=f"{image_name} is not saved")
 
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)

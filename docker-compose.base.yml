@@ -9,13 +9,13 @@ services:
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
-      context: ./
-      dockerfile: docker/base/Dockerfile.gpu_serving
+      context: inference_server
+      dockerfile: Dockerfile
       args:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
-        PYTHON_VERSION: ${PYTHON_VERSION}
+        PYTHON_VERSION: 3.8
     deploy:
       resources:
         reservations:

@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     PP_IP_ADDR: str
     MYSQL_IP_ADDR: str
     REDIS_IP_PORT_ADDR: str
+    MINIO_IP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
@@ -44,6 +45,7 @@ class Settings(BaseSettings):
     CLASSIFICATION_SERVICE_PORT: int = 5000
     KV_DETECTION_SERVICE_PORT: int = 5000
     ROTATE_SERVICE_PORT: int = 5000
+    MINIO_PORT: str
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
@@ -85,6 +87,13 @@ class Settings(BaseSettings):
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
     TEXTSCOPE_CORE_WORKERS: int = 10
+
+    # MINIO CONFIG
+    MINIO_ROOT_USER: str
+    MINIO_ROOT_PASSWORD: str
+    MINIO_USE_SSL: bool = False
+    MINIO_IMAGE_BUCKET: str = "images"
+    USE_MINIO: bool = True
 
     # HINT CONFIG
     KV_HINT_CER_THRESHOLD: float = 0.2

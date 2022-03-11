@@ -183,7 +183,6 @@ class UpdateTask(BaseModel):
 
 
 class CreateInference(BaseModel):
-    inference_id: str
     task_pkey: int
     inference_type: str
     inference_img_path: str

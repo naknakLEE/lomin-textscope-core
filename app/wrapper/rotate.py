@@ -5,7 +5,7 @@ from typing import Dict
 from app.common import settings
 
 
-rotate_server_url = f"http://serving:{settings.ROTATE_SERVICE_PORT}"
+rotate_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.ROTATE_SERVICE_PORT}"
 
 
 def longinus(

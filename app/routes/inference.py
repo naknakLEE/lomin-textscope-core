@@ -214,7 +214,6 @@ async def ocr(
         #     background_tasks.add_task(
         #         func=save_inference_results,
         #         db=db,
-        #         inference_id=request_id,
         #         task_pkey=task_pkey,
         #         inference_img_path=inputs.get('image_path'),
         #         inference_results=dump_inference_results
