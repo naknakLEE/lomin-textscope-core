@@ -89,7 +89,7 @@ async def ocr(
         task_id=inputs.get("task_id"), image_pkey=inputs.get("image_pkey")
     )
 
-    task_insert_result = query.insert_task(session, task_insert_data)
+    task_insert_result = query.insert_task(session, kwargs=task_insert_data)
     if not task_insert_result:
         logger.error(f"{task_id}-task id insert error: {pretty_dict(task_insert_data)}")
         error = models.Error(

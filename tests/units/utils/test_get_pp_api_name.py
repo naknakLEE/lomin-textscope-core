@@ -2,12 +2,12 @@ import pytest
 from app.utils.utils import get_pp_api_name
 from app.errors.exceptions import ResourceDataError
 from tests.utils.utils import random_string
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 
 @pytest.mark.unit
 class TestGetPPApiName:
-    def test_doc_type_included_idcard(self):
+    def test_doc_type_included_idcard(self) -> None:
         idcard_doc_type_list = [
             "ID-ARB",
             "ID-ARC",
@@ -31,7 +31,7 @@ class TestGetPPApiName:
             output = get_pp_api_name(idcard_doc_type)
             assert output == "idcard"
 
-    def test_doc_type_included_general_pp(self):
+    def test_doc_type_included_general_pp(self) -> None:
         general_doc_type_list = [
             "Z2",
             "사업자등록증",
@@ -47,7 +47,7 @@ class TestGetPPApiName:
             output = get_pp_api_name(general_doc_type)
             assert output == "kv"
 
-    def test_doc_type_included_bankbook(self):
+    def test_doc_type_included_bankbook(self) -> None:
         bankbook_doc_type_list = [
             "A2",
             "AC",
@@ -63,28 +63,30 @@ class TestGetPPApiName:
             output = get_pp_api_name(bankbook_doc_type)
             assert output == "bankbook"
 
-    def test_doc_type_included_seal_imp_cert(self):
+    def test_doc_type_included_seal_imp_cert(self) -> None:
         seal_imp_cert_doc_type_list = ["J8_인감증명서", "N2_법인인감증명서"]
 
         for seal_imp_cert_doc_type in seal_imp_cert_doc_type_list:
             output = get_pp_api_name(seal_imp_cert_doc_type)
             assert output == "seal_imp_cert"
 
-    def test_doc_type_included_ccr(self):
+    def test_doc_type_included_ccr(self) -> None:
         ccr_doc_type_list = ["N1_법인등기부 등본(등기사항 전부증명서)"]
 
         for ccr_doc_type in ccr_doc_type_list:
             output = get_pp_api_name(ccr_doc_type)
             assert output == "ccr"
 
-    def test_doc_type_included_busan_bank(self):
+    def test_doc_type_included_busan_bank(self) -> None:
         busan_bank_doc_type_list = ["법인등기부등본"]
 
         for busan_bank_doc_type in busan_bank_doc_type_list:
             output = get_pp_api_name(busan_bank_doc_type)
             assert output == "busan_bank"
 
-    def test_doc_type_included_document_type_set_and_customer_is_kakaobank(self):
+    def test_doc_type_included_document_type_set_and_customer_is_kakaobank(
+        self,
+    ) -> None:
         document_type_set = {
             "D01": "rrtable",
             "D02": "family_cert",
@@ -96,7 +98,9 @@ class TestGetPPApiName:
             output = get_pp_api_name(doc_type, customer="kakaobank")
             assert output == pp_name
 
-    def test_doc_type_included_document_type_set_and_customer_is_not_kakaobank(self):
+    def test_doc_type_included_document_type_set_and_customer_is_not_kakaobank(
+        self,
+    ) -> None:
         document_type_set = {
             "D01": "rrtable",
             "D02": "family_cert",
@@ -108,20 +112,26 @@ class TestGetPPApiName:
             output = get_pp_api_name(doc_type)
             assert output is None
 
-    def test_doc_type_excluded_document_type_set_and_customer_is_kakaobank(self):
+    def test_doc_type_excluded_document_type_set_and_customer_is_kakaobank(
+        self,
+    ) -> None:
         excluded_doc_type = random_string()
 
         output = get_pp_api_name(excluded_doc_type, customer="kakaobank")
         assert output is None
 
-    def test_doc_type_excluded_document_type_set_and_customer_is_not_kakaobank(self):
+    def test_doc_type_excluded_document_type_set_and_customer_is_not_kakaobank(
+        self,
+    ) -> None:
         excluded_doc_type = random_string()
 
         output = get_pp_api_name(excluded_doc_type)
         assert output is None
 
     @patch("app.utils.utils.pp_mapping_table")
-    def test_pp_mapping_table_is_not_dict(self, mock_pp_mapping_table):
+    def test_pp_mapping_table_is_not_dict(
+        self, mock_pp_mapping_table: MagicMock
+    ) -> None:
         mock_pp_mapping_table.get.return_value = list()
         random_doc_type = random_string()
 

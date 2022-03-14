@@ -9,7 +9,7 @@ from jose import jwt
 from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.logger import api_logger
-from app.errors.exceptions import exception_handler
+from app.middlewares.exception_handler import exception_handler
 from app.common.const import get_settings
 
 

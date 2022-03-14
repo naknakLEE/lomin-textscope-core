@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from typing import List, Dict
@@ -149,6 +149,9 @@ def get_cls_kv_prediction(
     response_log = dict()
 
     kv_result = query.select_kv_inference_from_taskid(session, task_id=task_id)
+    if kv_result is None:
+        # @FIXME: kv prediction 값이 없을 경우에 대한 예외처리
+        raise HTTPException(status_code=400)
     inference_type = kv_result.inference_type
     inference_result: Dict = kv_result.inference_result
     response_log = inference_result.get("response_log", {})
@@ -169,8 +172,6 @@ def get_cls_kv_prediction(
     )
     key_values: List = list()
     texts: List = list()
-
-    inference_result = kv_result.inference_result
 
     for key, value in kv.items():
         if not key.endswith("_pred") or not value:
@@ -209,9 +210,11 @@ def get_cls_kv_prediction(
         finished_datetime=finished_datetime,
     )
 
-    inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[
-        0
-    ]
+    inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)
+    if inference_img_path is None:
+        # @FIXME: 예외처리 추가
+        raise HTTPException(status_code=400)
+
     # @FIXME: client에서 image visualize를 하는 부분이 따로 존재해서 제거 해도 될듯?
     img_str = load_image2base64(inference_img_path)
 
@@ -264,9 +267,11 @@ def get_gocr_prediction(
         finished_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
     )
 
-    inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)[
-        0
-    ]
+    inference_img_path = query.select_inference_img_path_from_taskid(session, task_id)
+    if inference_img_path is None:
+        # @FIXME: 예외처리 추가
+        raise HTTPException(status_code=400)
+
     img_str = load_image2base64(inference_img_path)
 
     image = None

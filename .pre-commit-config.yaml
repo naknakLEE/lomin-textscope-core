@@ -41,6 +41,9 @@ repos:
         args:
           - --ignore-missing-imports
           - --pretty
+          - --disallow-untyped-defs
+          - --disallow-incomplete-defs
+          - --show-error-codes
   # Use to identify basic issue before upload from git
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0

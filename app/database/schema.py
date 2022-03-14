@@ -1,4 +1,5 @@
 import enum
+import typing
 from datetime import datetime
 from typing import Any, List, Optional, TypeVar, Dict
 from sqlalchemy import (
@@ -30,11 +31,11 @@ ModelType = TypeVar("ModelType", bound=Base)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def get_password_hash(password) -> str:
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def verify_password(plain_password, hashed_password) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
@@ -56,7 +57,7 @@ class BaseMixin:
         ]
 
     @classmethod
-    def get(cls, session: Session, **kwargs) -> Optional[ModelType]:
+    def get(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
         query = session.query(cls)
         for key, val in kwargs.items():
             col = getattr(cls, key)
@@ -71,7 +72,7 @@ class BaseMixin:
         return query.all() if query else None
 
     @classmethod
-    def remove(cls, session: Session, **kwargs) -> ModelType:
+    def remove(cls, session: Session, **kwargs: Dict) -> ModelType:
         query = session.query(cls)
         for key, val in kwargs.items():
             query.filter(key == val)
@@ -80,8 +81,11 @@ class BaseMixin:
         session.commit()
         return obj
 
+    @typing.no_type_check
     @classmethod
-    def update(cls, session: Session, id: int, auto_commit=True, **kwargs) -> Any:
+    def update(
+        cls, session: Session, id: int, auto_commit: bool = True, **kwargs: Any
+    ) -> Optional[ModelType]:
         query = session.query(cls).filter(id == id).first()
         for key, val in kwargs.items():
             setattr(query, key, val)
@@ -90,9 +94,10 @@ class BaseMixin:
             session.commit()
         return query
 
+    @typing.no_type_check
     @classmethod
     def create(
-        cls, session: Session, auto_commit=True, **kwargs
+        cls, session: Session, auto_commit: bool = True, **kwargs: Any
     ) -> Optional[ModelType]:
         obj = cls()
         for col in obj.all_columns():
@@ -103,7 +108,7 @@ class BaseMixin:
         session.flush()
         if auto_commit:
             session.commit()
-        return obj  # type: ignore
+        return obj
 
 
 class Users(Base, BaseMixin):

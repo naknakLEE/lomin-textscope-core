@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional, Any
+from typing import Optional
 
 from ldap3 import Server, ALL
 from fastapi import Depends, HTTPException, Security
@@ -30,11 +30,11 @@ security = HTTPBearer()
 # )
 
 
-def verify_password(plain_password, hashed_password) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password) -> str:
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
@@ -53,28 +53,31 @@ def get_user(email: EmailStr, session: Session) -> Optional[UserInDB]:
     return None
 
 
-def is_username_exist(username: str, session: Session) -> Any:
-    user = Users.get(session=session, username=username)
+def is_username_exist(username: str, session: Session) -> Optional[Users]:
+    user = Users.get(session, kwargs=dict(username=username))
     if user:
         return user
-    return False
+    return None
 
 
-def is_email_exist(email: EmailStr, session: Session) -> Any:
-    user = Users.get(session=session, email=email)
+def is_email_exist(email: EmailStr, session: Session) -> Optional[Users]:
+    user = Users.get(session=session, kwargs=dict(email=email))
     if user:
         return user
-    return False
+    return None
 
 
-def authenticate_user(email: EmailStr, password: str, session: Session) -> Any:
+def authenticate_user(
+    email: EmailStr, password: str, session: Session
+) -> Optional[Users]:
     user = get_user(email, session)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        print("\n\n\n check", user)
-        return False
-    return user
+    if user:
+        if user.hashed_password is None:
+            return None
+        if not verify_password(password, user.hashed_password):
+            return None
+        return user
+    return None
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -95,8 +98,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 async def get_current_user(
     security_scopes: SecurityScopes,
     token: HTTPAuthorizationCredentials = Security(security),
-    session=Depends(db.session),
-) -> Any:
+    session: Session = Depends(db.session),
+) -> UserInDB:
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
     else:
@@ -136,6 +139,6 @@ async def get_current_active_user(
     return current_user
 
 
-async def initialize_ldap():
+async def initialize_ldap() -> Server:
     server = Server("LDAP://openldap:389", get_info=ALL)
     return server

@@ -3,7 +3,7 @@ import zipfile
 import os
 import uuid
 
-from typing import Dict
+from typing import Dict, List
 from pathlib import Path
 from datetime import datetime
 from fastapi import APIRouter, Body, Depends
@@ -13,7 +13,6 @@ from starlette.responses import JSONResponse
 from app.database.connection import db
 from app.common.const import get_settings
 from app.utils.logging import logger
-from app import models
 from sqlalchemy.orm import Session
 from app.utils.utils import (
     cal_time_elapsed_seconds,
@@ -113,16 +112,17 @@ def upload_cls_training_dataset(
         "zip_file_name": zip_file_name,
     }
     dataset_pkey, dataset_id = query.insert_training_dataset(
-        session, **dao_dataset_params
+        session, kwargs=dao_dataset_params
     )
     new_categories = list(save_path.parent.joinpath(zip_file_name).iterdir())
     support_set_path = Path(settings.SUPPORT_SET_DIR)
     pretrained_categories = [d for d in support_set_path.iterdir() if d.is_dir()]
 
     exist_category_list = query.select_category_all(session)
-    exist_category_name_list = [
-        category.category_name_en for category in exist_category_list
-    ]
+    exist_category_name_list: List[str] = list()
+    for category in exist_category_list:
+        if category:
+            exist_category_name_list.append(category.category_name_en)
 
     check_category_else_flag = False
     for exist_category in exist_category_list:
@@ -135,16 +135,16 @@ def upload_cls_training_dataset(
             "category_code": "P01",
             "is_pretrained": True,
         }
-        query.insert_category(session, **dao_category_params)
+        query.insert_category(session, kwargs=dao_category_params)
 
     if not exist_category_list:
-        for category in pretrained_categories:
+        for pre_trained_category in pretrained_categories:
             dao_category_params = {
-                "category_name_en": category.name,
+                "category_name_en": pre_trained_category.name,
                 "category_code": "P01",
                 "is_pretrained": True,
             }
-            category_pkey = query.insert_category(session, **dao_category_params)
+            category_pkey = query.insert_category(session, kwargs=dao_category_params)
 
     for category in new_categories:
         if category.name not in exist_category_name_list:
@@ -153,7 +153,7 @@ def upload_cls_training_dataset(
                 "category_code": "A01",
                 "is_pretrained": False,
             }
-            category_pkey = query.insert_category(session, **dao_category_params)
+            category_pkey = query.insert_category(session, kwargs=dao_category_params)
         else:
             category_pkey = query.select_category_by_name(
                 session, category_name=category.name
@@ -168,7 +168,7 @@ def upload_cls_training_dataset(
                     "dataset_pkey": dataset_pkey,
                     "image_type": "training",
                 }
-                query.insert_image(session, **dao_image_params)
+                query.insert_image(session, kwargs=dao_image_params)
 
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -195,31 +195,20 @@ def get_cls_train_dataset(
     request_datetime = datetime.now()
     response_log = dict()
 
-    # @TODO: select db by dataset_id
-    dao_object = query.select_category(session, dataset_id=dataset_id)
-
-    datasets = []
-    for do in dao_object:
-        datasets.append(
-            models.Dataset(
-                image_id=do.Image.image_id,
-                category_id=do.Category.category_name_en,
-                category_name=do.Category.category_name_en,
-                filename=(do.Image.image_path).split("/")[-1],
-            )
-        )
+    dao_object = query.select_dataset(session, dataset_id=dataset_id)
+    dataset = [do.dict() for do in dao_object]
 
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
     response_log.update(
         dict(
-            dataset=datasets,
+            dataset=dataset,
             request_datetime=request_datetime,
             response_datetime=response_datetime,
             elapsed=elapsed,
         )
     )
-    response.update(dict(dataset=datasets, response_log=response_log))
+    response.update(dict(dataset=dataset, response_log=response_log))
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 

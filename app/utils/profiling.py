@@ -18,7 +18,7 @@ from app.common.config import Config
 from app.utils.logger import api_logger
 from app.common.const import get_settings
 from app.database.schema import create_db_table
-from app.errors.exceptions import exception_handler
+from app.middlewares.exception_handler import exception_handler
 
 
 app = FastAPI()

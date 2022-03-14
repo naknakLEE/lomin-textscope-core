@@ -182,6 +182,13 @@ class UpdateTask(BaseModel):
     category_pkey: int
 
 
+class UpdateImage(BaseModel):
+    id: int
+    image_id: str
+    image_path: Optional[str]
+    image_description: Optional[str]
+
+
 class CreateInference(BaseModel):
     task_pkey: int
     inference_type: str

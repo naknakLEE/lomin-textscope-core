@@ -1,7 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from fastapi import Request
-from app.errors.exceptions import ResourceDataError
+from app.errors.exceptions import ResourceDataError, APIException
 
 
 async def resource_exception_handler(
@@ -27,3 +27,9 @@ async def validation_exception_handler(
             }
         ),
     )
+
+
+async def exception_handler(error: Exception) -> APIException:
+    if not isinstance(error, APIException):
+        error = APIException(exc=error, detail=str(error))
+    return error

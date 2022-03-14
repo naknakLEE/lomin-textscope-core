@@ -1,29 +1,27 @@
-
-  
 version: 2.1
 
-orbs: 
-  aws-cli: circleci/aws-cli@2.0.6 
+orbs:
+  aws-cli: circleci/aws-cli@2.0.6
   gh: circleci/github-cli@1.0
 
 workflows:
   develop-PR:
     jobs:
       - docker-build:
-          context: 
+          context:
             - .env
             - aws
-          filters:   
+          filters:
             branches:
-              only: 
+              only:
                 - /feature\/.*/
       - docker-up:
           context: .env
           requires:
             - docker-build
-          filters: 
+          filters:
             branches:
-              only: 
+              only:
                 - /feature\/.*/
       - unit_test:
           requires:
@@ -31,7 +29,6 @@ workflows:
       - docker-down:
           requires:
             - unit_test
-
 
 jobs:
   docker-build:
@@ -41,12 +38,13 @@ jobs:
     steps:
       - checkout
       - run: ls
-      - run: 
+      - run:
           name: CI Preparations
           command: |
             pip3 install boto3 botocore hydra-core python-dotenv alive_progress awscli
       - aws-cli/install
       - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run: mkdir -p /home/circleci/.config/ssh && cp /home/circleci/.ssh/id_rsa /home/circleci/.config/ssh/id_rsa
       - run:
           name: check running container and rm container
           command: |
@@ -61,7 +59,7 @@ jobs:
             git submodule update
       - run: echo "$env2" | base64 --decode > .env
       - run: sudo rm -rf inference_server/ModelService
-      - run: 
+      - run:
           name: model download & textscope build
           command: |
             sh init.sh
@@ -120,7 +118,7 @@ jobs:
       - run:
           name: Run on fail status
           command: |
-              docker-compose down
+            docker-compose down
           when: on_fail
 
   unit_test:
@@ -128,7 +126,7 @@ jobs:
     resource_class: lomin/inhak-pc
     working_directory: ~/textscope
     steps:
-      - run: 
+      - run:
           name: run test
           command: |
             docker exec web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
@@ -140,20 +138,20 @@ jobs:
       - run:
           name: Run on fail status
           command: |
-              docker-compose down
+            docker-compose down
           when: on_fail
-    
+
   docker-down:
     machine: true
     resource_class: lomin/inhak-pc
     working_directory: ~/textscope
     steps:
-      - run: 
+      - run:
           name: down
           command: |
             docker-compose down
       - run:
           name: Run on fail status
           command: |
-              docker-compose down
+            docker-compose down
           when: on_fail

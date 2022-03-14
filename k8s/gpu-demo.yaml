@@ -3,18 +3,17 @@ kind: Pod
 metadata:
   name: gpu
 spec:
-
   containers:
-  - name: gpu-container
-    image: nvidia/cuda:9.0-runtime
-    command:
-      - "/bin/sh"
-      - "-c"
-    args:
-      - nvidia-smi && tail -f /dev/null
+    - name: gpu-container
+      image: nvidia/cuda:9.0-runtime
+      command:
+        - "/bin/sh"
+        - "-c"
+      args:
+        - nvidia-smi && tail -f /dev/null
 
-    resources:
-      requests:
-        nvidia.com/gpu: 2
-      limits:
-        nvidia.com/gpu: 2
+      resources:
+        requests:
+          nvidia.com/gpu: 2
+        limits:
+          nvidia.com/gpu: 2

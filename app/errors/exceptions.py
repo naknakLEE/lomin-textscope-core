@@ -1,12 +1,6 @@
 from typing import Optional
 
 
-async def exception_handler(error: Exception):
-    if not isinstance(error, APIException):
-        error = APIException(exc=error, detail=str(error))
-    return error
-
-
 class ErrorCode:
     RESOURCE_DATA = "4000"
 
@@ -24,8 +18,8 @@ class StatusCode:
 class APIException(Exception):
     status_code: int
     code: str
-    msg: str
-    detail: str
+    msg: Optional[str]
+    detail: Optional[str]
     exc: Optional[Exception]
 
     def __init__(
@@ -33,8 +27,8 @@ class APIException(Exception):
         *,
         status_code: int = StatusCode.HTTP_500,
         code: str = "500",
-        msg: str = "None",
-        detail: str = "None",
+        msg: str = None,
+        detail: str = None,
         exc: Optional[Exception] = None,
     ) -> None:
         self.status_code = status_code
@@ -48,14 +42,13 @@ class APIException(Exception):
 class InferenceException(APIException):
     def __init__(
         self,
-        code: str = "None",
-        message: str = "None",
-        exc: Exception = None,
+        message: str = None,
         detail: str = None,
+        exc: Optional[Exception] = None,
     ) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_416,
-            code=f"{code}",
+            code="8400",
             msg=f"{message}",
             detail=f"{detail}",
             exc=exc,
@@ -63,7 +56,7 @@ class InferenceException(APIException):
 
 
 class NotFoundUserException(APIException):
-    def __init__(self, email: str = None, exc: Exception = None) -> None:
+    def __init__(self, email: str, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_404,
             msg=f"Incorrect email or password",
@@ -74,7 +67,7 @@ class NotFoundUserException(APIException):
 
 
 class PrivielgeException(APIException):
-    def __init__(self, email: str = None, exc: Exception = None) -> None:
+    def __init__(self, email: str, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"The user doesn't have enough privileges",
@@ -85,7 +78,7 @@ class PrivielgeException(APIException):
 
 
 class AlreadyExistException(APIException):
-    def __init__(self, email: str = None, exc: Exception = None) -> None:
+    def __init__(self, email: str, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"The user with this email already exists in the system.",
@@ -96,7 +89,7 @@ class AlreadyExistException(APIException):
 
 
 class JWTNotFoundUserException(APIException):
-    def __init__(self, email: str = "None", exc: Exception = None) -> None:
+    def __init__(self, email: str, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
             msg=f"Could not valemailate credentials",
@@ -107,7 +100,7 @@ class JWTNotFoundUserException(APIException):
 
 
 class JWTExpiredExetpion(APIException):
-    def __init__(self, exc: Exception = None) -> None:
+    def __init__(self, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"Session has expired and logged out",
@@ -118,7 +111,7 @@ class JWTExpiredExetpion(APIException):
 
 
 class JWTException(APIException):
-    def __init__(self, exc: Exception = None) -> None:
+    def __init__(self, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
             msg=f"Could not valilate credentials",
@@ -129,7 +122,9 @@ class JWTException(APIException):
 
 
 class JWTScopeException(APIException):
-    def __init__(self, exc: Exception = None, authenticate_value: str = "None") -> None:
+    def __init__(
+        self, authenticate_value: str, exc: Optional[Exception] = None
+    ) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_401,
             msg=f"Not enough permissions",
@@ -140,7 +135,7 @@ class JWTScopeException(APIException):
 
 
 class NotAuthenticatedException(APIException):
-    def __init__(self, exc: Exception = None) -> None:
+    def __init__(self, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_403,
             msg=f"Not authenticated",
@@ -151,7 +146,7 @@ class NotAuthenticatedException(APIException):
 
 
 class TimeoutException(APIException):
-    def __init__(self, exc: Exception = None) -> None:
+    def __init__(self, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_403,
             msg=f"timeout exception",
@@ -162,7 +157,7 @@ class TimeoutException(APIException):
 
 
 class InferenceServerException(APIException):
-    def __init__(self, exc: Exception = None) -> None:
+    def __init__(self, exc: Optional[Exception] = None) -> None:
         super().__init__(
             status_code=2400,
             msg=f"timeout exception",
@@ -174,16 +169,19 @@ class InferenceServerException(APIException):
 
 class ResourceDataError(Exception):
     code: str
-    detail: str
+    message: Optional[str]
+    detail: Optional[str]
     exc: Optional[Exception]
 
     def __init__(
         self,
         code: str = ErrorCode.RESOURCE_DATA,
-        detail: str = "None",
+        message: str = None,
+        detail: str = None,
         exc: Optional[Exception] = None,
     ) -> None:
         self.code = code
+        self.message = message
         self.detail = detail
         self.exc = exc
         super().__init__(exc)

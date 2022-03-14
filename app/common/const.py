@@ -2,6 +2,7 @@ import json
 
 from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
+from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
 from os import path, environ
 from pathlib import Path
@@ -233,10 +234,10 @@ class Settings(BaseSettings):
         @classmethod
         def customise_sources(
             cls,
-            init_settings,
-            env_settings,
-            file_secret_settings,
-        ):
+            init_settings: SettingsSourceCallable,
+            env_settings: SettingsSourceCallable,
+            file_secret_settings: SettingsSourceCallable,
+        ) -> Tuple[SettingsSourceCallable, ...]:
             return (
                 init_settings,
                 json_config_settings_source,

@@ -11,8 +11,7 @@ metadata:
     heritage: Helm
   name: prometheus
   namespace: istio-system
-  annotations:
-    {}
+  annotations: {}
 ---
 # Source: prometheus/templates/server/cm.yaml
 apiVersion: v1
@@ -413,7 +412,7 @@ spec:
         release: prometheus
         chart: prometheus-14.6.1
         heritage: Helm
-        
+
         sidecar.istio.io/inject: "false"
     spec:
       enableServiceLinks: true
@@ -425,8 +424,7 @@ spec:
           args:
             - --volume-dir=/etc/config
             - --webhook-url=http://127.0.0.1:9090/-/reload
-          resources:
-            {}
+          resources: {}
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config
@@ -462,8 +460,7 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 3
             successThreshold: 1
-          resources:
-            {}
+          resources: {}
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config
@@ -483,5 +480,4 @@ spec:
           configMap:
             name: prometheus
         - name: storage-volume
-          emptyDir:
-            {}
+          emptyDir: {}

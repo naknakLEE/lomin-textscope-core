@@ -1,5 +1,5 @@
 import json
-from typing import Dict
+from typing import Dict, List, Optional, Tuple, Union
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 
@@ -39,7 +39,7 @@ def insert_initial_data(db: Session) -> None:
 
 
 ### image
-def select_image_by_pkey(db: Session, image_pkey: str) -> schema.Image:
+def select_image_by_pkey(db: Session, image_pkey: int) -> schema.Image:
     query = (
         db.query(schema.Image)
         .select_from(schema.Image)
@@ -49,7 +49,7 @@ def select_image_by_pkey(db: Session, image_pkey: str) -> schema.Image:
     return res
 
 
-def select_image_all(db: Session):
+def select_image_all(db: Session) -> Optional[List[schema.Image]]:
     """
     SELECT
         *
@@ -65,7 +65,7 @@ def select_image_all(db: Session):
     return res
 
 
-def select_image(db: Session, **kwargs):
+def select_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
     dao = schema.Image
     try:
         res = dao.get(db, **kwargs)
@@ -75,19 +75,19 @@ def select_image(db: Session, **kwargs):
     return res
 
 
-def insert_image(db: Session, data):
+def insert_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
     dao = schema.Image
     try:
-        result = dao.create(db, **data)
+        result = dao.create(db, **kwargs)
     except Exception:
         logger.exception("image insert error")
         db.rollback()
-        return False
+        result = None
     return result
 
 
 ### category
-def select_category(db: Session, **kwargs):
+def select_category(db: Session, **kwargs: Dict) -> Optional[schema.Category]:
     dao = schema.Category
     try:
         res = dao.get(db, **kwargs)
@@ -98,42 +98,46 @@ def select_category(db: Session, **kwargs):
 
 
 ### task
-def insert_task(session: Session, data):
+def insert_task(db: Session, **kwargs: Dict) -> Optional[schema.Task]:
     dao = schema.Task
     try:
-        result = dao.create(session, **data)
+        result = dao.create(db, kwargs=kwargs)
     except Exception:
         logger.exception("task insert error")
-        # logger.warning(f'task insert error: {e}')
-        # db.rollback()
-        return False
+        return None
     return result
 
 
-def update_task(db: Session, pkey: int, data: models.UpdateTask):
+def update_task(
+    db: Session, pkey: int, data: models.UpdateTask
+) -> Optional[schema.Task]:
     dao = schema.Task
     try:
-        result = dao.update(db, pkey=pkey, **data.dict())
+        result = dao.update(db, id=pkey, **data.dict())
     except Exception:
         logger.exception("task update error")
         db.rollback()
-        return False
+        result = None
     return result
 
 
 ### inference
-def insert_inference(db: Session, data: models.CreateInference):
+def insert_inference(
+    db: Session, data: models.CreateInference
+) -> Optional[schema.Inference]:
     dao = schema.Inference
     try:
         result = dao.create(db, **data.dict())
     except Exception:
         logger.exception("inference insert error")
         db.rollback()
-        return False
+        result = None
     return result
 
 
-def select_inference_by_type(db: Session, inference_type: str):
+def select_inference_by_type(
+    db: Session, inference_type: str
+) -> List[schema.Inference]:
     query = (
         db.query(schema.Inference)
         .select_from(schema.Inference)
@@ -143,7 +147,7 @@ def select_inference_by_type(db: Session, inference_type: str):
     return res
 
 
-def select_dataset(db: Session, dataset_id: str):
+def select_dataset(db: Session, dataset_id: str) -> List[schema.Dataset]:
     """
     SELECT
         *
@@ -165,7 +169,7 @@ def select_dataset(db: Session, dataset_id: str):
 def insert_inference_result(
     db: Session,
     data: Dict,
-):
+) -> bool:
     inference_result = data.get("inference_result", {})
     response_log = inference_result.get("response_log", {})
     try:
@@ -185,27 +189,49 @@ def insert_inference_result(
         logger.exception("inference result insert error")
         db.rollback()
         return False
+    return True
 
 
-def insert_training_dataset(db: Session, **kwargs):
-    res = schema.Dataset.create(db, **kwargs)
+def insert_training_dataset(
+    db: Session, **kwargs: Dict
+) -> Union[Tuple[int, str], Tuple[None, None]]:
+    try:
+        res = schema.Dataset.create(db, kwargs=kwargs)
+    except Exception:
+        logger.exception("training dataset insert error")
+        res = None
     if res:
-        return res.dataset_pkey, res.dataset_id
+        return (res.dataset_pkey, res.dataset_id)
+    return (None, None)
 
 
-def insert_category(db: Session, **kwargs):
-    res = schema.Category.create(db, **kwargs)
+def insert_category(db: Session, **kwargs: Dict) -> Optional[int]:
+    try:
+        res = schema.Category.create(db, kwrargs=kwargs)
+    except:
+        logger.exception("category insert error")
+        db.rollback()
+        res = None
     if res:
         return res.category_pkey
+    return None
 
 
-def insert_inference_image(db: Session, **kwargs):
-    res = schema.Image.create(db, **kwargs)
+def insert_inference_image(db: Session, **kwargs: Dict) -> Optional[int]:
+    try:
+        res = schema.Image.create(db, kwargs=kwargs)
+    except:
+        logger.exception("inference image insert error")
+        db.rollback()
+        res = None
     if res:
         return res.image_pkey
+    return None
 
 
-def select_inference_img_path_from_taskid(db: Session, task_id: str):
+def select_inference_img_path_from_taskid(
+    db: Session, task_id: str
+) -> Optional[schema.Visualize]:
     query = (
         db.query(schema.Visualize.inference_img_path)
         .select_from(schema.Visualize)
@@ -215,19 +241,17 @@ def select_inference_img_path_from_taskid(db: Session, task_id: str):
     return res
 
 
-def delete_dataset(db: Session, dataset_id: str):
+def delete_dataset(db: Session, dataset_id: str) -> bool:
     try:
         query = db.query(schema.Dataset).filter_by(dataset_id=dataset_id).delete()
     except Exception:
         logger.exception("dataset delete error")
         db.rollback()
         return False
-
-    db.commit()
     return True
 
 
-def select_inference_all(db: Session):
+def select_inference_all(db: Session) -> List[schema.Inference]:
     query = (
         db.query(schema.Inference, schema.Image, schema.Category)
         .select_from(schema.Inference)
@@ -241,7 +265,7 @@ def select_inference_all(db: Session):
     return res
 
 
-def delete_inference_all(db: Session):
+def delete_inference_all(db: Session) -> bool:
     try:
         db.query(schema.Inference).delete()
     except Exception:
@@ -251,7 +275,7 @@ def delete_inference_all(db: Session):
     return True
 
 
-def select_category_pkey(db: Session, dataset_id: str):
+def select_category_pkey(db: Session, dataset_id: str) -> List[schema.Category]:
     """
     SELECT
         DISTINCT category_pkey
@@ -293,7 +317,7 @@ def select_category_pkey(db: Session, dataset_id: str):
     return res_category
 
 
-def select_inference_image(db: Session, task_id: str):
+def select_inference_image(db: Session, task_id: str) -> List[schema.Inference]:
     query = (
         db.query(schema.Inference, schema.Image)
         .select_from(schema.Inference)
@@ -304,7 +328,9 @@ def select_inference_image(db: Session, task_id: str):
     return res
 
 
-def select_gocr_inference_from_taskid(db: Session, task_id: str):
+def select_gocr_inference_from_taskid(
+    db: Session, task_id: str
+) -> List[schema.Inference]:
     query = (
         db.query(schema.Inference)
         .select_from(schema.Inference)
@@ -316,7 +342,9 @@ def select_gocr_inference_from_taskid(db: Session, task_id: str):
     return res
 
 
-def select_kv_inference_from_taskid(db: Session, task_id: str):
+def select_kv_inference_from_taskid(
+    db: Session, task_id: str
+) -> Optional[schema.Inference]:
     query = (
         db.query(schema.Inference)
         .select_from(schema.Inference)
@@ -328,7 +356,7 @@ def select_kv_inference_from_taskid(db: Session, task_id: str):
     return res
 
 
-def select_category_all(db: Session):
+def select_category_all(db: Session) -> List[schema.Category]:
     """
     SELECT
         *
@@ -340,7 +368,7 @@ def select_category_all(db: Session):
     return res
 
 
-def select_category_by_name(db: Session, category_name: str) -> int:
+def select_category_by_name(db: Session, category_name: str) -> Optional[int]:
     """
     SELECT
         category_pkey
@@ -363,7 +391,9 @@ def select_category_by_name(db: Session, category_name: str) -> int:
     )
 
     res = query.first()
-    return res.category_pkey
+    if res:
+        return res.category_pkey
+    return None
 
 
 def select_category_by_pkey(db: Session, category_pkey: int) -> schema.Category:

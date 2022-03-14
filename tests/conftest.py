@@ -1,8 +1,9 @@
-from typing import Dict
+from typing import Dict, Generator
 
 import os
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -13,13 +14,15 @@ from tests.utils.utils import get_superuser_token_headers
 from app.common.const import get_settings
 from sqlalchemy import create_engine
 from app.database import schema
+from _pytest.fixtures import SubRequest
+from _pytest.config.argparsing import Parser
 
 
 settings = get_settings()
 fake_user_info = settings.FAKE_USER_INFORMATION
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: Parser) -> None:
     parser.addoption(
         "--max",
         action="store",
@@ -37,17 +40,17 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session", autouse=False)
-def testcase_limit(request):
+def testcase_limit(request: SubRequest) -> int:
     return request.config.getoption("--max")
 
 
 @pytest.fixture(scope="session", autouse=False)
-def base_path(request):
+def base_path(request: SubRequest) -> str:
     return request.config.getoption("--base-path")
 
 
 @pytest.fixture(scope="session", autouse=False)
-def get_db():
+def get_db() -> Generator:
     engine = create_engine("sqlite:////workspace/tests/resources/test.db")
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -60,13 +63,13 @@ def get_db():
 
 
 @pytest.fixture(scope="session", autouse=False)
-def app():
+def app() -> FastAPI:
     os.environ["API_ENV"] = "test"
     return app_generator()
 
 
 @pytest.fixture(scope="session", autouse=False)
-def client(app):
+def client(app: FastAPI) -> TestClient:
     Base.metadata.create_all(db._engine)
     return TestClient(app=app)
 

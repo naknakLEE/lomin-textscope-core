@@ -11,12 +11,12 @@ from dotenv import load_dotenv
 load_dotenv("/workspace/.env")
 
 
-async def save_updated_task(db: Session, doc_type: str, task_pkey: int):
-    category = query.select_category(db, inference_doc_type=doc_type)
-    pkey = category.pkey
-    update_data = models.UpdateTask(category_pkey=pkey)
-    result = query.update_task(db, pkey=task_pkey, data=update_data)
-    return result
+async def save_updated_task(db: Session, doc_type: str, task_pkey: int) -> None:
+    category = query.select_category(db, kwargs=dict(inference_doc_type=doc_type))
+    if category:
+        pkey = category.pkey
+        update_data = models.UpdateTask(category_pkey=pkey)
+        query.update_task(db, pkey=task_pkey, data=update_data)
 
 
 async def save_inference_results(
@@ -24,7 +24,7 @@ async def save_inference_results(
     task_pkey: int,
     inference_img_path: str,
     inference_results: dict,
-):
+) -> None:
     artifact_name_list = list(
         map(lambda x: x.strip(), environ.get("ARTIFACT_NAME_LIST", "").split(","))
     )
@@ -81,5 +81,4 @@ async def save_inference_results(
             )
 
         inference_log = models.CreateInference(**create_data)
-        result = query.insert_inference(db, inference_log)
-    return result
+        query.insert_inference(db, inference_log)

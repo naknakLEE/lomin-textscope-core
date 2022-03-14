@@ -35,7 +35,7 @@ def test_create_user_new_email(
     print("\033[096m" + f"500 error: {response.json()}" + "\033[m")
     assert 200 <= response.status_code < 300
     created_user = response.json()
-    user = Users.get(session=get_db, email=email)
+    user = Users.get(get_db, kwargs=dict(email=email))
     assert user
     assert user.email == created_user["email"]
 
@@ -45,7 +45,8 @@ def test_get_existing_user(
 ) -> None:
     email = random_email()
     password = random_lower_string()
-    user = Users.create(get_db, email=email, password=password)
+    data = {"email": email, "password": password}
+    user = Users.create(get_db, kwargs=data)
     if user:
         user_email = user.email
         response = client.get(
@@ -63,7 +64,8 @@ def test_create_user_existing_username(
 ) -> None:
     email = random_email()
     password = random_lower_string()
-    user = Users.create(get_db, email=email, password=password)
+    data = {"email": email, "password": password}
+    Users.create(get_db, kwargs=data)
 
     data = {"email": email, "password": password}
     response = client.post(
@@ -75,29 +77,18 @@ def test_create_user_existing_username(
     assert "_id" not in created_user
 
 
-# API 추가 필요
-# def test_create_user_by_normal_user(
-#     client: TestClient, normal_user_token_headers: Dict[str, str]
-# ) -> None:
-#     username = random_email()
-#     password = random_lower_string()
-#     data = {"email": username, "password": password}
-#     response = client.post(
-#         f"/users", json=data, headers=normal_user_token_headers
-#     )
-#     assert response.status_code == 400
-
-
 def test_retrieve_users(
     client: TestClient, superuser_token_headers: dict, get_db: Session
 ) -> None:
     username = random_email()
     password = random_lower_string()
-    user = Users.create(get_db, email=username, password=password)
+    data = {"username": username, "password": password}
+    Users.create(get_db, kwargs=data)
 
     username2 = random_email()
     password2 = random_lower_string()
-    user2 = Users.create(get_db, email=username2, password=password2)
+    data = {"username2": username2, "password2": password2}
+    Users.create(get_db, kwargs=data)
 
     response = client.get(f"/admin/users", headers=superuser_token_headers)
     all_users = response.json()

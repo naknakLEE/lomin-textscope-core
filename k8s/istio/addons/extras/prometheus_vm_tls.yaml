@@ -11,8 +11,7 @@ metadata:
     heritage: Helm
   name: prometheus
   namespace: istio-system
-  annotations:
-    {}
+  annotations: {}
 ---
 # Source: prometheus/templates/server/cm.yaml
 apiVersion: v1
@@ -360,7 +359,7 @@ rules:
     verbs:
       - get
   - apiGroups:
-    - "networking.istio.io"
+      - "networking.istio.io"
     verbs:
       - get
       - watch
@@ -448,9 +447,10 @@ spec:
     metadata:
       annotations:
         sidecar.istio.io/inject: "true"
-        traffic.sidecar.istio.io/includeInboundPorts: ""   # do not intercept any inbound ports
-        traffic.sidecar.istio.io/includeOutboundIPRanges: ""  # do not intercept any outbound traffic
-        proxy.istio.io/config: |  # configure an env variable `OUTPUT_CERTS` to write certificates to the given folder
+        traffic.sidecar.istio.io/includeInboundPorts: "" # do not intercept any inbound ports
+        traffic.sidecar.istio.io/includeOutboundIPRanges: "" # do not intercept any outbound traffic
+        proxy.istio.io/config:
+          | # configure an env variable `OUTPUT_CERTS` to write certificates to the given folder
           proxyMetadata:
             OUTPUT_CERTS: /etc/istio-output-certs
         sidecar.istio.io/userVolumeMount: '[{"name": "istio-certs", "mountPath": "/etc/istio-output-certs"}]' # mount the shared volume at sidecar proxy
@@ -469,8 +469,7 @@ spec:
           args:
             - --volume-dir=/etc/config
             - --webhook-url=http://127.0.0.1:9090/-/reload
-          resources:
-            {}
+          resources: {}
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config
@@ -509,8 +508,7 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 3
             successThreshold: 1
-          resources:
-            {}
+          resources: {}
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config
@@ -544,5 +542,4 @@ spec:
           emptyDir:
             medium: Memory
         - name: storage-volume
-          emptyDir:
-            {}
+          emptyDir: {}

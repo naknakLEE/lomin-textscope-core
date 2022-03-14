@@ -1,4 +1,4 @@
-from ldap3 import Connection
+from ldap3 import Connection, Server
 from typing import Dict
 from datetime import timedelta
 from fastapi import APIRouter, Depends
@@ -23,9 +23,7 @@ router = APIRouter()
 async def login_for_access_token(
     form_data: LoginForm = Depends(),
     session: Session = Depends(db.session),
-    ldap_server=Depends(
-        initialize_ldap,
-    ),
+    ldap_server: Server = Depends(initialize_ldap),
 ) -> Dict:
     """
     ### email과 password를 받아 OAuth2 호환 토큰 발급

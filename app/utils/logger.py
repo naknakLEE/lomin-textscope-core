@@ -3,17 +3,35 @@ import json
 from time import time
 from fastapi.requests import Request
 
+from typing import Optional
+from fastapi import Response
 from app.utils.logging import logger
 from app.database.schema import Logs, Usage
 from app.common.const import get_settings
+from app.errors.exceptions import APIException
 
 
 settings = get_settings()
 
 
-async def api_logger(request: Request, response=None, error=None) -> None:
+def get_status_code(
+    response: Optional[Response], error: Optional[APIException]
+) -> Optional[int]:
+    status_code = None
+    if response:
+        status_code = response.status_code
+    elif error:
+        status_code = error.status_code
+    return status_code
+
+
+async def api_logger(
+    request: Request,
+    response: Optional[Response] = None,
+    error: Optional[APIException] = None,
+) -> None:
     processed_time = time() - request.state.start
-    status_code = error.status_code if error else response.status_code
+    status_code = get_status_code(response, error)
     error_log = None
     email = request.state.email
     if error:

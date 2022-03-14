@@ -6,7 +6,7 @@ import tifffile
 import cv2
 import numpy as np
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Any, Union
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pathlib import Path
@@ -31,7 +31,7 @@ def pretty_dict(
     indent: int = 4,
     sort_keys: bool = True,
     ensure_ascii: bool = False,
-):
+) -> str:
     if isinstance(data, dict):
         data = jsonable_encoder(data)
         return json.dumps(
@@ -52,17 +52,20 @@ def pretty_dict(
         )
 
 
-def substitute_spchar_to_alpha(decoded_texts):
-    removed_texts = list()
+def substitute_spchar_to_alpha(decoded_texts: List[str]) -> List[str]:
+    removed_texts: List[str] = list()
     regex = r"[\[\]\|]"
-    if len(decoded_texts) > 1:
-        regex = r"\|"
-    for text in decoded_texts:
-        found_spchar = re.findall(regex, text)
-        if found_spchar:
-            logger.info(f"find special charaters {found_spchar}")
-        removed_texts.append(re.sub(regex, "I", text))
-    return "".join(removed_texts)
+    for decoded_text in decoded_texts:
+        if len(decoded_text) > 1:
+            regex = r"\|"
+        removed_text: List[str] = list()
+        for text in decoded_text:
+            found_spchar = re.findall(regex, text)
+            if found_spchar:
+                logger.info(f"find special charaters {found_spchar}")
+            removed_text.append(re.sub(regex, "I", text))
+        removed_texts.append("".join(removed_text))
+    return removed_texts
 
 
 # @TODO: delete
@@ -80,9 +83,7 @@ def set_json_response(
     )
 
 
-def get_pp_api_name(
-    doc_type: str, customer: str = settings.CUSTOMER
-) -> Union[None, str]:
+def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optional[str]:
     if not isinstance(pp_mapping_table, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
     if doc_type in pp_mapping_table.get("idcard", []):
@@ -110,12 +111,16 @@ def cal_time_elapsed_seconds(
     return elapsed_string
 
 
-def basic_time_formatter(target_time: str):
+def basic_time_formatter(target_time: str) -> str:
     return target_time.replace(".", "-", 2).replace(".", "", 1)[:-3]
 
 
-def read_all_tiff_pages_with_tifffile(img_path, target_page=-1):
-    images = []
+def read_all_tiff_pages_with_tifffile(
+    img_path: Union[Path, str], target_page: int = -1
+) -> List[Image.Image]:
+    if isinstance(img_path, str):
+        img_path = Path(img_path)
+    images: List[Image.Image] = []
     page_count = 0
     while True:  # we don't know how many page in tif file
         try:
@@ -140,7 +145,9 @@ def read_all_tiff_pages_with_tifffile(img_path, target_page=-1):
     return images
 
 
-def read_tiff_page(img_path, target_page=0):
+def read_tiff_page(img_path: Union[Path, str], target_page: int = 0) -> Image.Image:
+    if isinstance(img_path, str):
+        img_path = Path(img_path)
     try:
         tiff_images = Image.open(img_path)
         tiff_images.seek(target_page)
@@ -154,7 +161,9 @@ def read_tiff_page(img_path, target_page=0):
     return Image.fromarray(np_image)
 
 
-def read_basic_image(image_path):
+def read_basic_image(image_path: Union[Path, str]) -> Image.Image:
+    if isinstance(image_path, str):
+        image_path = Path(image_path)
     try:
         cv2_img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
         pil_image = Image.fromarray(cv2_img[:, :, ::-1])
@@ -165,7 +174,9 @@ def read_basic_image(image_path):
     return pil_image
 
 
-def read_pdf_image(image_path, page=1):
+def read_pdf_image(image_path: Union[Path, str], page: int = 1) -> Image.Image:
+    if isinstance(image_path, str):
+        image_path = Path(image_path)
     try:
         pages = convert_from_path(image_path)
         pil_image = pages[page - 1]
@@ -176,7 +187,13 @@ def read_pdf_image(image_path, page=1):
     return pil_image
 
 
-def read_image(image_path: Path, page=1, ext_allows: List = settings.IMAGE_VALIDATION):
+def read_image(
+    image_path: Union[Path, str],
+    page: int = 1,
+    ext_allows: List[str] = settings.IMAGE_VALIDATION,
+) -> Image.Image:
+    if isinstance(image_path, str):
+        image_path = Path(image_path)
     ext = image_path.suffix.lower()
     if ext not in ext_allows:
         raise ValueError(f"{ext} is not supported")
@@ -186,6 +203,8 @@ def read_image(image_path: Path, page=1, ext_allows: List = settings.IMAGE_VALID
         pil_image = read_pdf_image(image_path, page)
     else:  # ext in [".tiff", "tif"]
         try:
+            if isinstance(image_path, Path):
+                image_path = image_path.as_posix()
             all_pages = read_all_tiff_pages_with_tifffile(image_path, page)
             pil_image = all_pages[page - 1]
         except:
@@ -194,7 +213,7 @@ def read_image(image_path: Path, page=1, ext_allows: List = settings.IMAGE_VALID
     return pil_image
 
 
-def load_image2base64(img_path: Path) -> Optional[str]:
+def load_image2base64(img_path: Union[Path, str]) -> Optional[str]:
     image = read_image(img_path)
     if image is None:
         return None
@@ -205,7 +224,7 @@ def load_image2base64(img_path: Path) -> Optional[str]:
 
 
 def dir_structure_validation(
-    path: Path, ext_allows: List = settings.IMAGE_VALIDATION
+    path: Path, ext_allows: List[str] = settings.IMAGE_VALIDATION
 ) -> bool:
     files_under_root = list(path.glob("*.*"))
     category_dirs = list(path.iterdir())
@@ -232,7 +251,7 @@ def dir_structure_validation(
 def image_file_validation(file: Path) -> bool:
     white_list = settings.IMAGE_VALIDATION
 
-    file_format = file.suffix[1:].lower()
+    file_format = file.suffix.lower()
     if file_format not in white_list:
         return False
 
@@ -254,14 +273,12 @@ def print_error_log() -> None:
         }
         logger.info("error log detail: {}", error_log)
         del (exc_type, exc_value, exc_traceback, error_log)
-    else:
-        return None
 
 
 def set_predictions(
-    detection_result: Dict,
-    recognition_result: Dict,
-) -> List:
+    detection_result: Dict[str, List],
+    recognition_result: Dict[str, List],
+) -> List[Dict[str, Any]]:
     classes = detection_result.get("classes", [])
     scores = detection_result.get("scores", [])
     boxes = detection_result.get("boxes", [])
@@ -270,7 +287,7 @@ def set_predictions(
         if "texts" in detection_result
         else recognition_result.get("texts", [])
     )
-    predictions = list()
+    predictions: List[Dict[str, Any]] = list()
     for class_, score_, box_, text_ in zip(classes, scores, boxes, texts):
         prediction = {
             "class": class_,
@@ -282,7 +299,9 @@ def set_predictions(
     return predictions
 
 
-def set_ocr_response(inputs: Dict, sequence_list: List, result_set: Dict) -> Dict:
+def set_ocr_response(
+    inputs: Dict, sequence_list: List[str], result_set: Dict[str, Dict]
+) -> Dict[str, Any]:
     detection_method = "general_detection"
     if "kv_detection" in sequence_list:
         detection_method = "kv_detection"

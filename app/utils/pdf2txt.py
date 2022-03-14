@@ -7,7 +7,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 
 from PIL import Image
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple, List, Any
 from pathlib import PurePath, Path
 from functools import lru_cache
 
@@ -62,7 +62,7 @@ class Pdf2Image:
         device.close()
         outfp.close()
 
-    def load_lexicon(self):
+    def load_lexicon(self) -> None:
         self.lexicon_dict = dict()
 
         for idx, lexicon in enumerate(
@@ -73,16 +73,16 @@ class Pdf2Image:
                 all_texts.extend(f.read().splitlines())
             self.lexicon_dict[idx] = all_texts
 
-    def parse_coordinate(self, bbox):
-        x0, y0, x1, y1 = bbox.split(",")
-        x0 = round(float(x0))
-        y0 = round(float(y0))
-        x1 = round(float(x1))
-        y1 = round(float(y1))
+    def parse_coordinate(self, bbox: str) -> Tuple[int, ...]:
+        x0, y0, x1, y1 = map(float, bbox.split(","))
+        x0 = round(x0)
+        y0 = round(y0)
+        x1 = round(x1)
+        y1 = round(y1)
 
-        return x0, y0, x1, y1
+        return (x0, y0, x1, y1)
 
-    def get_integrated_box(self, boxes):
+    def get_integrated_box(self, boxes: np.ndarray) -> List[int]:
         return [
             np.min(boxes[:, 0]),
             np.min(boxes[:, 1]),
@@ -90,17 +90,16 @@ class Pdf2Image:
             np.max(boxes[:, 3]),
         ]
 
-    def parse_texts(self, texts, height):
-        box_list = list()
-        text_list = list()
-        textline_box_list = list()
-        textline_char_list = list()
+    def parse_texts(self, texts: List[ET.Element], height: int) -> Tuple[List, List]:
+        box_list: List[List[int]] = list()
+        text_list: List[str] = list()
+        textline_box_list: List[List[int]] = list()
+        textline_char: str = ""
         for text in texts:
             if len(text.attrib) == 0:
                 textline_box_array = np.array(textline_box_list)
                 box_list.append(self.get_integrated_box(textline_box_array))
-                text_list.append("".join(textline_char_list).replace(" ", ""))
-                textline_char_list = list()
+                text_list.append(textline_char.replace(" ", ""))
                 textline_box_list = list()
                 continue
             char_attr = text.attrib
@@ -110,12 +109,14 @@ class Pdf2Image:
             y1 = height - _y0
             y0 = height - _y1
 
-            char = text.text
             textline_box_list.append([x0, y0, x1, y1])
-            textline_char_list.append(char)
+            char: Optional[str] = text.text
+            if char is None:
+                char = ""
+            textline_char += char
         return box_list, text_list
 
-    def resize_bbox(self, bbox, w_ratio, h_ratio):
+    def resize_bbox(self, bbox: np.ndarray, w_ratio: float, h_ratio: float) -> List:
         resized = copy.deepcopy(bbox)
         resized[:, 0] = resized[:, 0] * w_ratio
         resized[:, 1] = resized[:, 1] * h_ratio
@@ -123,7 +124,7 @@ class Pdf2Image:
         resized[:, 3] = resized[:, 3] * h_ratio
         return resized.tolist()
 
-    def read_xml(self, xml_path, page_num, page_size):
+    def read_xml(self, xml_path: str, page_num: int, page_size: List) -> Dict:
         bboxes = list()
         texts = list()
 
@@ -149,7 +150,9 @@ class Pdf2Image:
         )
         return {"boxes": bboxes, "texts": texts}
 
-    def __call__(self, pages, page_num, pdf_path, xml_path) -> Image:
+    def __call__(
+        self, pages: List, page_num: int, pdf_path: Any, xml_path: str
+    ) -> Image:
         page = pages[page_num]
         text_info = self.read_xml(
             xml_path=xml_path, page_num=page_num, page_size=page.size
@@ -167,14 +170,15 @@ def parse_pdf_text(text_info: Dict) -> Dict:
 
 
 @lru_cache(maxsize=10)
-def convert_path_to_image(pdf_path):
+def convert_path_to_image(pdf_path: str) -> List:
     pages = pdf2image.convert_from_path(pdf_path=pdf_path)
     return pages
 
 
-def get_pdf_text_info(inputs: Dict):
+def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
     xml_dir = "/tmp"
-    xml_path = PurePath(xml_dir, Path(inputs.get("image_path", "")).stem + ".xml")
+    image_path = inputs.get("image_path", "")
+    xml_path = PurePath(xml_dir, Path(image_path).stem + ".xml").as_posix()
     pdf_path = inputs.get("image_path")
     page_num = inputs.get("page", 1) - 1
     pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))

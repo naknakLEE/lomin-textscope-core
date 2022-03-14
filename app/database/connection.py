@@ -1,7 +1,7 @@
 import logging
 import os
 
-from typing import Generator, Dict, Callable
+from typing import Callable, Dict, Generator
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -17,20 +17,20 @@ settings = get_settings()
 
 
 class SQLAlchemy:
-    def __init__(self, app: FastAPI = None, **kwargs) -> None:
+    def __init__(self, app: FastAPI = None, **kwargs: Dict):
         self._engine = None
         self._session = None
         if app is not None:
             self.init_app(app=app, **kwargs)
 
-    def init_app(self, app: FastAPI, **kwargs) -> None:
+    def init_app(self, app: FastAPI, **kwargs: Dict) -> None:
         database_url = kwargs.get("DB_URL")
         if not database_exists(database_url):
             create_database(database_url)
-        pool_recycle = kwargs.setdefault("DB_POOL_RECYCLE", 900)
-        echo = kwargs.setdefault("DB_ECHO", False)
-        pool_size = kwargs.setdefault("POOL_SIZE", 30)
-        max_overflow = kwargs.setdefault("MAX_OVERFLOW", 60)
+        pool_recycle = kwargs.get("DB_POOL_RECYCLE", 900)
+        echo = kwargs.get("DB_ECHO", False)
+        pool_size = kwargs.get("POOL_SIZE", 30)
+        max_overflow = kwargs.get("MAX_OVERFLOW", 60)
 
         check_same_thread: Dict = {}
         engine_config = dict(

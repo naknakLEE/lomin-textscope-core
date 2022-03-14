@@ -87,7 +87,7 @@ router = APIRouter()
 #     return cal_usage_count(usages)
 
 
-def cal_usage_count(usages) -> Dict:
+def cal_usage_count(usages: Dict) -> Dict:
     successed_count = (
         sum(usages["success_response"][0]) if len(usages["success_response"]) else 0
     )

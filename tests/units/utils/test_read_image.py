@@ -9,7 +9,7 @@ RESOURCE_PATH = Path(__file__, "../../../resources").resolve()
 
 @pytest.mark.unit
 class TestReadImage:
-    def test_not_supported_extension_image(self):
+    def test_not_supported_extension_image(self) -> None:
         image_path = Path("/not/supported/image.ext")
         with pytest.raises(ValueError):
             read_image(image_path, ext_allows=["jpg"])
@@ -24,7 +24,7 @@ class TestReadImage:
             if image_path.is_file()
         ],
     )
-    def test_broken_image(self, image_path):
+    def test_broken_image(self, image_path: Path) -> None:
         with pytest.raises(ResourceDataError):
             read_image(image_path)
 
@@ -38,6 +38,6 @@ class TestReadImage:
             if image_path.is_file()
         ],
     )
-    def test_normal_image(self, image_path):
+    def test_normal_image(self, image_path: Path) -> None:
         output = read_image(image_path)
         assert isinstance(output, Image.Image)

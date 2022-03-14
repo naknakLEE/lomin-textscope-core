@@ -84,7 +84,7 @@ def get_image(image_path: str, session: Session = Depends(db.session)) -> JSONRe
     response_log = dict()
     request_datetime = datetime.now()
 
-    result = query.select_image(session, image_path=image_path)
+    result = query.select_image(session, kwargs=dict(image_path=image_path))
     if not result:
         raise HTTPException(status_code=404, detail=vars(Error404().error))
     image_id = result.image_id
@@ -151,7 +151,7 @@ def upload_image(
             "image_id": image_id,
             "image_path": save_path.as_posix(),
         }
-        query.insert_image(session, dao_image_params)
+        query.insert_image(session, kwargs=dao_image_params)
     else:
         # @TODO: file not saved
         return HTTPException(status_code=400, detail=f"{image_name} is not saved")

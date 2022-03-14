@@ -57,17 +57,17 @@ spec:
         app: postgres
     spec:
       containers:
-      - name: postgres
-        image: postgres:14
-        ports:
-        - containerPort: 5432
-          protocol: TCP
-        envFrom:
-          - configMapRef:
-              name: postgres
-        volumeMounts:
-          - mountPath: /var/lib/postgresql/data
-            name: postgres-pv
+        - name: postgres
+          image: postgres:14
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: postgres
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-pv
       volumes:
         - name: postgres-pv
           persistentVolumeClaim:
@@ -91,21 +91,21 @@ spec:
         app: elasticsearch
     spec:
       containers:
-      - name: elasticsearch
-        image: docker.lomin.ai/ts-elasticsearch:0.0.0
-        imagePullPolicy: IfNotPresent
-        workingDir: /workspace/pp_server/pp_server/app
-        ports:
-        - containerPort: 9200
-          protocol: TCP
-        - containerPort: 9300
-          protocol: TCP
-        envFrom:
-          - configMapRef:
-              name: elasticsearch
-        volumeMounts:
-          - mountPath: /usr/share/elasticsearch/data
-            name: elasticsearch-pv
+        - name: elasticsearch
+          image: docker.lomin.ai/ts-elasticsearch:0.0.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace/pp_server/pp_server/app
+          ports:
+            - containerPort: 9200
+              protocol: TCP
+            - containerPort: 9300
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: elasticsearch
+          volumeMounts:
+            - mountPath: /usr/share/elasticsearch/data
+              name: elasticsearch-pv
       volumes:
         - name: elasticsearch-pv
           persistentVolumeClaim:
@@ -129,18 +129,18 @@ spec:
         app: openldap
     spec:
       containers:
-      - name: openldap
-        image: docker.lomin.ai/ts-openldap:0.1.12
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 389
-          protocol: TCP
-        envFrom:
-          - configMapRef:
-              name: ldap
-        volumeMounts:
-          - mountPath: /var/lib/ldap
-            name: openldap-pv
+        - name: openldap
+          image: docker.lomin.ai/ts-openldap:0.1.12
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 389
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: ldap
+          volumeMounts:
+            - mountPath: /var/lib/ldap
+              name: openldap-pv
       volumes:
         - name: openldap-pv
           persistentVolumeClaim:
@@ -164,22 +164,22 @@ spec:
         app: web
     spec:
       containers:
-      - name: web
-        image: docker.lomin.ai/ts-web-base:0.1.5 
-        workingDir: /workspace/app
-        imagePullPolicy: IfNotPresent
-        command: ['python3', 'main.py']
-        ports:
-        - containerPort: 8000
-          protocol: TCP
-        volumeMounts:
-        - mountPath: /workspace
-          name: web-volume
+        - name: web
+          image: docker.lomin.ai/ts-web-base:0.1.5
+          workingDir: /workspace/app
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "main.py"]
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /workspace
+              name: web-volume
       volumes:
-      - name: web-volume
-        hostPath:
-          path: /home/shinuk/Documents/gallery/Textscope
-          type: Directory
+        - name: web-volume
+          hostPath:
+            path: /home/shinuk/Documents/gallery/Textscope
+            type: Directory
   selector:
     matchLabels:
       app: web
@@ -199,22 +199,22 @@ spec:
         app: pp
     spec:
       containers:
-      - name: pp
-        image: docker.lomin.ai/ts-pp-base:0.1.5
-        workingDir: /workspace/pp_server/pp_server/app
-        imagePullPolicy: IfNotPresent
-        command: ['python3', 'main.py']
-        ports:
-        - containerPort: 8080
-          protocol: TCP
-        volumeMounts:
-        - mountPath: /workspace
-          name: pp-volume
+        - name: pp
+          image: docker.lomin.ai/ts-pp-base:0.1.5
+          workingDir: /workspace/pp_server/pp_server/app
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "main.py"]
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /workspace
+              name: pp-volume
       volumes:
-      - name: pp-volume
-        hostPath:
-          path: /home/shinuk/Documents/gallery/Textscope
-          type: Directory
+        - name: pp-volume
+          hostPath:
+            path: /home/shinuk/Documents/gallery/Textscope
+            type: Directory
   selector:
     matchLabels:
       app: pp
@@ -234,25 +234,25 @@ spec:
         app: serving
     spec:
       containers:
-      - name: serving
-        image: docker.lomin.ai/ts-gpu-serving-base:0.1.5
-        workingDir: /workspace/inference_server
-        imagePullPolicy: IfNotPresent
-        command: ['sh', 'assets/run-dev.sh']
-        envFrom:
-          - configMapRef:
-              name: serving
-        ports:
-        - containerPort: 5000
-          protocol: TCP
-        volumeMounts:
-        - mountPath: /workspace
-          name: serving-volume
+        - name: serving
+          image: docker.lomin.ai/ts-gpu-serving-base:0.1.5
+          workingDir: /workspace/inference_server
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "assets/run-dev.sh"]
+          envFrom:
+            - configMapRef:
+                name: serving
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /workspace
+              name: serving-volume
       volumes:
-      - name: serving-volume
-        hostPath:
-          path: /home/shinuk/Documents/gallery/Textscope
-          type: Directory
+        - name: serving-volume
+          hostPath:
+            path: /home/shinuk/Documents/gallery/Textscope
+            type: Directory
   selector:
     matchLabels:
       app: serving
@@ -272,22 +272,22 @@ spec:
         app: wrapper
     spec:
       containers:
-      - name: wrapper
-        image: docker.lomin.ai/ts-wrapper-base:0.1.5
-        workingDir: /workspace/textscope_wrapper/textscope_wrapper
-        imagePullPolicy: IfNotPresent
-        command: ['python3', 'main.py']
-        ports:
-        - containerPort: 8090
-          protocol: TCP
-        volumeMounts:
-        - mountPath: /workspace
-          name: wrapper-volume
+        - name: wrapper
+          image: docker.lomin.ai/ts-wrapper-base:0.1.5
+          workingDir: /workspace/textscope_wrapper/textscope_wrapper
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "main.py"]
+          ports:
+            - containerPort: 8090
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /workspace
+              name: wrapper-volume
       volumes:
-      - name: wrapper-volume
-        hostPath:
-          path: /home/shinuk/Documents/gallery/Textscope
-          type: Directory
+        - name: wrapper-volume
+          hostPath:
+            path: /home/shinuk/Documents/gallery/Textscope
+            type: Directory
   selector:
     matchLabels:
       app: wrapper
@@ -305,7 +305,7 @@ metadata:
 spec:
   tls:
     - hosts:
-      - localhost
+        - localhost
       secretName: tls-secret
   defaultBackend:
     service:
@@ -439,8 +439,8 @@ spec:
     app: wrapper
   ports:
     - name: http
-      targetPort: 8090  # port the container accepts traffic on
-      port: 8090  # port other pods use to access the Service
+      targetPort: 8090 # port the container accepts traffic on
+      port: 8090 # port other pods use to access the Service
       protocol: TCP
 ---
 # Source: config.yaml
@@ -449,7 +449,7 @@ kind: ConfigMap
 metadata:
   name: serving
   namespace: textscope
-data:  # Example vars that will get picked up by Flask application
+data: # Example vars that will get picked up by Flask application
   NVIDIA_VISIBLE_DEVICES: all
   BENTOML_CONFIG: /workspace/inference_server/assets/bentoml_configuration.yml
 ---
@@ -458,7 +458,7 @@ kind: ConfigMap
 metadata:
   name: elasticsearch
   namespace: textscope
-data:  # Example vars that will get picked up by Flask application
+data: # Example vars that will get picked up by Flask application
   cluster.name: ts-cluster
   discovery.type: single-node
   http.host: 0.0.0.0
@@ -471,7 +471,7 @@ kind: ConfigMap
 metadata:
   name: postgres
   namespace: textscope
-data:  # Example vars that will get picked up by Flask application
+data: # Example vars that will get picked up by Flask application
   POSTGRES_USER: lomin
   POSTGRES_PASSWORD: 1q2w3e4r
   POSTGRES_DB: textscope
@@ -481,7 +481,7 @@ kind: ConfigMap
 metadata:
   name: ldap
   namespace: textscope
-data:  # Example vars that will get picked up by Flask application
+data: # Example vars that will get picked up by Flask application
   SLAPD_PASSWORD: lomin
   SLAPD_DOMAIN: lomin.ai
   SLAPD_ADDITIONAL_MODULES: memberof

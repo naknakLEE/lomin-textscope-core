@@ -29,16 +29,16 @@ def authentication_token_from_email(
     *, client: TestClient, email: str, get_db: Session
 ) -> Dict[str, str]:
     password = random_lower_string()
-    user = Users.get(session=get_db, email=email)
+    data = {"email": email}
+    user = Users.get(get_db, kwargs=data)
     if user:
         del user.id, user.updated_at, user.created_at, user._sa_instance_state
         user_in = UserInDB(**user.__dict__, password=password)
         if not user:
-            user = Users.create(
-                get_db, username=user.username, email=email, password=password
-            )
+            data = {"email": email, "password": password, "username": user.username}
+            user = Users.create(get_db, kwargs=data)
         else:
-            user = Users.update(get_db, db_obj=user, obj_in=user_in)
+            user = Users.update(get_db, kwargs=user_in.dict())
             user = Users.get(email=email)
 
         return user_authentication(client=client, email=email, password=password)

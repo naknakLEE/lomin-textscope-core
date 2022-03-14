@@ -1,8 +1,9 @@
 import uuid
 import pytest
 import logging
+from typing import Callable
 from httpx import Client
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from app.wrapper.pipeline import single
 from tests.utils.single_pipeline import FakeInferenceRequestInput, FakeInferenceResponse
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.mark.mock
 class TestSinglePipeline:
-    def setup_method(self, method):
+    def setup_method(self, method: Callable) -> None:
         task_id = str(uuid.uuid4())
         self.doc_type_hint = {"doc_type": "FN-BB", "trust": False, "use": False}
         self.key_value_hint = {
@@ -37,7 +38,7 @@ class TestSinglePipeline:
             idcard_version="v1",
             image_id="image_id",
             image_path="image_path",
-            image_pkey="1",
+            image_pkey=1,
             page=1,
             rectify=rectify,
             request_id=task_id,
@@ -61,7 +62,9 @@ class TestSinglePipeline:
         self.fake_response.response_data = self.fake_inference_result
 
     @patch("app.wrapper.pipeline.Client.post")
-    def test_single_pipeline_not_use_cls_hint(self, mock_serving_request):
+    def test_single_pipeline_not_use_cls_hint(
+        self, mock_serving_request: MagicMock
+    ) -> None:
         """단일 pipeline으로 구성된 model service에 inference 요청"""
         mock_serving_request.return_value = self.fake_response
         inputs = self.fake_input.__dict__
@@ -80,7 +83,9 @@ class TestSinglePipeline:
         )
 
     @patch("app.wrapper.pipeline.Client.post")
-    def test_single_pipeline_use_cls_hint(self, mock_serving_request):
+    def test_single_pipeline_use_cls_hint(
+        self, mock_serving_request: MagicMock
+    ) -> None:
         """trust가 true인 cls hint를 적용"""
         test_doc_type = "changed_doc_type"
         self.doc_type_hint = {"doc_type": test_doc_type, "trust": True, "use": True}
