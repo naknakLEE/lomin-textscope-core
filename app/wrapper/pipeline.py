@@ -115,8 +115,8 @@ def get_model_info(
     return (model_name, route_name, module_name)
 
 
-# TODO: recify 90 추가
 # TODO: hint 사용
+# TODO: pipeline 상에서 각 모델의 inference 끝났을 때 결과를 출력하도록 구성
 def multiple(
     client: Client,
     inputs: Dict,
@@ -124,8 +124,8 @@ def multiple(
     response_log: Dict,
     hint: Optional[Dict] = None,
 ) -> Tuple[int, Dict, Dict]:
-    ocr_pipeline_start_time = datetime.now()
-    response_log["ocr_pipeline_start_time"] = ocr_pipeline_start_time.strftime(
+    inference_start_time = datetime.now()
+    response_log["inference_start_time"] = inference_start_time.strftime(
         "%Y-%m-%d %H:%M:%S"
     )
     sequence_list = inference_pipeline.get("sequence", {})
@@ -163,23 +163,22 @@ def multiple(
 
         if method_name == "classification" and result.get("is_supported_type") == True:
             break
-    ocr_pipeline_end_time = datetime.now()
-    response_log["ocr_pipeline_end_time"] = ocr_pipeline_end_time.strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-    response_log["ocr_pipeline_total_time"] = (
-        ocr_pipeline_end_time - ocr_pipeline_start_time
-    ).total_seconds()
+    inference_end_time = datetime.now()
+    response_log.update({
+            "inference_end_time": inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "inference_total_time": (inference_end_time - inference_start_time).total_seconds()
+        })
     logger.info("inference log: {}", json.dumps(response_log, indent=4, sort_keys=True))
 
-    response = set_ocr_response(
+    result = set_ocr_response(
         inputs=inputs,
         sequence_list=sequence_type_list,
         result_set=result_set,
     )
-    return (result.get("status_code"), response, response_log)
+    return (result.get("status_code"), result, response_log)
 
 
+# TODO: pipeline 상에서 각 모델의 inference 끝났을 때 결과를 출력하도록 구성
 def single(
     client: Client,
     inputs: Dict,
@@ -197,6 +196,9 @@ def single(
         inputs["doc_type"] = cls_hint_result.get("doc_type")
 
     inference_start_time = datetime.now()
+    response_log["inference_start_time"] = inference_start_time.strftime(
+        "%Y-%m-%d %H:%M:%S.%f"
+    )[:-3]
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
@@ -204,21 +206,17 @@ def single(
         headers={"User-Agent": "textscope core"},
     )
     inference_end_time = datetime.now()
+    response_log.update({
+            "inference_end_time": inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            "inference_total_time": (inference_end_time - inference_start_time).total_seconds()
+        })
     logger.info(
-        f"Inference time: {str((inference_end_time - inference_start_time).total_seconds())}"
-    )
-    response_log.update(
-        dict(
-            inference_request_start_time=inference_start_time.strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
-            inference_request_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
-            inference_request_time=inference_end_time - inference_start_time,
-        )
+        f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
     return (ocr_response.status_code, ocr_response.json(), response_log)
 
 
+# TODO: multiple 함수 사용하도록 수정
 def heungkuk_life(
     client: Client,
     inputs: Dict,
@@ -227,7 +225,7 @@ def heungkuk_life(
 ) -> Tuple[int, Dict, Dict]:
     inference_start_time = datetime.now()
     task_id = inputs.get("task_id")
-    logger.success(f"{task_id}-inference pipeline start:\n{pretty_dict(inputs)}")
+    logger.debug(f"{task_id}-inference pipeline start:\n{pretty_dict(inputs)}")
 
     # Rotate
     rectify = inputs.get("rectify", {})
@@ -275,14 +273,16 @@ def heungkuk_life(
 
     # Apply doc type hint
     hint = inputs.get("hint", {})
-    apply_cls_hint_result = {}
     if "doc_type" in hint:
-        apply_cls_hint_result = apply_cls_hint(
+        doc_type_hint = hint.get("doc_type", {})
+        doc_type_hint = DocTypeHint(**doc_type_hint)
+        cls_hint_result = apply_cls_hint(
             cls_result=duriel_classification_result,
-            doc_type_hint=hint.get("doc_type", {}),
+            doc_type_hint=doc_type_hint
         )
-        logger.info(f"{task_id}-apply doc type hint: {apply_cls_hint_result}")
-    doc_type = duriel_classification_result.get("doc_type")
+        response_log.update(apply_cls_hint_result=cls_hint_result)
+        doc_type = cls_hint_result.get("doc_type")
+        logger.info(f"{task_id}-apply doc type hint: {cls_hint_result}")
 
     # Apply static doc type
     if inputs.get("static_doc_type", None) is not None:
@@ -293,9 +293,6 @@ def heungkuk_life(
 
     # Kv detection
     kv_result: Dict = dict()
-    logger.info("duriel support document: {}", settings.DURIEL_SUPPORT_DOCUMENT)
-    logger.info("insurance support document: {}", settings.INSURANCE_SUPPORT_DOCUMENT)
-    logger.info("classification doc type: {}", doc_type)
     if doc_type in settings.DURIEL_SUPPORT_DOCUMENT:
         kv_result = wrapper.detection.duriel(
             client, inputs, duriel_inputs, doc_type
@@ -391,7 +388,7 @@ def heungkuk_life(
         image_width=agamotto_result.get("image_width"),
         id_type=kv_result.get("id_type", None),
         doc_type=duriel_classification_result.get("doc_type"),
-        apply_cls_hint_result=apply_cls_hint_result,
+        apply_cls_hint_result=cls_hint_result,
     )
 
     inference_end_time = datetime.now()
@@ -407,6 +404,6 @@ def heungkuk_life(
             inference_request_time=inference_end_time - inference_start_time,
         )
     )
-    logger.success(f"{task_id}-output:\n{pretty_dict(ocr_response)}")
+    logger.debug(f"{task_id}-output:\n{pretty_dict(ocr_response)}")
     kv_result_status_code: int = kv_result.get("status_code", 400)
     return (kv_result_status_code, ocr_response, response_log)

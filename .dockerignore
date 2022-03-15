@@ -143,4 +143,11 @@
 **/*.tar
 **/ModelService/
 **/logs/
+**/log/
 **/workspace/
+**/textscope-client/
+**/datasets/
+**/dataset/
+**/images/
+**/support_set/
+**/output/

@@ -13,7 +13,7 @@ def post_processing(
     inputs: Dict,
     post_processing_type: str,
     response_log: Dict,
-    request_id: str,
+    task_id: str,
 ) -> Tuple[int, Dict, Dict]:
     post_processing_start_time = datetime.now()
     response_log.update(

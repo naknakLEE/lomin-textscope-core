@@ -1,4 +1,6 @@
 import json
+import uuid
+from fastapi import HTTPException
 from typing import Dict, List, Optional, Tuple, Union
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
@@ -75,14 +77,29 @@ def select_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
     return res
 
 
-def insert_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
+
+def insert_image(
+    session: Session,
+    image_path: str,
+    category_pkey: Optional[int] = None,
+    dataset_pkey: Optional[int] = None,
+    image_id: str = str(uuid.uuid4()),
+    image_type: str = "TRAINING",  
+):
     dao = schema.Image
     try:
-        result = dao.create(db, **kwargs)
-    except Exception:
-        logger.exception("image insert error")
-        db.rollback()
-        result = None
+        result = dao.create(
+            session=session,
+            image_path=image_path,
+            category_pkey=category_pkey,
+            dataset_pkey=dataset_pkey,
+            image_id=image_id,
+            image_type=image_type,
+        )
+    except Exception as e:
+        logger.error(f"image insert error: {e}")
+        session.rollback()
+        return False
     return result
 
 
@@ -90,32 +107,19 @@ def insert_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
 def select_category(db: Session, **kwargs: Dict) -> Optional[schema.Category]:
     dao = schema.Category
     try:
-        res = dao.get(db, **kwargs)
-    except Exception:
-        logger.exception("category select error")
+        res = dao.get_all(db, **kwargs)
+    except Exception as e:
+        logger.exception(f"category select error: {e}")
         res = None
     return res
 
 
-### task
-def insert_task(db: Session, **kwargs: Dict) -> Optional[schema.Task]:
+def update_task(db: Session, pkey: int, data: models.UpdateTask):
     dao = schema.Task
     try:
-        result = dao.create(db, kwargs=kwargs)
-    except Exception:
-        logger.exception("task insert error")
-        return None
-    return result
-
-
-def update_task(
-    db: Session, pkey: int, data: models.UpdateTask
-) -> Optional[schema.Task]:
-    dao = schema.Task
-    try:
-        result = dao.update(db, id=pkey, **data.dict())
-    except Exception:
-        logger.exception("task update error")
+        result = dao.update(db, pkey=pkey, **data.dict())
+    except Exception as e:
+        logger.error(f"task update error: {e}")
         db.rollback()
         result = None
     return result
@@ -128,8 +132,8 @@ def insert_inference(
     dao = schema.Inference
     try:
         result = dao.create(db, **data.dict())
-    except Exception:
-        logger.exception("inference insert error")
+    except Exception as e:
+        logger.error(f"inference insert error: {e}")
         db.rollback()
         result = None
     return result
@@ -162,71 +166,61 @@ def select_dataset(db: Session, dataset_id: str) -> List[schema.Dataset]:
         .select_from(schema.Dataset)
         .filter(schema.Dataset.dataset_id == dataset_id)
     )
-    res = query.all()
-    return res
+    return query.first()
 
 
 def insert_inference_result(
-    db: Session,
-    data: Dict,
-) -> bool:
-    inference_result = data.get("inference_result", {})
-    response_log = inference_result.get("response_log", {})
+    session: Session,
+    task_pkey: int,
+    image_pkey: int,
+    inference_type: str,
+    response_log: Dict, 
+    inference_results: Dict
+):
+    del inference_results["response_log"]
     try:
-        db.add(
-            schema.Inference(
-                task_id=data.get("task_id"),
-                image_id=data.get("image_id"),
-                inference_result=inference_result,
-                inference_type=data.get("inference_type"),
-                start_datetime=response_log.get("inference_start_time"),
-                finish_datetime=response_log.get("inference_end_time"),
-                inference_img_path=response_log.get("image_path"),
-            )
+        schema.Inference.create(
+            session=session,
+            task_pkey=task_pkey,
+            image_pkey=image_pkey,
+            inference_results=inference_results,
+            inference_type=inference_type,
+            response_log=response_log,
+            start_datetime=response_log.get("inference_start_time"),
+            end_datetime=response_log.get("inference_end_time"),
         )
-        db.commit()
     except Exception:
-        logger.exception("inference result insert error")
-        db.rollback()
-        return False
-    return True
+        logger.exception(f"Insert inference result")
 
 
 def insert_training_dataset(
-    db: Session, **kwargs: Dict
-) -> Union[Tuple[int, str], Tuple[None, None]]:
-    try:
-        res = schema.Dataset.create(db, kwargs=kwargs)
-    except Exception:
-        logger.exception("training dataset insert error")
-        res = None
-    if res:
-        return (res.dataset_pkey, res.dataset_id)
-    return (None, None)
+    session: Session,
+    dataset_id: str,
+    root_path: str,
+    dataset_dir_name: str,
+):
+    res = schema.Dataset.create(session=session, dataset_id=dataset_id, root_path=root_path, dataset_dir_name=dataset_dir_name)
+    return res
 
 
-def insert_category(db: Session, **kwargs: Dict) -> Optional[int]:
-    try:
-        res = schema.Category.create(db, kwrargs=kwargs)
-    except:
-        logger.exception("category insert error")
-        db.rollback()
-        res = None
-    if res:
-        return res.category_pkey
-    return None
+def insert_category(
+    session: Session, 
+    category_name: str,
+    category_code: str,
+    dataset_pkey: int,
+):
+    res = schema.Category.create(
+        session=session,
+        category_name=category_name,
+        category_code=category_code,
+        dataset_pkey=dataset_pkey,
+    )
+    return res.category_pkey
 
 
-def insert_inference_image(db: Session, **kwargs: Dict) -> Optional[int]:
-    try:
-        res = schema.Image.create(db, kwargs=kwargs)
-    except:
-        logger.exception("inference image insert error")
-        db.rollback()
-        res = None
-    if res:
-        return res.image_pkey
-    return None
+def insert_inference_image(db: Session, **kwargs):
+    res = schema.Image.create(db, **kwargs)
+    return res.image_pkey
 
 
 def select_inference_img_path_from_taskid(
@@ -248,6 +242,7 @@ def delete_dataset(db: Session, dataset_id: str) -> bool:
         logger.exception("dataset delete error")
         db.rollback()
         return False
+    logger.info(f"Delete catetory successful")
     return True
 
 
@@ -356,15 +351,8 @@ def select_kv_inference_from_taskid(
     return res
 
 
-def select_category_all(db: Session) -> List[schema.Category]:
-    """
-    SELECT
-        *
-    FROM
-        category
-    """
-    query = db.query(schema.Category).select_from(schema.Category)
-    res = query.all()
+def select_category_all(db: Session, **kwargs):
+    res = schema.Category.get_all(db, **kwargs)
     return res
 
 
@@ -375,17 +363,14 @@ def select_category_by_name(db: Session, category_name: str) -> Optional[int]:
     FROM
         category
     WHERE
-        category_name_en = {category_name}
-        or
-        category_name_kr = {category_name}
+        category_name = {category_name}
     """
     query = (
         db.query(schema.Category)
         .select_from(schema.Category)
         .filter(
             or_(
-                schema.Category.category_name_en == category_name,
-                schema.Category.category_name_kr == category_name,
+                schema.Category.category_name == category_name,
             )
         )
     )
@@ -415,7 +400,7 @@ def select_category_by_pkey(db: Session, category_pkey: int) -> schema.Category:
     return res
 
 
-def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
+def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
     """
     DELETE FROM
         image
@@ -435,18 +420,17 @@ def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
     WHERE
         is_pretrained = False
     """
-    query = db.query(schema.Category).filter(schema.Category.is_pretrained == False)
+    query = session.query(schema.Category)
 
     res = query.all()
 
     for category in res:
         try:
             q = (
-                db.query(schema.Image)
+                session.query(schema.Image)
                 .filter(
                     and_(
-                        schema.Image.category_pkey == category.category_pkey,
-                        schema.Image.dataset_pkey == dataset_pkey,
+                        schema.Image.category_pkey == category.category_pkey
                     )
                 )
                 .delete()
@@ -462,5 +446,21 @@ def delete_category_cascade_image(db: Session, dataset_pkey: int) -> bool:
         logger.exception("category cascade delete error")
         db.rollback()
         return False
-    db.commit()
+    session.commit()
+    logger.info(f"Delete catetory successful")
     return True
+
+
+def insert_task(session: Session, task_id: str, image_pkey: str):
+    if image_pkey is None:
+        logger.warning("Image pkey({}) not found".format(image_pkey))
+    dao = schema.Task
+    result = dao.create(session=session, task_id=task_id, task_type="TRAINING", image_pkey=image_pkey)
+    if result is None:
+        logger.warning("{} insert failed, image pkey={}".format(task_id, image_pkey))
+        # TODO: 아래 라인 models로 이전
+        error = models.Error(
+            error_code="ER-INF-CKV-4003", error_message="이미 등록된 task id"
+        )
+        raise HTTPException(status_code=400, detail=vars(error))
+    return result.task_pkey

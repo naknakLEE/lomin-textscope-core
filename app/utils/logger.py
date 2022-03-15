@@ -35,6 +35,7 @@ async def api_logger(
     error_log = None
     email = request.state.email
     if error:
+        logger.exception("Error")
         if request.state.inspect:
             frame = request.state.inspect
             error_file = frame.f_code.co_filename
@@ -50,12 +51,17 @@ async def api_logger(
             msg=str(error.exc),
             # traceback=traceback.format_exc()
         )
-    log_detail = response.__dict__ if response else None
+    
+    log_detail = {}
+    if response:
+        log_detail = {
+            "raw_headers": response.raw_headers,
+            "background": response.background,
+        }
     user_log = dict(
         client=request.state.ip,
         email=email,
     )
-
     log_dict = dict(
         url=request.url.hostname + request.url.path,
         method=str(request.method),

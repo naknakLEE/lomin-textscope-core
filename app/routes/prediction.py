@@ -69,7 +69,7 @@ def get_all_prediction(session: Session = Depends(db.session)) -> JSONResponse:
             session, category_pkey=image.category_pkey
         )
         image_path = image.image_path
-        image_category = category.category_name_en
+        image_category = category.category_name
         kv = inference_result.get("kv", {})
         key_values = list()
         texts = list()

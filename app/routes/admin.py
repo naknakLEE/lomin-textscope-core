@@ -48,7 +48,7 @@ router = APIRouter()
 #         raise ex.PrivielgeException(current_user["email"])
 #     is_exist = Users.get(session, email=user["email"])
 #     if is_exist:
-#         raise ex.AlreadyExistException(user["email"])
+#         raise ex.AlreadyExistUserException(user["email"])
 #     user["hashed_password"] = get_password_hash(user["password"])
 #     created_user = Users.create(session, auto_commit=True, **user)
 #     return created_user
@@ -95,7 +95,7 @@ router = APIRouter()
 #     if not current_user.is_superuser:
 #         raise ex.PrivielgeException(current_user.email)
 #     if not user:
-#         raise ex.AlreadyExistException(current_user.email)
+#         raise ex.AlreadyExistUserException(current_user.email)
 
 #     hashed_password = None
 #     if user_in.password is not None:

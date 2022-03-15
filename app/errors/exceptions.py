@@ -77,8 +77,8 @@ class PrivielgeException(APIException):
         )
 
 
-class AlreadyExistException(APIException):
-    def __init__(self, email: str, exc: Optional[Exception] = None) -> None:
+class AlreadyExistUserException(APIException):
+    def __init__(self, email: str = None, exc: Exception = None) -> None:
         super().__init__(
             status_code=StatusCode.HTTP_400,
             msg=f"The user with this email already exists in the system.",
@@ -185,3 +185,47 @@ class ResourceDataError(Exception):
         self.detail = detail
         self.exc = exc
         super().__init__(exc)
+
+
+# TODO: status code 적합하게 변경
+class ExtractException(APIException):
+    def __init__(self, msg: str, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=415,
+            msg=msg,
+            detail="",
+            code="8500",
+            exc=exc,
+        )
+
+
+class NotExistException(APIException):
+    def __init__(self, msg: str, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=415,
+            msg=msg,
+            detail="",
+            code="8600",
+            exc=exc,
+        )
+    
+
+class ValidationFailedException(APIException):
+    def __init__(self, msg: str, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=415,
+            msg=msg,
+            detail="",
+            code="8700",
+            exc=exc,
+        )
+
+class AlreadyExistDataException(APIException):
+    def __init__(self, target: str = None, exc: Exception = None) -> None:
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"This {target} already exist",
+            detail="",
+            code="8800",
+            exc=exc,
+        )

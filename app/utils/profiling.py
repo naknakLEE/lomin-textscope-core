@@ -46,7 +46,7 @@ async def add_process_time_header(
         )
         request.state.ip = ip.split(",")[0] if "," in ip else ip
         response = await call_next(request)
-        await api_logger(request=request, response=response)
+        api_logger(request=request, response=response)
     except Exception as e:
         error = await exception_handler(e)
         error_dict = dict(
@@ -56,7 +56,7 @@ async def add_process_time_header(
             code=error.code,
         )
         response = JSONResponse(status_code=error.status_code, content=error_dict)
-        await api_logger(request=request, error=error)
+        api_logger(request=request, error=error)
     finally:
         request.state.db.close()
     return response

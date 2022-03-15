@@ -148,7 +148,7 @@ class PgInference(BaseModel):
     create_datetime: Optional[datetime]
     image_pkey: Optional[int]
     start_datetime: Optional[datetime]
-    finsh_datetime: Optional[datetime]
+    end_datetime: Optional[datetime]
 
     class Config:
         orm_mode = True
@@ -201,8 +201,7 @@ class CreateInference(BaseModel):
 
 class PgCategory(BaseModel):
     category_pkey: int
-    category_name_en: Optional[str]
-    category_name_kr: Optional[str]
+    category_name: Optional[str]
 
     class Config:
         orm_mode = True
@@ -243,9 +242,9 @@ class OAuth2PasswordRequestForm:
 
 
 class DocTypeHint(BaseModel):
-    use: bool = True  # 주어진 사전 지식을 후처리 프로세스에 사용할지 여부
-    trust: bool = True  # 주어진 사전 지식을 100% 신뢰할지 여부
-    doc_type: str = "A01"  # 서식 분류에 관한 사전지식
+    use: bool = False  # 주어진 사전 지식을 후처리 프로세스에 사용할지 여부
+    trust: bool = False  # 주어진 사전 지식을 100% 신뢰할지 여부
+    doc_type: str = ""  # 서식 분류에 관한 사전지식
 
 
 class KeyValueHint(BaseModel):

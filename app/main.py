@@ -1,12 +1,11 @@
-import os
 import uvicorn
 
 from minio import Minio
 from app.common.const import get_settings
 from app.utils.create_app import app_generator
 
-settings = get_settings()
 
+settings = get_settings()
 app = app_generator()
 
 

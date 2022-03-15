@@ -18,8 +18,8 @@ services:
         SO_EXTENTION: ${SO_EXTENTION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 5000:80
-      - 5002:5002
+      - 5000:${SERVING_IP_PORT}
+      - 5002:${TRAINING_IP_PORT}
       - 8266:8265
     volumes:
       - ./:/workspace
@@ -53,7 +53,7 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8000:80
+      - 8000:${WEB_IP_PORT}
       - 8267:8265
     volumes:
       - ./:/workspace
@@ -71,7 +71,7 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8080:80
+      - 8080:${PP_IP_PORT}
     volumes:
       - ./:/workspace
     tty: true
@@ -90,7 +90,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
         CUSTOMER: ${CUSTOMER}
     ports:
-      - 8090:80
+      - 8090:${WRAPPER_IP_PORT}
       - 11120:11120
     volumes:
       - ./:/workspace
@@ -105,10 +105,10 @@ services:
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 
-  # nginx:
-  #   ports:
-  #     - 8050:80
-  #     - 443:443
+  nginx:
+    ports:
+      - 8050:80
+      - 443:443
 
   # nginx-exporter:
   #   ports:
