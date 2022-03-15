@@ -53,7 +53,7 @@ def check_status() -> Any:
 
     try:
         is_pp_server_working = "False"
-        pp_server_addr = f"http://{settings.PP_IP_ADDR}"
+        pp_server_addr = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
         pp_server_status_check_url = f"{pp_server_addr}/status"
         response = requests.get(pp_server_status_check_url)
         if response.status_code == 200:

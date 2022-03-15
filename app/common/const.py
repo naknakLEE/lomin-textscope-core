@@ -13,7 +13,7 @@ base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
     encoding = settings.__config__.env_file_encoding
     customer_config = json.loads(
-        Path(f"/workspace/assets/{environ.get('CUSTOMER')}.json").read_text(encoding)
+        Path(f"/workspace/assets/textscope.json").read_text(encoding)
     )
     config = customer_config
     return config
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     BASE_PATH: str = "/workspace"
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
-    TEXTSCOPE_CORE_WORKERS: int = 10
+    TEXTSCOPE_CORE_WORKERS: int = 1
 
     # MINIO CONFIG
     MINIO_ROOT_USER: str
@@ -138,7 +138,6 @@ class Settings(BaseSettings):
         "full_name": "user",
         "email": "user@example.com",
         "password": "123456",
-        "status": "INACTIVE",
         "is_superuser": True,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -148,7 +147,6 @@ class Settings(BaseSettings):
         "full_name": "garam",
         "email": "garam@example.com",
         "password": "123456",
-        "status": "INACTIVE",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
@@ -158,7 +156,6 @@ class Settings(BaseSettings):
         "full_name": "tongo",
         "email": "tongo@example.com",
         "password": "123456",
-        "status": "INACTIVE",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }

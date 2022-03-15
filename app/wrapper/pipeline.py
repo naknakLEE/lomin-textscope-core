@@ -12,13 +12,17 @@ from app.wrapper import pp
 from app.common import settings
 from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
+
 from app.utils.utils import (
     pretty_dict,
     substitute_spchar_to_alpha,
     set_ocr_response,
 )
 
+
 model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
+
+
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {

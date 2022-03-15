@@ -12,19 +12,6 @@ spec:
     requests:
       storage: 1Gi
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: prometheus-data-pvc
-  labels:
-    app: prometheus
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
----
 # Source: deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -238,23 +225,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus
-  namespace: textscope
-  labels:
-    app: prometheus
-spec:
-  selector:
-    app: prometheus
-  ports:
-    - protocol: TCP
-      port: 9090
-      targetPort: 9090
-      name: http
-  type: "ClusterIP"
----
-apiVersion: v1
-kind: Service
-metadata:
   name: grafana
   namespace: textscope
   labels:
@@ -320,43 +290,3 @@ spec:
       targetPort: 9100
       name: http
   type: "ClusterIP"
----
-# Source: config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  labels:
-    component: "server"
-    app: prometheus
-    release: prometheus
-    chart: prometheus-14.6.1
-    heritage: Helm
-  name: prometheus
-  namespace: textscope
-data:
-  alerting_rules.yml: |
-    {}
-  alerts: |
-    {}
-  prometheus.yml: |
-    global:
-      scrape_interval: 15s # By default, scrape targets every 15 seconds.
-      external_labels:
-        monitor: 'codelab-monitor'
-    scrape_configs:
-      - job_name: 'prometheus'
-        scrape_interval: 15s
-        static_configs:
-          - targets: ['prometheus:9090']
-      - job_name: 'general exporter'
-        scrape_interval: 15s
-        static_configs:
-          - targets: ['node-exporter:9100']
-      - job_name: 'nvidia-gpu-exporter'
-        scrape_interval: 5s
-        static_configs:
-          - targets: ['dcgm-exporter:9400']
-  recording_rules.yml: |
-    {}
-  rules: |
-    {}

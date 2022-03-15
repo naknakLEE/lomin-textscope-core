@@ -1,0 +1,12 @@
+{{- if .Values.configMap.create -}}
+apiVersion: v1
+kind: configMap
+metadata:
+  name: {{ include "textscope.fullname" . }}
+  labels:
+    {{- include "textscope.labels" . | nindent 4 }}
+data: 
+  {{  range .Values.configMap.data }}
+    - {{ . }}
+  {{ end }}
+{{- end }}

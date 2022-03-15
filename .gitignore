@@ -161,7 +161,7 @@ Nuitka
 *.tif
 *.tiff
 pyinstrument-results
-datasets
+*dataset*
 images
 !tests/resources/**/*
 
