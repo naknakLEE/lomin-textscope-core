@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 from app.wrapper import pp, pipeline, settings
-from app.schemas import inference_responses
+from app.schemas.json_schema import inference_responses
 from app.utils.auth import get_current_active_user
 from app.utils.utils import get_pp_api_name, set_json_response
 from app.utils.logging import logger
@@ -23,7 +23,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app import models
-from app.schemas import inference_responses
+from app.schemas.json_schema import inference_responses
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings

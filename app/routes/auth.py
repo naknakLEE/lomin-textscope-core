@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.errors import exceptions as ex
 from app.models import Token, LoginForm
-from app.schemas import auth_token_responses
+from app.schemas.json_schema import auth_token_responses
 from app.utils.auth import create_access_token, initialize_ldap
 from app.common.const import get_settings
 from app.database.connection import db

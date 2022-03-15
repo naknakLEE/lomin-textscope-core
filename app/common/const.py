@@ -85,6 +85,11 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    # LDAP
+    LDAP_ADMIN_USER: str = "cn=admin,dc=lomin,dc=ai"
+    LDAP_ADMIN_PASSWORD: str = "lomin"
+
+
     # ACCESS KEY
     AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
 

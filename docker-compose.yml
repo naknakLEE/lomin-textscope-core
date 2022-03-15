@@ -237,13 +237,12 @@ services:
       - our_net
 
   openldap:
-    image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
+    image: osixia/openldap:1.5.0
     container_name: ldap
-    build: ./openldap
     environment:
-      SLAPD_PASSWORD: lomin
-      SLAPD_DOMAIN: lomin.ai
-      SLAPD_ADDITIONAL_MODULES: memberof
+      LDAP_ORGANISATION: Lomin
+      LDAP_DOMAIN: lomin.ai
+      LDAP_ADMIN_PASSWORD: lomin
     ports:
       - "389:389"
     networks:
