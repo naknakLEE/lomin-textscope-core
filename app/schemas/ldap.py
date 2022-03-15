@@ -12,6 +12,7 @@ class NewUserAddToGroup(BaseModel):
     cn: str = "lomin-test"
     sn: str = "lt"
     dn: str = "cn=lomin-test,dc=lomin,dc=ai"
+    mail: str = "lomin-test@lomin.ai"
 
 
 class UserDelete(BaseModel):

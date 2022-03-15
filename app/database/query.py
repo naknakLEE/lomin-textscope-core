@@ -437,14 +437,14 @@ def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
             )
         except Exception:
             logger.exception("image cascade delete error")
-            db.rollback()
+            session.rollback()
             return False
 
     try:
         query.delete()
     except Exception:
         logger.exception("category cascade delete error")
-        db.rollback()
+        session.rollback()
         return False
     session.commit()
     logger.info(f"Delete catetory successful")

@@ -54,14 +54,14 @@ def get_user(email: EmailStr, session: Session) -> Optional[UserInDB]:
 
 
 def is_username_exist(username: str, session: Session) -> Optional[Users]:
-    user = Users.get(session, kwargs=dict(username=username))
+    user = Users.get(session, username=username)
     if user:
         return user
     return None
 
 
 def is_email_exist(email: EmailStr, session: Session) -> Optional[Users]:
-    user = Users.get(session=session, kwargs=dict(email=email))
+    user = Users.get(session=session, email=email)
     if user:
         return user
     return None

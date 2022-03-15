@@ -25,7 +25,7 @@ def get_status_code(
     return status_code
 
 
-async def api_logger(
+def api_logger(
     request: Request,
     response: Optional[Response] = None,
     error: Optional[APIException] = None,

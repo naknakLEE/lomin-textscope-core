@@ -143,7 +143,7 @@ async def add_new_user_to_group(
         user=settings.LDAP_ADMIN_USER,
         password=settings.LDAP_ADMIN_PASSWORD,
     ) as conn:
-        ldap_attr = {"cn": inputs.cn, "sn": inputs.sn}
+        ldap_attr = {"cn": inputs.cn, "sn": inputs.sn, "mail": inputs.mail}
         try:
             success = conn.add(
                 inputs.dn, object_class="inetOrgPerson", attributes=ldap_attr

@@ -1,3 +1,4 @@
+import os
 import uvicorn
 
 from minio import Minio
@@ -23,16 +24,6 @@ args = {
 if settings.DEVELOP:
     args["reload"] = True
 
-
-if settings.USE_MINIO:
-    mc = Minio(
-        f"{settings.MINIO_IP_ADDR}:{settings.MINIO_PORT}",
-        access_key=settings.MINIO_ROOT_USER,
-        secret_key=settings.MINIO_ROOT_PASSWORD,
-        secure=False,
-    )
-    if not mc.bucket_exists(settings.MINIO_IMAGE_BUCKET):
-        mc.make_bucket(settings.MINIO_IMAGE_BUCKET)
 
 if __name__ == "__main__":
     uvicorn.run(**args)

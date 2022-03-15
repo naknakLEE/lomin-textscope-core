@@ -79,6 +79,7 @@ class Settings(BaseSettings):
     MINIO_ACCESS_KEY: str = "H7YX3286K2P7C8O94CM8"
     MINIO_SECRET_KEY: str = "MSJsIpHGaA4BpxMQZXUyvgx+Ci0YrLJDpCj89C3J"
     MINIO_REGION: str = "ap-northeast-2"
+    CHECK_VALIDATION: bool = False
 
     # AUTHORIZATION SETTING
     SECRET_KEY: str

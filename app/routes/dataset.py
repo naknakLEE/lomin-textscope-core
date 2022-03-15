@@ -124,7 +124,8 @@ def upload_cls_training_dataset(
     with console.status("Glob image paths..."):
         image_paths = list(filter(lambda x: x.suffix.lower() in settings.IMAGE_VALIDATION, list(dataset_path.rglob('*.*'))))
 
-    check_dataset_validation(dataset_path, image_paths)
+    if settings.CHECK_VALIDATION:
+        check_dataset_validation(dataset_path, image_paths)
 
     insert_data(session, dataset_id, dataset_path, dataset_dir_name, image_paths)
 

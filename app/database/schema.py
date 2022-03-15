@@ -149,6 +149,9 @@ class BaseMixin:
     def create(
         cls, session: Session, auto_commit: bool = True, **kwargs: Any
     ) -> Optional[ModelType]:
+        check_result = cls.check_raw_exists(session, kwargs)
+        if check_result:
+            return check_result
         obj = cls()
         for col in obj.all_columns():
             col_name = col.name

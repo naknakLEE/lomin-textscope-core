@@ -6,12 +6,13 @@ settings = get_settings()
 
 
 mc = Minio(
-    f"{settings.MINIO_IP_ADDR}:{settings.MINIO_PORT}",
+    "{}:{}".format(settings.MINIO_IP_ADDR, settings.MINIO_PORT),
     secure=False,
-    access_key=settings.MINIO_ACCESS_KEY,
-    secret_key=settings.MINIO_SECRET_KEY,
-    region=settings.MINIO_REGION,
+    access_key=settings.MINIO_ROOT_USER,
+    secret_key=settings.MINIO_ROOT_PASSWORD,
 )
+if not mc.bucket_exists(settings.MINIO_IMAGE_BUCKET):
+    mc.make_bucket(settings.MINIO_IMAGE_BUCKET)
 
 
 __all__ = [

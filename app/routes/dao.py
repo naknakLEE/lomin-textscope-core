@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/select/image")
 def select_image(image_id: str, db: Session = Depends(db.session)) -> Optional[Image]:
-    return query.select_image(db, kwargs=dict(image_id=image_id))
+    return query.select_image(db, image_id=image_id)
 
 
 @router.get("/select/category")
@@ -39,7 +39,7 @@ def insert_inference_result(
     data: Dict = Body(...), db: Session = Depends(db.session)
 ) -> bool:
     logger.info(data)
-    return query.insert_inference_result(db, data)
+    return query.insert_inference_result(db, **data)
 
 
 @router.post("/create/image")
@@ -47,7 +47,7 @@ def insert_image(
     data: Dict = Body(...), db: Session = Depends(db.session)
 ) -> Optional[Image]:
     logger.info(f"create image data: {data}")
-    return Image.create(db, kwargs=data)
+    return Image.create(db, **data)
 
 
 @router.patch("/update/image")
@@ -56,7 +56,7 @@ def update_image(
 ) -> Optional[Image]:
     logger.info(f"update image data: {data}")
     _id = data.id
-    return Image.update(db, id=_id, kwargs=data.dict())
+    return Image.update(db, id=_id, **data.dict())
 
 
 @router.post("/create/dataset")
@@ -64,7 +64,7 @@ def insert_dataset(
     data: Dict = Body(...), db: Session = Depends(db.session)
 ) -> Optional[Dataset]:
     logger.info(f"create dataset data: {data}")
-    return Dataset.create(db, kwargs=data)
+    return Dataset.create(db, **data)
 
 
 @router.post("/create/model")
@@ -72,7 +72,7 @@ def insert_model(
     data: Dict = Body(...), db: Session = Depends(db.session)
 ) -> Optional[Model]:
     logger.info(f"create model data: {data}")
-    return Model.create(db, kwargs=data)
+    return Model.create(db, **data)
 
 
 @router.post("/create/visualize")
@@ -80,7 +80,7 @@ def insert_visualize(
     data: Dict = Body(...), db: Session = Depends(db.session)
 ) -> Optional[Visualize]:
     logger.info(f"create visualize data: {data}")
-    return Visualize.create(db, kwargs=data)
+    return Visualize.create(db, **data)
 
 
 @router.get("/select/category_pkey")
@@ -99,7 +99,7 @@ def select_category_all(db: Session = Depends(db.session)) -> List[Category]:
 def create_task(
     params: models.CreateTask = Body(...), db: Session = Depends(db.session)
 ) -> Optional[Task]:
-    return query.insert_task(db, kwargs=params)
+    return query.insert_task(db, **params)
 
 
 # @router.post("/create/inference")
