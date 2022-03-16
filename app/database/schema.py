@@ -138,7 +138,7 @@ class BaseMixin:
         auto_commit: bool = True,
         **kwargs: Dict[str, Any],
     ) -> Optional[ModelType]:
-        query = session.query(cls).filter(id == id).first()
+        query = session.query(cls).filter(cls.id == id).first()
         for key, val in kwargs.items():
             setattr(query, key, val)
         session.flush()

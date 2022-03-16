@@ -1,7 +1,7 @@
 from enum import Enum
 from uuid import uuid4
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 from pydantic.main import BaseModel
 from pydantic.networks import EmailStr
 from pydantic import Json
@@ -56,7 +56,7 @@ class User(BaseModel):
     email: EmailStr
     username: Optional[str] = None
     full_name: Optional[str] = None
-    status: str = StatusEnum.INACTIVE.name
+    status: Any = StatusEnum.INACTIVE
 
     class Config:
         orm_mode = True
