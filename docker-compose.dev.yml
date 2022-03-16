@@ -29,6 +29,7 @@ services:
       memlock: -1
       stack: 67108864
     environment:
+      - COLUMNS=${COLUMNS:-200}
       - DISPLAY=$DISPLAY
       - NVIDIA_VISIBLE_DEVICES=all
       - TERM=$TERM
@@ -54,6 +55,8 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - COLUMNS=${COLUMNS:-200}
     ports:
       - 8000:${WEB_IP_PORT}
       - 8267:8265
@@ -72,6 +75,8 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - COLUMNS=${COLUMNS:-200}
     ports:
       - 8080:${PP_IP_PORT}
     volumes:
@@ -98,6 +103,7 @@ services:
       - ./:/workspace
     tty: true
     environment:
+      - COLUMNS=${COLUMNS:-200}
       - API_ENV=production
       - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8

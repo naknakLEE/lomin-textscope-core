@@ -72,8 +72,6 @@ class Settings(BaseSettings):
     INITIAL_DB: bool = True
 
     # STORAGE CONFIG
-    MINIO_IP_ADDR: str = "minio"
-    MINIO_PORT: int = 9000
     MINIO_ACCESS_KEY: str = "H7YX3286K2P7C8O94CM8"
     MINIO_SECRET_KEY: str = "MSJsIpHGaA4BpxMQZXUyvgx+Ci0YrLJDpCj89C3J"
     MINIO_REGION: str = "ap-northeast-2"
@@ -177,7 +175,7 @@ class Settings(BaseSettings):
         "password": "guest",
         "status": "ACTIVE",
         "is_superuser": False,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+        "hashed_password": "$2b$12$EhgFQ0MnYV8MeNP5HDuVr.VGtG.tjo2IHuthuLquVg7kGGCQYPqfW",
     }
 
     # KBCARD CONFIG
