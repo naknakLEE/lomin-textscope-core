@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     PP_IP_ADDR: str
     MYSQL_IP_ADDR: str
     REDIS_IP_PORT_ADDR: str
+    MINIO_IP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
@@ -45,6 +46,7 @@ class Settings(BaseSettings):
     CLASSIFICATION_SERVICE_PORT: int = 5000
     KV_DETECTION_SERVICE_PORT: int = 5000
     ROTATE_SERVICE_PORT: int = 5000
+    MINIO_PORT: int
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
