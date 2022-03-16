@@ -76,6 +76,7 @@ class BaseMixin:
             if c.primary_key is False and c.name != "created_at"
         ]
 
+    @typing.no_type_check
     @classmethod
     def check_raw_exists(cls, session: Session, **kwargs: Dict[str, Any]) -> str:
         check_columns = exist_column_table.get(cls.__name__)
@@ -92,6 +93,7 @@ class BaseMixin:
             return message
         return message
 
+    @typing.no_type_check
     @classmethod
     def get(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
         query = session.query(cls)
@@ -100,6 +102,7 @@ class BaseMixin:
             query = query.filter(col == val)
         return query.first()
 
+    @typing.no_type_check
     @classmethod
     def get_multi(
         cls, session: Session, skip: int = 0, limit: int = 100, **kwargs: Dict[str, Any]
@@ -111,6 +114,7 @@ class BaseMixin:
         query = query.offset(skip).limit(limit)
         return query.all() if query else None
 
+    @typing.no_type_check
     @classmethod
     def get_all(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
         query = session.query(cls)
@@ -119,6 +123,7 @@ class BaseMixin:
             query = query.filter(col == val)
         return query.all() if query else None
 
+    @typing.no_type_check
     @classmethod
     def remove(cls, session: Session, **kwargs: Dict[str, Any]) -> ModelType:
         query = session.query(cls)

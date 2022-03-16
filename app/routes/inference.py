@@ -16,13 +16,12 @@ from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
 from typing import Dict
-from fastapi import APIRouter, Body, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 from sqlalchemy.orm import Session
 
-from app import models
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
@@ -32,7 +31,6 @@ from app.database.connection import db
 
 
 router = APIRouter()
-
 
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
@@ -52,10 +50,12 @@ async def ocr(
     start_time = datetime.now()
     response_log: Dict = dict()
     response: Dict = dict()
-    task_id = inputs.get("task_id")
+    task_id = inputs.get("task_id", "")
     logger.debug(f"{task_id}-api request start:\n{pretty_dict(inputs)}")
 
-    task_pkey = query.insert_task(session, task_id, inputs.get("image_pkey"))
+    task_pkey = query.insert_task(
+        session, task_id, inputs.get("image_pkey", ""), auto_commit=False
+    )
 
     if (
         inputs.get("use_general_ocr")
@@ -96,7 +96,7 @@ async def ocr(
             return set_json_response(code="3000", message="모델 서버 문제 발생")
 
         # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
-        inference_result = inference_results 
+        inference_result = inference_results
         if "kv_result" in inference_results:
             inference_result = inference_results.get("kv_result", {})
         logger.debug(f"{task_id}-inference results:\n{inference_results}")
@@ -137,13 +137,20 @@ async def ocr(
             if status_code < 200 or status_code >= 400:
                 return set_json_response(code="3000", message="pp 과정에서 문제 발생")
             inference_results["kv"] = post_processing_results["result"]
-            logger.info(f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}')
+            logger.info(
+                f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
+            )
             if "texts" not in inference_results:
                 inference_results["texts"] = post_processing_results["texts"]
-                logger.info(f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}')
+                logger.info(
+                    f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
+                )
 
         # convert preds to texts
-        if inputs.get("convert_preds_to_texts") is not None and "texts" not in inference_results:
+        if (
+            inputs.get("convert_preds_to_texts") is not None
+            and "texts" not in inference_results
+        ):
             status_code, texts = pp.convert_preds_to_texts(
                 client=client,
                 rec_preds=inference_results.get("rec_preds", []),
@@ -166,6 +173,6 @@ async def ocr(
             image_pkey=inputs.get("image_pkey"),
             inference_type=inputs.get("inference_type"),
             response_log=response_log,
-            inference_results=inference_results
+            inference_results=inference_results,
         )
     return JSONResponse(content=jsonable_encoder(response))

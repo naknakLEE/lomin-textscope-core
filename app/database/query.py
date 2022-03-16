@@ -455,12 +455,18 @@ def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
     return True
 
 
-def insert_task(session: Session, task_id: str, image_pkey: str) -> int:
+def insert_task(
+    session: Session, task_id: str, image_pkey: str, auto_commit: bool = True
+) -> int:
     if image_pkey is None:
         logger.warning("Image pkey({}) not found".format(image_pkey))
     dao = schema.Task
     result = dao.create(
-        session=session, task_id=task_id, task_type="TRAINING", image_pkey=image_pkey
+        session=session,
+        task_id=task_id,
+        task_type="TRAINING",
+        image_pkey=image_pkey,
+        auto_commit=auto_commit,
     )
     if result is None:
         logger.warning("{} insert failed, image pkey={}".format(task_id, image_pkey))
