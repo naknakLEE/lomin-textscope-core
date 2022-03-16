@@ -146,9 +146,8 @@
 **/log/
 **/workspace/
 **/textscope-client/
-**/datasets/
-**/dataset/
+**/*dataset*/
 **/images/
 **/support_set/
 **/output/
-inference_server
+**/inference_server/

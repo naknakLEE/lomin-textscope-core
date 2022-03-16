@@ -28,25 +28,24 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSIO
 RUN pip3 install --upgrade pip
 
 WORKDIR /workspace
-RUN git clone https://github.com/Nuitka/Nuitka.git && \
-    cd Nuitka && \
-    python3 setup.py install
-
 RUN pip3 install torch==1.8.1+cpu torchvision==0.9.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 COPY ./requirements/pp/pyproject.toml /workspace/
 COPY ./requirements/pp/poetry.lock /workspace/
 RUN poetry install
 
-COPY ./lovit /workspace/lovit
 WORKDIR /workspace/lovit
+COPY ./lovit /workspace/lovit
 RUN python3 setup.py build develop && \
     rm -rf /workspace/lovit
 
 COPY ./.env /workspace/
 
-RUN rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache
+RUN groupadd -r lomin -g 1000 && \
+    useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
 
-WORKDIR /workspace/pp_server
-# ENTRYPOINT ["python3", "main.py"]
+USER textscope
+
+WORKDIR /workspace/pp_server/pp_server/app
+
+ENTRYPOINT ["python3", "main.py"]

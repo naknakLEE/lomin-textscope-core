@@ -1,52 +1,13 @@
+ARG TEXTSCOPE_BASE_IMAGE_VERSION
 ARG UBUNTU_VERSION
 ARG POETRY_VERSION
 
-FROM ubuntu:${UBUNTU_VERSION} as builder
-
-ARG APPLY_THALES="False"
-ARG BASE_PATH
-ARG LINUX_ENV_PATH
-ARG DEMOMA_PATH
-ARG SO_EXTENTION
+FROM docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
 
 ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
-RUN apt-get -qq update && \
-    apt-get -y -qq install locales && \
-    locale-gen ko_KR.UTF-8
-
-RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
-    python3-pip \
-    python3-venv \
-    libmysqlclient-dev \
-    poppler-utils \
-    libgl1-mesa-glx libglib2.0-0 \
-    tzdata \
-    curl
-
-RUN pip3 install --upgrade pip
-
-WORKDIR /workspace
-RUN git clone https://github.com/Nuitka/Nuitka.git && \
-    cd Nuitka && \
-    python3 setup.py install
-
-RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
-    echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
-    poetry config virtualenvs.create false
-
-# ARG TEXTSCOPE_BASE_IMAGE_VERSION
-
-# FROM docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
-
-# ARG APPLY_THALES="False"
-# ARG BASE_PATH
-# ARG LINUX_ENV_PATH
-# ARG DEMOMA_PATH
-# ARG SO_EXTENTION
-
-# ENV PYTHONPATH="$PYTHONPATH:/workspace"
+USER 0
 
 COPY ./app /workspace/app
 COPY ./assets/thales/ /workspace/assets/thales
@@ -54,12 +15,11 @@ COPY ./.env /workspace/.env
 COPY ./requirements/web/pyproject.toml /workspace/
 COPY ./requirements/web/poetry.lock /workspace/
 
-RUN poetry install
+RUN pip3 install nuitka==0.6.19.6
 
+WORKDIR /workspace
 RUN mv app/main.py ./main.py && \
     python3 -m nuitka --module app --include-package=app
-
-# RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp app.${SO_EXTENTION} app.${SO_EXTENTION};
 
 RUN rm -rf /workspace/app /workspace/*.build /workspace/*.txt /workspace/Nuitka /workspace/assets && \
     rm -f /workspace/pyproject.toml /workspace/poetry.lock && \

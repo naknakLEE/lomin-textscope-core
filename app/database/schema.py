@@ -151,7 +151,7 @@ class BaseMixin:
     def create(
         cls, session: Session, auto_commit: bool = True, **kwargs: Dict[str, Any]
     ) -> Optional[ModelType]:
-        check_result = cls.check_raw_exists(session, kwargs)
+        check_result = cls.check_raw_exists(session, **kwargs)
         if check_result:
             return check_result
         obj = cls()
