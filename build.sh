@@ -60,14 +60,14 @@ do
     if [ "${container}" = "pp" ]; then
         app_name="${container}_server"
         docker cp ${container}:/workspace/${app_name}/main.py ${build_folder_name}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.cpython-36m-x86_64-linux-gnu.so ${build_folder_name}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/${app_name}/${app_name}.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/${app_name}/${app_name}.pyi ${build_folder_name}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/lovit.cpython-36m-x86_64-linux-gnu.so ${build_folder_name}/${created_folder_name}/lovit/ &&
-        docker cp ${container}:/workspace/lovit.pyi ${build_folder_name}/${created_folder_name}/lovit/
-        # docker cp ${container}:/workspace/lovit/resources ${build_folder_name}/${created_folder_name}/lovit/lovit/
+        docker cp ${container}:/workspace/lovit.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/lovit/ &&
+        docker cp ${container}:/workspace/lovit.pyi ${build_folder_name}/${created_folder_name}/lovit/ &&
+        docker cp ${container}:/workspace/${app_name}/assets ${build_folder_name}/${created_folder_name}/${container}/assets
     elif [ "${container}" = "web" ]; then
         docker cp ${container}:/workspace/main.py ${build_folder_name}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/app.cpython-36m-x86_64-linux-gnu.so ${build_folder_name}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/app.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/app.pyi ${build_folder_name}/${created_folder_name}/${container}/
     elif [ "${container}" = "serving" ]; then
         app_name="inference_server"
@@ -77,7 +77,7 @@ do
         docker cp ${container}:/workspace/${app_name}/assets/bentoml_configuration.yml ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/modified_bentoml_file ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/ &&
         docker cp ${container}:/workspace/${app_name}/assets/models/document_understanding/tokenizer ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/document_understanding/tokenizer &&
-        docker cp ${container}:/workspace/lovit.cpython-38-x86_64-linux-gnu.so ${inference_server_build_folder_name}/${created_folder_name}/lovit/ &&
+        docker cp ${container}:/workspace/lovit.${SO_EXTENTION} ${inference_server_build_folder_name}/${created_folder_name}/lovit/ &&
         docker cp ${container}:/workspace/lovit.pyi ${inference_server_build_folder_name}/${created_folder_name}/lovit/
     else
         echo "not found!"

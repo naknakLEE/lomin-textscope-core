@@ -69,6 +69,6 @@ stages:
               tags: |
                 0.0.1
           - script: |
-              pip install -r requirments/requirments-test.txt
+              pip install -r requirements/requirements-test.txt
               pytest --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml tests
             displayName: "pytest"

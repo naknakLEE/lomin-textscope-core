@@ -1,4 +1,5 @@
-ARG UBUNTU_VERSION=18.04
+ARG UBUNTU_VERSION
+ARG POETRY_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION} as builder
 
@@ -8,15 +9,21 @@ ARG LINUX_ENV_PATH
 ARG DEMOMA_PATH
 ARG SO_EXTENTION
 
+ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
-RUN apt-get update && \
-    apt-get -y install git && \
-    apt-get -y install python3-pip && \
-    apt-get -y install libmysqlclient-dev && \
-    apt-get -y install poppler-utils && \
-    apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
+RUN apt-get -qq update && \
+    apt-get -y -qq install locales && \
+    locale-gen ko_KR.UTF-8
+
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
+    python3-pip \
+    python3-venv \
+    libmysqlclient-dev \
+    poppler-utils \
+    libgl1-mesa-glx libglib2.0-0 \
+    tzdata \
+    curl
 
 RUN pip3 install --upgrade pip
 
@@ -24,6 +31,10 @@ WORKDIR /workspace
 RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python3 setup.py install
+
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
+    echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
+    poetry config virtualenvs.create false
 
 # ARG TEXTSCOPE_BASE_IMAGE_VERSION
 
@@ -40,14 +51,16 @@ RUN git clone https://github.com/Nuitka/Nuitka.git && \
 COPY ./app /workspace/app
 COPY ./assets/thales/ /workspace/assets/thales
 COPY ./.env /workspace/.env
-COPY ./requirments/requirments-web.txt /workspace/requirments-web.txt
+COPY ./requirements/web/pyproject.toml /workspace/
+COPY ./requirements/web/poetry.lock /workspace/
 
-RUN pip3 install -r /workspace/requirments-web.txt
+RUN poetry install
 
 RUN mv app/main.py ./main.py && \
     python3 -m nuitka --module app --include-package=app
 
 # RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp app.${SO_EXTENTION} app.${SO_EXTENTION};
 
-RUN rm -r /workspace/app /workspace/*.build /workspace/*.txt /workspace/Nuitka /workspace/assets && \
+RUN rm -rf /workspace/app /workspace/*.build /workspace/*.txt /workspace/Nuitka /workspace/assets && \
+    rm -f /workspace/pyproject.toml /workspace/poetry.lock && \
     rm -rf /var/lib/apt/lists/*

@@ -1,11 +1,6 @@
 version: "2.3"
 
 services:
-  # mysql1:
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
-  #     - TZ=Asia/Seoul
-
   serving:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
@@ -15,7 +10,8 @@ services:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
-        PYTHON_VERSION: 3.8
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
     deploy:
       resources:
         reservations:
@@ -32,6 +28,7 @@ services:
       args:
         USER: ${USER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
 
   pp:
     image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -41,6 +38,7 @@ services:
       args:
         USER: ${USER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -51,3 +49,4 @@ services:
         USER: ${USER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUSTOMER: ${CUSTOMER}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}

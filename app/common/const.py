@@ -4,7 +4,7 @@ from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
 from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
-from os import path, environ
+from os import path
 from pathlib import Path
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     PP_IP_ADDR: str
     MYSQL_IP_ADDR: str
     REDIS_IP_PORT_ADDR: str
-    MINIO_IP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
@@ -46,7 +45,6 @@ class Settings(BaseSettings):
     CLASSIFICATION_SERVICE_PORT: int = 5000
     KV_DETECTION_SERVICE_PORT: int = 5000
     ROTATE_SERVICE_PORT: int = 5000
-    MINIO_PORT: str
 
     # POSTGRESQL CONFIG
     POSTGRES_DB: str
@@ -89,7 +87,6 @@ class Settings(BaseSettings):
     # LDAP
     LDAP_ADMIN_USER: str = "cn=admin,dc=lomin,dc=ai"
     LDAP_ADMIN_PASSWORD: str = "lomin"
-
 
     # ACCESS KEY
     AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
@@ -143,8 +140,7 @@ class Settings(BaseSettings):
     COLORIZE: str = "True"
     SERIALIZE = "serialize"
     ENCODING: str = "utf-8"
-    FORMAT: str = "complex" # simple or complex
-    
+    FORMAT: str = "complex"  # simple or complex
 
     # FAKE DATA
     FAKE_SUPERUSER_INFORMATION: Dict = {

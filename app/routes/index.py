@@ -1,4 +1,4 @@
-import requests
+import requests  # type: ignore
 import base64
 from datetime import datetime
 from pathlib import Path
@@ -151,7 +151,7 @@ def upload_image(
         dao_image_params = {
             "image_id": image_id,
             "image_path": str(save_path),
-            "image_type": image_type
+            "image_type": image_type,
         }
         query.insert_image(session, **dao_image_params)
     else:

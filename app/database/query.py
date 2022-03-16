@@ -1,7 +1,7 @@
 import json
 import uuid
 from fastapi import HTTPException
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 
@@ -77,15 +77,14 @@ def select_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
     return res
 
 
-
 def insert_image(
     session: Session,
     image_path: str,
     category_pkey: Optional[int] = None,
     dataset_pkey: Optional[int] = None,
     image_id: str = str(uuid.uuid4()),
-    image_type: str = "TRAINING",  
-):
+    image_type: str = "TRAINING",
+) -> Optional[schema.Image]:
     dao = schema.Image
     try:
         result = dao.create(
@@ -99,7 +98,7 @@ def insert_image(
     except Exception as e:
         logger.error(f"image insert error: {e}")
         session.rollback()
-        return False
+        return None
     return result
 
 
@@ -114,7 +113,9 @@ def select_category(db: Session, **kwargs: Dict) -> Optional[schema.Category]:
     return res
 
 
-def update_task(db: Session, pkey: int, data: models.UpdateTask):
+def update_task(
+    db: Session, pkey: int, data: models.UpdateTask
+) -> Optional[schema.Task]:
     dao = schema.Task
     try:
         result = dao.update(db, pkey=pkey, **data.dict())
@@ -174,9 +175,9 @@ def insert_inference_result(
     task_pkey: int,
     image_pkey: int,
     inference_type: str,
-    response_log: Dict, 
-    inference_results: Dict
-):
+    response_log: Dict,
+    inference_results: Dict,
+) -> None:
     del inference_results["response_log"]
     try:
         schema.Inference.create(
@@ -198,17 +199,22 @@ def insert_training_dataset(
     dataset_id: str,
     root_path: str,
     dataset_dir_name: str,
-):
-    res = schema.Dataset.create(session=session, dataset_id=dataset_id, root_path=root_path, dataset_dir_name=dataset_dir_name)
+) -> Optional[schema.Dataset]:
+    res = schema.Dataset.create(
+        session=session,
+        dataset_id=dataset_id,
+        root_path=root_path,
+        dataset_dir_name=dataset_dir_name,
+    )
     return res
 
 
 def insert_category(
-    session: Session, 
+    session: Session,
     category_name: str,
     category_code: str,
     dataset_pkey: int,
-):
+) -> int:
     res = schema.Category.create(
         session=session,
         category_name=category_name,
@@ -218,7 +224,7 @@ def insert_category(
     return res.category_pkey
 
 
-def insert_inference_image(db: Session, **kwargs):
+def insert_inference_image(db: Session, **kwargs: Dict[str, Any]) -> int:
     res = schema.Image.create(db, **kwargs)
     return res.image_pkey
 
@@ -351,7 +357,9 @@ def select_kv_inference_from_taskid(
     return res
 
 
-def select_category_all(db: Session, **kwargs):
+def select_category_all(
+    db: Session, **kwargs: Dict[str, Any]
+) -> Optional[List[schema.Category]]:
     res = schema.Category.get_all(db, **kwargs)
     return res
 
@@ -428,11 +436,7 @@ def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
         try:
             q = (
                 session.query(schema.Image)
-                .filter(
-                    and_(
-                        schema.Image.category_pkey == category.category_pkey
-                    )
-                )
+                .filter(and_(schema.Image.category_pkey == category.category_pkey))
                 .delete()
             )
         except Exception:
@@ -451,11 +455,13 @@ def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
     return True
 
 
-def insert_task(session: Session, task_id: str, image_pkey: str):
+def insert_task(session: Session, task_id: str, image_pkey: str) -> int:
     if image_pkey is None:
         logger.warning("Image pkey({}) not found".format(image_pkey))
     dao = schema.Task
-    result = dao.create(session=session, task_id=task_id, task_type="TRAINING", image_pkey=image_pkey)
+    result = dao.create(
+        session=session, task_id=task_id, task_type="TRAINING", image_pkey=image_pkey
+    )
     if result is None:
         logger.warning("{} insert failed, image pkey={}".format(task_id, image_pkey))
         # TODO: 아래 라인 models로 이전

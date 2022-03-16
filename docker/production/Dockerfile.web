@@ -1,4 +1,5 @@
-ARG UBUNTU_VERSION=18.04
+ARG UBUNTU_VERSION
+ARG POETRY_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION}
 
@@ -10,22 +11,35 @@ LABEL maintainer=${MAINTAINER}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 ENV API_ENV="production"
 
-RUN apt-get update && \
-    apt-get install -y locales && \
-    locale-gen ko_KR.UTF-8 && \
-    apt-get -y install python3-pip && \
-    apt-get -y install libmysqlclient-dev && \
-    apt-get -y install poppler-utils && \
-    apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
+RUN apt-get -qq update && \
+    apt-get -y -qq install locales && \
+    locale-gen ko_KR.UTF-8
+
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install python3-pip \
+    python3-venv \
+    libmysqlclient-dev \
+    poppler-utils \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    tzdata \
+    curl
 
 RUN pip3 install --upgrade pip
 
-COPY ./requirments/requirments-web.txt /workspace/
-RUN pip3 install -r /workspace/requirments-web.txt
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
+    echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
+    poetry config virtualenvs.create false
+
+COPY ./requirements/web/pyproject.toml /workspace/
+COPY ./requirements/web/poetry.lock /workspace/
+
+WORKDIR /workspace
+
+RUN poetry install --no-dev
 
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/web/ /workspace/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
@@ -34,7 +48,5 @@ COPY ./.env /workspace/
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
     rm -rf /usr/bin/gcc
-
-WORKDIR /workspace
 
 # ENTRYPOINT ["python3", "main.py"]

@@ -1,8 +1,8 @@
 import enum
-import yaml
+import yaml  # type: ignore
 import typing
 from datetime import datetime
-from typing import Any, List, Optional, TypeVar, Dict, Union
+from typing import Any, Dict, List, Optional, TypeVar
 from sqlalchemy import (
     Column,
     Integer,
@@ -15,7 +15,7 @@ from sqlalchemy import (
     and_,
     or_,
     Enum,
-    Text
+    Text,
 )
 from sqlalchemy.orm import Session, relationship
 from passlib.context import CryptContext
@@ -39,6 +39,7 @@ def get_password_hash(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+
 class StatusEnum(enum.Enum):
     ACTIVE = 1
     INACTIVE = 2
@@ -51,7 +52,7 @@ exist_column_table = {
     "Model": "model_id",
     "Category": "category_name,dataset_pkey,model_pkey",
     "Image": "image_id,image_path",
-    "Inference": "task_pkey,inference_type"
+    "Inference": "task_pkey,inference_type",
 }
 
 exist_column_message_table = {
@@ -60,9 +61,8 @@ exist_column_message_table = {
     "Model": "model_id",
     "Category": "category_name,dataset_pkey,model_pkey",
     "Image": "image_id,image_path",
-    "Inference": "task_pkey,inference_type"
+    "Inference": "task_pkey,inference_type",
 }
-
 
 
 class BaseMixin:
@@ -75,22 +75,22 @@ class BaseMixin:
             for c in self.__table__.columns  # type: ignore
             if c.primary_key is False and c.name != "created_at"
         ]
-    
+
     @classmethod
-    def check_raw_exists(cls, session, kwargs):
+    def check_raw_exists(cls, session: Session, **kwargs: Dict[str, Any]) -> str:
         check_columns = exist_column_table.get(cls.__name__)
         message = ""
         if check_columns is None:
-            return (message)
-        inputs = {}
+            return message
+        inputs: Dict = {}
         for check_column in check_columns.split(","):
             inputs[check_column] = kwargs.get(check_column)
         is_exist = cls.get(session, **inputs)
         if is_exist:
             message = f"This {check_columns} already exist"
             logger.warning(f"{message}\n{yaml.dump([kwargs])}")
-            return (message)
-        return (message)
+            return message
+        return message
 
     @classmethod
     def get(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
@@ -102,7 +102,7 @@ class BaseMixin:
 
     @classmethod
     def get_multi(
-        cls, session: Session, skip: int = 0, limit: int = 100, **kwargs
+        cls, session: Session, skip: int = 0, limit: int = 100, **kwargs: Dict[str, Any]
     ) -> Optional[ModelType]:
         query = session.query(cls)
         for key, val in kwargs.items():
@@ -110,11 +110,9 @@ class BaseMixin:
             query = query.filter(col == val)
         query = query.offset(skip).limit(limit)
         return query.all() if query else None
-    
+
     @classmethod
-    def get_all(
-        cls, session: Session, **kwargs
-    ) -> Optional[ModelType]:
+    def get_all(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
         query = session.query(cls)
         for key, val in kwargs.items():
             col = getattr(cls, key)
@@ -122,7 +120,7 @@ class BaseMixin:
         return query.all() if query else None
 
     @classmethod
-    def remove(cls, session: Session, **kwargs: Dict) -> ModelType:
+    def remove(cls, session: Session, **kwargs: Dict[str, Any]) -> ModelType:
         query = session.query(cls)
         for key, val in kwargs.items():
             query.filter(key == val)
@@ -134,7 +132,11 @@ class BaseMixin:
     @typing.no_type_check
     @classmethod
     def update(
-        cls, session: Session, id: int, auto_commit: bool = True, **kwargs: Any
+        cls,
+        session: Session,
+        id: int,
+        auto_commit: bool = True,
+        **kwargs: Dict[str, Any],
     ) -> Optional[ModelType]:
         query = session.query(cls).filter(id == id).first()
         for key, val in kwargs.items():
@@ -147,7 +149,7 @@ class BaseMixin:
     @typing.no_type_check
     @classmethod
     def create(
-        cls, session: Session, auto_commit: bool = True, **kwargs: Any
+        cls, session: Session, auto_commit: bool = True, **kwargs: Dict[str, Any]
     ) -> Optional[ModelType]:
         check_result = cls.check_raw_exists(session, kwargs)
         if check_result:
@@ -162,6 +164,7 @@ class BaseMixin:
         if auto_commit:
             session.commit()
         return obj
+
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"
@@ -194,6 +197,7 @@ class Users(Base, BaseMixin):
         if not verify_password(password, user.hashed_password):
             return None
         return user
+
 
 class Logs(Base, BaseMixin):
     __tablename__ = "logs"
@@ -283,19 +287,20 @@ class Usage(Base, BaseMixin):
 
         return query.all()
 
+
 class Dataset(Base, BaseMixin):
-    __tablename__ = 'dataset'
+    __tablename__ = "dataset"
 
     dataset_pkey = Column(Integer, primary_key=True)
-    root_path = Column(String(200), nullable=False, comment='/home/ihlee/Desktop')
+    root_path = Column(String(200), nullable=False, comment="/home/ihlee/Desktop")
     dataset_id = Column(String(100))
     dataset_dir_name = Column(String(50))
 
-    image = relationship('Image', back_populates='dataset')
+    image = relationship("Image", back_populates="dataset")
 
 
 class Model(Base, BaseMixin):
-    __tablename__ = 'model'
+    __tablename__ = "model"
 
     model_pkey = Column(Integer, primary_key=True)
     model_id = Column(String(100), nullable=False)
@@ -306,74 +311,78 @@ class Model(Base, BaseMixin):
     model_type = Column(String(50))
     create_datetime = Column(DateTime)
 
-    category = relationship('Category', back_populates='model')
+    category = relationship("Category", back_populates="model")
 
 
 class Category(Base, BaseMixin):
-    __tablename__ = 'category'
+    __tablename__ = "category"
 
     category_pkey = Column(Integer, primary_key=True)
-    category_name = Column(String(50), comment='category_a')
+    category_name = Column(String(50), comment="category_a")
     category_code = Column(String(50))
-    model_pkey = Column(ForeignKey('model.model_pkey'))
-    dataset_pkey = Column(ForeignKey('dataset.dataset_pkey'))
+    model_pkey = Column(ForeignKey("model.model_pkey"))
+    dataset_pkey = Column(ForeignKey("dataset.dataset_pkey"))
 
     # dataset = relationship('Datset', back_populates='category')
-    model = relationship('Model', back_populates='category')
-    image = relationship('Image', back_populates='category')
+    model = relationship("Model", back_populates="category")
+    image = relationship("Image", back_populates="category")
 
 
 # 중복된 데이터가 들어올 수 있으니 dataset pkey까지 사용해 저장 경로 만들도록 구성
 class Image(Base, BaseMixin):
-    __tablename__ = 'image'
+    __tablename__ = "image"
 
-    image_pkey = Column(Integer, primary_key=True, comment='1')
-    image_id = Column(String(100), nullable=False, comment='uuuu-uuuu-uuuu-uuuu')
-    image_path = Column(String(500), nullable=False, comment='/home/ihlee/Desktop/category_a/test.jpg')
+    image_pkey = Column(Integer, primary_key=True, comment="1")
+    image_id = Column(String(100), nullable=False, comment="uuuu-uuuu-uuuu-uuuu")
+    image_path = Column(
+        String(500), nullable=False, comment="/home/ihlee/Desktop/category_a/test.jpg"
+    )
     image_type = Column(String(30), nullable=False, comment="['TRAINING', 'INFERENCE']")
-    image_description = Column(Text, comment='이미지 설명')
-    category_pkey = Column(ForeignKey('category.category_pkey'), comment='category_a, 주민등록등본')
-    dataset_pkey = Column(ForeignKey('dataset.dataset_pkey'))
+    image_description = Column(Text, comment="이미지 설명")
+    category_pkey = Column(
+        ForeignKey("category.category_pkey"), comment="category_a, 주민등록등본"
+    )
+    dataset_pkey = Column(ForeignKey("dataset.dataset_pkey"))
 
-    category = relationship('Category', back_populates='image')
-    dataset = relationship('Dataset', back_populates='image')
-    inference = relationship('Inference', back_populates='image')
+    category = relationship("Category", back_populates="image")
+    dataset = relationship("Dataset", back_populates="image")
+    inference = relationship("Inference", back_populates="image")
 
 
 class Task(Base, BaseMixin):
     __tablename__ = "task"
 
-    task_pkey = Column(Integer, primary_key=True, comment='1')
+    task_pkey = Column(Integer, primary_key=True, comment="1")
     task_id = Column(String(100), nullable=False, unique=True)
     image_pkey = Column(ForeignKey("image.image_pkey"))
     task_type = Column(String(30), nullable=False, comment="TRAINING or INFERENCE")
 
 
-
 class Inference(Base, BaseMixin):
-    __tablename__ = 'inference'
+    __tablename__ = "inference"
     __table_args__ = {"extend_existing": True}
 
     inference_pkey = Column(Integer, primary_key=True)
     task_pkey = Column(ForeignKey("task.task_pkey"))
-    image_pkey = Column(ForeignKey('image.image_pkey'))
+    image_pkey = Column(ForeignKey("image.image_pkey"))
     inference_type = Column(String(10), nullable=True, comment="['kv', 'gocr']")
     inference_results = Column(JSON)
     response_log = Column(JSON)
     start_datetime = Column(DateTime, nullable=True)
     end_datetime = Column(DateTime, nullable=True)
 
-    image = relationship('Image', back_populates='inference')
+    image = relationship("Image", back_populates="inference")
 
 
 class Visualize(Base, BaseMixin):
-    __tablename__ = 'visualize'
+    __tablename__ = "visualize"
     __table_args__ = {"extend_existing": True}
 
     visualize_pkey = Column(Integer, primary_key=True, autoincrement=True)
     task_id = Column(String(100), nullable=False)
     inference_type = Column(String(50), nullable=False, comment="['kv', 'gocr']")
     inference_img_path = Column(String(200), nullable=False)
+
 
 def create_db_table() -> None:
     try:
@@ -384,6 +393,7 @@ def create_db_table() -> None:
         Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION_GUEST)
     finally:
         session.close()
+
 
 """
 ﻿-- The table order was sorted considering the relationship to prevent error from occurring if all are run at once.

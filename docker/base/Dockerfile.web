@@ -1,23 +1,33 @@
-ARG UBUNTU_VERSION=18.04
+ARG UBUNTU_VERSION
+ARG POETRY_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION}
 
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
+ENV PATH="/root/.local/bin:${PATH}"
 
-RUN apt-get update && \
-    apt-get -y install git && \
-    apt-get -y install python3-pip && \
-    apt-get -y install libmysqlclient-dev && \
-    apt-get -y install poppler-utils && \
-    apt-get -y install python-dev libldap2-dev libsasl2-dev libssl-dev && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
-    apt-get -y install libgl1-mesa-glx libglib2.0-0
-    
+RUN apt-get -qq update && \
+    apt-get -y -qq install locales && \
+    locale-gen ko_KR.UTF-8
 
-# korean
-RUN apt-get install -y apt-utils locales
-RUN locale-gen ko_KR.UTF-8
-ENV LC_ALL ko_KR.UTF-8
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
+    python3-pip \
+    python3-venv \
+    libmysqlclient-dev \
+    poppler-utils \
+    libldap2-dev \
+    libsasl2-dev \
+    libssl-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    tzdata \
+    curl
+
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
+    echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
+    poetry config virtualenvs.create false
 
 RUN pip3 install --upgrade pip
 
@@ -26,5 +36,6 @@ RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python3 setup.py install
 
-COPY ./requirments/requirments-web.txt /workspace/requirments-web.txt
-RUN pip3 install -r /workspace/requirments-web.txt
+COPY ./requirements/web/pyproject.toml /workspace/
+COPY ./requirements/web/poetry.lock /workspace/
+RUN poetry install

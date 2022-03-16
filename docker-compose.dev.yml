@@ -12,6 +12,7 @@ services:
         PYTHON_VERSION: 3.8
         MODEL_SERVICE: ${MODEL_SERVICE}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         BASE_PATH: ${BASE_PATH}
         LINUX_ENV_PATH: ${LINUX_ENV_PATH}
         DEMOMA_PATH: ${DEMOMA_PATH}
@@ -31,9 +32,9 @@ services:
       - DISPLAY=$DISPLAY
       - NVIDIA_VISIBLE_DEVICES=all
       - TERM=$TERM
-      - WARMUP_COUNT=0
+      - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - WARMUP_COUNT=${WARMUP_COUNT:-0}
     tty: true
-
     deploy:
       resources:
         reservations:
@@ -51,6 +52,7 @@ services:
       dockerfile: docker/base/Dockerfile.web
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
       - 8000:${WEB_IP_PORT}
@@ -59,7 +61,6 @@ services:
       - ./:/workspace
     tty: true
     working_dir: /workspace/app
-    # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
     command: python3 main.py
 
   pp:
@@ -69,6 +70,7 @@ services:
       dockerfile: docker/base/Dockerfile.pp
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
       - 8080:${PP_IP_PORT}
@@ -77,7 +79,6 @@ services:
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp_server/app
-    # command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
     command: python3 main.py
 
   wrapper:
@@ -87,6 +88,7 @@ services:
       dockerfile: docker/base/Dockerfile.wrapper
       args:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
         CUSTOMER: ${CUSTOMER}
     ports:
@@ -102,7 +104,6 @@ services:
       - LC_ALL=C.UTF-8
       - CUSTOMER=${CUSTOMER}
     working_dir: /workspace/textscope_wrapper/textscope_wrapper
-    # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
     command: python3 main.py
 
   nginx:
@@ -110,9 +111,9 @@ services:
       - 8050:80
       - 443:443
 
-  # nginx-exporter:
-  #   ports:
-  #     - 9113:9113
+  nginx-exporter:
+    ports:
+      - 9113:9113
 
   gpu_telemetry:
     ports:

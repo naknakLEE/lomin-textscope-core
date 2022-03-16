@@ -253,7 +253,7 @@ workspace
 │   │       ├── pre_processing.py
 │   │       └── utils.py
 │   ├── README.md
-│   ├── requirments-serving.txt
+│   ├── requirements-serving.txt
 │   ├── setup.py
 │   └── tox.ini
 ├── kakaobank_wrapper
@@ -498,14 +498,14 @@ workspace
 │       ├── docker-entrypoint.sh
 │       └── Makefile
 ├── README.md
-├── requirments
-│   ├── requirments-kakaobank.txt
-│   ├── requirments-kbcard.txt
-│   ├── requirments-lint.txt
-│   ├── requirments-pp.txt
-│   ├── requirments-serving.txt
-│   ├── requirments-test.txt
-│   └── requirments-web.txt
+├── requirements
+│   ├── requirements-kakaobank.txt
+│   ├── requirements-kbcard.txt
+│   ├── requirements-lint.txt
+│   ├── requirements-pp.txt
+│   ├── requirements-serving.txt
+│   ├── requirements-test.txt
+│   └── requirements-web.txt
 ├── setup.py
 ├── tests
 │   ├── api

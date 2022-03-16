@@ -19,10 +19,7 @@ from app.utils.utils import (
     set_ocr_response,
 )
 
-
-model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT}"
-
-
+model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {
@@ -164,10 +161,14 @@ def multiple(
         if method_name == "classification" and result.get("is_supported_type") == True:
             break
     inference_end_time = datetime.now()
-    response_log.update({
+    response_log.update(
+        {
             "inference_end_time": inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "inference_total_time": (inference_end_time - inference_start_time).total_seconds()
-        })
+            "inference_total_time": (
+                inference_end_time - inference_start_time
+            ).total_seconds(),
+        }
+    )
     logger.info("inference log: {}", json.dumps(response_log, indent=4, sort_keys=True))
 
     result = set_ocr_response(
@@ -206,10 +207,16 @@ def single(
         headers={"User-Agent": "textscope core"},
     )
     inference_end_time = datetime.now()
-    response_log.update({
-            "inference_end_time": inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            "inference_total_time": (inference_end_time - inference_start_time).total_seconds()
-        })
+    response_log.update(
+        {
+            "inference_end_time": inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[
+                :-3
+            ],
+            "inference_total_time": (
+                inference_end_time - inference_start_time
+            ).total_seconds(),
+        }
+    )
     logger.info(
         f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
@@ -277,8 +284,7 @@ def heungkuk_life(
         doc_type_hint = hint.get("doc_type", {})
         doc_type_hint = DocTypeHint(**doc_type_hint)
         cls_hint_result = apply_cls_hint(
-            cls_result=duriel_classification_result,
-            doc_type_hint=doc_type_hint
+            cls_result=duriel_classification_result, doc_type_hint=doc_type_hint
         )
         response_log.update(apply_cls_hint_result=cls_hint_result)
         doc_type = cls_hint_result.get("doc_type")
@@ -302,7 +308,7 @@ def heungkuk_life(
             if doc_type == "HKL01-DT-PRS" and settings.FORCE_MERGE_DCC_BOX:
                 status_code, post_processing_results, response_log = pp.post_processing(
                     client=client,
-                    request_id=inputs.get("request_id", ""),
+                    task_id=inputs.get("request_id", ""),
                     response_log=response_log,
                     inputs={
                         **kv_result,

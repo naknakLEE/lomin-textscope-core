@@ -1,4 +1,5 @@
 ARG UBUNTU_VERSION
+ARG POETRY_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION}
 
@@ -12,16 +13,24 @@ ARG USER
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
 
-RUN apt-get update && \
-    apt-get install -y git && \
-    apt-get -y install python3-pip && \
-    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
-    apt-get -y install libgl1-mesa-glx libglib2.0-0 && \
-    apt-get -y install libmysqlclient-dev && \
-    apt-get install -y libprotobuf-dev protobuf-compiler && \
-    apt-get -y install cmake
+RUN apt-get -qq update && \
+    apt-get -y -qq install locales && \
+    locale-gen ko_KR.UTF-8
+
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
+    python3-pip \
+    python3-venv \
+    tzdata \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libmysqlclient-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    cmake \
+    curl
 
 
 # ARG TEXTSCOPE_BASE_IMAGE_VERSION
@@ -39,17 +48,22 @@ RUN apt-get update && \
 # ENV LC_ALL=C.UTF-8
 # ENV LANG=C.UTF-8
 # ENV PYTHONPATH="$PYTHONPATH:/workspace"
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
+    echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
+    poetry config virtualenvs.create false
 
-COPY ./lovit/lovit /workspace/lovit
+COPY ./lovit/lovit/ /workspace/lovit/
 COPY ./pp_server /workspace/pp_server
 COPY ./assets/thales/ /workspace/assets/thales
 COPY ./.env /workspace/.env
-COPY ./requirments/requirments-pp.txt /workspace/requirments-pp.txt
-
-RUN pip3 install --upgrade pip
-RUN pip3 install -r /workspace/requirments-pp.txt
+COPY ./requirements/pp/pyproject.toml /workspace/
+COPY ./requirements/pp/poetry.lock /workspace/
 
 WORKDIR /workspace
+
+RUN pip3 install --upgrade pip
+RUN poetry install
+
 RUN git clone https://github.com/Nuitka/Nuitka.git && \
     cd Nuitka && \
     python3 setup.py install
@@ -65,6 +79,7 @@ RUN mv pp_server/app/main.py ./main.py && \
 
 # RUN ${LINUX_ENV_PATH} -v:${DEMOMA_PATH} -f:100 --dfp pp_server.${SO_EXTENTION} pp_server.${SO_EXTENTION}
 
-RUN rm -r /workspace/pp_server/pp_server /workspace/assets /workspace/*.txt&& \
-    rm -r /workspace/Nuitka /workspace/pp_server/*.build && \
+RUN rm -rf /workspace/pp_server/pp_server /workspace/assets /workspace/*.txt&& \
+    rm -f /workspace/pyproject.toml /workspace/poetry.lock && \
+    rm -rf /workspace/Nuitka /workspace/pp_server/*.build && \
     rm -rf /var/lib/apt/lists/*

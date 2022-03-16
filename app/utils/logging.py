@@ -1,6 +1,7 @@
 import os
 import logging
 import logging.config
+import typing as t
 from pathlib import Path
 
 from app.common.const import get_settings
@@ -8,18 +9,18 @@ from app.common.const import get_settings
 settings = get_settings()
 
 
-def get_debug_mode():
+def get_debug_mode() -> bool:
     if os.getenv("API_ENV") != "production":
         return True
     return False
 
 
 def get_logging_config_dict(
-    logging_level: str,
+    logging_level: int,
     base_log_directory: str,
     console_logging_enabled: bool,
     file_logging_enabled: bool,
-):
+) -> t.Dict:
     MEGABYTES = 1024 * 1024
 
     handlers = {}
@@ -108,15 +109,15 @@ def get_logging_config_dict(
 
 
 def configure_logging(
-    logging_level: str = logging.DEBUG if get_debug_mode() else logging.INFO,
+    logging_level: int = logging.DEBUG if get_debug_mode() else logging.INFO,
     base_log_dir: str = settings.TEXTSCOPE_LOG_DIR_PATH,
     console_logging_enabled: bool = True,
     file_logging_enabled: bool = True,
     advanced_enabled: bool = False,
-    advanced_config: dict = None,
-):
+    advanced_config: t.Optional[t.Dict[str, t.Any]] = None,
+) -> None:
     Path(base_log_dir).mkdir(parents=True, exist_ok=True)
-    if advanced_enabled:
+    if advanced_enabled and advanced_config:
         logging.config.dictConfig(advanced_config)
         logging.getLogger("textscope").debug(
             "Configured logging with advanced configuration, config=%s", advanced_config

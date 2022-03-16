@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 fail_fast: true
 default_language_version:
-  python: python3.6
+  python: python3.8
 repos:
   # Use to verify format and syntax validation to python file
   - repo: https://github.com/myint/autoflake
@@ -18,7 +18,7 @@ repos:
           - --remove-unused-variables
   # Use to verify format and syntax validation to python file
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.1.0
     hooks:
       - id: black
         verbose: true
@@ -34,7 +34,7 @@ repos:
         verbose: true
   # Use to check static type for python
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.931
+    rev: v0.940
     hooks:
       - id: mypy
         verbose: true
@@ -56,3 +56,35 @@ repos:
         exclude: utils/*
         args:
           - --django
+  - repo: local
+    hooks:
+      - id: poetry check
+        name: wrapper-dependency-check
+        entry: sh ./assets/poetry-check.sh
+        language: system
+        args: [../requirements/textscope]
+      - id: poetry lock
+        name: wrapper-dependency-lock
+        entry: sh ./assets/poetry-lock.sh
+        language: system
+        args: [../requirements/textscope]
+      - id: poetry check
+        name: web-dependency-check
+        entry: sh ./assets/poetry-check.sh
+        language: system
+        args: [../requirements/web]
+      - id: poetry lock
+        name: web-dependency-lock
+        entry: sh ./assets/poetry-lock.sh
+        language: system
+        args: [../requirements/web]
+      - id: poetry check
+        name: pp-dependency-check
+        entry: sh ./assets/poetry-check.sh
+        language: system
+        args: [../requirements/pp]
+      - id: poetry lock
+        name: pp-dependency-lock
+        entry: sh ./assets/poetry-lock.sh
+        language: system
+        args: [../requirements/pp]
