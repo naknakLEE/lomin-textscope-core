@@ -87,7 +87,9 @@ done
 mkdir -p ${build_folder_name}/${created_folder_name}/workspace
 cp -r ${build_folder_name}/${created_folder_name}/assets ${build_folder_name}/${created_folder_name}/workspace/
 cp -r ${build_folder_name}/${created_folder_name}/wrapper/ ${build_folder_name}/${created_folder_name}/workspace/
-cp ${build_folder_nmae}/${created_folder_name}/assets/.env ${build_folder_name}/${created_folder_name}/.env
+cp ${build_folder_name}/${created_folder_name}/assets/.env ${build_folder_name}/${created_folder_name}/.env
+mv ${build_folder_name}/${created_folder_name}/assets/run.sh ${build_folder_name}/${created_folder_name}/run.sh
+mv ${build_folder_name}/${created_folder_name}/assets/deploy-setup.sh ${build_folder_name}/${created_folder_name}/deploy-setup.sh
 
 docker-compose down
 
