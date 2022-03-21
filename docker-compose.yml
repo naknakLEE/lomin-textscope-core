@@ -217,18 +217,6 @@ services:
     networks:
       - our_net
 
-  openldap:
-    image: osixia/openldap:1.5.0
-    container_name: ldap
-    environment:
-      LDAP_ORGANISATION: Lomin
-      LDAP_DOMAIN: lomin.ai
-      LDAP_ADMIN_PASSWORD: lomin
-    ports:
-      - "389:389"
-    networks:
-      - our_net
-
 volumes:
   prometheus_data:
     driver: local
