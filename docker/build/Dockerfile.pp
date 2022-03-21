@@ -9,6 +9,7 @@ ARG LINUX_ENV_PATH
 ARG DEMOMA_PATH
 ARG SO_EXTENTION
 ARG USER
+ARG PYTHON_VERSION
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -25,10 +26,7 @@ COPY ./requirements/pp/pyproject.toml /workspace/
 COPY ./requirements/pp/poetry.lock /workspace/
 
 WORKDIR /workspace
-
-
-RUN pip3 install nuitka==0.6.19.6
-
+RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as possible./env.Append(CCFLAGS=["-fcf-protection=none"])/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/nuitka/build/SconsCompilerSettings.py
 RUN python3 -m nuitka --module lovit --include-package=lovit && \
     find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';'
 
