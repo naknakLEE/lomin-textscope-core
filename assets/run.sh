@@ -29,6 +29,6 @@ elif [ $command = "clean" ]
     docker rm -f $(docker ps -aq)
     docker volume prune -f
     docker network prune -f
-else
+then
     echo $usage
 fi
