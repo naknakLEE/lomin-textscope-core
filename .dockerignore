@@ -146,7 +146,7 @@
 **/log/
 **/workspace/
 **/textscope-client/
-**/*dataset*/
+**/*datasets*/
 **/images/
 **/support_set/
 **/output/
