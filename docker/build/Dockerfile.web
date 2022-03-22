@@ -1,8 +1,10 @@
 ARG TEXTSCOPE_BASE_IMAGE_VERSION
-ARG UBUNTU_VERSION
-ARG POETRY_VERSION
 
 FROM docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+
+ARG UBUNTU_VERSION
+ARG POETRY_VERSION
+ARG PYTHON_VERSION
 
 ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace"
@@ -15,9 +17,9 @@ COPY ./.env /workspace/.env
 COPY ./requirements/web/pyproject.toml /workspace/
 COPY ./requirements/web/poetry.lock /workspace/
 
-RUN pip3 install nuitka==0.6.19.6
 
 WORKDIR /workspace
+RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as possible./env.Append(CCFLAGS=["-fcf-protection=none"])/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/nuitka/build/SconsCompilerSettings.py
 RUN mv app/main.py ./main.py && \
     python3 -m nuitka --module app --include-package=app
 

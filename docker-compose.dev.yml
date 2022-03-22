@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   serving:
-    image: docker.lomin.ai/ts-gpu-serving-build:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
     build:
       context: inference_server
       args:

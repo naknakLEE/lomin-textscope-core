@@ -7,11 +7,18 @@
 - nvidia-container-toolkit
 - python3 (>=3.8, <3.9)
 
-# 설치
+# 퀵스타트
+```
+1. unzip textscope.zip && cd textscope/assets 
+2. sh deploy-setup.sh ../images/ # 도커 이미지 로드
+3. sh run.sh run # 텍스트스코프 서비스 실행
+```
+
+# 설치 스크립트
 
 - `sh deploy-setup.sh "도커 이미지가 있는 디렉토리 경로"`
 
-# 실행
+# 실행 스크립트
 
 - `sh run.sh [command]`
 
