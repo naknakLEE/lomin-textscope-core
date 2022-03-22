@@ -152,6 +152,8 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
+    depends_on:
+      - wrapper
     networks:
       - our_net
 
