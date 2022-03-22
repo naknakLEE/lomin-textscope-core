@@ -56,7 +56,7 @@ class User(BaseModel):
     email: EmailStr
     username: Optional[str] = None
     full_name: Optional[str] = None
-    status: Any = StatusEnum.INACTIVE
+    status: Any = StatusEnum.INACTIVE.name
 
     class Config:
         orm_mode = True

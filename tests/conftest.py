@@ -1,16 +1,15 @@
-from typing import Dict, Generator
-
 import os
-
+os.environ["API_ENV"] = "test"
 import pytest
+
+from typing import Dict, Generator
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.utils.create_app import app_generator
 from app.database.connection import Base, db
-from tests.utils.user import authentication_token_from_email
-from tests.utils.utils import get_superuser_token_headers
+from tests.utils.user import get_superuser_token_headers, get_normaluser_token_headers
 from app.common.const import get_settings
 from sqlalchemy import create_engine
 from app.database import schema
@@ -19,7 +18,7 @@ from _pytest.config.argparsing import Parser
 
 
 settings = get_settings()
-fake_user_info = settings.FAKE_USER_INFORMATION
+fake_user_info = settings.FAKE_NORMALUSER_INFORMATION
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -64,7 +63,6 @@ def get_db() -> Generator:
 
 @pytest.fixture(scope="session", autouse=False)
 def app() -> FastAPI:
-    os.environ["API_ENV"] = "test"
     return app_generator()
 
 
@@ -80,9 +78,5 @@ def superuser_token_headers(client: TestClient) -> Dict[str, str]:
 
 
 @pytest.fixture(scope="module", autouse=False)
-def normal_user_token_headers(client: TestClient, get_db: Session) -> Dict[str, str]:
-    return authentication_token_from_email(
-        client=client,
-        email=fake_user_info["email"],
-        get_db=get_db,
-    )
+def normal_user_token_headers(client: TestClient) -> Dict[str, str]:
+    return get_normaluser_token_headers(client)

@@ -14,7 +14,7 @@ def test_get_access_token(client: TestClient) -> None:
         "email": fake_super_user_info["email"],
         "password": fake_super_user_info["password"],
     }
-    response = client.post(f"/auth/token", data=login_data)
+    response = client.post("v1/auth/token", data=login_data)
     tokens = response.json()
     assert response.status_code == 200
     assert "access_token" in tokens
@@ -26,7 +26,7 @@ def test_get_access_token(client: TestClient) -> None:
 def test_use_access_token(
     client: TestClient, superuser_token_headers: Dict[str, str]
 ) -> None:
-    response = client.get(f"/users/me", headers=superuser_token_headers)
+    response = client.get("v1/users/me", headers=superuser_token_headers)
     result = response.json()
     # print("\033[96m" + f"response: {result}, {superuser_token_headers}" + "\033[m")
     assert response.status_code == 200

@@ -237,12 +237,15 @@ def dir_structure_validation(
         if not category_dirs:
             raise ValueError("directory is empty")
         for category_dir in category_dirs:
-            is_exist_sub_dir = list(
-                sub_dir for sub_dir in category_dir.iterdir() if sub_dir.is_dir()
-            )
+            if category_dir.is_dir():
+                is_exist_sub_dir = list(
+                    sub_dir for sub_dir in category_dir.iterdir() if sub_dir.is_dir()
+                )
+                if is_exist_sub_dir:
+                    raise ValueError(f"{category_dir} include sub dir")
+            else:
+                raise ValueError(f"{category_dir} is not dir")
             files = list(category_dir.rglob("*.*"))
-            if is_exist_sub_dir:
-                raise ValueError(f"{category_dir} include sub dir")
             if not files:
                 raise ValueError(f"{category_dir} is empty")
             for file in files:

@@ -39,9 +39,10 @@ def apply_cls_hint(
         )
     elif score < hint_threshold:  # trust=False, cls_result is not exist
         logger.debug(
-            "Change doc type from {} to {}",
-            cls_result.get("doc_type", "None"),
-            hint_doc_type,
+            "Change doc type from {} to {}".format(
+                cls_result.get("doc_type", "None"),
+                hint_doc_type,
+            )
         )
         result["doc_type"] = hint_doc_type
         result["is_hint_used"] = True

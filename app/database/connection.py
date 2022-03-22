@@ -33,6 +33,8 @@ class SQLAlchemy:
         max_overflow = kwargs.get("MAX_OVERFLOW", 60)
 
         check_same_thread: Dict = {}
+        if os.getenv("API_ENV", "production") == "test":
+            check_same_thread = {"check_same_thread": False}
         engine_config = dict(
             name_or_url=database_url,
             connect_args=check_same_thread,

@@ -25,7 +25,6 @@ app = FastAPI()
 db.init_app(app, **asdict(Config()))
 
 settings = get_settings()
-fake_user_info = settings.FAKE_USER_INFORMATION
 create_db_table()
 
 
@@ -79,6 +78,7 @@ _, img_encoded = cv2.imencode(".jpg", img)
 
 
 def test_main() -> None:
+    fake_user_info = settings.FAKE_NORMALUSER_INFORMATION
     login_data = {
         "username": fake_user_info["username"],
         "password": fake_user_info["password"],

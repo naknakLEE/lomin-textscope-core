@@ -144,40 +144,40 @@ class Settings(BaseSettings):
 
     # FAKE DATA
     FAKE_SUPERUSER_INFORMATION: Dict = {
-        "username": "user",
-        "full_name": "user",
-        "email": "user@example.com",
+        "username": "admin",
+        "full_name": "admin",
+        "email": "admin@lomin.ai",
         "password": "123456",
         "is_superuser": True,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION: Dict = {
+    FAKE_NORMALUSER_INFORMATION: Dict = {
         "username": "garam",
         "full_name": "garam",
-        "email": "garam@example.com",
+        "email": "garam@lomin.ai",
         "password": "123456",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION2: Dict = {
+    FAKE_NORMALUSER_INFORMATION2: Dict = {
         "username": "tongo",
         "full_name": "tongo",
-        "email": "tongo@example.com",
+        "email": "tongo@lomin.ai",
         "password": "123456",
         "is_superuser": False,
         "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
-    FAKE_USER_INFORMATION_GUEST: Dict = {
+    FAKE_GUESTUSER_INFORMATION: Dict = {
         "username": "guest",
         "full_name": "guest",
         "email": "guest@lomin.ai",
-        "password": "guest",
+        "password": "123456",
         "status": "ACTIVE",
         "is_superuser": False,
-        "hashed_password": "$2b$12$EhgFQ0MnYV8MeNP5HDuVr.VGtG.tjo2IHuthuLquVg7kGGCQYPqfW",
+        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
     }
 
     # KBCARD CONFIG

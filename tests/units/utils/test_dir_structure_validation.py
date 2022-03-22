@@ -13,6 +13,9 @@ class TestDirStructureValidation:
     def setup_method(self, method: Callable) -> None:
         self.tmp_path = TemporaryDirectory()
         self.root_path = Path(self.tmp_path.name)
+        self.root_path.joinpath("train").mkdir(exist_ok=True, parents=True)
+        self.root_path.joinpath("test").mkdir(exist_ok=True, parents=True)
+        self.root_path.joinpath("val").mkdir(exist_ok=True, parents=True)
 
     def teardown_method(self, method: Callable) -> None:
         self.tmp_path.cleanup()
@@ -25,26 +28,27 @@ class TestDirStructureValidation:
         empty_sub_dir: bool = False,
         exist_unsupporeted_ext: bool = False,
     ) -> None:
-        dummy_root_path = self.root_path
-        if exist_file_under_root_dir:
-            file_name = f"under_the_root.txt"
-            with open(self.root_path.joinpath(file_name), "w") as file_io:
-                file_io.write("test")
-        if not empty_root_dirs:
-            dir_name = "category_1"
-            dummy_root_path = Path(dummy_root_path, dir_name)
-            dummy_root_path.mkdir(exist_ok=True)
-            if exist_sub_dir:
-                dir_name = "sub_dir"
-                Path(dummy_root_path, dir_name).mkdir(exist_ok=True, parents=True)
-            if not empty_sub_dir:
-                file_name = "image"
-                if exist_unsupporeted_ext:
-                    file_name += ".another"
-                else:
-                    file_name += ".jpg"
-                with open(Path(dummy_root_path, file_name), "w") as file_io:
+        for kind in ["test", "val", "train"]:
+            dummy_root_path = self.root_path.joinpath(kind)
+            if exist_file_under_root_dir:
+                file_name = f"under_the_root.txt"
+                with open(self.root_path.joinpath(kind, file_name), "w") as file_io:
                     file_io.write("test")
+            if not empty_root_dirs:
+                dir_name = "category"
+                dummy_root_path = Path(dummy_root_path, dir_name)
+                dummy_root_path.mkdir(exist_ok=True)
+                if exist_sub_dir:
+                    dir_name = "sub_dir"
+                    Path(dummy_root_path, dir_name).mkdir(exist_ok=True, parents=True)
+                if not empty_sub_dir:
+                    file_name = "image"
+                    if exist_unsupporeted_ext:
+                        file_name += ".another"
+                    else:
+                        file_name += ".jpg"
+                    with open(Path(dummy_root_path, file_name), "w") as file_io:
+                        file_io.write("test")
 
     def test_root_dir_is_empty(self) -> None:
         self.generate_fake_dirs(empty_root_dirs=True)

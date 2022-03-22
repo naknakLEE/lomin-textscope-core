@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from itertools import cycle
 from fastapi import Depends, APIRouter, HTTPException, Body
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 
@@ -59,9 +57,11 @@ def create_user(
         raise ex.PrivielgeException(current_user.email)
     is_exist = Users.get(session, email=user["email"])
     if is_exist:
-        raise ex.AlreadyExistException(user["email"])
+        raise ex.AlreadyExistUserException(user["email"])
     user["hashed_password"] = get_password_hash(user["password"])
     created_user = Users.create(session, auto_commit=True, **user)
+    if created_user is None:
+        raise HTTPException(status_code=415, detail=vars(ex.AlreadyExistUserException(email=user.get("email"))))
     return models.UserInfo(
         email=created_user.email,
         username=created_user.username,
@@ -113,7 +113,7 @@ def update_user(
     if not current_user.is_superuser:
         raise ex.PrivielgeException(current_user.email)
     if not user:
-        raise ex.AlreadyExistException(current_user.email)
+        raise ex.AlreadyExistUserException(current_user.email)
 
     hashed_password = None
     if user_in.password is not None:

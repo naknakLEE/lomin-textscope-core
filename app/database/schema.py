@@ -394,8 +394,8 @@ def create_db_table() -> None:
         session = next(db.session())
         Base.metadata.create_all(db._engine)
         Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
-        Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION)
-        Users.create(session, auto_commit=True, **settings.FAKE_USER_INFORMATION_GUEST)
+        Users.create(session, auto_commit=True, **settings.FAKE_NORMALUSER_INFORMATION)
+        Users.create(session, auto_commit=True, **settings.FAKE_GUESTUSER_INFORMATION)
     finally:
         session.close()
 

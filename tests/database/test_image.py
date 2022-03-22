@@ -15,6 +15,7 @@ class TestImage:
             "image_id": str(uuid.uuid4()),
             "image_path": "test image path",
             "image_description": f"{method.__name__}",
+            "image_type": "INFERENCE"
         }
 
     def test_create_image(self, get_db: Session) -> None:

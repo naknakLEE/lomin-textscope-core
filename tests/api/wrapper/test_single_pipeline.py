@@ -6,9 +6,10 @@ from httpx import Client
 from unittest.mock import patch, MagicMock
 from app.wrapper.pipeline import single
 from tests.utils.single_pipeline import FakeInferenceRequestInput, FakeInferenceResponse
+from app.common.const import get_settings
 
 logger = logging.getLogger(__name__)
-
+settings = get_settings()
 
 @pytest.mark.mock
 class TestSinglePipeline:
@@ -72,9 +73,9 @@ class TestSinglePipeline:
             client=Client(), inputs=inputs, response_log={}, route_name="ocr"
         )
         mock_serving_request.assert_called_once_with(
-            f"http://10.251.0.4:5000/ocr",
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/ocr",
             json=inputs,
-            timeout=30.0,
+            timeout=settings.TIMEOUT_SECOND,
             headers={"User-Agent": "textscope core"},
         )
         assert status_code == 200
@@ -96,9 +97,9 @@ class TestSinglePipeline:
             client=Client(), inputs=inputs, response_log={}, route_name="ocr"
         )
         mock_serving_request.assert_called_once_with(
-            f"http://10.251.0.4:5000/ocr",
+            f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}/ocr",
             json=inputs,
-            timeout=30.0,
+            timeout=settings.TIMEOUT_SECOND,
             headers={"User-Agent": "textscope core"},
         )
         assert status_code == 200
