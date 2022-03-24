@@ -46,6 +46,6 @@ RUN groupadd -r lomin -g 1000 && \
 
 USER textscope
 
-WORKDIR /workspace/pp_server/pp_server/app
+WORKDIR /workspace/pp_server/pp
 
 ENTRYPOINT ["python3", "main.py"]

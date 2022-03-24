@@ -151,3 +151,5 @@
 **/support_set/
 **/output/
 **/inference_server/
+# exclude app/ folder
+!**/app/** 

@@ -4,7 +4,7 @@ image:
   repository: docker.lomin.ai/ts-pp-base
   pullPolicy: IfNotPresent
   tag: 0.1.5
-  workingDir: /workspace/pp_server/pp_server/app
+  workingDir: /workspace/pp_server/pp
   command: ["python3", "main.py"]
 
 service:

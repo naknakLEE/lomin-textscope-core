@@ -12,7 +12,7 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace"
 USER 0
 
 COPY ./app /workspace/app
-COPY ./assets/thales/ /workspace/assets/thales
+COPY ./assets /workspace/assets
 COPY ./.env /workspace/.env
 COPY ./requirements/web/pyproject.toml /workspace/
 COPY ./requirements/web/poetry.lock /workspace/

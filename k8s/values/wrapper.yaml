@@ -4,8 +4,8 @@ image:
   repository: docker.lomin.ai/ts-wrapper-base
   pullPolicy: IfNotPresent
   tag: 0.1.5
-  workingDir: /workspace/textscope_wrapper/textscope_wrapper
-  command: 
+  workingDir: /workspace/textscope_wrapper/wrapper
+  command:
     - python3
     - main.py
 
@@ -27,7 +27,7 @@ ingress:
           pathType: Prefix
   tls:
     - hosts:
-      - localhost
+        - localhost
       secretName: tls-secret
 
 autoscaling:

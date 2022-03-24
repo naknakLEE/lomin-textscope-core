@@ -31,8 +31,8 @@ RUN python3 -m nuitka --module lovit --include-package=lovit && \
     find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';'
 
 WORKDIR /workspace/pp_server
-RUN mv pp_server/app/main.py ./main.py && \
-    python3 -m nuitka --module pp_server --include-package=pp_server
+RUN mv pp/main.py ./main.py && \
+    python3 -m nuitka --module pp --include-package=pp
 
 RUN rm -rf /workspace/pp_server/pp_server /workspace/assets /workspace/*.txt&& \
     rm -f /workspace/pyproject.toml /workspace/poetry.lock && \

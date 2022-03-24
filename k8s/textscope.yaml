@@ -94,7 +94,7 @@ spec:
         - name: elasticsearch
           image: docker.lomin.ai/ts-elasticsearch:0.0.0
           imagePullPolicy: IfNotPresent
-          workingDir: /workspace/pp_server/pp_server/app
+          workingDir: /workspace/pp_server/pp
           ports:
             - containerPort: 9200
               protocol: TCP
@@ -201,7 +201,7 @@ spec:
       containers:
         - name: pp
           image: docker.lomin.ai/ts-pp-base:0.1.5
-          workingDir: /workspace/pp_server/pp_server/app
+          workingDir: /workspace/pp_server/pp
           imagePullPolicy: IfNotPresent
           command: ["python3", "main.py"]
           ports:
@@ -274,7 +274,7 @@ spec:
       containers:
         - name: wrapper
           image: docker.lomin.ai/ts-wrapper-base:0.1.5
-          workingDir: /workspace/textscope_wrapper/textscope_wrapper
+          workingDir: /workspace/textscope_wrapper/wrapper
           imagePullPolicy: IfNotPresent
           command: ["python3", "main.py"]
           ports:

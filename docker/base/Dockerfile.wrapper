@@ -40,6 +40,6 @@ RUN groupadd -r lomin -g 1000 && \
 
 USER textscope
 
-WORKDIR /workspace/textscope_wrapper/textscope_wrapper
+WORKDIR /workspace/textscope_wrapper/wrapper
 
 ENTRYPOINT ["python3", "main.py"]

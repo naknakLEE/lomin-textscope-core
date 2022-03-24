@@ -79,7 +79,7 @@ services:
       - ./:/workspace
     tty: true
     restart: unless-stopped
-    working_dir: /workspace/pp_server/pp_server/app
+    working_dir: /workspace/pp_server/pp
     command: python3 main.py
 
   wrapper:
@@ -105,7 +105,7 @@ services:
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
       - CUSTOMER=${CUSTOMER}
-    working_dir: /workspace/textscope_wrapper/textscope_wrapper
+    working_dir: /workspace/textscope_wrapper/wrapper
     command: python3 main.py
 
   nginx:

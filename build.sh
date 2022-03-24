@@ -65,8 +65,8 @@ do
     if [ "${container}" = "pp" ]; then
         app_name="${container}_server"
         docker cp ${container}:/workspace/${app_name}/main.py ${build_folder_name}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/${container}/ &&
-        docker cp ${container}:/workspace/${app_name}/${app_name}.pyi ${build_folder_name}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/${app_name}/pp.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/${container}/ &&
+        docker cp ${container}:/workspace/${app_name}/pp.pyi ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/lovit.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/lovit/ &&
         docker cp ${container}:/workspace/lovit.pyi ${build_folder_name}/${created_folder_name}/lovit/ &&
         docker cp ${container}:/workspace/${app_name}/assets ${build_folder_name}/${created_folder_name}/${container}/assets
@@ -75,7 +75,7 @@ do
         docker cp ${container}:/workspace/app.${SO_EXTENTION} ${build_folder_name}/${created_folder_name}/${container}/ &&
         docker cp ${container}:/workspace/app.pyi ${build_folder_name}/${created_folder_name}/${container}/
     elif [ "${container}" = "serving" ]; then
-        app_name="inference_server"
+        app_name="serving"
         mkdir -p ${inference_server_build_folder_name}/${created_folder_name}/${container}/assets/document_understanding
         mkdir -p ${inference_server_build_folder_name}/${created_folder_name}/lovit
         docker cp ${container}:/root/bentoml/bentos/textscope_model_service ${inference_server_build_folder_name}/${created_folder_name}/${container}/ &&
