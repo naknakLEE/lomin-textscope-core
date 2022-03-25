@@ -83,8 +83,6 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    extra_hosts:
-      - ${LDAP_HOST}
     cap_add:
       - SYS_PTRACE
     runtime: nvidia
@@ -131,8 +129,6 @@ services:
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
-    extra_hosts:
-      - ${DATABASE_HOST}
     depends_on:
       - postgres
       - minio

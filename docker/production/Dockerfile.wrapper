@@ -41,7 +41,7 @@ COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/
 COPY ./requirements/${CUSTOMER}/poetry.lock /workspace/
 RUN poetry install --no-dev
 
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/* /workspace/assets/
 COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./.env /workspace/.env
 
@@ -52,8 +52,6 @@ RUN rm -rf /var/lib/apt/lists/* && \
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
 
-# USER textscope
+USER textscope
 
 WORKDIR /workspace/${APP_NAME}
-
-# ENTRYPOINT ["python3", "main.py"]

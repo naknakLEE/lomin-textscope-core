@@ -21,25 +21,18 @@ def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
 
 class Settings(BaseSettings):
     # DOCKER SERVER ADDRESS
-    MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_ADDR: str
     POSTGRES_IP_ADDR: str
-    POSTGRES_IP_CONNET_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
-    MYSQL_IP_ADDR: str
-    REDIS_IP_PORT_ADDR: str
     MINIO_IP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
-    SERVING_HEALTH_CHECK_IP_PORT: int
     REDIS_IP_PORT: int
     WEB_IP_PORT: int
     PP_IP_PORT: int
-    MULTIPLE_GPU_LOAD_BALANCING_NGINX_IP_PORT: int
-    MYSQL_IP_PORT: int
     POSTGRES_IP_PORT: int
     GENERAL_DETECTION_SERVICE_PORT: int = 5000
     RECOGNITION_SERVICE_PORT: int = 5000
@@ -49,15 +42,10 @@ class Settings(BaseSettings):
     MINIO_PORT: int
 
     # POSTGRESQL CONFIG
-    POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DATABASE: str
 
-    # MYSQL CONFIG
-    MYSQL_USER: str
-    TEXTSCOPE_SERVER_DATABASE: str
-    MYSQL_PASSWORD: str
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
@@ -217,9 +205,8 @@ class Settings(BaseSettings):
     CTON: Dict = {}
 
     # FILE CONFIG
-    ZIP_PATH: str
-    IMG_PATH: str
-    SUPPORT_SET_DIR: str
+    ZIP_PATH: str = "/workspace/assets/datasets"
+    IMG_PATH: str = "/workspace/assets/images"
     IMAGE_VALIDATION: List = [
         ".jpg",
         ".png",

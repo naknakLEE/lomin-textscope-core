@@ -188,7 +188,7 @@ def single(
 ) -> Tuple[int, Dict, Dict]:
     """doc type hint를 적용하고 inference 요청"""
     # Apply doc type hint
-    hint = inputs.get("hint", {})
+    hint = inputs.get("hint")
     if hint is not None and hint.get("doc_type") is not None:
         doc_type_hint = hint.get("doc_type", {})
         doc_type_hint = DocTypeHint(**doc_type_hint)
@@ -393,7 +393,7 @@ def heungkuk_life(
         image_height=agamotto_result.get("image_height"),
         image_width=agamotto_result.get("image_width"),
         id_type=kv_result.get("id_type", None),
-        doc_type=duriel_classification_result.get("doc_type"),
+        doc_type=doc_type,
         apply_cls_hint_result=cls_hint_result,
     )
 

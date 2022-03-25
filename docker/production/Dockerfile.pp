@@ -59,7 +59,6 @@ RUN rm -rf /var/lib/apt/lists/* && \
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
 
-# USER textscope
+USER textscope
 
 WORKDIR /workspace/pp_server
-# ENTRYPOINT ["python3", "main.py"]

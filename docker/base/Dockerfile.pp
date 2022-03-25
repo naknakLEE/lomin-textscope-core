@@ -42,7 +42,7 @@ RUN python3 setup.py build develop && \
 COPY ./.env /workspace/
 
 RUN groupadd -r lomin -g 1000 && \
-    useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
+    useradd -m -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
 
 USER textscope
 

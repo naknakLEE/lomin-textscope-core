@@ -102,13 +102,6 @@ async def ocr(
         logger.debug(f"{task_id}-inference results:\n{inference_results}")
 
         # Post processing
-        if settings.DEVELOP:
-            if inputs.get("test_class", None) is not None:
-                inference_results["doc_type"] = inputs.get("test_class")
-                logger.debug(
-                    f'{task_id}-set test class: origin={inference_results.get("doc_type")}\
-                     test_class={inputs.get("test_class")}'
-                )
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
         logger.info(f"{task_id}-pp type:{post_processing_type}")
         if (

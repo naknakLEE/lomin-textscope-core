@@ -146,10 +146,12 @@
 **/log/
 **/workspace/
 **/textscope-client/
-**/*datasets*/
+**/*dataset*/
+!**/app/**
 **/images/
 **/support_set/
 **/output/
 **/inference_server/
+**/build-folder/
 # exclude app/ folder
 !**/app/** 

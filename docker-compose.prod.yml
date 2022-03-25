@@ -22,7 +22,7 @@ services:
       - WARMUP_COUNT=${WARMUP_COUNT:-30}
     runtime: nvidia
     tty: true
-    command: bentoml serve textscope_model_service:${INFERENCE_SERVER_VERSION:-0.3.0} --host 0.0.0.0
+    entrypoint: bentoml serve textscope_model_service:${INFERENCE_SERVER_VERSION:-0.3.0} --host 0.0.0.0
 
   web:
     user: "0:0"
@@ -38,7 +38,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
-    command: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
 
   pp:
     user: "0:0"
@@ -56,7 +56,7 @@ services:
       - PYTHONPATH=/workspace
     tty: true
     working_dir: /workspace/pp_server
-    command: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
 
   wrapper:
     user: "0:0"
@@ -75,8 +75,8 @@ services:
     tty: true
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
-    working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
-    command: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
+    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
 
   grafana:
     ports:

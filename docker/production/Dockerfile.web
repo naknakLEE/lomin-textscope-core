@@ -41,8 +41,8 @@ WORKDIR /workspace
 
 RUN poetry install --no-dev
 
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/web/ /workspace/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/web/ /workspace/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/* /workspace/assets/
 COPY ./.env /workspace/
 
 RUN rm -rf /var/lib/apt/lists/* && \
@@ -52,8 +52,6 @@ RUN rm -rf /var/lib/apt/lists/* && \
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
 
-# USER textscope
+USER textscope
 
 WORKDIR /workspace
-
-# ENTRYPOINT ["python3", "main.py"]
