@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
     # OCR CONFIG
     OCR_PIPELINE: bool = False
-    USE_OCR_PIPELINE: bool = False
+    USE_OCR_PIPELINE: str = "single"
 
     # OTHERS
     PROFILING_TOOL: str = "cProfile"

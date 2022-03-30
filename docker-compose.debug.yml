@@ -4,7 +4,7 @@ services:
   wrapper:
     ports:
       - 5677:5677
-    command:
+    entrypoint:
       [
         "sh",
         "-c",
@@ -14,7 +14,7 @@ services:
   web:
     ports:
       - 5678:5678
-    command:
+    entrypoint:
       [
         "sh",
         "-c",
@@ -24,7 +24,7 @@ services:
   pp:
     ports:
       - 5679:5679
-    command:
+    entrypoint:
       [
         "sh",
         "-c",
@@ -34,7 +34,7 @@ services:
   serving:
     ports:
       - 5680:5680
-    command: [
+    entrypoint: [
         "sh",
         "-c",
         "pip3 install debugpy -t /tmp &&

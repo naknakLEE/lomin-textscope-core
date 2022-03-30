@@ -75,7 +75,7 @@ async def ocr(
 
     with Client() as client:
         # Inference
-        if settings.USE_OCR_PIPELINE:
+        if settings.USE_OCR_PIPELINE == 'multiple':
             # TODO: sequence_type을 wrapper에서 받도록 수정
             # TODO: python 3.6 버전에서 async profiling 사용에 제한이 있어 sync로 변경했는데 추후 async 사용해 micro bacing 사용하기 위해서는 다시 변경 필요
             status_code, inference_results, response_log = pipeline.multiple(
@@ -85,7 +85,14 @@ async def ocr(
                 response_log=response_log,
             )
             response_log = dict()
-        else:
+        elif settings.USE_OCR_PIPELINE == 'duriel':
+            status_code, inference_results, response_log = pipeline.heungkuk_life(
+                client=client,
+                inputs=inputs,
+                response_log=response_log,
+                route_name=inputs.get("route_name", "ocr"),
+            )
+        elif settings.USE_OCR_PIPELINE == 'single':
             status_code, inference_results, response_log = pipeline.single(
                 client=client,
                 inputs=inputs,
