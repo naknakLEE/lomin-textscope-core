@@ -27,6 +27,7 @@ services:
       - 5000:5000
     volumes:
       - ./:/workspace
+    shm_size: 16gb
     tty: true
     environment:
       - DEBUG=/workspace/inference_server/assets/bentoml_configuration.yml
