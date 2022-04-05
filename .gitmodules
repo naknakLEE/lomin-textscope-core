@@ -1,6 +1,6 @@
 [submodule "lovit"]
 	path = lovit
-	url = git@github.com:Lomin-ai/lovit-tmp.git
+	url = git@github.com:Lomin-ai/lovit.git
 [submodule "kakaobank_wrapper"]
 	path = kakaobank_wrapper
 	url = git@github.com:Lomin-ai/wrapper-kakaobank-mrg-2105.git
