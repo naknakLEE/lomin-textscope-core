@@ -26,10 +26,6 @@ RUN apt-get update && \
 RUN pip3 install --upgrade pip && \
     pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
-RUN git clone http://github.com/bentoml/bentoml && \
-    cd bentoml && \
-    pip3 install -r ./guides/quick-start/requirements.txt
-
 COPY ./requirments/requirments-serving.txt /workspace/
 RUN pip3 install -r /workspace/requirments-serving.txt
 
