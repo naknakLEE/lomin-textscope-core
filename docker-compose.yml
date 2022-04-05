@@ -70,6 +70,8 @@ services:
     volumes:
       - mysqldata:/var/lib/mysql
     restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       our_net:
           ipv4_address: ${MYSQL_IP_ADDR}
