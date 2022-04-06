@@ -27,7 +27,7 @@ python3 -m nuitka --module ${APP_NAME} --include-package=${APP_NAME}
 python3 -m nuitka --module lovit --include-package=lovit
     find lovit/* -maxdepth 0 -name 'resources' -prune -o -exec rm -rf '{}' ';'
 
-rm -r /workspace/bentoml /workspace/assets /workspace/Nuitka
+rm -r /workspace/assets /workspace/Nuitka
 rm -r /workspace/${APP_NAME}/${APP_NAME} /workspace/${APP_NAME}/lovit /workspace/*.txt
 rm -r ${BUNDLE_PATH}/${APP_NAME} ${BUNDLE_PATH}/*.build
 rm -rf /var/lib/apt/lists/*
