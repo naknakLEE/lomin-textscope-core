@@ -84,7 +84,7 @@ def insert_image(
     dataset_pkey: Optional[int] = None,
     image_id: str = str(uuid.uuid4()),
     image_type: str = "TRAINING",
-    image_description: Optional[str] = "",
+    image_description: Optional[str] = None,
 ) -> Optional[schema.Image]:
     dao = schema.Image
     try:

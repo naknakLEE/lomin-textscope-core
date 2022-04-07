@@ -123,33 +123,12 @@ def upload_image(
     image_data = inputs.get("file", "")
     image_name = inputs.get("file_name", "")
     image_id = inputs.get("image_id", "")
-    decoded_image_data = base64.b64decode(image_data)
     
     if query.select_image(session, image_id=image_id):
         logger.warning(f"{image_id} is already exists")
-        return HTTPException(status_code=400, detail=f"{image_id} is already exists")
+        return HTTPException(status_code=409, detail=f"{image_id} is already exists")
         
-    upload_success = False
-    save_path = ""
-    if settings.USE_MINIO:
-        upload_success = minio_client.put(
-            bucket_name=settings.MINIO_IMAGE_BUCKET,
-            object_name=image_id + '/' + image_name,
-            data=decoded_image_data,
-        )
-        save_path = "minio/" + image_name
-    else:
-        root_path = Path(settings.IMG_PATH)
-        base_path = root_path.joinpath(image_id)
-        base_path.mkdir(parents=True, exist_ok=True)
-        
-        save_path = base_path.joinpath(image_name)
-        
-        with save_path.open("wb") as file:
-            file.write(decoded_image_data)
-            
-        upload_success = True
-    
+    upload_success, save_path = save_upload_image(image_id, image_name, image_data)
     if upload_success:
         dao_image_params = {
             "image_id": image_id,
@@ -181,3 +160,28 @@ def upload_image(
     )
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
+def save_upload_image(image_id: str, image_name: str, image_data):
+    decoded_image_data = base64.b64decode(image_data)
+    success = False
+    save_path = ""
+    if settings.USE_MINIO:
+        success = minio_client.put(
+            bucket_name=settings.MINIO_IMAGE_BUCKET,
+            object_name=image_id + '/' + image_name,
+            data=decoded_image_data,
+        )
+        save_path = "minio/" + image_name
+    else:
+        root_path = Path(settings.IMG_PATH)
+        base_path = root_path.joinpath(image_id)
+        base_path.mkdir(parents=True, exist_ok=True)
+        save_path = base_path.joinpath(image_name)
+        
+        with save_path.open("wb") as file:
+            file.write(decoded_image_data)
+            
+        success = True
+    
+    return success, save_path
