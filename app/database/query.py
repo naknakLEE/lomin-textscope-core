@@ -84,6 +84,7 @@ def insert_image(
     dataset_pkey: Optional[int] = None,
     image_id: str = str(uuid.uuid4()),
     image_type: str = "TRAINING",
+    image_description: Optional[str] = None,
 ) -> Optional[schema.Image]:
     dao = schema.Image
     try:
@@ -94,6 +95,7 @@ def insert_image(
             dataset_pkey=dataset_pkey,
             image_id=image_id,
             image_type=image_type,
+            image_description=image_description,
         )
     except Exception as e:
         logger.error(f"image insert error: {e}")

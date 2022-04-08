@@ -45,8 +45,7 @@ class MinioService:
             )
             return True
         except S3Error:
-            logger.error(f"Error occur for load image '{object_name}'")
-            logger.error(f"'{object_name}' is not exists")
+            logger.error(f"Error occur for upload image '{object_name}'")
         except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             if (

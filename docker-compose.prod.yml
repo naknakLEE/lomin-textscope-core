@@ -75,7 +75,7 @@ services:
     tty: true
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
-    working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper
+    working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
     entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
 
   grafana:

@@ -84,7 +84,7 @@ def get_image(image_path: str, session: Session = Depends(db.session)) -> JSONRe
     response_log = dict()
     request_datetime = datetime.now()
 
-    result = query.select_image(session, kwargs=dict(image_path=image_path))
+    result = query.select_image(session, image_path=image_path)
     if not result:
         raise HTTPException(status_code=404, detail=vars(Error404().error))
     image_id = result.image_id
@@ -123,41 +123,23 @@ def upload_image(
     image_data = inputs.get("file", "")
     image_name = inputs.get("file_name", "")
     image_id = inputs.get("image_id", "")
-    image_type = inputs.get("image_type", "NOTSET")
-    decoded_image_data = base64.b64decode(image_data)
-
-    root_path = Path(settings.IMG_PATH)
-
-    base_path = root_path.joinpath(image_id)
-    base_path.mkdir(parents=True, exist_ok=True)
-
-    save_path = base_path.joinpath(image_name)
-    found = False
-
-    if settings.USE_MINIO:
-        found = minio_client.put(
-            bucket_name=settings.MINIO_IMAGE_BUCKET,
-            object_name=image_name,
-            data=decoded_image_data,
-        )
-    else:
-        with save_path.open("wb") as file:
-            file.write(decoded_image_data)
-        if save_path.exists() and save_path.is_file():
-            found = True
-
-    if found:
-        # @TODO: image data insert into db
+    
+    if query.select_image(session, image_id=image_id):
+        logger.warning(f"{image_id} is already exists")
+        return HTTPException(status_code=409, detail=f"{image_id} is already exists")
+        
+    upload_success, save_path = save_upload_image(image_id, image_name, image_data)
+    if upload_success:
         dao_image_params = {
             "image_id": image_id,
             "image_path": str(save_path),
-            "image_type": image_type,
+            "image_type": inputs.get("image_type", "inference"),
+            "image_description": inputs.get("description", ""),
         }
         query.insert_image(session, **dao_image_params)
     else:
-        # @TODO: file not saved
-        return HTTPException(status_code=400, detail=f"{image_name} is not saved")
-
+        return HTTPException(status_code=400, detail=f"{image_name} was not saved")
+    
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
     response_log.update(
@@ -178,3 +160,28 @@ def upload_image(
     )
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
+def save_upload_image(image_id: str, image_name: str, image_data):
+    decoded_image_data = base64.b64decode(image_data)
+    success = False
+    save_path = ""
+    if settings.USE_MINIO:
+        success = minio_client.put(
+            bucket_name=settings.MINIO_IMAGE_BUCKET,
+            object_name=image_id + '/' + image_name,
+            data=decoded_image_data,
+        )
+        save_path = "minio/" + image_name
+    else:
+        root_path = Path(settings.IMG_PATH)
+        base_path = root_path.joinpath(image_id)
+        base_path.mkdir(parents=True, exist_ok=True)
+        save_path = base_path.joinpath(image_name)
+        
+        with save_path.open("wb") as file:
+            file.write(decoded_image_data)
+            
+        success = True
+    
+    return success, save_path
