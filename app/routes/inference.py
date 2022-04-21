@@ -5,8 +5,6 @@ from fastapi import APIRouter, Body, Depends
 from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
 
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
@@ -26,8 +24,10 @@ from app.schemas.json_schema import inference_responses
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings
-from app.database import query
+from app.database import query, schema
 from app.database.connection import db
+from app.schemas import error_models as ErrorResponse
+from app.errors import exceptions as ex
 
 
 router = APIRouter()
@@ -50,13 +50,32 @@ async def ocr(
     start_time = datetime.now()
     response_log: Dict = dict()
     response: Dict = dict()
+    
     task_id = inputs.get("task_id", "")
+    select_task_result = query.select_task(session, task_id=task_id)
+    
+    if isinstance(select_task_result, schema.Task):
+        status_code, error = ErrorResponse.ErrorCode.get(2202)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    elif isinstance(select_task_result, JSONResponse):
+        status_code_no_task, _ = ErrorResponse.ErrorCode.get(2201)
+        if select_task_result.status_code != status_code_no_task:
+            return select_task_result
+    
     logger.debug(f"{task_id}-api request start:\n{pretty_dict(inputs)}")
-
-    task_pkey = query.insert_task(
-        session, task_id, inputs.get("image_pkey", ""), auto_commit=False
+    
+    insert_task_result = query.insert_task(
+        session,
+        task_id,
+        inputs.get("image_pkey"), 
+        "INFERENCE",
+        auto_commit=True
     )
-
+    if isinstance(insert_task_result, JSONResponse):
+        return insert_task_result
+    
+    task_pkey = insert_task_result.task_pkey
+    
     if (
         inputs.get("use_general_ocr")
         and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]
@@ -72,7 +91,7 @@ async def ocr(
                     }
                 )
             )
-
+    
     with Client() as client:
         # Inference
         if settings.USE_OCR_PIPELINE == 'multiple':
@@ -100,14 +119,15 @@ async def ocr(
                 route_name=inputs.get("route_name", "ocr"),
             )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
-            return set_json_response(code="3000", message="모델 서버 문제 발생")
-
+            status_code, error = ErrorResponse.ErrorCode.get(3501)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        
         # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
         inference_result = inference_results
         if "kv_result" in inference_results:
             inference_result = inference_results.get("kv_result", {})
         logger.debug(f"{task_id}-inference results:\n{inference_results}")
-
+        
         # Post processing
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
         logger.info(f"{task_id}-pp type:{post_processing_type}")
@@ -135,7 +155,8 @@ async def ocr(
                 post_processing_type=post_processing_type,
             )
             if status_code < 200 or status_code >= 400:
-                return set_json_response(code="3000", message="pp 과정에서 문제 발생")
+                status_code, error = ErrorResponse.ErrorCode.get(3502)
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["kv"] = post_processing_results["result"]
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
@@ -145,7 +166,7 @@ async def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-
+        
         # convert preds to texts
         if (
             inputs.get("convert_preds_to_texts") is not None
@@ -156,14 +177,15 @@ async def ocr(
                 rec_preds=inference_results.get("rec_preds", []),
             )
             if status_code < 200 or status_code >= 400:
-                return set_json_response(code="3000", message="텍스트 변환 과정에서 발생")
+                status_code, error = ErrorResponse.ErrorCode.get(3503)
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["texts"] = texts
-
+            
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
-
+    
     # TODO: 각 모델마다 결과 저장하도록 구성
     if settings.DEVELOP:
         background_tasks.add_task(

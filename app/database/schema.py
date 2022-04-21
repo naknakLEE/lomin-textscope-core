@@ -340,7 +340,7 @@ class Image(Base, BaseMixin):
     image_pkey = Column(Integer, primary_key=True, comment="1")
     image_id = Column(String(100), nullable=False, comment="uuuu-uuuu-uuuu-uuuu")
     image_path = Column(
-        String(500), nullable=False, comment="/home/ihlee/Desktop/category_a/test.jpg"
+        String(500), nullable=False, comment="['minio/filename.jpg', '/worksapce/assets/images/image_id/filename.jpg']"
     )
     image_type = Column(String(30), nullable=False, comment="['TRAINING', 'INFERENCE']")
     image_description = Column(Text, comment="이미지 설명")

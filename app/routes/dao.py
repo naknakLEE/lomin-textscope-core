@@ -1,4 +1,4 @@
-from typing import Dict, Optional, List
+from typing import Dict, Union, Optional, List
 from fastapi import APIRouter, Depends, Body
 from app.common.const import get_settings
 from app.database.connection import db
@@ -7,13 +7,14 @@ from app import models
 from app.utils.logging import logger
 from app.database.schema import Dataset, Image, Model, Visualize, Category, Task
 from sqlalchemy.orm import Session
+from starlette.responses import JSONResponse
 
 settings = get_settings()
 router = APIRouter()
 
 
 @router.get("/select/image")
-def select_image(image_id: str, db: Session = Depends(db.session)) -> Optional[Image]:
+def select_image(image_id: str, db: Session = Depends(db.session)) -> Union[Optional[Image], JSONResponse]:
     return query.select_image(db, image_id=image_id)
 
 

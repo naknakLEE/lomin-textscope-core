@@ -1,14 +1,17 @@
 import json
 import uuid
 from fastapi import HTTPException
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Union, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
 
 from app import models
 from app.database import schema
 from app.utils.logging import logger
 from app.database.connection import Base
+from app.schemas import error_models as ErrorResponse
 
 
 def create_db_table(db: Session) -> None:
@@ -67,14 +70,18 @@ def select_image_all(db: Session) -> Optional[List[schema.Image]]:
     return res
 
 
-def select_image(db: Session, **kwargs: Dict) -> Optional[schema.Image]:
+def select_image(db: Session, **kwargs: Dict) -> Union[schema.Image, JSONResponse]:
     dao = schema.Image
     try:
-        res = dao.get(db, **kwargs)
+        result = dao.get(db, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2101)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("image select error")
-        res = None
-    return res
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
 
 
 def insert_image(
@@ -85,7 +92,7 @@ def insert_image(
     image_id: str = str(uuid.uuid4()),
     image_type: str = "TRAINING",
     image_description: Optional[str] = None,
-) -> Optional[schema.Image]:
+) -> Union[Optional[schema.Image], JSONResponse]:
     dao = schema.Image
     try:
         result = dao.create(
@@ -100,7 +107,8 @@ def insert_image(
     except Exception as e:
         logger.error(f"image insert error: {e}")
         session.rollback()
-        return None
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
@@ -456,25 +464,43 @@ def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
     logger.info(f"Delete catetory successful")
     return True
 
+### task
+def select_task(db: Session, **kwargs: Dict) -> Union[schema.Task, JSONResponse]:
+    dao = schema.Task
+    try:
+        result = dao.get(db, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2201)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("task select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4201)
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
 
 def insert_task(
-    session: Session, task_id: str, image_pkey: str, auto_commit: bool = True
-) -> int:
+    session: Session,
+    task_id: str,
+    image_pkey: int,
+    task_type: str = "NONE",
+    auto_commit: bool = True
+) -> Union[Optional[schema.Task], JSONResponse]:
     if image_pkey is None:
         logger.warning("Image pkey({}) not found".format(image_pkey))
+    
     dao = schema.Task
-    result = dao.create(
-        session=session,
-        task_id=task_id,
-        task_type="TRAINING",
-        image_pkey=image_pkey,
-        auto_commit=auto_commit,
-    )
-    if result is None:
-        logger.warning("{} insert failed, image pkey={}".format(task_id, image_pkey))
-        # TODO: 아래 라인 models로 이전
-        error = models.Error(
-            error_code="ER-INF-CKV-4003", error_message="이미 등록된 task id"
+    try:
+        result = dao.create(
+            session=session,
+            task_id=task_id,
+            image_pkey=image_pkey,
+            task_type=task_type,
+            auto_commit=auto_commit
         )
-        raise HTTPException(status_code=400, detail=vars(error))
-    return result.task_pkey
+    except Exception:
+        logger.warning("{} insert failed, image pkey={}".format(task_id, image_pkey))
+        session.rollback()
+        status_code, error = ErrorResponse.ErrorCode.get(4202)
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result

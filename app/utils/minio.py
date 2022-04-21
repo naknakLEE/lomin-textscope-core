@@ -2,7 +2,7 @@ import sys
 
 from io import BytesIO
 from minio import Minio, S3Error
-from typing import Union
+from typing import Union, Optional
 from app.common.const import get_settings
 from app.utils.logging import logger
 
@@ -63,3 +63,31 @@ class MinioService:
                 logger.info("error log detail: {}", error_log)
                 del (exc_type, exc_value, exc_traceback, error_log)
         return False
+    
+    def get(self, image_name: str, bucket_name: str) -> Optional[bytes]:
+        image_bytes = None
+        if not self._bucket_exists(bucket_name):
+            logger.error(f"Error occur for not exist bucket '{bucket_name}'")
+            return None
+        try:
+            response = self.client.get_object(bucket_name, image_name)
+            image_bytes = response.data
+        except S3Error:
+            logger.error(f"Error occur for load image '{image_name}'")
+            logger.error(f"'{image_name}' is not exists")
+        except Exception:
+            error = sys.exc_info()
+            exc_type, exc_value, exc_traceback = error
+            error_log = {
+                'filename': exc_traceback.tb_frame.f_code.co_filename,
+                'lineno'  : exc_traceback.tb_lineno,
+                'name'    : exc_traceback.tb_frame.f_code.co_name,
+                'type'    : exc_type.__name__,
+                'message' : str(exc_value),
+            }
+            logger.info("error log detail: {}", error_log)
+            del(exc_type, exc_value, exc_traceback, error_log)
+        finally:
+            response.close()
+            response.release_conn()
+            return image_bytes

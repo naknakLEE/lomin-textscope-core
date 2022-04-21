@@ -2,9 +2,11 @@ import time
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from fastapi import Request, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from jose import jwt
+from app.errors.exceptions import APIException
 
 from app.utils.logging import logger
 from app.database.connection import db
@@ -12,6 +14,7 @@ from app.utils.logger import api_logger
 from app.middlewares.exception_handler import exception_handler
 from app.common.const import get_settings
 from app.utils.utils import cal_time_elapsed_seconds
+from app.schemas import error_models as ErrorResponse
 
 
 settings = get_settings()
@@ -48,14 +51,21 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 request.state.email = payload.get("sub")
             response = await call_next(request)
             api_logger(request=request, response=response)
+        except jwt.ExpiredSignatureError as e:
+            error = await exception_handler(e)
+            error_dict = parse_error_dict(error)
+            status_code, error_model = ErrorResponse.ErrorCode.get(2402)
+            response = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error_model}))
+            api_logger(request=request, error=error)
+        except jwt.JWTError as e:
+            error = await exception_handler(e)
+            error_dict = parse_error_dict(error)
+            status_code, error_model = ErrorResponse.ErrorCode.get(2403)
+            response = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error_model}))
+            api_logger(request=request, error=error)
         except Exception as e:
             error = await exception_handler(e)
-            error_dict = dict(
-                status=error.status_code,
-                msg=error.msg,
-                detail=error.detail,
-                code=error.code,
-            )
+            error_dict = parse_error_dict(error)
             response = JSONResponse(status_code=error.status_code, content=error_dict)
             api_logger(request=request, error=error)
         finally:
@@ -63,6 +73,19 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 request.state.db.close()
             response_datetime = datetime.now()
             elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
-            logger.info(f"Response time: {request.state.req_time}")
+            logger.info(f"Response time: {response_datetime}")
             logger.info(f"Elapsed time: {elapsed}")
         return response
+
+
+def parse_error_dict(exection: APIException):
+    return dict(
+        status=exection.status_code,
+        msg=exection.msg,
+        detail=exection.detail,
+        code=exection.code,
+        error=dict(
+            error_code=exection.code,
+            error_message=str(exection.detail) + ", " + str(exection.msg)
+        )
+    )

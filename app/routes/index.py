@@ -9,25 +9,18 @@ from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database.connection import db
-from app.database import query
+from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
 from app.utils.utils import cal_time_elapsed_seconds
 from app.utils.minio import MinioService
+from app.schemas import error_models as ErrorResponse
 
 
 settings = get_settings()
 router = APIRouter()
 minio_client = MinioService()
-
-
-class Error400(models.CommonErrorResponse):
-    error = models.Error(error_code="400", error_message="already exist")
-
-
-class Error404(models.CommonErrorResponse):
-    error = models.Error(error_code="404", error_message="not found")
 
 
 @router.get("/status", response_model=models.StatusResponse)
@@ -79,16 +72,15 @@ def check_status() -> Any:
 
 
 @router.get("/image")
-def get_image(image_path: str, session: Session = Depends(db.session)) -> JSONResponse:
+def get_image(image_id: str, session: Session = Depends(db.session)) -> JSONResponse:
     response = dict()
     response_log = dict()
     request_datetime = datetime.now()
 
-    result = query.select_image(session, image_path=image_path)
-    if not result:
-        raise HTTPException(status_code=404, detail=vars(Error404().error))
-    image_id = result.image_id
-
+    select_image_result = query.select_image(session, image_id=image_id)
+    if isinstance(select_image_result, JSONResponse):
+        return select_image_result
+    
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
     response_log.update(
@@ -98,14 +90,34 @@ def get_image(image_path: str, session: Session = Depends(db.session)) -> JSONRe
             elapsed=elapsed,
         )
     )
-
+    
+    image = select_image_result
+    
+    image_filename = Path(image.image_path)
+    image_bytes = None
+    if settings.USE_MINIO:
+        image_minio_path = "/".join([image_id, image_filename.name])
+        image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET,)
+    else:
+        with Path(image.image_path).open("rb") as f:
+            image_bytes = f.read()
+    
+    image = models.Image(
+        filename=image_filename.name,
+        width=0,
+        height=0,
+        upload_datetime=image.created_at,
+        format=image_filename.suffix,
+        data=base64.b64encode(image_bytes)
+    )
+    
     response.update(
         dict(
             request_datetime=request_datetime,
             response_datetime=response_datetime,
             elapsed=elapsed,
             response_log=response_log,
-            image_id=image_id,
+            image_info=image,
         )
     )
 
@@ -120,25 +132,34 @@ def upload_image(
     response: Dict = dict()
     response_log: Dict = dict()
     request_datetime = datetime.now()
-    image_data = inputs.get("file", "")
-    image_name = inputs.get("file_name", "")
     image_id = inputs.get("image_id", "")
+    image_name = inputs.get("file_name", "")
+    image_data = inputs.get("file", "")
     
-    if query.select_image(session, image_id=image_id):
-        logger.warning(f"{image_id} is already exists")
-        return HTTPException(status_code=409, detail=f"{image_id} is already exists")
-        
-    upload_success, save_path = save_upload_image(image_id, image_name, image_data)
-    if upload_success:
+    select_image_result = query.select_image(session, image_id=image_id)
+    
+    if isinstance(select_image_result, schema.Image):
+        status_code, error = ErrorResponse.ErrorCode.get(2102)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    elif isinstance(select_image_result, JSONResponse):
+        status_code_no_image, _ = ErrorResponse.ErrorCode.get(2101)
+        if select_image_result.status_code != status_code_no_image:
+            return select_image_result
+    
+    save_success, save_path = save_upload_image(image_id, image_name, image_data)
+    if save_success:
         dao_image_params = {
             "image_id": image_id,
             "image_path": str(save_path),
             "image_type": inputs.get("image_type", "inference"),
             "image_description": inputs.get("description", ""),
         }
-        query.insert_image(session, **dao_image_params)
+        insert_image_result = query.insert_image(session, **dao_image_params)
+        if isinstance(insert_image_result, JSONResponse):
+            return insert_image_result
     else:
-        return HTTPException(status_code=400, detail=f"{image_name} was not saved")
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -149,7 +170,7 @@ def upload_image(
             elapsed=elapsed,
         )
     )
-
+    
     response.update(
         dict(
             request_datetime=request_datetime,
@@ -158,7 +179,7 @@ def upload_image(
             response_log=response_log,
         )
     )
-
+    
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 

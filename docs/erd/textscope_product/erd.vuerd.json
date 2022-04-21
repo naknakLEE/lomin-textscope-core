@@ -756,7 +756,7 @@
           },
           {
             "name": "image_path",
-            "comment": "/home/ihlee/Desktop/category_a/test.jpg",
+            "comment": "['minio/filename.jpg', '/worksapce/assets/images/image_id/filename.jpg']",
             "dataType": "VARCHAR(200)",
             "default": "",
             "option": {
