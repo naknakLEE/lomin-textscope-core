@@ -43,14 +43,14 @@ WORKDIR /workspace
 RUN poetry install --no-dev
 
 COPY ./.env /workspace/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/lovit/lovit.cpython-38-x86_64-linux-gnu.so /workspace/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/lovit/lovit.pyi /workspace/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/lovit/lovit /workspace/lovit/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/pp/pp.cpython-38-x86_64-linux-gnu.so /workspace/pp_server/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/pp/pp.pyi /workspace/pp_server/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/pp/main.py /workspace/pp_server/
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/pp/assets /workspace/pp_server/assets
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}-build/assets/* /workspace/assets/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/lovit/lovit.cpython-38-x86_64-linux-gnu.so /workspace/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/lovit/lovit.pyi /workspace/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/lovit/lovit /workspace/lovit/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/pp.cpython-38-x86_64-linux-gnu.so /workspace/pp_server/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/pp.pyi /workspace/pp_server/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/main.py /workspace/pp_server/
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/assets /workspace/pp_server/assets
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/* /workspace/assets/
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \

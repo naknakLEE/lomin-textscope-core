@@ -1,7 +1,8 @@
 ARG UBUNTU_VERSION
-ARG POETRY_VERSION
-
 FROM ubuntu:${UBUNTU_VERSION}
+
+ARG POETRY_VERSION
+ARG PYTHON_VERSION
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -33,6 +34,9 @@ RUN pip3 install torch==1.8.1+cpu torchvision==0.9.1+cpu -f https://download.pyt
 COPY ./requirements/pp/pyproject.toml /workspace/
 COPY ./requirements/pp/poetry.lock /workspace/
 RUN poetry install
+
+# Nuitka
+RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as possible./env.Append(CCFLAGS=["-fcf-protection=none"])/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/nuitka/build/SconsCompilerSettings.py
 
 WORKDIR /workspace/lovit
 COPY ./lovit /workspace/lovit

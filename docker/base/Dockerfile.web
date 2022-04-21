@@ -1,7 +1,10 @@
 ARG UBUNTU_VERSION
-ARG POETRY_VERSION
+
 
 FROM ubuntu:${UBUNTU_VERSION}
+
+ARG POETRY_VERSION
+ARG PYTHON_VERSION
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -40,6 +43,8 @@ COPY ./requirements/web/pyproject.toml /workspace/
 COPY ./requirements/web/poetry.lock /workspace/
 
 RUN poetry install
+
+RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as possible./env.Append(CCFLAGS=["-fcf-protection=none"])/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/nuitka/build/SconsCompilerSettings.py
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -m -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
