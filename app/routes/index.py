@@ -13,7 +13,7 @@ from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
-from app.utils.utils import cal_time_elapsed_seconds
+from app.utils.utils import cal_time_elapsed_seconds, get_image_from_bytes
 from app.utils.minio import MinioService
 from app.schemas import error_models as ErrorResponse
 
@@ -72,11 +72,15 @@ def check_status() -> Any:
 
 
 @router.get("/image")
-def get_image(image_id: str, session: Session = Depends(db.session)) -> JSONResponse:
+def get_image(
+    image_id: str,
+    page: int = 1,
+    session: Session = Depends(db.session)
+) -> JSONResponse:
     response = dict()
     response_log = dict()
     request_datetime = datetime.now()
-
+    
     select_image_result = query.select_image(session, image_id=image_id)
     if isinstance(select_image_result, JSONResponse):
         return select_image_result
@@ -91,24 +95,34 @@ def get_image(image_id: str, session: Session = Depends(db.session)) -> JSONResp
         )
     )
     
-    image = select_image_result
-    
-    image_filename = Path(image.image_path)
+    image_path = Path(select_image_result.image_path)
     image_bytes = None
     if settings.USE_MINIO:
-        image_minio_path = "/".join([image_id, image_filename.name])
+        image_minio_path = "/".join([image_id, image_path.name])
         image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET,)
     else:
-        with Path(image.image_path).open("rb") as f:
+        with image_path.open("rb") as f:
             image_bytes = f.read()
     
+    image_base64, image_width, image_height, image_format = get_image_from_bytes(
+            image_bytes,
+            image_path.name,
+            page
+    )
+    
+    if image_base64 is None:
+        status_code, error = ErrorResponse.ErrorCode.get(2103)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
     image = models.Image(
-        filename=image_filename.name,
-        width=0,
-        height=0,
-        upload_datetime=image.created_at,
-        format=image_filename.suffix,
-        data=base64.b64encode(image_bytes)
+        filename=image_path.name,
+        description=select_image_result.image_description,
+        image_type=select_image_result.image_type,
+        upload_datetime=select_image_result.created_at,
+        width=image_width,
+        height=image_height,
+        format=image_format,
+        data=image_base64
     )
     
     response.update(
@@ -120,7 +134,7 @@ def get_image(image_id: str, session: Session = Depends(db.session)) -> JSONResp
             image_info=image,
         )
     )
-
+    
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 

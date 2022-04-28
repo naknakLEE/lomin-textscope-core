@@ -315,12 +315,17 @@ class Dataset(BaseModel):
     filename: str = "myfilename.jpg"
 
 
-class Image(BaseModel):
+class ImageMetadata(BaseModel):
     filename: str = "myfilename.jpg"
+    description: str = "mydescription"
+    image_type: str = "TRAINING or INFERENCE"
+    upload_datetime: datetime = datetime.now()
     width: int = 1920
     height: int = 1080
-    upload_datetime: datetime = datetime.now()
     format: str = "jpg"
+
+
+class Image(ImageMetadata):
     data: str = "encoded str by base64"
 
 

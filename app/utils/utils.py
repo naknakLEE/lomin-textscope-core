@@ -1,3 +1,4 @@
+import pdf2image
 import sys
 import json
 import base64
@@ -6,7 +7,7 @@ import tifffile
 import cv2
 import numpy as np
 
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, Tuple
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pathlib import Path
@@ -328,3 +329,85 @@ def set_ocr_response(
         rec_preds=recognition_result.get("rec_preds", []),
         doc_type=classification_result.get("doc_type", "None"),
     )
+
+
+def get_image_from_bytes(
+    image_bytes: str, image_filename: str, page: int
+) -> Tuple[str, int, int, str]:
+    
+    file_extension = Path(image_filename).suffix.lower()
+    image, w, h, file_format = (None, 0, 0, "")
+    
+    if file_extension in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
+        nparr = np.fromstring(image_bytes, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        h, w, _ = image.shape
+        image_base64 = base64.b64encode(image_bytes)
+        
+        return (image_base64.decode(), w, h, file_extension[1:])
+    
+    elif file_extension in [".tif", ".tiff"]:
+        try:
+            image = read_tiff_one_page_from_bytes(image_bytes, page)
+            w, h = image.size
+            
+            if image.mode == "1":
+                file_format = "png"
+            else: # image.mode == "RGB":
+                file_format = "jpeg"
+            
+        except:
+            logger.exception("read pillow")
+            logger.error(f"Cannot read page:{page} in {image_filename}")
+            
+            return (None, 0, 0, "")
+        
+    elif file_extension == ".pdf":
+        file_format = "jpeg"
+        
+        pages = pdf2image.convert_from_bytes(
+            image_bytes,
+            first_page=page,
+            last_page=page,
+            fmt=file_format
+        )
+        if len(pages) == 0:
+            pages = pdf2image.convert_from_bytes(
+                image_bytes,
+                first_page=1,
+                last_page=1,
+                fmt=file_format
+            )
+        
+        image = pages[0]
+        w, h = image.size
+        
+    else:
+        logger.error(f"{image_filename} is not supported!")
+        return (None, 0, 0, "")
+    
+    buffered = BytesIO()
+    image.save(buffered, file_format)
+    image_base64 = base64.b64encode(buffered.getvalue())
+    
+    return (image_base64.decode(), w, h, file_format)
+
+
+def get_readable_page(target_page: int, pages_length: int) -> int:
+    if target_page < 1:
+        return 1
+    
+    elif target_page > pages_length:
+        return pages_length
+    
+    else:
+        return target_page
+
+
+def read_tiff_one_page_from_bytes(image_bytes: str, page: int = 1) -> Image:
+    tif_images = tifffile.imread(BytesIO(image_bytes))
+    target_page = get_readable_page(page, len(tif_images))
+    tif_image = tif_images[target_page - 1]
+    
+    return Image.fromarray(tif_image)
