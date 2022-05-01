@@ -55,6 +55,7 @@ def duriel(
         ),
         "request_id": inputs.get("request_id"),
         "image_path": inputs.get("image_path"),
+        "image_id": inputs.get("image_id"),
         "angle": inputs.get("angle"),
         "page": inputs.get("page"),
         "doc_type": doc_type,

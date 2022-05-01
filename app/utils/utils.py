@@ -88,10 +88,15 @@ def set_json_response(
 def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optional[str]:
     if not isinstance(pp_mapping_table, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
-    if doc_type in pp_mapping_table.get("idcard", []):
-        return "idcard"
+    
     if doc_type in pp_mapping_table.get("general_pp", []):
         return "kv"
+    elif doc_type in pp_mapping_table.get("commercial_bill", []):
+        return "commercial_bill"
+    elif doc_type in pp_mapping_table.get("heungkuk", []):
+        return "heungkuk"
+    elif doc_type in pp_mapping_table.get("idcard", []):
+        return "idcard"
     elif doc_type in pp_mapping_table.get("bankbook", []):
         return "bankbook"
     elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
@@ -102,6 +107,7 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
         return "busan_bank"
     elif customer == "kakaobank" and doc_type in document_type_set:
         return document_type_set.get(doc_type)
+    
     return None
 
 

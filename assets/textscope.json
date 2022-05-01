@@ -224,6 +224,11 @@
   },
   "PP_MAPPING_TABLE": {
     "general_pp": [
+    ],
+    "commercial_bill": [
+      "FN-CB"
+    ],
+    "heungkuk": [
       "Z2",
       "사업자등록증",
       "HKL01-DT-IB",

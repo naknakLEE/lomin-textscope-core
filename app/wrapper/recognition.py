@@ -21,6 +21,7 @@ def tiamo(
         classes=inference_result.get("classes", []),
         valid_scores=inference_result.get("scores", []),
         image_path=inputs.get("image_path"),
+        image_id=inputs.get("image_id"),
         page=inputs.get("page"),
         request_id=inputs.get("request_id"),
         angle=inputs.get("angle"),

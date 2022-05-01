@@ -128,6 +128,22 @@ async def ocr(
             inference_result = inference_results.get("kv_result", {})
         logger.debug(f"{task_id}-inference results:\n{inference_results}")
         
+        
+        # convert preds to texts
+        if (
+            inputs.get("convert_preds_to_texts") is not None
+            and "texts" not in inference_results
+        ):
+            status_code, texts = pp.convert_preds_to_texts(
+                client=client,
+                rec_preds=inference_results.get("rec_preds", []),
+            )
+            if status_code < 200 or status_code >= 400:
+                status_code, error = ErrorResponse.ErrorCode.get(3503)
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            inference_results["texts"] = texts
+        
+        
         # Post processing
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
         logger.info(f"{task_id}-pp type:{post_processing_type}")
@@ -140,7 +156,7 @@ async def ocr(
                 scores=inference_result.get("scores"),
                 classes=inference_result.get("classes"),
                 rec_preds=inference_result.get("rec_preds"),
-                texts=inference_result.get("texts"),
+                texts=inference_results.get("texts"),
                 id_type=inference_results.get("id_type"),
                 doc_type=inference_results.get("doc_type"),
                 image_height=inference_results.get("image_height"),
@@ -167,20 +183,7 @@ async def ocr(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
         
-        # convert preds to texts
-        if (
-            inputs.get("convert_preds_to_texts") is not None
-            and "texts" not in inference_results
-        ):
-            status_code, texts = pp.convert_preds_to_texts(
-                client=client,
-                rec_preds=inference_results.get("rec_preds", []),
-            )
-            if status_code < 200 or status_code >= 400:
-                status_code, error = ErrorResponse.ErrorCode.get(3503)
-                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-            inference_results["texts"] = texts
-            
+    
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)

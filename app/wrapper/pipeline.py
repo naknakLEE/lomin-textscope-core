@@ -319,6 +319,7 @@ def heungkuk_life(
                 )
                 tiamo_inputs = {
                     "image_path": inputs.get("image_path"),
+                    "image_id": inputs.get("image_id"),
                     "page": inputs.get("page"),
                     "request_id": inputs.get("request_id"),
                 }
