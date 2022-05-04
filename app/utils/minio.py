@@ -15,7 +15,7 @@ class MinioService:
     def __init__(
         self,
         host: str = settings.MINIO_IP_ADDR,
-        port: Union[str, int] = settings.MINIO_PORT,
+        port: Union[str, int] = settings.MINIO_IP_PORT,
         secure: bool = settings.MINIO_USE_SSL,
     ) -> None:
         if isinstance(secure, str):

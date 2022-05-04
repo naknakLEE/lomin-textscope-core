@@ -29,9 +29,9 @@ rm -rf ./${inference_server_build_folder_name}/${created_folder_name}
 # create compiled file
 docker-compose -f docker-compose.build.yml build --parallel
 docker-compose -f docker-compose.build.yml up -d
-docker exec -it serving bash -c "sh /workspace/inference_server/assets/build_script/serving.sh"
-docker exec -it web bash -c "sh /workspace/assets/build_script/web.sh"
-docker exec -it pp bash -c "sh /workspace/assets/build_script/pp.sh"
+docker exec -it textscope-serving bash -c "sh /workspace/inference_server/assets/build_script/serving.sh"
+docker exec -it textscope-web bash -c "sh /workspace/assets/build_script/web.sh"
+docker exec -it textscope-pp bash -c "sh /workspace/assets/build_script/pp.sh"
 
 # copy wrapper
 app_name="${CUSTOMER}_wrapper"

@@ -3,11 +3,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pp-textscope
+  name: textscope-pp
   labels:
     helm.sh/chart: textscope-0.1.0
     app.kubernetes.io/name: textscope
-    app.kubernetes.io/instance: pp
+    app.kubernetes.io/instance: textscope-pp
     app.kubernetes.io/version: "1.16.0"
     app.kubernetes.io/managed-by: Helm
 spec:
@@ -15,14 +15,14 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: textscope
-      app.kubernetes.io/instance: pp
+      app.kubernetes.io/instance: textscope-pp
   template:
     metadata:
       labels:
         app.kubernetes.io/name: textscope
-        app.kubernetes.io/instance: pp
+        app.kubernetes.io/instance: textscope-pp
     spec:
-      serviceAccountName: pp-textscope
+      serviceAccountName: textscope-pp
       securityContext:
         {}
       containers:

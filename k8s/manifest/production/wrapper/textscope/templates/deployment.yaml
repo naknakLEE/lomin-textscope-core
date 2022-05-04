@@ -3,25 +3,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wrapper-textscope
+  name: textscope-wrapper
   labels:
     helm.sh/chart: textscope-0.1.0
     app.kubernetes.io/name: textscope
-    app.kubernetes.io/instance: wrapper
+    app.kubernetes.io/instance: textscope-wrapper
     app.kubernetes.io/version: "1.16.0"
     app.kubernetes.io/managed-by: Helm
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: textscope
-      app.kubernetes.io/instance: wrapper
+      app.kubernetes.io/instance: textscope-wrapper
   template:
     metadata:
       labels:
         app.kubernetes.io/name: textscope
-        app.kubernetes.io/instance: wrapper
+        app.kubernetes.io/instance: textscope-wrapper
     spec:
-      serviceAccountName: wrapper-textscope
+      serviceAccountName: textscope-wrapper
       securityContext:
         {}
       containers:

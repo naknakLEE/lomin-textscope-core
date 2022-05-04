@@ -4,17 +4,14 @@ if [ $# -eq 0 ] ; then
     exit 0
 fi
 dev_prod_mode=$1
-k8s_root_path="values"
-manifest_save_path="manifest"
-template_folder="textscope"
 
+# helm template -f {헬름 value yaml 파일} {service name} {템플릿 경로} --output-dir {저장 위치}
+helm template -f values/${dev_prod_mode}/minio.yaml textscope-minio bitnami/minio --output-dir manifest/${dev_prod_mode}/minio
+helm template -f values/${dev_prod_mode}/postgresql.yaml textscope-postgresql bitnami/postgresql --output-dir  manifest/${dev_prod_mode}/postgresql
 
-helm template -f ${k8s_root_path}/${dev_prod_mode}/minio.yaml minio-textscope bitnami/minio --output-dir ${manifest_save_path}/${dev_prod_mode}/minio
-helm template -f ${k8s_root_path}/${dev_prod_mode}/postgresql.yaml postgresql-textscope bitnami/postgresql --output-dir  ${manifest_save_path}/${dev_prod_mode}/postgresql
-
-helm template -f ${k8s_root_path}/${dev_prod_mode}/wrapper.yaml wrapper ${template_folder} --output-dir  ${manifest_save_path}/${dev_prod_mode}/wrapper
-helm template -f ${k8s_root_path}/${dev_prod_mode}/serving.yaml serving ${template_folder} --output-dir  ${manifest_save_path}/${dev_prod_mode}/serving
-helm template -f ${k8s_root_path}/${dev_prod_mode}/core.yaml web ${template_folder} --output-dir  ${manifest_save_path}/${dev_prod_mode}/web
-helm template -f ${k8s_root_path}/${dev_prod_mode}/pp.yaml pp ${template_folder} --output-dir  ${manifest_save_path}/${dev_prod_mode}/pp
+helm template -f values/${dev_prod_mode}/wrapper.yaml textscope-wrapper textscope --output-dir  manifest/${dev_prod_mode}/wrapper
+helm template -f values/${dev_prod_mode}/serving.yaml textscope-serving textscope --output-dir  manifest/${dev_prod_mode}/serving
+helm template -f values/${dev_prod_mode}/core.yaml textscope-web textscope --output-dir  manifest/${dev_prod_mode}/web
+helm template -f values/${dev_prod_mode}/pp.yaml textscope-pp textscope --output-dir  manifest/${dev_prod_mode}/pp
 
 

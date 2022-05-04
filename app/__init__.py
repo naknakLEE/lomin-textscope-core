@@ -6,7 +6,7 @@ settings = get_settings()
 
 
 mc = Minio(
-    "{}:{}".format(settings.MINIO_IP_ADDR, settings.MINIO_PORT),
+    "{}:{}".format(settings.MINIO_IP_ADDR, settings.MINIO_IP_PORT),
     secure=False,
     access_key=settings.MINIO_ROOT_USER,
     secret_key=settings.MINIO_ROOT_PASSWORD,

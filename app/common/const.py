@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     CLASSIFICATION_SERVICE_PORT: int = 5000
     KV_DETECTION_SERVICE_PORT: int = 5000
     ROTATE_SERVICE_PORT: int = 5000
-    MINIO_PORT: int
+    MINIO_IP_PORT: int
 
     # POSTGRESQL CONFIG
     POSTGRES_USER: str

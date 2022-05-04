@@ -3,18 +3,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: minio-textscope
+  name: textscope-minio
   namespace: "default"
   labels:
     app.kubernetes.io/name: minio
     helm.sh/chart: minio-11.2.15
-    app.kubernetes.io/instance: minio-textscope
+    app.kubernetes.io/instance: textscope-minio
     app.kubernetes.io/managed-by: Helm
 spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: minio
-      app.kubernetes.io/instance: minio-textscope
+      app.kubernetes.io/instance: textscope-minio
   strategy:
     type: Recreate
   template:
@@ -22,13 +22,13 @@ spec:
       labels:
         app.kubernetes.io/name: minio
         helm.sh/chart: minio-11.2.15
-        app.kubernetes.io/instance: minio-textscope
+        app.kubernetes.io/instance: textscope-minio
         app.kubernetes.io/managed-by: Helm
       annotations:
-        checksum/credentials-secret: 435ba1f28f84ee944106ba64899bbf0be14fdc74c99d1be6852290fe8a903dc4
+        checksum/credentials-secret: 3d84746db05659bba9d00bcb8ef7751a49366667412f127ffa3f094e80845761
     spec:
       
-      serviceAccountName: minio-textscope
+      serviceAccountName: textscope-minio
       affinity:
         podAffinity:
           
@@ -38,7 +38,7 @@ spec:
                 labelSelector:
                   matchLabels:
                     app.kubernetes.io/name: minio
-                    app.kubernetes.io/instance: minio-textscope
+                    app.kubernetes.io/instance: textscope-minio
                 namespaces:
                   - "default"
                 topologyKey: kubernetes.io/hostname
@@ -64,12 +64,12 @@ spec:
             - name: MINIO_ROOT_USER
               valueFrom:
                 secretKeyRef:
-                  name: minio-textscope
+                  name: textscope-minio
                   key: root-user
             - name: MINIO_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: minio-textscope
+                  name: textscope-minio
                   key: root-password
             - name: MINIO_BROWSER
               value: "on"
@@ -112,4 +112,4 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: minio-textscope
+            claimName: textscope-minio

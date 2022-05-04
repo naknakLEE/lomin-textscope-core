@@ -3,11 +3,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pp-textscope
+  name: textscope-pp
   labels:
     helm.sh/chart: textscope-0.1.0
     app.kubernetes.io/name: textscope
-    app.kubernetes.io/instance: pp
+    app.kubernetes.io/instance: textscope-pp
     app.kubernetes.io/version: "1.16.0"
     app.kubernetes.io/managed-by: Helm
 spec:
@@ -19,4 +19,4 @@ spec:
       name: http
   selector:
     app.kubernetes.io/name: textscope
-    app.kubernetes.io/instance: pp
+    app.kubernetes.io/instance: textscope-pp
