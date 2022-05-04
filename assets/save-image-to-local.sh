@@ -16,6 +16,8 @@ for image in ${image_repository_list}
 do
     output_name=$(echo ${image} | awk -F/ '{print $NF}' | tr : _)
     echo ${image} '|' ${output_name}
-    docker save -o ${saved_dir}/${output_name}.tar ${image}
+    # docker save -o ${saved_dir}/${output_name}.tar ${image}# 일반 
+    docker save ${image} | pigz -6 > ${saved_dir}/${output_name}.tar.gz # 압축
+
 done
 echo "docker image download complete!"

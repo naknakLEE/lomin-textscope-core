@@ -1,0 +1,61 @@
+---
+# Source: textscope/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wrapper-textscope
+  labels:
+    helm.sh/chart: textscope-0.1.0
+    app.kubernetes.io/name: textscope
+    app.kubernetes.io/instance: wrapper
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: textscope
+      app.kubernetes.io/instance: wrapper
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: textscope
+        app.kubernetes.io/instance: wrapper
+    spec:
+      serviceAccountName: wrapper-textscope
+      securityContext:
+        {}
+      containers:
+        - name: textscope
+          securityContext:
+            {}
+          image: "docker.lomin.ai/ts-wrapper:0.6.0"
+          imagePullPolicy: Never
+          workingDir: /workspace/textscope_wrapper/wrapper
+          command: 
+            
+              - python3
+            
+              - main.py
+            
+          ports:
+            - name: http
+              containerPort: 8090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8090
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8090
+          resources:
+            {}
+          volumeMounts:
+            - mountPath: /workspace/logs
+              name: log
+      volumes:
+        - name: log
+          hostPath:
+            path: /home/inhak/log
+            type: DirectoryOrCreate

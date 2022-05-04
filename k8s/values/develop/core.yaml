@@ -33,3 +33,8 @@ volume:
     path: /home/shinuk/Documents/gallery/Textscope
   mountPath: /workspace
   name: core
+
+env:
+  enabled: false
+  normal:
+    {}

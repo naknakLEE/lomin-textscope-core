@@ -1,0 +1,51 @@
+replicaCount: 1
+
+image:
+  repository: docker.lomin.ai/ts-wrapper
+  pullPolicy: Never
+  tag: 0.6.0
+  workingDir: /workspace/textscope_wrapper/wrapper
+  command:
+    - python3
+    - main.py
+
+service:
+  type: ClusterIP
+  port: 8090
+  targetport: 8090
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: localhost
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - localhost
+      secretName: tls-secret
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+volume:
+  enabled: true
+  hostPath:
+    enabled: true
+    type: DirectoryOrCreate
+    path: /home/inhak/log
+  mountPath: /workspace/logs
+  name: log
+
+env:
+  enabled: false
+  normal:
+    {}

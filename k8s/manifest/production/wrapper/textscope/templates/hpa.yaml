@@ -1,0 +1,24 @@
+---
+# Source: textscope/templates/hpa.yaml
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: wrapper-textscope
+  labels:
+    helm.sh/chart: textscope-0.1.0
+    app.kubernetes.io/name: textscope
+    app.kubernetes.io/instance: wrapper
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: wrapper-textscope
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 80

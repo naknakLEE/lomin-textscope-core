@@ -1,0 +1,38 @@
+replicaCount: 1
+
+image:
+  repository: docker.lomin.ai/ts-gpu-serving
+  pullPolicy: Never
+  tag: 0.6.0
+  workingDir: /workspace/inference_server
+  command: 
+    - bentoml 
+    - serve
+    - textscope_model_service:0.4.0
+    - --host
+    - 0.0.0.0
+
+service:
+  type: ClusterIP
+  port: 5000
+  targetport: 5000
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+
+volume:
+  enabled: true
+  hostPath:
+    enabled: true
+    type: DirectoryOrCreate
+    path: /home/inhak/log
+  mountPath: /workspace/logs
+  name: log
+
+env:
+  enabled: false
+  normal:
+    {}

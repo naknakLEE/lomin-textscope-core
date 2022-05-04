@@ -1,0 +1,68 @@
+---
+# Source: textscope/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serving-textscope
+  labels:
+    helm.sh/chart: textscope-0.1.0
+    app.kubernetes.io/name: textscope
+    app.kubernetes.io/instance: serving
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: textscope
+      app.kubernetes.io/instance: serving
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: textscope
+        app.kubernetes.io/instance: serving
+    spec:
+      serviceAccountName: serving-textscope
+      securityContext:
+        {}
+      containers:
+        - name: textscope
+          securityContext:
+            {}
+          image: "docker.lomin.ai/ts-gpu-serving:0.6.0"
+          imagePullPolicy: Never
+          workingDir: /workspace/inference_server
+          command: 
+            
+              - bentoml
+            
+              - serve
+            
+              - textscope_model_service:0.4.0
+            
+              - --host
+            
+              - 0.0.0.0
+            
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 5000
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 5000
+          resources:
+            {}
+          volumeMounts:
+            - mountPath: /workspace/logs
+              name: log
+      volumes:
+        - name: log
+          hostPath:
+            path: /home/inhak/log
+            type: DirectoryOrCreate

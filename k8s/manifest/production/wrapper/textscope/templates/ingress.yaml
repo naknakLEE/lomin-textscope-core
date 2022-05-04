@@ -1,0 +1,31 @@
+---
+# Source: textscope/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wrapper-textscope
+  labels:
+    helm.sh/chart: textscope-0.1.0
+    app.kubernetes.io/name: textscope
+    app.kubernetes.io/instance: wrapper
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+spec:
+  tls:
+    - hosts:
+        - "localhost"
+      secretName: tls-secret
+  rules:
+    - host: "localhost"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wrapper-textscope
+                port:
+                  number: 8090

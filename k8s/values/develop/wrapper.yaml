@@ -44,3 +44,8 @@ volume:
     path: /home/shinuk/Documents/gallery/Textscope
   mountPath: /workspace
   name: wrapper
+
+env:
+  enabled: false
+  normal:
+    {}

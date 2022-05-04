@@ -46,6 +46,13 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetport }}
               protocol: TCP
+          {{- if .Values.env.enabled }}
+          env:
+            {{-  range $key, $val := .Values.env.normal }}
+              - name: {{ $key }}
+                value: {{ $val }}
+            {{- end }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /livez

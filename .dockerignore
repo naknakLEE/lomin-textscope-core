@@ -147,6 +147,7 @@
 **/workspace/
 **/textscope-client/
 **/*dataset*/
+!**/*dataset.py
 !**/app/**
 **/images/
 **/support_set/

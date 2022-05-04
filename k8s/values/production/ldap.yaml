@@ -1,0 +1,59 @@
+
+replicaCount: 1
+
+strategy: {}
+image:
+  repository: osixia/openldap
+  tag: 1.2.4
+  pullPolicy: IfNotPresent
+
+existingSecret: ""
+
+tls:
+  enabled: false
+  CA:
+    enabled: false
+extraLabels: {}
+podAnnotations: {}
+service:
+  annotations: {}
+
+  ldapPort: 389
+  externalIPs: []
+
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  type: ClusterIP
+
+env:
+  LDAP_ORGANISATION: "Example Inc."
+  LDAP_DOMAIN: "example.org"
+  LDAP_BACKEND: "hdb"
+  LDAP_TLS: "true"
+  LDAP_TLS_ENFORCE: "false"
+  LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+
+
+
+persistence:
+  enabled: false
+  accessMode: ReadWriteOnce
+  size: 8Gi
+
+resources: {}
+
+initResources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+test:
+  enabled: false
+  image:
+    repository: dduportal/bats
+    tag: 0.4.0
+
+logLevel: info

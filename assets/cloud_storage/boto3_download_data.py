@@ -4,7 +4,6 @@ import argparse
 try:
     import boto3
     import botocore
-    from hydra import initialize_config_dir, compose
     from dotenv import load_dotenv, find_dotenv
     from alive_progress import alive_bar
 except:

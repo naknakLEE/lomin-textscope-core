@@ -22,7 +22,7 @@ services:
       - WARMUP_COUNT=${WARMUP_COUNT:-30}
     runtime: nvidia
     tty: true
-    entrypoint: bentoml serve textscope_model_service:${INFERENCE_SERVER_VERSION:-0.3.0} --host 0.0.0.0
+    entrypoint: bentoml serve textscope_model_service:`cat /workspace/inference_server/assets/conf/service/default.yaml | shyaml get-value version` --host 0.0.0.0
 
   web:
     user: "0:0"

@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: docker.lomin.ai/ts-web
+  pullPolicy: Never
+  tag: 0.6.0
+  workingDir: /workspace
+  command: 
+    - python3
+    - main.py
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetport: 8000
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+volume:
+  enabled: true
+  hostPath:
+    enabled: true
+    type: DirectoryOrCreate
+    path: /home/inhak/log
+  mountPath: /workspace/logs
+  name: log
+
+env:
+  enabled: false
+  normal:
+    {}

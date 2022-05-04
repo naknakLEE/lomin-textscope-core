@@ -1,21 +1,23 @@
 replicaCount: 1
 
 image:
-  repository: docker.lomin.ai/ts-pp-base
+  repository: docker.lomin.ai/ts-gpu-serving-base
   pullPolicy: IfNotPresent
   tag: 0.1.5
-  workingDir: /workspace/pp_server/pp
-  command: ["python3", "main.py"]
+  workingDir: /workspace/inference_server
+  command: 
+    - sh
+    - assets/run-dev.sh
 
 service:
   type: ClusterIP
-  port: 80
-  targetport: 80
+  port: 5000
+  targetport: 5000
 
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 80
 
 volume:
@@ -25,4 +27,9 @@ volume:
     type: Directory
     path: /home/shinuk/Documents/gallery/Textscope
   mountPath: /workspace
-  name: pp
+  name: serving
+
+env:
+  enabled: false
+  normal:
+    {}

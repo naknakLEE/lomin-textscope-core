@@ -46,8 +46,7 @@ COPY ./${APP_NAME} /workspace/${APP_NAME}
 COPY ./.env /workspace/.env
 
 RUN rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache && \
-    rm -rf /workspace/${APP_NAME}/assets
+    rm -rf /root/.cache
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
