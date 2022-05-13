@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 
+from app import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.auth import get_current_active_user
@@ -31,7 +32,9 @@ from app.errors import exceptions as ex
 
 
 router = APIRouter()
-
+def get_current_active_user_fake():
+    pass
+get_current_active_user = get_current_active_user_fake if hydra_cfg.route.use_token else get_current_active_user
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
 @router.post("/ocr", status_code=200, responses=inference_responses)
