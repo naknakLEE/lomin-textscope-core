@@ -1,5 +1,4 @@
 import requests  # type: ignore
-import base64
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
@@ -13,14 +12,19 @@ from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
-from app.utils.utils import cal_time_elapsed_seconds, get_image_from_bytes
-from app.utils.minio import MinioService
+from app.utils.utils import cal_time_elapsed_seconds
 from app.schemas import error_models as ErrorResponse
+from app.utils.image import (
+    get_crop_image,
+    get_image_info_from_bytes,
+    get_image_bytes,
+    save_upload_image,
+    load_image,
+)
 
 
 settings = get_settings()
 router = APIRouter()
-minio_client = MinioService()
 
 
 @router.get("/status", response_model=models.StatusResponse)
@@ -96,15 +100,9 @@ def get_image(
     )
     
     image_path = Path(select_image_result.image_path)
-    image_bytes = None
-    if settings.USE_MINIO:
-        image_minio_path = "/".join([image_id, image_path.name])
-        image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET,)
-    else:
-        with image_path.open("rb") as f:
-            image_bytes = f.read()
+    image_bytes = get_image_bytes(image_id, image_path)
     
-    image_base64, image_width, image_height, image_format = get_image_from_bytes(
+    image_base64, image_width, image_height, image_format = get_image_info_from_bytes(
             image_bytes,
             image_path.name,
             page
@@ -197,26 +195,56 @@ def upload_image(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
-def save_upload_image(image_id: str, image_name: str, image_data):
-    decoded_image_data = base64.b64decode(image_data)
-    success = False
-    save_path = ""
-    if settings.USE_MINIO:
-        success = minio_client.put(
-            bucket_name=settings.MINIO_IMAGE_BUCKET,
-            object_name=image_id + '/' + image_name,
-            data=decoded_image_data,
-        )
-        save_path = "minio/" + image_name
-    else:
-        root_path = Path(settings.IMG_PATH)
-        base_path = root_path.joinpath(image_id)
-        base_path.mkdir(parents=True, exist_ok=True)
-        save_path = base_path.joinpath(image_name)
-        
-        with save_path.open("wb") as file:
-            file.write(decoded_image_data)
-            
-        success = True
+@router.post("/image/crop")
+def image_crop(
+    params: models.ParamPostImageCrop,
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    response = dict()
+    response_log = dict()
+    request_datetime = datetime.now()
     
-    return success, save_path
+    image_id = params.image_id
+    
+    select_image_result = query.select_image(session, image_id=image_id)
+    if isinstance(select_image_result, JSONResponse):
+        return select_image_result
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(
+        dict(
+            request_datetime=request_datetime,
+            response_datetime=response_datetime,
+            elapsed=elapsed,
+        )
+    )
+    
+    data = dict(
+        image_id=image_id,
+        image_path=select_image_result.image_path,
+        image_bytes=None,
+        angle=params.rectification.rotated,
+        page=params.page,
+    )
+    
+    image = load_image(data)
+    if image is None:
+        status_code, error = ErrorResponse.ErrorCode.get(2103)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    crop_images = get_crop_image(image, params.format, params.crop)
+    if len(crop_images) == 0:
+        status_code, error = ErrorResponse.ErrorCode.get(2104)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+        format=params.format,
+        crop=crop_images,
+    ))
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))

@@ -315,6 +315,26 @@ class Dataset(BaseModel):
     filename: str = "myfilename.jpg"
 
 
+class Rectification(BaseModel):
+    rotated: float = 0.0                            # 원본 이미지가 회전되어있는 각도 ( 이미지 전처리시 구해짐 )
+    expand: bool = True
+
+
+class RectificationResult(BaseModel):
+    rotated: float = 0.0                            # 원본 이미지가 회전되어있는 각도 ( 이미지 전처리시 구해짐 )
+    expand: bool = True                             # 이미지 회전시 직사각형을 만들기 위해 불필요한 부분을 채움( True ) 또는 자름( False )
+    image: dict = dict(                             # 전처리된 이미지의 가로, 세로 크기
+        width = 0,
+        height = 0
+    )
+
+
+class ImageCropBbox(BaseModel):
+    index: int = 1                                  # 고유 식별자 ( 중복 불가 )
+    label: str = ""                                 # 추가 식별자 ( 중복 가능 )
+    bbox: Bbox = Bbox()                             # 부분 이미지의 좌표
+
+
 class ImageMetadata(BaseModel):
     filename: str = "myfilename.jpg"
     description: str = "mydescription"
@@ -424,6 +444,14 @@ class ParamPostTrainCls(BaseModel):
     description: Optional[
         str
     ] = "서식분류 모델 2차 학습 (주민등록증 이미지 10장 추가)"  # 모델 학습 task를 설명하는 자유 문구
+
+
+class ParamPostImageCrop(BaseModel):
+    image_id: str = "ea67a273-cb29-4c79-9739-708bf6085720" # UUID 형식의 학습 task 고유 ID
+    rectification: Rectification = Rectification() 
+    page: int = 1
+    format: str = "jpeg"
+    crop: List[ImageCropBbox] =  [ImageCropBbox()]
 
 
 class ParamPostInferenceClsKv(BaseModel):
