@@ -29,12 +29,14 @@ from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
 from app.errors import exceptions as ex
+if hydra_cfg.route.use_token:
+    from app.utils.auth import get_current_active_user as get_current_active_user
+else:
+    from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
 router = APIRouter()
-def get_current_active_user_fake():
-    pass
-get_current_active_user = get_current_active_user_fake if hydra_cfg.route.use_token else get_current_active_user
+
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
 @router.post("/ocr", status_code=200, responses=inference_responses)
