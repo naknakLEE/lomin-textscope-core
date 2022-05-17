@@ -142,3 +142,6 @@ async def get_current_active_user(
 async def initialize_ldap() -> Server:
     server = Server("LDAP://openldap:389", get_info=ALL)
     return server
+
+def get_current_active_user_fake():
+    pass

@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 
+from app import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.auth import get_current_active_user
@@ -28,6 +29,10 @@ from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
 from app.errors import exceptions as ex
+if hydra_cfg.route.use_token:
+    from app.utils.auth import get_current_active_user as get_current_active_user
+else:
+    from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
 router = APIRouter()
