@@ -40,6 +40,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 if "x-forwarded-for" in request.headers.keys()
                 else request.client.host
             )
+            ip = ip if ip is not None else "127.0.0.1"
             request.state.ip = ip.split(",")[0] if "," in ip else ip
             if "authorization" in headers.keys():
                 token = headers.get("Authorization")
