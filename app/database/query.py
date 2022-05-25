@@ -194,9 +194,9 @@ def insert_inference_result(
             session=session,
             task_pkey=task_pkey,
             image_pkey=image_pkey,
-            inference_results=inference_results,
+            inference_results=jsonable_encoder(inference_results),
             inference_type=inference_type,
-            response_log=response_log,
+            response_log=jsonable_encoder(response_log),
             start_datetime=response_log.get("inference_start_time"),
             end_datetime=response_log.get("inference_end_time"),
         )

@@ -2,6 +2,7 @@ import os
 import glob
 import copy
 import argparse
+import uuid
 import pdf2image
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -18,6 +19,12 @@ from pdfminer.converter import XMLConverter
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfdocument import PDFDocument
+
+from app.wrapper import settings
+from app.utils.minio import MinioService
+
+
+minio_client = MinioService()
 
 
 class Pdf2Image:
@@ -162,10 +169,11 @@ class Pdf2Image:
 
 def parse_pdf_text(text_info: Dict) -> Dict:
     return {
-        "texts": text_info.get("texts"),
-        "boxes": text_info.get("boxes"),
+        "rec_preds": [[]],
         "scores": [1.0] * len(text_info.get("texts", [])),
+        "boxes": text_info.get("boxes"),
         "classes": ["text"] * len(text_info.get("texts", [])),
+        "texts": text_info.get("texts")
     }
 
 
@@ -176,18 +184,29 @@ def convert_path_to_image(pdf_path: str) -> List:
 
 
 def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
-    xml_dir = "/tmp"
-    image_path = inputs.get("image_path", "")
-    xml_path = PurePath(xml_dir, Path(image_path).stem + ".xml").as_posix()
-    pdf_path = inputs.get("image_path")
+    xml_path = PurePath("/tmp", str(uuid.uuid4()) + ".xml").as_posix()
+    
+    pdf_path = None
+    if settings.USE_MINIO:
+        image_minio_path = "/".join([inputs.get("image_id"), Path(inputs.get("image_path", "")).name])
+        image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET)
+        pdf_path = save_pdf(image_bytes)
+        
+    else:
+        pdf_path = inputs.get("image_path")
+    
     page_num = inputs.get("page", 1) - 1
     pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))
-
+    
     doc = ET.parse(xml_path)
     pages = doc.findall("page")
+    
+    if 0 > page_num or page_num > (len(pages) - 1):
+        page_num = 0
+    
     page = pages[page_num]
     textbox = page.findall("textbox")
-
+    
     parsed_text_info = {}
     image_size = (0, 0)
     if len(textbox) > 0:
@@ -196,8 +215,29 @@ def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
             pages=pages, page_num=page_num, pdf_path=pdf_path, xml_path=xml_path
         )
         image_size = pages[page_num].size
-        parsed_text_info = parse_pdf_text(text_info)
+        
+        parsed_text_info.update(parse_pdf_text(text_info))
+        parsed_text_info.update(dict({
+            "image_width": image_size[0],
+            "image_height": image_size[1],
+            "image_width_origin": image_size[0],
+            "image_height_origin": image_size[1],
+            "request_id": inputs.get("request_id", ""),
+            "angle": 0,
+            "id_type": "",
+        }))
+    
     return parsed_text_info, image_size
+
+
+def save_pdf(file_bytes: str) -> str:
+    pdf_dir = "/".join(["/tmp", str(uuid.uuid4()) + ".pdf"])
+    
+    with open(pdf_dir, "wb") as pdf:
+        pdf.write(file_bytes)
+    pdf.close()
+    
+    return pdf_dir
 
 
 pdf2txt = Pdf2Image("/workspace/assets")
