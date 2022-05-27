@@ -1,49 +1,50 @@
 ARG UBUNTU_VERSION
-ARG POETRY_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION}
 
-ARG BUILD_FOLDER_PATH=build-folder
-ARG CUSTOMER=kakaobank
-ARG APP_NAME=${CUSTOMER}_wrapper
+ARG BUILD_FOLDER_PATH
+ARG CUSTOMER
 ARG MAINTAINER
+ARG POETRY_VERSION
 
 LABEL maintainer=${MAINTAINER}
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV PATH="/root/.local/bin:${PATH}"
-ENV PYTHONPATH="$PYTHONPATH:/workspace/${APP_NAME}"
+ENV PYTHONPATH="$PYTHONPATH:/workspace/${CUSTOMER}_wrapper"
 ENV API_ENV="production"
 
 RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
     locale-gen ko_KR.UTF-8
 
-RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install python3-pip \
-    python3-venv \
-    tzdata \
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
+    curl \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libmysqlclient-dev \
-    vim \
-    curl
+    python3-pip \
+    python3-venv \
+    tzdata 
 
-RUN pip3 install --upgrade pip
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install vim
+
+# RUN pip3 install --upgrade pip
 
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
     poetry config virtualenvs.create false
 
-WORKDIR /workspace
+COPY ./${CUSTOMER}_wrapper /workspace/${CUSTOMER}_wrapper
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
+COPY ./.env.prod /workspace/.env
 
 COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/
 COPY ./requirements/${CUSTOMER}/poetry.lock /workspace/
-RUN poetry install --no-dev
 
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/* /workspace/assets/
-COPY ./${APP_NAME} /workspace/${APP_NAME}
-COPY ./.env /workspace/.env
+WORKDIR /workspace
+RUN poetry install --no-dev
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache
@@ -53,4 +54,4 @@ RUN groupadd -r lomin -g 1000 && \
 
 USER textscope
 
-WORKDIR /workspace/${APP_NAME}
+WORKDIR /workspace/${CUSTOMER}_wrapper
