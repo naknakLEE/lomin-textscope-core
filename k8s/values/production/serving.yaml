@@ -23,6 +23,10 @@ autoscaling:
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
 
+resources:
+  limits:
+    nvidia.com/gpu: 1 # GPU 1개 요청하기
+
 volume:
   enabled: true
   hostPath:
