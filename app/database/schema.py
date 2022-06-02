@@ -1,79 +1,43 @@
-import enum
+import uuid
 import yaml  # type: ignore
 import typing
-from datetime import datetime
+
 from typing import Any, Dict, List, Optional, TypeVar
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    func,
-    JSON,
-    Boolean,
-    ForeignKey,
-    and_,
-    or_,
-    Enum,
-    Text,
-)
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String, Table, text, func
 from sqlalchemy.orm import Session, relationship
+from sqlalchemy.ext.declarative import declarative_base
+
 from passlib.context import CryptContext
 from pydantic.networks import EmailStr
 
 from app.database.connection import Base, db
 from app.utils.logging import logger
 from app.common.const import get_settings
-from app.models import User
+
 
 settings = get_settings()
+
+Base = declarative_base()
+metadata = Base.metadata
 
 ModelType = TypeVar("ModelType", bound=Base)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-class StatusEnum(enum.Enum):
-    ACTIVE = 1
-    INACTIVE = 2
-    DISABLED = 3
-
-
 exist_column_table = {
-    "Dataset": "dataset_id",
-    "Users": "email",
-    "Model": "model_id",
-    "Category": "category_name,dataset_pkey,model_pkey",
-    "Image": "image_id,image_path",
-    "Inference": "task_pkey,inference_type",
-}
-
-exist_column_message_table = {
-    "Dataset": "dataset_id",
-    "Users": "email",
-    "Model": "model_id",
-    "Category": "category_name,dataset_pkey,model_pkey",
-    "Image": "image_id,image_path",
-    "Inference": "task_pkey,inference_type",
+    "UserInfo": "user_employee_num",
+    "RoleInfo": "role_index",
+    "UserRole": "user_employee_num,role_index",
+    "Document": "document_id",
+    "ModelInfo": "model_index",
 }
 
 
 class BaseMixin:
-    # id = Column(Integer, primary_key=True, index=True)
-    created_at = Column(DateTime, nullable=False, default=func.current_timestamp())
-
     def all_columns(self) -> List:
         return [
             c
             for c in self.__table__.columns  # type: ignore
-            if c.primary_key is False and c.name != "created_at"
+            # if c.primary_key is False and c.name != "created_at"
         ]
 
     @typing.no_type_check
@@ -171,320 +135,254 @@ class BaseMixin:
         return obj
 
 
-class Users(Base, BaseMixin):
-    __tablename__ = "users"
-    __table_args__ = {"extend_existing": True}
+class AlarmInfo(Base, BaseMixin):
+    __tablename__ = 'alarm_info'
+    __table_args__ = {'comment': 'textscope 서비스 알람 목록'}
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(length=128), nullable=True)
-    email = Column(String(length=255), nullable=False)
-    hashed_password = Column(String(length=2000), nullable=True)
-    full_name = Column(String(length=128), nullable=True)
-    status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.INACTIVE.name)
-    is_superuser = Column(Boolean, nullable=False, default=False)
-    updated_at = Column(
-        DateTime,
-        nullable=False,
-        default=func.current_timestamp(),
-        onupdate=func.current_timestamp(),
-    )
-
-    @classmethod
-    def get_by_email(cls, session: Session, email: EmailStr) -> Optional[ModelType]:
-        query = session.query(cls).filter(cls.email == email)
-        return query.first()
-
-    @classmethod
-    def authenticate(cls, get_db: Session, email: str, password: str) -> Optional[User]:
-        user = cls.get_by_email(get_db, email=email)
-        if not user:
-            return None
-        if not verify_password(password, user.hashed_password):
-            return None
-        return user
+    alarm_index = Column(Integer, primary_key=True, comment='알람 유니크 인덱스')
+    alarm_range = Column(String, nullable=False, default='전체', comment='알람 노출 범위(전체, 팀)')
+    alarm_type = Column(String, nullable=False, comment='알람 종류(문서 분류 AI 모델 학습, 구성원)')
+    alarm_title = Column(String, nullable=False, comment='알람 제목')
+    alarm_content = Column(String, nullable=False, default='(내용없음)', comment='알람 내용')
+    alarm_created_time = Column(DateTime, nullable=False, default=func.now(), comment='알람 생성 시각')
+    alarm_modified_time = Column(DateTime, nullable=False, default=func.now(), comment='알람 수정 시각')
+    is_used = Column(Boolean, comment='사용 여부')
 
 
-class Logs(Base, BaseMixin):
-    __tablename__ = "logs"
-    __table_args__ = {"extend_existing": True}
+class ModelInfo(Base, BaseMixin):
+    __tablename__ = 'model_info'
+    __table_args__ = {'comment': 'textscope 서비스 등록된 딥러닝 모델 정보'}
 
-    id = Column(Integer, primary_key=True, index=True)
-    url = Column(String(length=2000), nullable=False)
-    method = Column(String(length=255), nullable=False)
-    status_code = Column(String(length=255), nullable=False)
-    log_detail = Column(String(length=2000), nullable=True)
-    error_detail = Column(JSON, nullable=True)
-    client = Column(String(length=2000), nullable=True)
-    request_timestamp = Column(String(length=255), nullable=False)
-    response_timestamp = Column(String(length=255), nullable=False)
-    processed_time = Column(String(length=255), nullable=False)
+    model_index = Column(Integer, primary_key=True, comment='모델 유니크 인덱스')
+    model_name_kr = Column(String, comment='모델 한글 명')
+    model_name_en = Column(String, comment='모델 영문 명')
+    model_version = Column(String, comment='모델 버전')
+    model_path = Column(String, comment='모델 저장 경로')
+    model_type = Column(String, comment='모델 종류')
+    model_created_time = Column(DateTime, default=func.now(), comment='모델 등록 시각')
+    is_used = Column(Boolean, comment='사용 여부')
 
 
-class Usage(Base, BaseMixin):
-    __tablename__ = "usage"
-    __table_args__ = {"extend_existing": True}
+class PageInfo(Base, BaseMixin):
+    __tablename__ = 'page_info'
+    __table_args__ = {'comment': 'textscope 서비스 문서의 특정 페이지 정보'}
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(length=255), nullable=False)
-    status_code = Column(Integer, nullable=False)
-
-    @classmethod
-    def get_usage_count(
-        cls,
-        session: Session,
-        email: EmailStr = None,
-        start_time: datetime = None,
-        end_time: datetime = None,
-    ) -> Dict:
-        if email is not None:
-            query = (
-                session.query(func.count(cls.status_code))
-                .filter(cls.email == email)
-                .group_by(cls.status_code)
-            )
-        else:
-            query = session.query(func.count(cls.email))
-
-        if start_time is not None and end_time is not None:
-            query = query.filter(
-                and_(cls.created_at <= end_time, cls.created_at >= start_time)
-            )
-        elif start_time is not None:
-            query = query.filter(cls.created_at >= start_time)
-        elif end_time is not None:
-            query = query.filter(cls.created_at <= end_time)
-
-        success_response = query.filter(
-            and_(cls.status_code < 300, cls.status_code >= 200)
-        )
-        failed_response = query.filter(
-            or_(cls.status_code >= 300, cls.status_code < 200)
-        )
-        return {
-            "success_response": success_response.all(),
-            "failed_response": failed_response.all(),
-        }
-
-    @classmethod
-    def get_usage(
-        cls,
-        session: Session,
-        email: EmailStr = None,
-        skip: int = 0,
-        limit: int = 100,
-        start_time: datetime = None,
-        end_time: datetime = None,
-    ) -> Optional[ModelType]:
-        query = session.query(cls)
-        if start_time is not None and end_time is not None:
-            query = query.filter(
-                and_(cls.created_at <= end_time, cls.created_at >= start_time)
-            )
-        elif start_time is not None:
-            query = query.filter(cls.created_at >= start_time)
-        elif end_time is not None:
-            query = query.filter(cls.created_at <= end_time)
-
-        if email is not None:
-            query = query.filter(cls.email == email)
-        else:
-            query = query.offset(skip).limit(limit)
-
-        return query.all()
+    page_id = Column(String, primary_key=True, comment='페이지 아이디')
+    page_num = Column(Integer, comment='추론한 페이지 인덱스')
+    page_doc_type = Column(String, comment='페이지의 문서 타입')
+    page_width = Column(Integer, comment='이미지 변환 후 가로 크기')
+    page_height = Column(Integer, comment='이미지 변환 후 세로 크기')
 
 
-class Dataset(Base, BaseMixin):
-    __tablename__ = "dataset"
+class PermissionInfo(Base, BaseMixin):
+    __tablename__ = 'permission_info'
+    __table_args__ = {'comment': 'textscope 서비스 권한 정보'}
 
-    dataset_pkey = Column(Integer, primary_key=True)
-    root_path = Column(String(200), nullable=False, comment="/home/ihlee/Desktop")
-    dataset_id = Column(String(100))
-    dataset_dir_name = Column(String(50))
-
-    image = relationship("Image", back_populates="dataset")
+    permission_code = Column(String, primary_key=True, comment='권한 코드')
+    permission_name = Column(String, comment='권한 이름')
+    is_used = Column(Boolean, comment='사용 여부')
 
 
-class Model(Base, BaseMixin):
-    __tablename__ = "model"
+class RoleInfo(Base, BaseMixin):
+    __tablename__ = 'role_info'
+    __table_args__ = {'comment': 'textscope 서비스 그룹 정보'}
 
-    model_pkey = Column(Integer, primary_key=True)
-    model_id = Column(String(100), nullable=False)
-    model_name_kr = Column(String(50))
-    model_name_en = Column(String(100))
-    model_version = Column(String(50))
-    model_path = Column(String(50))
-    model_type = Column(String(50))
-    create_datetime = Column(DateTime)
-
-    category = relationship("Category", back_populates="model")
+    role_index = Column(Integer, primary_key=True, comment='역할 유니크 인덱스')
+    role_name = Column(String, nullable=False, default='역할이름', comment='역할 이름')
+    is_used = Column(Boolean, comment='사용 여부')
 
 
-class Category(Base, BaseMixin):
-    __tablename__ = "category"
+class ClassInfo(Base, BaseMixin):
+    __tablename__ = 'class_info'
+    __table_args__ = {'comment': 'textscope 서비스 딥러닝 모델의 항목(라벨 클래스)'}
 
-    category_pkey = Column(Integer, primary_key=True)
-    category_name = Column(String(50), comment="category_a")
-    category_code = Column(String(50))
-    model_pkey = Column(ForeignKey("model.model_pkey"))
-    dataset_pkey = Column(ForeignKey("dataset.dataset_pkey"))
+    class_code = Column(String, primary_key=True, comment='항목 코드')
+    model_index = Column(ForeignKey('model_info.model_index'), nullable=False, comment='모델 유니크 인덱스')
+    class_name_kr = Column(String, comment='항목 한글 명')
+    class_name_en = Column(String, comment='항목 영문 명')
+    class_use = Column(Boolean, comment='항목 사용 여부')
+    is_used = Column(Boolean, comment='사용 여부')
 
-    # dataset = relationship('Datset', back_populates='category')
-    model = relationship("Model", back_populates="category")
-    image = relationship("Image", back_populates="category")
-
-
-# 중복된 데이터가 들어올 수 있으니 dataset pkey까지 사용해 저장 경로 만들도록 구성
-class Image(Base, BaseMixin):
-    __tablename__ = "image"
-
-    image_pkey = Column(Integer, primary_key=True, comment="1")
-    image_id = Column(String(100), nullable=False, comment="uuuu-uuuu-uuuu-uuuu")
-    image_path = Column(
-        String(500), nullable=False, comment="['minio/filename.jpg', '/worksapce/assets/images/image_id/filename.jpg']"
-    )
-    image_type = Column(String(30), nullable=False, comment="['TRAINING', 'INFERENCE']")
-    image_description = Column(Text, comment="이미지 설명")
-    category_pkey = Column(
-        ForeignKey("category.category_pkey"), comment="category_a, 주민등록등본"
-    )
-    dataset_pkey = Column(ForeignKey("dataset.dataset_pkey"))
-
-    category = relationship("Category", back_populates="image")
-    dataset = relationship("Dataset", back_populates="image")
-    inference = relationship("Inference", back_populates="image")
+    model_info = relationship('ModelInfo')
 
 
-class Task(Base, BaseMixin):
-    __tablename__ = "task"
+class RolePermission(Base, BaseMixin):
+    __tablename__ = 'role_permission'
+    __table_args__ = {'comment': 'textscope 서비스 역할 권한'}
 
-    task_pkey = Column(Integer, primary_key=True, comment="1")
-    task_id = Column(String(100), nullable=False, unique=True)
-    image_pkey = Column(ForeignKey("image.image_pkey"))
-    task_type = Column(String(30), nullable=False, comment="TRAINING or INFERENCE")
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    role_index = Column(ForeignKey('role_info.role_index'), nullable=False, comment='역할 유니크 인덱스')
+    permission_code = Column(ForeignKey('permission_info.permission_code'), nullable=False, comment='권한 코드')
+    is_used = Column(Boolean, comment='사용 여부')
 
-
-class Inference(Base, BaseMixin):
-    __tablename__ = "inference"
-    __table_args__ = {"extend_existing": True}
-
-    inference_pkey = Column(Integer, primary_key=True)
-    task_pkey = Column(ForeignKey("task.task_pkey"))
-    image_pkey = Column(ForeignKey("image.image_pkey"))
-    inference_type = Column(String(10), nullable=True, comment="['kv', 'gocr']")
-    inference_results = Column(JSON)
-    response_log = Column(JSON)
-    start_datetime = Column(DateTime, nullable=True)
-    end_datetime = Column(DateTime, nullable=True)
-
-    image = relationship("Image", back_populates="inference")
+    permission_info = relationship('PermissionInfo')
+    role_info = relationship('RoleInfo')
 
 
-class Visualize(Base, BaseMixin):
-    __tablename__ = "visualize"
-    __table_args__ = {"extend_existing": True}
+class UserInfo(Base, BaseMixin):
+    __tablename__ = 'user_info'
+    __table_args__ = {'comment': '수출입은행과 주기적으로 동기화되는 정보'}
 
-    visualize_pkey = Column(Integer, primary_key=True, autoincrement=True)
-    task_id = Column(String(100), nullable=False)
-    inference_type = Column(String(50), nullable=False, comment="['kv', 'gocr']")
-    inference_img_path = Column(String(200), nullable=False)
+    user_employee_num = Column(Integer, primary_key=True, comment='(SSO)사원번호')
+    user_email = Column(String, nullable=False, comment='(SSO)이메일')
+    user_pw = Column(String, nullable=False, comment='(SSO)비밀번호')
+    user_office = Column(String, comment='(SSO)지점')
+    user_division = Column(String, comment='(SSO)본부')
+    user_department = Column(String, comment='(SSO)부서')
+    user_team = Column(String, comment='(SSO)팀')
+    user_name = Column(String, comment='(SSO)사원이름')
+    is_used = Column(Boolean, comment='사용 여부')
+
+
+class AlarmRead(Base, BaseMixin):
+    __tablename__ = 'alarm_read'
+    __table_args__ = {'comment': '사용자가 읽은 알람 정보'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    employee_num = Column(ForeignKey('user_info.user_employee_num'), nullable=False, comment='(SSO)사원번호')
+    alarm_index = Column(ForeignKey('alarm_info.alarm_index'), nullable=False, comment='알람 유니크 인덱스')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    alarm_info = relationship('AlarmInfo')
+    user_info = relationship('UserInfo')
+
+
+class DocumentInfo(Base, BaseMixin):
+    __tablename__ = 'document_info'
+    __table_args__ = {'comment': 'textscope 서비스 학습 또는 추론을 위해 업로드된 문서 정보'}
+
+    document_id = Column(String, primary_key=True, comment='문서 아이디')
+    employee_num = Column(ForeignKey('user_info.user_employee_num'), nullable=False, comment='문서 등록자 (SSO)사원번호')
+    user_personnel = Column(String, nullable=False, comment='문서 등록 당시 등록자의 인사정보(SSO)')
+    document_path = Column(String, comment='문서 저장 경로')
+    document_description = Column(String, comment='문서 설명')
+    document_type = Column(String, comment='문서 업로드 타입')
+    document_upload_time = Column(DateTime, default=func.now(), comment='문서 업로드 시각')
+    document_pages = Column(Integer, comment='문서 총 페이지 수')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    user_info = relationship('UserInfo')
+
+
+class TaskInfo(Base, BaseMixin):
+    __tablename__ = 'task_info'
+    __table_args__ = {'comment': 'textscope 서비스 task 정보'}
+
+    task_id = Column(String, primary_key=True, comment='테스크 아이디')
+    employee_num = Column(ForeignKey('user_info.user_employee_num'), nullable=False, comment='(SSO)사원번호')
+    user_personnel = Column(String, nullable=False, comment='테스크 생성 당시 생성자의 인사정보(SSO)')
+    task_content = Column(JSON, comment='테스크 내용')
+    task_start_time = Column(DateTime, comment='테스크 시작 시각')
+    task_end_time = Column(DateTime, comment='테스크 종료 시각')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    user_info = relationship('UserInfo')
+
+
+class UserAlarm(Base, BaseMixin):
+    __tablename__ = 'user_alarm'
+    __table_args__ = {'comment': '사용자 알람 설정'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    employee_num = Column(ForeignKey('user_info.user_employee_num'), nullable=False, comment='(SSO)사원번호')
+    alarm_type = Column(String, nullable=False, comment='알람 종류(문서 분류 AI 모델 학습, 구성원)')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    user_info = relationship('UserInfo')
+
+
+class UserRole(Base, BaseMixin):
+    __tablename__ = 'user_role'
+    __table_args__ = {'comment': 'textscope 서비스 유저 그룹'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    user_employee_num = Column(ForeignKey('user_info.user_employee_num'), nullable=False, comment='(SSO)사원번호')
+    role_index = Column(ForeignKey('role_info.role_index'), nullable=False, comment='역할 유니크 인덱스')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    role_info = relationship('RoleInfo')
+    user_info = relationship('UserInfo')
+
+
+class InferenceInfo(Base, BaseMixin):
+    __tablename__ = 'inference_info'
+    __table_args__ = {'comment': 'textscope 서비스 추론 정보'}
+
+    inference_id = Column(String, primary_key=True, comment='추론 아이디')
+    document_id = Column(ForeignKey('document_info.document_id'), nullable=False, comment='문서 아이디')
+    employee_num = Column(Integer, comment='추론 요청한 사원의 사번')
+    user_personnel = Column(String, nullable=False, comment='추론 요청 당시 요청자의 인사정보(SSO)')
+    model_index = Column(Integer, nullable=False, comment='사용된 모델의 유니크 인덱스')
+    inference_result = Column(JSON, comment='추론 결과')
+    page_id = Column(ForeignKey('page_info.page_id'), nullable=False, comment='추론한 페이지 인덱스')
+    inference_type = Column(String, comment='추론 종류(gocr, cls, kv)')
+    inference_start_time = Column(DateTime, nullable=False, default=func.now(), comment='추론 시작 시각')
+    inference_end_time = Column(DateTime, comment='추론 완료 시각')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    document = relationship('DocumentInfo')
+    page = relationship('PageInfo')
+
+
+class InspectInfo(Base, BaseMixin):
+    __tablename__ = 'inspect_info'
+    __table_args__ = {'comment': 'textscope 서비스 검수 정보'}
+
+    inspect_id = Column(String, primary_key=True, comment='검수 아이디')
+    employee_num = Column(ForeignKey('user_info.user_employee_num'), nullable=False, comment='검수자 (SSO)사원번호')
+    user_personnel = Column(String, nullable=False, comment='검수 당시 검수자의 인사정보(SSO)')
+    inference_id = Column(ForeignKey('inference_info.inference_id'), nullable=False, comment='추론 아이디')
+    inspect_start_time = Column(DateTime, nullable=False, default=func.now(), comment='검수 시작 시각')
+    inspect_end_time = Column(DateTime, comment='검수 종료 시각')
+    inspect_result = Column(JSON, comment='검수 결과')
+    inspect_accuracy = Column(Float(53), comment='검수 결과 정확도')
+    inspect_status = Column(String, nullable=False, default='-', comment='검수 상태(검수 중, 검수 완료)')
+    is_used = Column(Boolean, comment='사용 여부')
+    group_index = Column(Integer)
+
+    user_info = relationship('UserInfo')
+    inference = relationship('InferenceInfo')
+
+
+class VisualizeInfo(Base, BaseMixin):
+    __tablename__ = 'visualize_info'
+    __table_args__ = {'comment': 'textscope 서비스 추론결과 시각화 이미지 정보'}
+
+    visualize_id = Column(Integer, primary_key=True, comment='시각화 유니크 인덱스')
+    inference_id = Column(ForeignKey('inference_info.inference_id'), nullable=False, comment='추론 아이디')
+    visualize_type = Column(String, comment='시각화 종류(gocr, kv)')
+    visualize_method = Column(String, comment='시각화 인식결과 표시 방법(overay, split)')
+    visualize_img_path = Column(String, comment='시각화 이미지 저장 겨로')
+    visualize_created_time = Column(DateTime, default=func.now(), comment='시각화 저장 시각')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    inference = relationship('InferenceInfo')
 
 
 def create_db_table() -> None:
     try:
         session = next(db.session())
         Base.metadata.create_all(db._engine)
-        Users.create(session, auto_commit=True, **settings.FAKE_SUPERUSER_INFORMATION)
-        Users.create(session, auto_commit=True, **settings.FAKE_NORMALUSER_INFORMATION)
-        Users.create(session, auto_commit=True, **settings.FAKE_GUESTUSER_INFORMATION)
+        
     finally:
         session.close()
 
 
-"""
-﻿-- The table order was sorted considering the relationship to prevent error from occurring if all are run at once.
-
--- model Table Create SQL
-CREATE TABLE model
-(
-    model_pkey         int             GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    model_id           varchar(50)     NOT NULL,
-    model_name_kr      varchar(50)     NULL,
-    model_name_en      varchar(100)    NULL,
-    model_version      varchar(50)     NULL,
-    model_path         varchar(50)     NULL,
-    model_type         varchar(50)     NULL,
-     PRIMARY KEY (model_pkey)
-);
-
--- image Table Create SQL
-CREATE TABLE image
-(
-    pkey                 integer         GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    image_id             varchar(50)     NOT NULL,
-    image_path           varchar(300)    NULL,
-    image_description    text            NULL,
-    create_datetime      timestamp       NULL,
-     PRIMARY KEY (pkey)
-);
-
--- category Table Create SQL
-CREATE TABLE category
-(
-    pkey                    integer         GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    category_name           varchar(50)     NULL,
-    category_code           varchar(50)     NULL,
-    category_client_code    varchar(50)     NULL,
-    inference_doc_type      varchar(50)     NULL,
-     PRIMARY KEY (pkey)
-);
-
-COMMENT ON COLUMN category.category_name IS '카테고리명';
-
-COMMENT ON COLUMN category.category_code IS '고유서식코드';
-
-COMMENT ON COLUMN category.category_client_code IS '고유서식코드(고객응답용)';
-
-COMMENT ON COLUMN category.inference_doc_type IS '인퍼런스 결과(문서종류)';
-
--- task Table Create SQL
-CREATE TABLE task
-(
-    pkey               integer        GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    task_id            varchar(50)    NOT NULL,id         integer        NULL,
-    category_pkey      integer        NULL,
-    create_datetime    timestamp      NULL,
-     PRIMARY KEY (pkey)
-);
-
-ALTER TABLE task
-    ADD CONSTRAINT FK_task_image_pkey_image_pkey FOREIGN KEY (image_pkey)
-        REFERENCES image (pkey);
-
-ALTER TABLE task
-    ADD CONSTRAINT FK_task_category_pkey_category_pkey FOREIGN KEY (category_pkey)
-        REFERENCES category (pkey);
-
--- inference Table Create SQL
-CREATE TABLE inference
-(
-    pkey                  integer         GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    task_pkey             integer         NULL,
-    inference_type        varchar(5)      NULL,
-    inference_img_path    varchar(300)    NULL,
-    inference_result      json            NULL,
-    start_datetime        timestamp       NULL,
-    end_datetime        timestamp       NULL,
-    create_datetime       timestamp       NULL,
-    inference_sequence    integer         NULL,
-     PRIMARY KEY (pkey)
-);
-
-COMMENT ON COLUMN inference.inference_type IS '[''cls'', ''kv'', ''gocr'', ''reco'']';
-
-COMMENT ON COLUMN inference.inference_sequence IS 'inference 순서 1->2->3->4';
-
-ALTER TABLE inference
-    ADD CONSTRAINT FK_inference_task_pkey_task_pkey FOREIGN KEY (task_pkey)
-        REFERENCES task (pkey);
-
-"""
+def insert_initial_data() -> None:
+    try:
+        session = next(db.session())
+        
+        for fake_role in settings.FAKE_ROLE_INFORMATION_LIST:
+            RoleInfo.create(session, auto_commit=True, **fake_role)
+        
+        for fake_user in settings.FAKE_USER_INFORMATION_LIST:
+            UserInfo.create(session, auto_commit=True, **fake_user)
+        
+        for fake_role_user in settings.FAKE_ROLE_USER_INFORMATION_LIST:
+            UserRole.create(session, auto_commit=True, **fake_role_user)
+        
+        for fake_model in settings.FAKE_MODEL_INFORMATION_LIST:
+            ModelInfo.create(session, auto_commit=True, **fake_model)
+        
+    finally:
+        session.close()

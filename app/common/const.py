@@ -131,42 +131,107 @@ class Settings(BaseSettings):
     FORMAT: str = "complex"  # simple or complex
 
     # FAKE DATA
-    FAKE_SUPERUSER_INFORMATION: Dict = {
-        "username": "admin",
-        "full_name": "admin",
-        "email": "admin@lomin.ai",
-        "password": "123456",
-        "is_superuser": True,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
+    FAKE_ROLE_INFORMATION_LIST: list = [
+        {
+            "role_index": 0,
+            "role_name": "Super Admin"
+        },
+        {
+            "role_index": 1,
+            "role_name": "관리자"
+        },
+        {
+            "role_index": 2,
+            "role_name": "일반"
+        },
+        {
+            "role_index": 3,
+            "role_name": "없음"
+        }
+    ]
+    
+    FAKE_USER_INFORMATION_LIST: list = [
+        {
+            "user_employee_num": 0,
+            "user_email": "admin@lomin.ai",
+            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+            
+            "user_office": "없음",
+            "user_division": "없음",
+            "user_department": "없음",
+            "user_team": "없음",
+            
+            "user_name": "김슈퍼어드민",
+            "is_used": True
+        },
+        {
+            "user_employee_num": 1111,
+            "user_email": "digital@lomin.ai",
+            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+            
+            "user_office": "강남빌딩",
+            "user_division": "2",
+            "user_department": "개발연구",
+            "user_team": "디지털 혁신팀",
+            
+            "user_name": "김로민",
+            "is_used": True
+        },
+        {
+            "user_employee_num": 2222,
+            "user_email": "data@lomin.ai",
+            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+            
+            "user_office": "양재빌딩",
+            "user_division": "2",
+            "user_department": "데이터관리",
+            "user_team": "데이터팀",
+            
+            "user_name": "김데이터",
+            "is_used": True
+        },
+        {
+            "user_employee_num": 3333,
+            "user_email": "inter@lomin.ai",
+            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
+            
+            "user_office": "양재빌딩",
+            "user_division": "2",
+            "user_department": "데이터관리",
+            "user_team": "데이터팀",
+            
+            "user_name": "김인턴",
+            "is_used": True
+        }
+    ]
+    
+    FAKE_ROLE_USER_INFORMATION_LIST: list = [
+        {
+            "user_employee_num": 0,
+            "role_index": 0
+        },
+        {
+            "user_employee_num": 1111,
+            "role_index": 1
+        },
+        {
+            "user_employee_num": 2222,
+            "role_index": 2
+        },
+        {
+            "user_employee_num": 3333,
+            "role_index": 3
+        }
+    ]
+    
+    FAKE_MODEL_INFORMATION_LIST: list = [
+        {
+            "model_index": 0,
+            "model_name_kr": "가짜 모델",
+            "model_type": "가짜 임시 모델"
+        }
+    ]
 
-    FAKE_NORMALUSER_INFORMATION: Dict = {
-        "username": "garam",
-        "full_name": "garam",
-        "email": "garam@lomin.ai",
-        "password": "123456",
-        "is_superuser": False,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
-    FAKE_NORMALUSER_INFORMATION2: Dict = {
-        "username": "tongo",
-        "full_name": "tongo",
-        "email": "tongo@lomin.ai",
-        "password": "123456",
-        "is_superuser": False,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
-
-    FAKE_GUESTUSER_INFORMATION: Dict = {
-        "username": "guest",
-        "full_name": "guest",
-        "email": "guest@lomin.ai",
-        "password": "123456",
-        "status": "ACTIVE",
-        "is_superuser": False,
-        "hashed_password": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-    }
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}

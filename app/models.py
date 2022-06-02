@@ -62,21 +62,19 @@ class User(BaseModel):
         orm_mode = True
 
 
-class UserInfo(User):
-    is_superuser: bool = False
-    id: Optional[int] = None
-
+class UserInfo(BaseModel):
+    employee_num: int
+    email: str
+    password: str
+    office: str
+    division: str
+    department: str
+    team: str
+    name: str
+    status: str
+    
     class Config:
         orm_mode = True
-        schema_extra = {
-            "example": {
-                "email": "garam@example.com",
-                "username": "garam",
-                "full_name": "Garam Yoon",
-                "status": StatusEnum.INACTIVE.name,
-                "password": "1q2w3e4r",
-            }
-        }
 
 
 class UserRegister(User):
