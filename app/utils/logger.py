@@ -6,7 +6,7 @@ from fastapi.requests import Request
 from typing import Optional
 from fastapi import Response
 from app.utils.logging import logger
-from app.database.schema import Logs, Usage
+# from app.database.schema import Logs, Usage
 from app.common.const import get_settings
 from app.errors.exceptions import APIException
 
@@ -76,11 +76,13 @@ def api_logger(
 
     if settings.USE_TEXTSCOPE_DATABASE and settings.USE_AUTO_LOG:
         if "ocr" in request.url.path.split("/"):
-            Usage.create(
-                request.state.db, auto_commit=True, email=email, status_code=status_code
-            )
+            pass
+            # Usage.create(
+            #     request.state.db, auto_commit=True, email=email, status_code=status_code
+            # )
         if "metrics" not in request.url.path.split("/"):
-            Logs.create(request.state.db, auto_commit=True, **log_dict)
+            pass
+            # Logs.create(request.state.db, auto_commit=True, **log_dict)
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict, indent=4, sort_keys=True))
         logger.exception("api logger")

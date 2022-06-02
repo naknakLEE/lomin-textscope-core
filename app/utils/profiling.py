@@ -12,7 +12,7 @@ from pyinstrument import Profiler
 from pyinstrument_flame import FlameGraphRenderer
 from starlette.middleware.base import RequestResponseEndpoint
 
-from app.routes import auth, index, users, inference
+from app.routes import auth, index, inference
 from app.database.connection import db
 from app.common.config import Config
 from app.utils.logger import api_logger
@@ -63,7 +63,7 @@ async def add_process_time_header(
 
 app.include_router(index.router)
 app.include_router(inference.router, tags=["inference"])
-app.include_router(users.router, tags=["Users"], prefix="/users")
+# app.include_router(users.router, tags=["Users"], prefix="/users")
 app.include_router(auth.router, tags=["Authentication"], prefix="/auth")
 
 
