@@ -14,8 +14,9 @@ from pydantic.networks import EmailStr
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app.database.schema import Users
-from app.models import TokenData, User, UserInDB
+from app.database.schema import UserInfo as UserInfoInDB
+from app.models import TokenData
+from app.models import UserInfo as UserInfoInModel
 from app.common.const import get_settings
 from app.errors import exceptions as ex
 from app.database.connection import db
@@ -38,30 +39,26 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def get_user(email: EmailStr, session: Session) -> Optional[UserInDB]:
+def get_user(email: EmailStr, session: Session) -> Optional[UserInfoInModel]:
     user = is_email_exist(email, session)
     if user:
         user_dict = {
-            "username": user.username,
-            "full_name": user.full_name,
-            "email": user.email,
-            "status": user.status.name,
-            "is_superuser": user.is_superuser,
-            "hashed_password": user.hashed_password,
+            "employee_num": user.user_employee_num,
+            "email": user.user_email,
+            "password": user.user_pw,
+            "office": user.user_office,
+            "division": user.user_division,
+            "department": user.user_department,
+            "team": user.user_team,
+            "name": user.user_name,
+            "status": "active" if user.is_used else "disabled"
         }
-        return UserInDB(**user_dict)
+        return UserInfoInModel(**user_dict)
     return None
 
 
-def is_username_exist(username: str, session: Session) -> Optional[Users]:
-    user = Users.get(session, username=username)
-    if user:
-        return user
-    return None
-
-
-def is_email_exist(email: EmailStr, session: Session) -> Optional[Users]:
-    user = Users.get(session=session, email=email)
+def is_email_exist(email: EmailStr, session: Session) -> Optional[UserInfoInDB]:
+    user = UserInfoInDB.get(session=session, user_email=email)
     if user:
         return user
     return None
@@ -69,12 +66,12 @@ def is_email_exist(email: EmailStr, session: Session) -> Optional[Users]:
 
 def authenticate_user(
     email: EmailStr, password: str, session: Session
-) -> Optional[Users]:
+) -> Optional[UserInfoInDB]:
     user = get_user(email, session)
     if user:
-        if user.hashed_password is None:
+        if user.password is None:
             return None
-        if not verify_password(password, user.hashed_password):
+        if not verify_password(password, user.password):
             return None
         return user
     return None
@@ -99,7 +96,7 @@ async def get_current_user(
     security_scopes: SecurityScopes,
     token: HTTPAuthorizationCredentials = Security(security),
     session: Session = Depends(db.session),
-) -> UserInDB:
+) -> UserInfoInModel:
     if security_scopes.scopes:
         authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
     else:
@@ -132,8 +129,8 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user: User = Depends(get_current_user),
-) -> User:
+    current_user: UserInfoInModel = Depends(get_current_user),
+) -> UserInfoInModel:
     if current_user.status == "disabled":
         raise HTTPException(status_code=400, detail="Disabled user")
     return current_user
