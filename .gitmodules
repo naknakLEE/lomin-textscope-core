@@ -1,7 +1,3 @@
-[submodule "lovit"]
-	path = lovit
-	url = git@github.com:Lomin-ai/lovit.git
-	branch = develop
 [submodule "textscope_wrapper"]
 	path = textscope_wrapper
 	url = git@github.com:Lomin-ai/textscope-wrapper.git
