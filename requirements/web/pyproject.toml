@@ -49,6 +49,7 @@ hydra-core = "^1.1.2"
 
 [tool.poetry.dev-dependencies]
 Nuitka = "0.7.5"
+websockets = "^10.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

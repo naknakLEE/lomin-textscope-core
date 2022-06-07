@@ -37,3 +37,4 @@ fastapi_profiler==1.0.0
 pyinstrument==3.4.2
 loguru==0.5.3
 pillow==8.4.0
+websocket==10.3

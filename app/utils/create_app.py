@@ -6,7 +6,7 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, users, inference, admin, dataset, prediction, dao, status, ldap
+from app.routes import auth, index, users, inference, admin, dataset, prediction, dao, status, ldap, websocket
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -76,5 +76,6 @@ def app_generator() -> FastAPI:
         prediction.router, tags=["Prediction Result"], prefix="/prediction"
     )
     app.include_router(dao.router, tags=["Dao"], prefix="/dao")
+    app.include_router(websocket.router, tags=["WebSocket"], prefix="/ws")
 
     return app
