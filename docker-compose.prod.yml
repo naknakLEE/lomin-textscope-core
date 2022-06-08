@@ -39,8 +39,6 @@ services:
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         CUSTOMER: ${CUSTOMER}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    environment:
-      - CONFIG_DIR=/workspace/assets/conf
     tty: true
     working_dir: /workspace
     entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
