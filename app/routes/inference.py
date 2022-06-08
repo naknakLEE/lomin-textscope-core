@@ -154,7 +154,6 @@ async def ocr(
         logger.info(f"{task_id}-pp type:{post_processing_type}")
         if (
             post_processing_type is not None
-            and len(inference_results.get("rec_preds", [])) > 0
         ):
             pp_inputs = dict(
                 boxes=inference_result.get("boxes"),
