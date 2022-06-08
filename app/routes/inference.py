@@ -159,6 +159,7 @@ async def ocr(
                 boxes=inference_result.get("boxes"),
                 scores=inference_result.get("scores"),
                 classes=inference_result.get("classes"),
+                rec_preds=inference_result.get("rec_preds"),
                 texts=inference_results.get("texts"),
                 id_type=inference_results.get("id_type"),
                 doc_type=inference_results.get("doc_type"),
