@@ -200,7 +200,15 @@ def single(
     response_log["inference_start_time"] = inference_start_time.strftime(
         "%Y-%m-%d %H:%M:%S.%f"
     )[:-3]
-    ocr_response = client.post(
+    if inputs["doc_type"] == "FN-CB":
+        ocr_response = client.post(
+            f"{model_server_url}/bill_enterprise",
+            json=inputs,
+            timeout=settings.TIMEOUT_SECOND,
+            headers={"User-Agent": "textscope core"},
+        )
+    else:
+        ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
