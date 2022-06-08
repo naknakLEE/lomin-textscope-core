@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 from ldap3 import Server, ALL
 from fastapi import Depends, HTTPException, Security
@@ -48,6 +48,7 @@ def get_user(email: EmailStr, session: Session) -> Optional[UserInDB]:
             "status": user.status.name,
             "is_superuser": user.is_superuser,
             "hashed_password": user.hashed_password,
+            "id": user.id
         }
         return UserInDB(**user_dict)
     return None
@@ -79,6 +80,16 @@ def authenticate_user(
         return user
     return None
 
+def jwt_decode(token: str) -> Union[TokenData, None]:
+    payload = jwt.decode(
+        token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+    )
+    email: str = payload.get("sub")
+    if email is None:
+        return None
+    token_scopes = payload.get("scopes", [])
+    token_data = TokenData(scopes=token_scopes, email=email)
+    return token_data
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
@@ -106,16 +117,9 @@ async def get_current_user(
         authenticate_value = f"Bearer"
 
     try:
-        payload = jwt.decode(
-            token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
-        email: str = payload.get("sub")
-        if email is None:
-            raise ex.InvalidCredentiolException(email)
-        # token_data = TokenData(email=email)
-        token_scopes = payload.get("scopes", [])
-        token_data = TokenData(scopes=token_scopes, email=email)
-
+        token_data = jwt_decode(token.credentials)
+        if token_data is None:
+            raise ex.JWTException(JWTError)
     except ExpiredSignatureError:
         raise ex.JWTExpiredExetpion()
     except (JWTError, ValidationError):
@@ -123,11 +127,32 @@ async def get_current_user(
 
     user = get_user(email=token_data.email, session=session)
     if user is None:
-        raise ex.JWTNotFoundUserException(email)
+        raise ex.JWTNotFoundUserException(token_data.email)
     print("\033[96m" + f"{token_data}" + "\033[m")
     for scope in security_scopes.scopes:
         if scope not in token_data.scopes:
             raise ex.JWTScopeException(authenticate_value=authenticate_value)
+    return user
+
+
+async def ws_get_token2user(
+    token: str,
+    session: Session,
+)-> UserInDB:
+    try:
+        token_data = jwt_decode(token)
+
+    except ExpiredSignatureError:
+        print(ExpiredSignatureError)
+        return None
+    except (JWTError, ValidationError) as ex:
+        print(ex)
+        return None
+
+    user = get_user(email=token_data.email, session=session)
+    if user is None:
+        return None
+    print("\033[96m" + f"{token_data}" + "\033[m")
     return user
 
 

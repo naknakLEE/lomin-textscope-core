@@ -56,8 +56,9 @@ spec:
             httpGet:
               path: /readyz
               port: 5000
-          resources:
-            {}
+              resources:
+                limits:
+                  nvidia.com/gpu: 1 # GPU 1개
           volumeMounts:
             - mountPath: /workspace/logs
               name: log

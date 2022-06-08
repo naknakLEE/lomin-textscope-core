@@ -133,7 +133,9 @@ tls:
 ##   - name: FOO
 ##     value: "bar"
 ##
-extraEnvVars: {}
+extraEnvVars: 
+  - name: MINIO_API_TRANSITION_WORKERS # CPU 코어가 100개 이상일 때 오류 발생으로 추가
+    value: "200"
 ## @param extraEnvVarsCM ConfigMap with extra environment variables
 ##
 extraEnvVarsCM: ""

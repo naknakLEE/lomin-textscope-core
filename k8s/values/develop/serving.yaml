@@ -14,6 +14,10 @@ service:
   port: 5000
   targetport: 5000
 
+resources:
+  limits:
+    nvidia.com/gpu: 1 # GPU 1개 요청하기
+
 autoscaling:
   enabled: false
   minReplicas: 1

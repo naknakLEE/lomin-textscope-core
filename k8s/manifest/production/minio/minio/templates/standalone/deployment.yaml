@@ -77,6 +77,8 @@ spec:
               value: "public"
             - name: MINIO_CONSOLE_PORT_NUMBER
               value: "9001"
+            - name: MINIO_API_TRANSITION_WORKERS
+              value: "200"
           envFrom:
           ports:
             - name: minio-api
