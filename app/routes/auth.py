@@ -36,8 +36,6 @@ async def login_for_access_token(
     """
     user = authenticate_user(form_data.email, form_data.password, session)
     if not user:
-        # error = dict(code=6001, detail="email 또는 password가 정확하지 않음")
-        # raise ex.APIException(**error)
         status_code, error = ErrorResponse.ErrorCode.get(2401)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     

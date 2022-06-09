@@ -1,4 +1,5 @@
 import requests  # type: ignore
+
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
@@ -14,11 +15,15 @@ from app.utils.logging import logger
 from app import models
 from app.utils.utils import cal_time_elapsed_seconds
 from app.schemas import error_models as ErrorResponse
+from app.utils.document import (
+    get_page_count,
+    is_support_format,
+    save_upload_document,
+)
 from app.utils.image import (
     get_crop_image,
     get_image_info_from_bytes,
     get_image_bytes,
-    save_upload_image,
     load_image,
 )
 
@@ -123,74 +128,84 @@ def get_image(
         data=image_base64
     )
     
-    response.update(
-        dict(
-            request_datetime=request_datetime,
-            response_datetime=response_datetime,
-            elapsed=elapsed,
-            response_log=response_log,
-            image_info=image,
-        )
-    )
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+        image_info=image,
+    ))
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
-@router.post("/image")
-def upload_image(
+@router.post("/docx")
+def post_upload_document(
     request: dict = Body(...), session: Session = Depends(db.session)
 ) -> JSONResponse:
     inputs = request
     response: Dict = dict()
     response_log: Dict = dict()
     request_datetime = datetime.now()
-    image_id = inputs.get("image_id", "")
-    image_name = inputs.get("file_name", "")
-    image_data = inputs.get("file", "")
+    employee_num = inputs.get("employee_num", 1111)
+    document_id = inputs.get("document_id", "")
+    document_name = inputs.get("file_name", "")
+    document_data = inputs.get("file", "")
     
-    select_image_result = query.select_image(session, image_id=image_id)
+    select_user_result = query.select_user(session, user_employee_num=employee_num)
+    if isinstance(select_user_result, JSONResponse):
+        return select_user_result
     
-    if isinstance(select_image_result, schema.Image):
+    user_personnel = getattr(select_user_result, settings.USER_PERSONNEL)
+    
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, schema.DocumentInfo):
         status_code, error = ErrorResponse.ErrorCode.get(2102)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-    elif isinstance(select_image_result, JSONResponse):
-        status_code_no_image, _ = ErrorResponse.ErrorCode.get(2101)
-        if select_image_result.status_code != status_code_no_image:
-            return select_image_result
+    elif isinstance(select_document_result, JSONResponse):
+        status_code_no_document, _ = ErrorResponse.ErrorCode.get(2101)
+        if select_document_result.status_code != status_code_no_document:
+            return select_document_result
     
-    save_success, save_path = save_upload_image(image_id, image_name, image_data)
+    is_support = is_support_format(document_name)
+    if is_support is False:
+        status_code, error = ErrorResponse.ErrorCode.get(2105)
+        error.error_message = " ".join([error.error_message, document_name])
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    save_success, save_path = save_upload_document(document_id, document_name, document_data)
     if save_success:
-        dao_image_params = {
-            "image_id": image_id,
-            "image_path": str(save_path),
-            "image_type": inputs.get("image_type", "inference"),
-            "image_description": inputs.get("description", ""),
+        dao_document_params = {
+            "employee_num": employee_num,
+            "user_personnel": user_personnel,
+            "document_id": document_id,
+            "document_path": str(save_path),
+            "document_type": inputs.get("document_type"),
+            "document_description": inputs.get("description"),
+            "document_pages": get_page_count(document_data, document_name)
         }
-        insert_image_result = query.insert_image(session, **dao_image_params)
-        if isinstance(insert_image_result, JSONResponse):
-            return insert_image_result
+        insert_document_result = query.insert_document(session, **dao_document_params)
+        if isinstance(insert_document_result, JSONResponse):
+            return insert_document_result
     else:
         status_code, error = ErrorResponse.ErrorCode.get(4102)
+        error.error_message = "문서 " + error.error_message
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
-    response_log.update(
-        dict(
-            request_datetime=request_datetime,
-            response_datetime=response_datetime,
-            elapsed=elapsed,
-        )
-    )
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+    ))
     
-    response.update(
-        dict(
-            request_datetime=request_datetime,
-            response_datetime=response_datetime,
-            elapsed=elapsed,
-            response_log=response_log,
-        )
-    )
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+    ))
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 

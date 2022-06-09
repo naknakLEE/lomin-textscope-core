@@ -1,7 +1,10 @@
 import json
 import uuid
+
+from pathlib import Path
+from datetime import datetime
 from fastapi import HTTPException
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from fastapi.encoders import jsonable_encoder
@@ -14,467 +17,214 @@ from app.database.connection import Base
 from app.schemas import error_models as ErrorResponse
 
 
-def create_db_table(db: Session) -> None:
+def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentInfo, JSONResponse]:
+    dao = schema.DocumentInfo
     try:
-        session = next(db.session())
-        Base.metadata.create_all(db._engine)
-    finally:
-        session.close()
-
-
-def insert_initial_data(db: Session) -> None:
-    try:
-        session = next(db.session())
-        with open("/workspace/assets/heungkuklife.json", "r") as f:
-            json_database_initial_data = json.load(f)
-        database_initial_data = json_database_initial_data["DATABASE_INITIAL_DATA"]
-        for object_table in Base.metadata.sorted_tables:
-            table_initial_data = database_initial_data[object_table.name]
-            if len(table_initial_data) == 0:
-                continue
-            if (
-                db._engine.execute(f"SELECT count(*) FROM {object_table.name}").scalar()
-                == 0
-            ):
-                db._engine.execute(object_table.insert(), table_initial_data)
-    except Exception:
-        logger.exception("insert error")
-    finally:
-        session.close()
-
-
-### image
-def select_image_by_pkey(db: Session, image_pkey: int) -> schema.Image:
-    query = (
-        db.query(schema.Image)
-        .select_from(schema.Image)
-        .filter(schema.Image.image_pkey == image_pkey)
-    )
-    res = query.first()
-    return res
-
-
-def select_image_all(db: Session) -> Optional[List[schema.Image]]:
-    """
-    SELECT
-        *
-    FROM
-        image
-    """
-    dao = schema.Image
-    try:
-        res = dao.get_all(db)
-    except Exception:
-        logger.exception("image select error")
-        res = None
-    return res
-
-
-def select_image(db: Session, **kwargs: Dict) -> Union[schema.Image, JSONResponse]:
-    dao = schema.Image
-    try:
-        result = dao.get(db, **kwargs)
+        result = dao.get(session, **kwargs)
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2101)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("image select error")
+        logger.exception("document select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        error.error_message = "문서 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
-def insert_image(
+def select_document_all(session: Session, **kwargs: Dict) -> Union[schema.DocumentInfo, JSONResponse]:
+    dao = schema.DocumentInfo
+    try:
+        result = dao.get_all(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2101)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("document select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "문서 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def insert_document(
     session: Session,
-    image_path: str,
-    category_pkey: Optional[int] = None,
-    dataset_pkey: Optional[int] = None,
-    image_id: str = str(uuid.uuid4()),
-    image_type: str = "TRAINING",
-    image_description: Optional[str] = None,
-) -> Union[Optional[schema.Image], JSONResponse]:
-    dao = schema.Image
+    employee_num: int,
+    user_personnel: str,
+    document_path: str,
+    document_id: str = str(uuid.uuid4()),
+    document_description: Optional[str] = None,
+    document_type: str = "TRAINING",
+    document_pages: int = 0,
+    auto_commit: bool = True
+) -> Union[Optional[schema.DocumentInfo], JSONResponse]:
+    dao = schema.DocumentInfo
     try:
         result = dao.create(
             session=session,
-            image_path=image_path,
-            category_pkey=category_pkey,
-            dataset_pkey=dataset_pkey,
-            image_id=image_id,
-            image_type=image_type,
-            image_description=image_description,
+            document_id=document_id,
+            employee_num=employee_num,
+            user_personnel=user_personnel,
+            document_path=document_path,
+            document_description=document_description,
+            document_type=document_type,
+            document_pages=document_pages,
+            auto_commit=auto_commit
         )
-    except Exception as e:
-        logger.error(f"image insert error: {e}")
+    except Exception:
+        logger.error(f"document insert error")
         session.rollback()
         status_code, error = ErrorResponse.ErrorCode.get(4102)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        error.error_message = "문서 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
-### category
-def select_category(db: Session, **kwargs: Dict) -> Optional[schema.Category]:
-    dao = schema.Category
-    try:
-        res = dao.get_all(db, **kwargs)
-    except Exception as e:
-        logger.exception(f"category select error: {e}")
-        res = None
-    return res
-
-
-def update_task(
-    db: Session, pkey: int, data: models.UpdateTask
-) -> Optional[schema.Task]:
-    dao = schema.Task
-    try:
-        result = dao.update(db, pkey=pkey, **data.dict())
-    except Exception as e:
-        logger.error(f"task update error: {e}")
-        db.rollback()
-        result = None
-    return result
-
-
-### inference
 def insert_inference(
-    db: Session, data: models.CreateInference
-) -> Optional[schema.Inference]:
-    dao = schema.Inference
+    session: Session,
+    inference_id: str,
+    document_id: str,
+    employee_num: int,
+    user_personnel: str,
+    model_index: int,
+    inference_result: dict,
+    page_id: str,
+    inference_type: str,
+    response_log: dict,
+    auto_commit: bool = True
+) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
+    
+    del inference_result["response_log"]
     try:
-        result = dao.create(db, **data.dict())
-    except Exception as e:
-        logger.error(f"inference insert error: {e}")
-        db.rollback()
-        result = None
+        result = schema.InferenceInfo.create(
+            session=session,
+            inference_id=inference_id,
+            document_id=document_id,
+            employee_num=employee_num,
+            user_personnel=user_personnel,
+            model_index=model_index,
+            inference_result=jsonable_encoder(inference_result),
+            page_id=page_id,
+            inference_type=inference_type,
+            inference_start_time=response_log.get("inference_start_time"),
+            inference_end_time=response_log.get("inference_end_time"),
+            auto_commit=auto_commit
+        )
+    except Exception:
+        logger.error(f"inference insert error")
+        session.rollback()
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        error.error_message = "추론 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
 
-def select_inference_by_type(
-    db: Session, inference_type: str
-) -> List[schema.Inference]:
-    query = (
-        db.query(schema.Inference)
-        .select_from(schema.Inference)
-        .filter(schema.Inference.inference_type == inference_type)
-    )
-    res = query.all()
-    return res
-
-
-def select_dataset(db: Session, dataset_id: str) -> List[schema.Dataset]:
-    """
-    SELECT
-        *
-    FROM
-        dataset
-    WHERE
-        dataset_id = 'ttt-ttt-ttt-ttt'
-    """
-
-    query = (
-        db.query(schema.Dataset)
-        .select_from(schema.Dataset)
-        .filter(schema.Dataset.dataset_id == dataset_id)
-    )
-    return query.first()
-
-
-def insert_inference_result(
-    session: Session,
-    task_pkey: int,
-    image_pkey: int,
-    inference_type: str,
-    response_log: Dict,
-    inference_results: Dict,
-) -> None:
-    del inference_results["response_log"]
+def select_inspect_all(session: Session, start_date: datetime, end_date: datetime, **kwargs: Dict) -> Union[schema.InspectInfo, JSONResponse]:
+    dao = schema.InspectInfo
     try:
-        schema.Inference.create(
+        result = dao.get_all(session, start_date, end_date, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2101)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("document select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "검수 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_document_inspect_all(
+    session: Session,
+    start_date: datetime,
+    end_date: datetime,
+    
+    user_personnel: List[str],
+    uploader_list: List[str],
+    inspecter_list: List[str],
+    document_type: List[str],
+    document_model_type: List[str],
+    inspect_status: List[str]
+) -> list:
+    
+    query = session.query(schema.DocumentInfo, schema.InspectInfo) \
+        .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
+    
+    rows: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
+    
+    filtered_rows = list()
+    for row in rows:
+        document_info, inspect_info = row
+        
+        if len(user_personnel) > 0 and document_info.user_personnel not in user_personnel: continue
+        if len(document_type) > 0 and document_info.document_type not in document_type: continue
+        if len(document_model_type) > 0 and document_info.document_model_type not in document_model_type: continue
+        if len(uploader_list) > 0 and document_info.employee_num not in uploader_list: continue
+        
+        if len(inspecter_list) > 0 and inspect_info.employee_num not in inspecter_list: continue
+        if len(inspect_status) > 0 and inspect_info.inspect_status not in inspect_status: continue
+        if inspect_info.inspect_end_time < start_date or \
+            end_date < inspect_info.inspect_end_time: continue
+        
+        filtered_rows.append([
+            document_info.document_id,
+            document_info.user_personnel,
+            document_info.document_type,
+            document_info.document_model_type,
+            Path(document_info.document_path).name,
+            document_info.employee_num,
+            document_info.document_upload_time,
+            
+            inspect_info.employee_num,
+            inspect_info.inspect_status,
+            inspect_info.inspect_accuracy,
+            inspect_info.inspect_end_time
+        ])
+    
+    return filtered_rows
+
+
+def insert_page_info(
+    session: Session,
+    page_id: str,
+    page_num: int = 1,
+    page_doc_type: str = None,
+    page_width: int = 0,
+    page_height: int = 0,
+    auto_commit: bool = True
+) -> Union[Optional[schema.PageInfo], JSONResponse]:
+    
+    dao = schema.PageInfo
+    try:
+        result = dao.create(
             session=session,
-            task_pkey=task_pkey,
-            image_pkey=image_pkey,
-            inference_results=jsonable_encoder(inference_results),
-            inference_type=inference_type,
-            response_log=jsonable_encoder(response_log),
-            start_datetime=response_log.get("inference_start_time"),
-            end_datetime=response_log.get("inference_end_time"),
+            page_id=page_id,
+            page_num=page_num,
+            page_doc_type=page_doc_type,
+            page_width=page_width,
+            page_height=page_height,
+            auto_commit=auto_commit
         )
     except Exception:
-        logger.exception(f"Insert inference result")
-
-
-def insert_training_dataset(
-    session: Session,
-    dataset_id: str,
-    root_path: str,
-    dataset_dir_name: str,
-) -> Optional[schema.Dataset]:
-    res = schema.Dataset.create(
-        session=session,
-        dataset_id=dataset_id,
-        root_path=root_path,
-        dataset_dir_name=dataset_dir_name,
-    )
-    return res
-
-
-def insert_category(
-    session: Session,
-    category_name: str,
-    category_code: str,
-    dataset_pkey: int,
-) -> int:
-    res = schema.Category.create(
-        session=session,
-        category_name=category_name,
-        category_code=category_code,
-        dataset_pkey=dataset_pkey,
-    )
-    return res.category_pkey
-
-
-def insert_inference_image(db: Session, **kwargs: Dict[str, Any]) -> int:
-    res = schema.Image.create(db, **kwargs)
-    return res.image_pkey
-
-
-def select_inference_img_path_from_taskid(
-    db: Session, task_id: str
-) -> Optional[schema.Visualize]:
-    query = (
-        db.query(schema.Visualize.inference_img_path)
-        .select_from(schema.Visualize)
-        .filter(schema.Visualize.task_id == task_id)
-    )
-    res = query.first()
-    return res
-
-
-def delete_dataset(db: Session, dataset_id: str) -> bool:
-    try:
-        query = db.query(schema.Dataset).filter_by(dataset_id=dataset_id).delete()
-    except Exception:
-        logger.exception("dataset delete error")
-        db.rollback()
-        return False
-    logger.info(f"Delete catetory successful")
-    return True
-
-
-def select_inference_all(db: Session) -> List[schema.Inference]:
-    query = (
-        db.query(schema.Inference, schema.Image, schema.Category)
-        .select_from(schema.Inference)
-        .join(schema.Image, schema.Image.image_pkey == schema.Inference.image_pkey)
-        .join(
-            schema.Category, schema.Category.category_pkey == schema.Image.category_pkey
-        )
-    )
-
-    res = query.all()
-    return res
-
-
-def delete_inference_all(db: Session) -> bool:
-    try:
-        db.query(schema.Inference).delete()
-    except Exception:
-        logger.exception("inference delete error")
-        db.rollback()
-        return False
-    return True
-
-
-def select_category_pkey(db: Session, dataset_id: str) -> List[schema.Category]:
-    """
-    SELECT
-        DISTINCT category_pkey
-    FROM
-        image
-    WHERE
-        dataset_pkey IN
-            (
-                SELECT
-                    dataset_pkey
-                FROM
-                    dataset
-                WHERE
-                    dataset_id = 'b0839c1c-7099-4743-901c-b4d66e173e97'
-            )
-    """
-    dataset_pkeys = (
-        db.query(schema.Dataset.dataset_pkey)
-        .select_from(schema.Dataset)
-        .filter(schema.Dataset.dataset_id == dataset_id)
-        .all()
-    )
-
-    category_pkeys = (
-        db.query(schema.Image.category_pkey)
-        .select_from(schema.Image)
-        .filter(schema.Image.dataset_pkey.in_(dataset_pkeys))
-        .distinct()
-        .all()
-    )
-
-    query = (
-        db.query(schema.Category)
-        .select_from(schema.Category)
-        .filter(schema.Category.category_pkey.in_(category_pkeys))
-    )  # .filter(schema.Category.is_pretrained == False)
-
-    res_category = query.all()
-    return res_category
-
-
-def select_inference_image(db: Session, task_id: str) -> List[schema.Inference]:
-    query = (
-        db.query(schema.Inference, schema.Image)
-        .select_from(schema.Inference)
-        .join(schema.Image, schema.Inference.image_pkey == schema.Image.image_pkey)
-        .filter(schema.Inference.task_id == task_id)
-    )
-    res = query.all()
-    return res
-
-
-def select_gocr_inference_from_taskid(
-    db: Session, task_id: str
-) -> List[schema.Inference]:
-    query = (
-        db.query(schema.Inference)
-        .select_from(schema.Inference)
-        .filter(schema.Inference.task_id == task_id)
-        .filter(schema.Inference.inference_type == "gocr")
-    )
-
-    res = query.all()
-    return res
-
-
-def select_kv_inference_from_taskid(
-    db: Session, task_id: str
-) -> Optional[schema.Inference]:
-    query = (
-        db.query(schema.Inference)
-        .select_from(schema.Inference)
-        .filter(schema.Inference.task_id == task_id)
-        .filter(schema.Inference.inference_type == "kv")
-    )
-
-    res = query.first()
-    return res
-
-
-def select_category_all(
-    db: Session, **kwargs: Dict[str, Any]
-) -> Optional[List[schema.Category]]:
-    res = schema.Category.get_all(db, **kwargs)
-    return res
-
-
-def select_category_by_name(db: Session, category_name: str) -> Optional[int]:
-    """
-    SELECT
-        category_pkey
-    FROM
-        category
-    WHERE
-        category_name = {category_name}
-    """
-    query = (
-        db.query(schema.Category)
-        .select_from(schema.Category)
-        .filter(
-            or_(
-                schema.Category.category_name == category_name,
-            )
-        )
-    )
-
-    res = query.first()
-    if res:
-        return res.category_pkey
-    return None
-
-
-def select_category_by_pkey(db: Session, category_pkey: int) -> schema.Category:
-    """
-    SELECT
-        *
-    FROM
-        category
-    WHERE
-        category_pkey = {category_pkey}
-    """
-    query = (
-        db.query(schema.Category)
-        .select_from(schema.Category)
-        .filter(schema.Category.category_pkey == category_pkey)
-    )
-
-    res = query.first()
-    return res
-
-
-def delete_category_cascade_image(session: Session, dataset_pkey: int) -> bool:
-    """
-    DELETE FROM
-        image
-    WHERE
-        image.category_pkey = {
-            SELECT
-                category_pkey
-            FROM
-                category
-            WHERE
-                is_pretrained = False
-        }
-        image.dataset_pkey = {dataset_pkey}
-
-    DELETE FROM
-        category
-    WHERE
-        is_pretrained = False
-    """
-    query = session.query(schema.Category)
-
-    res = query.all()
-
-    for category in res:
-        try:
-            q = (
-                session.query(schema.Image)
-                .filter(and_(schema.Image.category_pkey == category.category_pkey))
-                .delete()
-            )
-        except Exception:
-            logger.exception("image cascade delete error")
-            session.rollback()
-            return False
-
-    try:
-        query.delete()
-    except Exception:
-        logger.exception("category cascade delete error")
+        logger.error(f"page_info insert error")
         session.rollback()
-        return False
-    session.commit()
-    logger.info(f"Delete catetory successful")
-    return True
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        error.error_message = "page " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
 
-### task
-def select_task(db: Session, **kwargs: Dict) -> Union[schema.Task, JSONResponse]:
-    dao = schema.Task
+
+def select_task(session: Session, **kwargs: Dict) -> Union[schema.TaskInfo, JSONResponse]:
+    dao = schema.TaskInfo
     try:
-        result = dao.get(db, **kwargs)
+        result = dao.get(session, **kwargs)
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2201)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("task select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4201)
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "사용자의 그룹(권한, 역할) " + error.error_message
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
@@ -482,25 +232,86 @@ def select_task(db: Session, **kwargs: Dict) -> Union[schema.Task, JSONResponse]
 def insert_task(
     session: Session,
     task_id: str,
-    image_pkey: int,
-    task_type: str = "NONE",
+    employee_num: int,
+    user_personnel: str,
+    task_content: dict = {},
     auto_commit: bool = True
-) -> Union[Optional[schema.Task], JSONResponse]:
-    if image_pkey is None:
-        logger.warning("Image pkey({}) not found".format(image_pkey))
+) -> Union[Optional[schema.TaskInfo], JSONResponse]:
     
-    dao = schema.Task
+    dao = schema.TaskInfo
     try:
         result = dao.create(
             session=session,
             task_id=task_id,
-            image_pkey=image_pkey,
-            task_type=task_type,
+            employee_num=employee_num,
+            user_personnel=user_personnel,
+            task_content=jsonable_encoder(task_content),
             auto_commit=auto_commit
         )
     except Exception:
-        logger.warning("{} insert failed, image pkey={}".format(task_id, image_pkey))
+        logger.error(f"task insert error")
         session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4202)
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        error.error_message = "task " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_user(session: Session, **kwargs: Dict) -> schema.UserInfo:
+    dao = schema.UserInfo
+    try:
+        result = dao.get(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2504)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("user select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "사용자 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_user_all(session: Session, **kwargs: Dict) -> Union[schema.UserInfo, JSONResponse]:
+    dao = schema.UserInfo
+    try:
+        result = dao.get_all(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2101)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("user select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "사용자 " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_user_role(session: Session, **kwargs: Dict) -> schema.UserRole:
+    dao = schema.UserRole
+    try:
+        result = dao.get_lastest_role(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2504)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("user_role select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "사용자의 그룹(권한, 역할) " + error.error_message
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_role_info(session: Session, **kwargs: Dict) -> schema.RoleInfo:
+    dao = schema.RoleInfo
+    try:
+        result = dao.get_lastest_role(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2504)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("role_info select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = "그룹(권한, 역할) " + error.error_message
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
