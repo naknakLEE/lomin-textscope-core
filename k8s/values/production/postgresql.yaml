@@ -195,7 +195,7 @@ primary:
     subPath: ""
     storageClass: ""
     accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
     size: 8Gi
     annotations: {}
     selector: {}
@@ -288,7 +288,7 @@ readReplicas:
     subPath: ""
     storageClass: ""
     accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
     size: 8Gi
     annotations: {}
     selector: {}
