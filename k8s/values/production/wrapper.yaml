@@ -14,21 +14,21 @@ service:
   port: 8090
   targetport: 8090
 
-ingress:
-  enabled: true
-  className: ""
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-  hosts:
-    - host: localhost
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - hosts:
-        - localhost
-      secretName: tls-secret
+# ingress:
+#   enabled: true
+#   className: ""
+#   annotations:
+#     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+#     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+#   hosts:
+#     - host: localhost
+#       paths:
+#         - path: /
+#           pathType: Prefix
+#   tls:
+#     - hosts:
+#         - localhost
+#       secretName: tls-secret
 
 autoscaling:
   enabled: false

@@ -24,3 +24,6 @@ do
 done
 rm -rf "${core_encrypt_folder}/serving"
 cp -r "${serving_encrypt_folder}/serving" "${core_encrypt_folder}/serving"
+
+rm -rf "${core_encrypt_folder}/serving/lovit"
+cp -r "${serving_encrypt_folder}/serving/lovit" "${core_encrypt_folder}/serving/lovit"
