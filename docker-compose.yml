@@ -3,7 +3,7 @@ version: "2.3"
 services:
   minio:
     container_name: textscope-minio
-    image: quay.io/minio/minio:2022.4.29-debian-10-r0
+    image: docker.io/bitnami/minio:2022.4.29-debian-10-r0
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
