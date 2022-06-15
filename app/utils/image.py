@@ -24,7 +24,7 @@ def read_tiff_one_page_from_bytes(image_bytes, page=1):
     try:
         tif_image = tifffile.imread(BytesIO(image_bytes), key=page - 1)
     except IndexError:
-        tif_image = tifffile.imread(BytesIO(image_bytes), key=0)
+        return None
     
     if tif_image.dtype == np.bool:
         np_image = (tif_image * 255).astype(np.uint8)
@@ -37,6 +37,8 @@ def read_tiff_one_page_from_bytes(image_bytes, page=1):
 
 def read_tiff_page_from_bytes(image_bytes: str, page: int) -> Image:
     tiff_images = Image.open(BytesIO(image_bytes))
+    if tiff_images.n_frames < page or page < 1:
+        return None
     tiff_images.seek(page - 1)
     np_image = np.array(tiff_images.convert("RGB"))
     np_image = np_image.astype(np.uint8)
@@ -69,13 +71,14 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1) -> Image:
             image_bytes, fmt="jpeg", first_page=page, last_page=page
         )
         if len(pages) == 0:
-            pages = pdf2image.convert_from_bytes(
-                image_bytes, fmt="jpeg", first_page=1, last_page=1
-            )
+            return None
         pil_image = pages[0]
         
     else:
         logger.error(f"{image_filename} is not supported!")
+        return None
+    
+    if pil_image == None:
         return None
     
     pil_image = pil_image.convert("RGB")

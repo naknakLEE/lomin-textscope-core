@@ -21,6 +21,7 @@ from fastapi.encoders import jsonable_encoder
 
 from sqlalchemy.orm import Session
 
+from app.utils.image import load_image
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
@@ -96,6 +97,14 @@ async def ocr(
                     }
                 )
             )
+    
+    
+    
+    load_image_res = load_image(inputs)
+    if load_image_res == None:
+        status_code, error = ErrorResponse.ErrorCode.get(2105)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
     
     with Client() as client:
         # Inference
