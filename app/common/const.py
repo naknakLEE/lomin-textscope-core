@@ -131,99 +131,16 @@ class Settings(BaseSettings):
     FORMAT: str = "complex"  # simple or complex
 
     # FAKE DATA
-    FAKE_ROLE_INFORMATION_LIST: list = [
+    FAKE_DATA_XLSX_FILE_LIST: list = [
         {
-            "role_index": 0,
-            "role_name": "Super Admin"
+            "name": "textscope",
+            "password": "cbVTURA=Uhe76vRd*ele"
         },
         {
-            "role_index": 1,
-            "role_name": "관리자"
+            "name": "kei2205",
+            "password": "g12?oq4C+APT2I4wRKb!"
         },
-        {
-            "role_index": 2,
-            "role_name": "일반"
-        },
-        {
-            "role_index": 3,
-            "role_name": "없음"
-        }
     ]
-    
-    FAKE_USER_INFORMATION_LIST: list = [
-        {
-            "user_employee_num": 0,
-            "user_email": "admin@lomin.ai",
-            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-            
-            "user_office": "없음",
-            "user_division": "없음",
-            "user_department": "없음",
-            "user_team": "없음",
-            
-            "user_name": "김슈퍼어드민",
-            "is_used": True
-        },
-        {
-            "user_employee_num": 1111,
-            "user_email": "digital@lomin.ai",
-            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-            
-            "user_office": "강남빌딩",
-            "user_division": "2",
-            "user_department": "개발연구",
-            "user_team": "디지털 혁신팀",
-            
-            "user_name": "김로민",
-            "is_used": True
-        },
-        {
-            "user_employee_num": 2222,
-            "user_email": "data@lomin.ai",
-            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-            
-            "user_office": "양재빌딩",
-            "user_division": "2",
-            "user_department": "데이터관리",
-            "user_team": "데이터팀",
-            
-            "user_name": "김데이터",
-            "is_used": True
-        },
-        {
-            "user_employee_num": 3333,
-            "user_email": "inter@lomin.ai",
-            "user_pw": "$2b$12$3kvrUJTX6KWAvL0bv7lc7u4ht2Ri3fdjqVTclSQ8fkDpy6lqVn42e",
-            
-            "user_office": "양재빌딩",
-            "user_division": "2",
-            "user_department": "데이터관리",
-            "user_team": "데이터팀",
-            
-            "user_name": "김인턴",
-            "is_used": True
-        }
-    ]
-    
-    FAKE_ROLE_USER_INFORMATION_LIST: list = [
-        {
-            "user_employee_num": 0,
-            "role_index": 0
-        },
-        {
-            "user_employee_num": 1111,
-            "role_index": 1
-        },
-        {
-            "user_employee_num": 2222,
-            "role_index": 2
-        },
-        {
-            "user_employee_num": 3333,
-            "role_index": 3
-        }
-    ]
-
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}
@@ -262,7 +179,33 @@ class Settings(BaseSettings):
     CTON: Dict = {}
     
     # KOREA EXIM BANK CONFIG
-    USER_PERSONNEL = "user_department"
+    DCOUMENT_LIST_COLUMN_MAPPING = {
+        "Task ID": "DocumentInfo.document_id",
+        "부서": "DocumentInfo.user_team",
+        "문서 모델": "DocumentInfo.document_model_type",
+        "유형": "DocumentInfo.document_type",
+        "문서명": "DocumentInfo.document_path",
+        "등록 담당자": "DocumentInfo.user_email",
+        "등록일": "DocumentInfo.document_upload_time",
+        "검수 담당자": "InspectInfo.user_email",
+        "검수 상태": "InspectInfo.inspect_status",
+        "정확도": "InspectInfo.inspect_accuracy",
+        "검수일": "InspectInfo.inspect_end_time"
+        
+    }
+    DOCUMENT_LIST_COLUMN_ORDER = [
+        "Task ID", # 필수
+        "부서",
+        "문서 모델",
+        "유형",
+        "문서명",
+        "등록 담당자", # 필수
+        "등록일",
+        "검수 담당자", # 필수
+        "검수 상태",
+        "정확도",
+        "검수일"
+    ]
 
     # FILE CONFIG
     ZIP_PATH: str = "/workspace/assets/datasets"

@@ -12,9 +12,15 @@ from starlette.responses import JSONResponse
 
 from app import models
 from app.database import schema
+from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import Base
 from app.schemas import error_models as ErrorResponse
+
+
+
+settings = get_settings()
+
 
 
 def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentInfo, JSONResponse]:
@@ -27,7 +33,7 @@ def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentIn
     except Exception:
         logger.exception("document select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "문서 " + error.error_message
+        error.error_message = error.error_message.format("문서")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
@@ -42,15 +48,15 @@ def select_document_all(session: Session, **kwargs: Dict) -> Union[schema.Docume
     except Exception:
         logger.exception("document select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "문서 " + error.error_message
+        error.error_message = error.error_message.format("모든 문서")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
 def insert_document(
     session: Session,
-    employee_num: int,
-    user_personnel: str,
+    user_email: int,
+    user_team: str,
     document_path: str,
     document_id: str = str(uuid.uuid4()),
     document_description: Optional[str] = None,
@@ -63,8 +69,8 @@ def insert_document(
         result = dao.create(
             session=session,
             document_id=document_id,
-            employee_num=employee_num,
-            user_personnel=user_personnel,
+            user_email=user_email,
+            user_team=user_team,
             document_path=document_path,
             document_description=document_description,
             document_type=document_type,
@@ -75,8 +81,25 @@ def insert_document(
         logger.error(f"document insert error")
         session.rollback()
         status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = "문서 " + error.error_message
+        error.error_message = error.error_message.format("문서")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_inference_latest(session: Session, **kwargs: Dict) -> schema.InferenceInfo:
+    dao = schema.InferenceInfo
+    try:
+        query = dao.get_all_query(session, **kwargs)
+        result = query.order_by(dao.inference_end_time.desc()).first()
+        
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2507)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("inference select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("추론")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
 
@@ -84,12 +107,12 @@ def insert_inference(
     session: Session,
     inference_id: str,
     document_id: str,
-    employee_num: int,
-    user_personnel: str,
+    user_email: int,
+    user_team: str,
     model_index: int,
     inference_result: dict,
-    page_id: str,
     inference_type: str,
+    page_num: int,
     response_log: dict,
     auto_commit: bool = True
 ) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
@@ -100,118 +123,141 @@ def insert_inference(
             session=session,
             inference_id=inference_id,
             document_id=document_id,
-            employee_num=employee_num,
-            user_personnel=user_personnel,
+            user_email=user_email,
+            user_team=user_team,
             model_index=model_index,
             inference_result=jsonable_encoder(inference_result),
-            page_id=page_id,
             inference_type=inference_type,
             inference_start_time=response_log.get("inference_start_time"),
             inference_end_time=response_log.get("inference_end_time"),
+            
+            page_num=page_num,
+            page_doc_type=inference_result.get("doc_type", "None"),
+            page_width=inference_result.get("image_width_origin", 0),
+            page_height=inference_result.get("image_height_origin", 0),
             auto_commit=auto_commit
         )
     except Exception:
         logger.error(f"inference insert error")
         session.rollback()
         status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = "추론 " + error.error_message
+        error.error_message = error.error_message.format("추론")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_inspect_latest(session: Session, **kwargs: Dict) -> Union[schema.InspectInfo, JSONResponse]:
+    dao = schema.InspectInfo
+    try:
+        query = dao.get_all_query(session, **kwargs)
+        result = query.order_by(dao.inspect_end_time.desc()).first()
+        
+    except Exception:
+        logger.exception("inspect select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("가장 최근 검수")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
 def select_inspect_all(session: Session, start_date: datetime, end_date: datetime, **kwargs: Dict) -> Union[schema.InspectInfo, JSONResponse]:
     dao = schema.InspectInfo
     try:
-        result = dao.get_all(session, start_date, end_date, **kwargs)
+        query = dao.get_all(session, kwargs)
+        query = query.filter(dao.inspect_end_time.between(start_date, end_date))
+        result = query.all() if query else None
+        
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2101)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("document select error")
+        logger.exception("inspect select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "검수 " + error.error_message
+        error.error_message = error.error_message.format("모든 검수")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
 def select_document_inspect_all(
     session: Session,
+    ignore_date: bool,
     start_date: datetime,
     end_date: datetime,
     
-    user_personnel: List[str],
-    uploader_list: List[str],
-    inspecter_list: List[str],
-    document_type: List[str],
-    document_model_type: List[str],
-    inspect_status: List[str]
+    user_team: List[str] = [],
+    uploader_list: List[str] = [],
+    inspecter_list: List[str] = [],
+    document_type: List[str] = [],
+    document_model_type: List[str] = [],
+    inspect_status: List[str] = [],
+    
+    rows_limit: int = 100,
+    rows_offset: int = 0,
+    column_order: list = [],
 ) -> list:
     
-    query = session.query(schema.DocumentInfo, schema.InspectInfo) \
-        .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
-    
-    rows: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
-    
-    filtered_rows = list()
-    for row in rows:
-        document_info, inspect_info = row
-        
-        if len(user_personnel) > 0 and document_info.user_personnel not in user_personnel: continue
-        if len(document_type) > 0 and document_info.document_type not in document_type: continue
-        if len(document_model_type) > 0 and document_info.document_model_type not in document_model_type: continue
-        if len(uploader_list) > 0 and document_info.employee_num not in uploader_list: continue
-        
-        if len(inspecter_list) > 0 and inspect_info.employee_num not in inspecter_list: continue
-        if len(inspect_status) > 0 and inspect_info.inspect_status not in inspect_status: continue
-        if inspect_info.inspect_end_time < start_date or \
-            end_date < inspect_info.inspect_end_time: continue
-        
-        filtered_rows.append([
-            document_info.document_id,
-            document_info.user_personnel,
-            document_info.document_type,
-            document_info.document_model_type,
-            Path(document_info.document_path).name,
-            document_info.employee_num,
-            document_info.document_upload_time,
-            
-            inspect_info.employee_num,
-            inspect_info.inspect_status,
-            inspect_info.inspect_accuracy,
-            inspect_info.inspect_end_time
-        ])
-    
-    return filtered_rows
-
-
-def insert_page_info(
-    session: Session,
-    page_id: str,
-    page_num: int = 1,
-    page_doc_type: str = None,
-    page_width: int = 0,
-    page_height: int = 0,
-    auto_commit: bool = True
-) -> Union[Optional[schema.PageInfo], JSONResponse]:
-    
-    dao = schema.PageInfo
     try:
-        result = dao.create(
-            session=session,
-            page_id=page_id,
-            page_num=page_num,
-            page_doc_type=page_doc_type,
-            page_width=page_width,
-            page_height=page_height,
-            auto_commit=auto_commit
+        # table join (inspect_id)
+        query = session.query(schema.DocumentInfo, schema.InspectInfo) \
+            .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
+        
+        # 총 업무 개수
+        if len(user_team) > 0: query = query.filter(schema.DocumentInfo.user_team.in_(user_team))
+        total_count = query.count()
+        
+        # DocumentInfo 필터링
+        document_filters = dict(
+            document_type=document_type,
+            document_model_type=document_model_type,
+            uploader_list=uploader_list
         )
+        
+        for column, filter in document_filters.items():
+            if len(filter) > 0: query = query.filter(getattr(schema.DocumentInfo, column).in_(filter))
+        
+        # InsepctInfo 필터링
+        inspect_filters = dict(
+            inspecter_list=inspecter_list,
+            inspect_status=inspect_status
+        )    
+        for column, filter in inspect_filters.items():
+            if len(filter) > 0: query = query.filter(getattr(schema.InspectInfo, column).in_(filter))
+        
+        # 완료 업무 개수
+        complet_count = query.filter(schema.InspectInfo.inspect_end_time != None).count()
+        
+        # InspectInfo 검수 완료일 필터링
+        if ignore_date is False:
+            query = query.filter(schema.InspectInfo.inspect_end_time != None)
+            query = query.filter(schema.InspectInfo.inspect_end_time.between(start_date, end_date))
+        
+        # 페이징
+        query = query.offset(rows_offset).limit(rows_limit)
+        
+        rows: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
+        filtered_rows = list()
+        table_mapping = {"DocumentInfo": None, "InspectInfo": None}
+        for row in rows:
+            
+            table_mapping.update(DocumentInfo=row[0])
+            table_mapping.update(InspectInfo=row[1])
+            
+            row_ordered: list = list()
+            for table_column in column_order:
+                t, c = table_column.split(".")
+                v = getattr(table_mapping.get(t), c)
+                row_ordered.append(v)
+            
+            filtered_rows.append(row_ordered)
+        
     except Exception:
-        logger.error(f"page_info insert error")
-        session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = "page " + error.error_message
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
-    return result
+        logger.exception("document_inspcet_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("필터링된 업무 리스트")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        return 0, 0, result
+    
+    return total_count, complet_count, filtered_rows
 
 
 def select_task(session: Session, **kwargs: Dict) -> Union[schema.TaskInfo, JSONResponse]:
@@ -224,7 +270,7 @@ def select_task(session: Session, **kwargs: Dict) -> Union[schema.TaskInfo, JSON
     except Exception:
         logger.exception("task select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "사용자의 그룹(권한, 역할) " + error.error_message
+        error.error_message = error.error_message.format("task")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
@@ -232,8 +278,8 @@ def select_task(session: Session, **kwargs: Dict) -> Union[schema.TaskInfo, JSON
 def insert_task(
     session: Session,
     task_id: str,
-    employee_num: int,
-    user_personnel: str,
+    user_email: int,
+    user_team: str,
     task_content: dict = {},
     auto_commit: bool = True
 ) -> Union[Optional[schema.TaskInfo], JSONResponse]:
@@ -243,8 +289,8 @@ def insert_task(
         result = dao.create(
             session=session,
             task_id=task_id,
-            employee_num=employee_num,
-            user_personnel=user_personnel,
+            user_email=user_email,
+            user_team=user_team,
             task_content=jsonable_encoder(task_content),
             auto_commit=auto_commit
         )
@@ -252,7 +298,7 @@ def insert_task(
         logger.error(f"task insert error")
         session.rollback()
         status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = "task " + error.error_message
+        error.error_message = error.error_message.format("task")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
@@ -267,7 +313,7 @@ def select_user(session: Session, **kwargs: Dict) -> schema.UserInfo:
     except Exception:
         logger.exception("user select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "사용자 " + error.error_message
+        error.error_message = error.error_message.format("사용자")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
@@ -280,24 +326,26 @@ def select_user_all(session: Session, **kwargs: Dict) -> Union[schema.UserInfo, 
             status_code, error = ErrorResponse.ErrorCode.get(2101)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("user select error")
+        logger.exception("user_all select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "사용자 " + error.error_message
+        error.error_message = error.error_message.format("모든 사용자")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
-def select_user_role(session: Session, **kwargs: Dict) -> schema.UserRole:
+def select_user_role_latest(session: Session, **kwargs: Dict) -> schema.UserRole:
     dao = schema.UserRole
     try:
-        result = dao.get_lastest_role(session, **kwargs)
+        query = dao.get_all_query(session, **kwargs)
+        result = query.order_by(dao.created_time.desc()).first()
+        
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2504)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("user_role select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "사용자의 그룹(권한, 역할) " + error.error_message
+        error.error_message = error.error_message.format("사용자의 그룹(권한, 역할)")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
@@ -305,13 +353,28 @@ def select_user_role(session: Session, **kwargs: Dict) -> schema.UserRole:
 def select_role_info(session: Session, **kwargs: Dict) -> schema.RoleInfo:
     dao = schema.RoleInfo
     try:
-        result = dao.get_lastest_role(session, **kwargs)
+        result = dao.get(session, **kwargs)
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2504)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("role_info select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = "그룹(권한, 역할) " + error.error_message
+        error.error_message = error.error_message.format("그룹(권한, 역할)")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_org_all(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
+    dao = schema.KeiOrgInfo
+    try:
+        result = dao.get_all(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2504)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("kei_org_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("수출입은행 조직도")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result

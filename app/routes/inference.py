@@ -60,17 +60,17 @@ async def ocr(
     document_id = inputs.get("document_id")
     document_path = inputs.get("document_path")
     target_page = inputs.get("page", 1)
-    employee_num = inputs.get("employee_num", 1111)
+    user_email = inputs.get("user_email", "do@not.use")
     
     # parameter mapping: web -> inference
     inputs["image_id"] = document_id
     inputs["image_path"] = document_path
     
-    select_user_result = query.select_user(session, user_employee_num=employee_num)
+    select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
     
-    user_personnel = getattr(select_user_result, settings.USER_PERSONNEL)
+    user_team: str = select_user_result.user_team
     
     select_task_result = query.select_task(session, task_id=task_id) 
     if isinstance(select_task_result, schema.TaskInfo):
@@ -86,8 +86,8 @@ async def ocr(
     insert_task_result = query.insert_task(
         session=session,
         task_id=task_id,
-        employee_num=employee_num,
-        user_personnel=user_personnel,
+        user_email=user_email,
+        user_team=user_team,
         task_content=dict({"request": inputs})
     )
     if isinstance(insert_task_result, JSONResponse):
@@ -207,29 +207,17 @@ async def ocr(
     response.update(inference_results=inference_results)
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
     
-    page_id = str(uuid.uuid4())
-    insert_page_info_result = query.insert_page_info(
-        session=session,
-        page_id=page_id,
-        page_num=inference_results.get("page", target_page),
-        page_doc_type=inference_results.get("doc_type", "None"),
-        page_width=inference_results.get("image_width_origin", 0),
-        page_height=inference_results.get("image_height_origin", 0)
-    )
-    if isinstance(insert_page_info_result, JSONResponse):
-        return insert_page_info_result
-    
     inference_id = str(uuid.uuid4())
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
         document_id=document_id,
-        employee_num=employee_num,
-        user_personnel=user_personnel,
+        user_email=user_email,
+        user_team=user_team,
         model_index=0,
         inference_result=inference_results,
-        page_id=page_id,
         inference_type=inputs.get("inference_type"),
+        page_num=inference_results.get("page", target_page),
         response_log=response_log
     )
     if isinstance(insert_inference_result, JSONResponse):

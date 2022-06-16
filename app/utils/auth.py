@@ -43,12 +43,8 @@ def get_user(email: EmailStr, session: Session) -> Optional[UserInfoInModel]:
     user = is_email_exist(email, session)
     if user:
         user_dict = {
-            "employee_num": user.user_employee_num,
             "email": user.user_email,
             "password": user.user_pw,
-            "office": user.user_office,
-            "division": user.user_division,
-            "department": user.user_department,
             "team": user.user_team,
             "name": user.user_name,
             "status": "active" if user.is_used else "disabled"
@@ -134,7 +130,7 @@ async def get_current_user(
 async def ws_get_token2user(
     token: str,
     session: Session,
-)-> UserInDB:
+)-> UserInfoInModel:
     try:
         token_data = jwt_decode(token)
 

@@ -147,16 +147,16 @@ def post_upload_document(
     response: Dict = dict()
     response_log: Dict = dict()
     request_datetime = datetime.now()
-    employee_num = inputs.get("employee_num", 1111)
+    user_email = inputs.get("user_email", "do@not.use")
     document_id = inputs.get("document_id", "")
     document_name = inputs.get("file_name", "")
     document_data = inputs.get("file", "")
     
-    select_user_result = query.select_user(session, user_employee_num=employee_num)
+    select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
     
-    user_personnel = getattr(select_user_result, settings.USER_PERSONNEL)
+    user_team = select_user_result.user_team
     
     select_document_result = query.select_document(session, document_id=document_id)
     if isinstance(select_document_result, schema.DocumentInfo):
@@ -170,14 +170,13 @@ def post_upload_document(
     is_support = is_support_format(document_name)
     if is_support is False:
         status_code, error = ErrorResponse.ErrorCode.get(2105)
-        error.error_message = " ".join([error.error_message, document_name])
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
     if save_success:
         dao_document_params = {
-            "employee_num": employee_num,
-            "user_personnel": user_personnel,
+            "user_email": user_email,
+            "user_team": user_team,
             "document_id": document_id,
             "document_path": str(save_path),
             "document_type": inputs.get("document_type"),
@@ -189,7 +188,7 @@ def post_upload_document(
             return insert_document_result
     else:
         status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = "문서 " + error.error_message
+        error.error_message = error.error_message.format("문서")
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     response_datetime = datetime.now()

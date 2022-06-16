@@ -63,12 +63,8 @@ class User(BaseModel):
 
 
 class UserInfo(BaseModel):
-    employee_num: int
     email: str
     password: str
-    office: str
-    division: str
-    department: str
     team: str
     name: str
     status: str
