@@ -5,7 +5,7 @@ import io
 import msoffcrypto
 import openpyxl
 
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, Optional, TypeVar, Union
 from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -61,7 +61,7 @@ class BaseMixin:
         is_exist = cls.get(session, **inputs)
         if is_exist:
             message = f"This {check_columns} already exist"
-            # logger.warning(f"{message}\n{yaml.dump([kwargs])}")
+            # logger.warning(f"{message}\n{kwargs}")
             return message
         return message
 

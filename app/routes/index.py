@@ -5,9 +5,12 @@ from pathlib import Path
 from typing import Any, Dict
 from fastapi import APIRouter, Depends, Body, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app import hydra_cfg
+from app.utils.background import bg_run_ocr
 from app.database.connection import db
 from app.database import query, schema
 from app.common.const import get_settings
@@ -141,7 +144,9 @@ def get_image(
 
 @router.post("/docx")
 def post_upload_document(
-    request: dict = Body(...), session: Session = Depends(db.session)
+    background_tasks: BackgroundTasks,
+    request: dict = Body(...), 
+    session: Session = Depends(db.session),
 ) -> JSONResponse:
     inputs = request
     response: Dict = dict()
@@ -185,6 +190,15 @@ def post_upload_document(
             "document_pages": get_page_count(document_data, document_name)
         }
         insert_document_result = query.insert_document(session, **dao_document_params)
+        
+        if hydra_cfg.document.background_ocr:
+            gb_params ={
+                "save_path": save_path,
+                "user_email": user_email,
+                "document_id": document_id
+            }
+            bg_run_ocr(background_tasks, session, gb_params)
+        
         if isinstance(insert_document_result, JSONResponse):
             return insert_document_result
     else:

@@ -41,12 +41,11 @@ router = APIRouter()
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
 @router.post("/ocr", status_code=200, responses=inference_responses)
-async def ocr(
+def ocr(
     *,
     inputs: Dict = Body(...),
     current_user: dict = Depends(get_current_active_user),
     session: Session = Depends(db.session),
-    background_tasks: BackgroundTasks,
 ) -> Dict:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
