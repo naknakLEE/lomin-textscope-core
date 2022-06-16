@@ -18,10 +18,23 @@ from app.database.connection import Base
 from app.schemas import error_models as ErrorResponse
 
 
-
 settings = get_settings()
 
-
+def select_model_all(session: Session, **kwargs: Dict) -> Union[schema.ModelInfo, JSONResponse]:
+    dao = schema.ModelInfo
+    try:
+        result = dao.get_all(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2106)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("document select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4103)
+        error.error_message = error.error_message.format("문서")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+        
+    
 
 def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentInfo, JSONResponse]:
     dao = schema.DocumentInfo

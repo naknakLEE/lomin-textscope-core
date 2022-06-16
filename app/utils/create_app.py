@@ -7,7 +7,7 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, document
+from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, model, document
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -75,6 +75,7 @@ def app_generator() -> FastAPI:
     )
     app.include_router(dao.router, tags=["Dao"], prefix="/dao")
     app.include_router(websocket.router, tags=["WebSocket"], prefix="/ws")
+    app.include_router(model.router, tags=["Model"], prefix="/v1/model")
 
     
     app.include_router(document.router, tags=["Kei Document Info"], prefix="/v1/docx/info", include_in_schema=True)

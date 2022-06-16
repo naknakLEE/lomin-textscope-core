@@ -73,6 +73,15 @@ class BaseMixin:
             col = getattr(cls, key)
             query = query.filter(col == val)
         return query.first()
+    
+    @typing.no_type_check
+    @classmethod
+    def get_all(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
+        query = session.query(cls)
+        for key, val in kwargs.items():
+            col = getattr(cls, key)
+            query = query.filter(col == val)
+        return query.all()
 
     @typing.no_type_check
     @classmethod
