@@ -73,6 +73,7 @@ def insert_document(
     document_path: str,
     document_id: str = str(uuid.uuid4()),
     document_description: Optional[str] = None,
+    document_model_type: int = None,
     document_type: str = "TRAINING",
     document_pages: int = 0,
     auto_commit: bool = True
@@ -88,7 +89,8 @@ def insert_document(
             document_description=document_description,
             document_type=document_type,
             document_pages=document_pages,
-            auto_commit=auto_commit
+            auto_commit=auto_commit,
+            document_model_type=document_model_type
         )
     except Exception:
         logger.error(f"document insert error")

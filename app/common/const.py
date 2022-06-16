@@ -141,6 +141,7 @@ class Settings(BaseSettings):
             "password": "g12?oq4C+APT2I4wRKb!"
         },
     ]
+    
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}

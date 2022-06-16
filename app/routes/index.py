@@ -180,6 +180,7 @@ def post_upload_document(
             "document_id": document_id,
             "document_path": str(save_path),
             "document_type": inputs.get("document_type"),
+            "document_model_type": inputs.get("model_index", None),
             "document_description": inputs.get("description"),
             "document_pages": get_page_count(document_data, document_name)
         }

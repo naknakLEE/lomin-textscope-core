@@ -477,6 +477,7 @@ class RolePermission(Base, BaseMixin):
     role_info = relationship('RoleInfo')
 
 
+
 class UserRole(Base, BaseMixin):
     __tablename__ = 'user_role'
     __table_args__ = {'comment': 'textscope 서비스 유저 그룹'}
