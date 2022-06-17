@@ -1,13 +1,18 @@
+import os
 import requests  # type: ignore
 
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from fastapi import APIRouter, Depends, Body, HTTPException
+from fastapi import APIRouter, Depends, Body, HTTPException, Security, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer
+)
 
 from app import hydra_cfg
 from app.utils.background import bg_run_ocr
@@ -16,8 +21,10 @@ from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
+from app.utils.document import document_path_verify
 from app.utils.utils import cal_time_elapsed_seconds
 from app.schemas import error_models as ErrorResponse
+from app.schemas import HTTPBearerFake
 from app.utils.document import (
     get_page_count,
     is_support_format,
@@ -33,6 +40,7 @@ from app.utils.image import (
 
 settings = get_settings()
 router = APIRouter()
+security = HTTPBearer() if hydra_cfg.route.use_token else HTTPBearerFake()
 
 
 @router.get("/status", response_model=models.StatusResponse)
@@ -83,9 +91,9 @@ def check_status() -> Any:
     return JSONResponse(content=jsonable_encoder(status))
 
 
-@router.get("/image")
+@router.get("/docx")
 def get_image(
-    image_id: str,
+    document_id: str,
     page: int = 1,
     session: Session = Depends(db.session)
 ) -> JSONResponse:
@@ -93,9 +101,9 @@ def get_image(
     response_log = dict()
     request_datetime = datetime.now()
     
-    select_image_result = query.select_image(session, image_id=image_id)
-    if isinstance(select_image_result, JSONResponse):
-        return select_image_result
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -107,28 +115,28 @@ def get_image(
         )
     )
     
-    image_path = Path(select_image_result.image_path)
-    image_bytes = get_image_bytes(image_id, image_path)
+    document_path = Path(select_document_result.document_path)
+    document_bytes = get_image_bytes(document_id, document_path)
     
-    image_base64, image_width, image_height, image_format = get_image_info_from_bytes(
-            image_bytes,
-            image_path.name,
+    document_base64, document_width, document_height, document_format = get_image_info_from_bytes(
+            document_bytes,
+            document_path.name,
             page
     )
     
-    if image_base64 is None:
+    if document_bytes is None:
         status_code, error = ErrorResponse.ErrorCode.get(2103)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    image = models.Image(
-        filename=image_path.name,
-        description=select_image_result.image_description,
-        image_type=select_image_result.image_type,
-        upload_datetime=select_image_result.created_at,
-        width=image_width,
-        height=image_height,
-        format=image_format,
-        data=image_base64
+    document = models.Image(
+        filename=document_path.name,
+        description=select_document_result.document_description,
+        image_type=select_document_result.document_type,
+        upload_datetime=select_document_result.document_upload_time,
+        width=document_width,
+        height=document_height,
+        format=document_format,
+        data=document_base64
     )
     
     response.update(dict(
@@ -136,7 +144,7 @@ def get_image(
         response_datetime=response_datetime,
         elapsed=elapsed,
         response_log=response_log,
-        image_info=image,
+        document_info=document,
     ))
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
@@ -144,19 +152,27 @@ def get_image(
 
 @router.post("/docx")
 def post_upload_document(
+    request: Request,
     background_tasks: BackgroundTasks,
-    request: dict = Body(...), 
+    params: dict = Body(...), 
     session: Session = Depends(db.session),
 ) -> JSONResponse:
-    inputs = request
+    inputs = params
     response: Dict = dict()
     response_log: Dict = dict()
     request_datetime = datetime.now()
     user_email = inputs.get("user_email", "do@not.use")
     document_id = inputs.get("document_id", "")
     document_name = inputs.get("file_name", "")
+    document_path = inputs.get("document_path", "")
     document_data = inputs.get("file", "")
     
+    if document_path and not document_name:
+        document_name = os.path.basename(document_path)
+    
+    if hydra_cfg.route.use_token:
+        user_email = request.state.email
+
     select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
@@ -176,35 +192,40 @@ def post_upload_document(
     if is_support is False:
         status_code, error = ErrorResponse.ErrorCode.get(2105)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+
+    path_verify = document_path_verify(document_path)
+    if isinstance(path_verify, JSONResponse):
+        return path_verify
+        
+    if document_data:
+        save_success, document_path = save_upload_document(document_id, document_name, document_data)
+        if save_success == False:
+            status_code, error = ErrorResponse.ErrorCode.get(4102)
+            error.error_message = error.error_message.format("문서")
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    save_success, save_path = save_upload_document(document_id, document_name, document_data)
-    if save_success:
-        dao_document_params = {
+    
+    dao_document_params = {
+        "user_email": user_email,
+        "user_team": user_team,
+        "document_id": document_id,
+        "document_path": str(document_path),
+        "document_type": inputs.get("document_type"),
+        "document_model_type": inputs.get("model_index", None),
+        "document_description": inputs.get("description"),
+        "document_pages": get_page_count(document_data, document_name)
+    }
+    insert_document_result = query.insert_document(session, **dao_document_params)
+    if isinstance(insert_document_result, JSONResponse):
+        return insert_document_result
+    
+    if hydra_cfg.document.background_ocr:
+        gb_params ={
+            "save_path": document_path,
             "user_email": user_email,
-            "user_team": user_team,
-            "document_id": document_id,
-            "document_path": str(save_path),
-            "document_type": inputs.get("document_type"),
-            "document_model_type": inputs.get("model_index", None),
-            "document_description": inputs.get("description"),
-            "document_pages": get_page_count(document_data, document_name)
+            "document_id": document_id
         }
-        insert_document_result = query.insert_document(session, **dao_document_params)
-        
-        if hydra_cfg.document.background_ocr:
-            gb_params ={
-                "save_path": save_path,
-                "user_email": user_email,
-                "document_id": document_id
-            }
-            bg_run_ocr(background_tasks, session, gb_params)
-        
-        if isinstance(insert_document_result, JSONResponse):
-            return insert_document_result
-    else:
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("문서")
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        bg_run_ocr(background_tasks, session, gb_params)
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
