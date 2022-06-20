@@ -4,6 +4,9 @@ import typing
 import io
 import msoffcrypto
 import openpyxl
+from os import environ
+from pathlib import Path, PurePath
+
 
 from typing import Any, Dict, List, Optional, TypeVar, Union
 from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func
@@ -15,7 +18,7 @@ from passlib.context import CryptContext
 from app.database.connection import Base, db
 from app.utils.logging import logger
 from app.common.const import get_settings
-
+from app import hydra_cfg
 
 settings = get_settings()
 metadata = Base.metadata
@@ -617,40 +620,42 @@ def create_db_table() -> None:
 def insert_initial_data() -> None:
     try:
         session = next(db.session())
+        db_dir="/workspace/app/assets/database/"
         
         for file in settings.FAKE_DATA_XLSX_FILE_LIST:
-            
-            fake_xlsx_d = io.BytesIO()
-            with open('assets/database/' + file.get("name") + ".xlsx", 'rb') as xlfile:
-                fake_xlsx_e = msoffcrypto.OfficeFile(xlfile)
-                fake_xlsx_e.load_key(password=file.get("password"))
-                fake_xlsx_e.decrypt(fake_xlsx_d)
-            wb = openpyxl.load_workbook(filename=fake_xlsx_d)
-            
-            for table_name in wb.get_sheet_names():
+            if file.get("name") in hydra_cfg.database.insert_initial_filename:
+                fake_xlsx_d = io.BytesIO()
                 
-                ws = wb.get_sheet_by_name(table_name)
-                row_cells = list(ws.rows)
-                for row_cell in row_cells[1:]:
+                with open(db_dir + file.get("name") + ".xlsx", 'rb') as xlfile:
+                    fake_xlsx_e = msoffcrypto.OfficeFile(xlfile)
+                    fake_xlsx_e.load_key(password=file.get("password"))
+                    fake_xlsx_e.decrypt(fake_xlsx_d)
+                wb = openpyxl.load_workbook(filename=fake_xlsx_d)
+                
+                for table_name in wb.get_sheet_names():
                     
-                    fake_data = dict()
-                    target_table = table_class_mapping.get(table_name.lower())
-                    for column, cell in zip(row_cells[0], row_cell):
-                        if cell.value is None: continue
+                    ws = wb.get_sheet_by_name(table_name)
+                    row_cells = list(ws.rows)
+                    for row_cell in row_cells[1:]:
                         
-                        column_name: str = column.value.lower()
-                        cell_value: str = str(cell.value)
-                        
-                        db_type = getattr(target_table, column_name).type
-                        
-                        if isinstance(db_type, Boolean):
-                            if cell_value[0].upper() == "Y" or cell_value[0].upper() == "T" or cell_value[0] == "1":
-                                cell_value = True
-                            else:
-                                cell_value = False
-                        
-                        fake_data.update(dict({column_name:cell_value}))
-                    target_table.create(session, auto_commit=True, **fake_data)
+                        fake_data = dict()
+                        target_table = table_class_mapping.get(table_name.lower())
+                        for column, cell in zip(row_cells[0], row_cell):
+                            if cell.value is None: continue
+                            
+                            column_name: str = column.value.lower()
+                            cell_value: str = str(cell.value)
+                            
+                            db_type = getattr(target_table, column_name).type
+                            
+                            if isinstance(db_type, Boolean):
+                                if cell_value[0].upper() == "Y" or cell_value[0].upper() == "T" or cell_value[0] == "1":
+                                    cell_value = True
+                                else:
+                                    cell_value = False
+                            
+                            fake_data.update(dict({column_name:cell_value}))
+                        target_table.create(session, auto_commit=True, **fake_data)
         del fake_data, target_table, ws, wb, fake_xlsx_e, fake_xlsx_d, file
         
     finally:
