@@ -24,6 +24,8 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
     vim \
     curl
 
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install poppler-utils
+
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
     poetry config virtualenvs.create false

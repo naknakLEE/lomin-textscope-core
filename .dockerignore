@@ -156,3 +156,6 @@
 **/build-folder/
 # exclude app/ folder
 !**/app/** 
+
+**/textscope_wrapper/ocr_watcher
+**/textscope_wrapper/wrapper/hocr

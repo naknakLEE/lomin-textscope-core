@@ -29,6 +29,7 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
     tzdata 
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install vim
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install poppler-utils
 
 # RUN pip3 install --upgrade pip
 
