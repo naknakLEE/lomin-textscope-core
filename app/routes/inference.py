@@ -82,6 +82,11 @@ async def ocr(
     
     task_pkey = insert_task_result.task_pkey
     
+    load_image_res = load_image(inputs)
+    if load_image_res == None:
+        status_code, error = ErrorResponse.ErrorCode.get(2105)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
     if (
         inputs.get("use_general_ocr")
         and Path(inputs.get("image_path", "")).suffix in [".pdf", ".PDF"]
@@ -97,13 +102,6 @@ async def ocr(
                     }
                 )
             )
-    
-    
-    
-    load_image_res = load_image(inputs)
-    if load_image_res == None:
-        status_code, error = ErrorResponse.ErrorCode.get(2105)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     
     with Client() as client:
