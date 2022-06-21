@@ -103,12 +103,7 @@ class Pdf2Image:
         textline_box_list: List[List[int]] = list()
         textline_char: str = ""
         for text in texts:
-            if len(text.attrib) == 0:
-                textline_box_array = np.array(textline_box_list)
-                box_list.append(self.get_integrated_box(textline_box_array))
-                text_list.append(textline_char.replace(" ", ""))
-                textline_box_list = list()
-                continue
+            if len(text.attrib) == 0: continue
             char_attr = text.attrib
 
             bbox = char_attr["bbox"]
@@ -121,6 +116,10 @@ class Pdf2Image:
             if char is None:
                 char = ""
             textline_char += char
+        if len(textline_char.strip()) != 0:
+            textline_box_array = np.array(textline_box_list)
+            box_list.append(self.get_integrated_box(textline_box_array))
+            text_list.append(textline_char.strip())
         return box_list, text_list
 
     def resize_bbox(self, bbox: np.ndarray, w_ratio: float, h_ratio: float) -> List:
