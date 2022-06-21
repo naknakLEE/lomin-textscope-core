@@ -41,7 +41,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT} --timeout=120
 
   pp:
     user: "0:0"
@@ -77,9 +77,9 @@ services:
       - 8050:${WRAPPER_IP_PORT}
     tty: true
     volumes:
-      - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
+      - ./ocr_watcher:/workspace/${CUSTOMER}_wrapper/ocr_watcher
     working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout=60
 
   grafana:
     ports:
