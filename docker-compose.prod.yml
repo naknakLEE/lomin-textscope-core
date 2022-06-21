@@ -76,7 +76,6 @@ services:
     ports:
       - 8050:${WRAPPER_IP_PORT}
     tty: true
-    working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
     entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
 
   grafana:
