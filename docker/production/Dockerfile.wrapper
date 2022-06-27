@@ -54,4 +54,4 @@ RUN groupadd -r lomin -g 1000 && \
 
 USER textscope
 
-WORKDIR /workspace/${CUSTOMER}_wrapper
+WORKDIR /workspace/${CUSTOMER}_wrapper/wrapper
