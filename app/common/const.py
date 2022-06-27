@@ -130,15 +130,16 @@ class Settings(BaseSettings):
     ENCODING: str = "utf-8"
     FORMAT: str = "complex"  # simple or complex
 
-    # FAKE DATA
-    FAKE_DATA_XLSX_FILE_LIST: list = [
+    # INIT DATA
+    INIT_DATA_XLSX_FILE_LIST: list = [
         {
             "name": "textscope",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
         {
             "name": "kei2205",
-            "password": "g12?oq4C+APT2I4wRKb!"
+            "password": "g12?oq4C+APT2I4wRKb!",
+            "ignore": ["VW_IF_ORG_CUR", "VW_IF_CD"]
         },
     ]
     
@@ -181,32 +182,40 @@ class Settings(BaseSettings):
     
     # KOREA EXIM BANK CONFIG
     DCOUMENT_LIST_COLUMN_MAPPING = {
-        "Task ID": "DocumentInfo.document_id",
+        "Task ID" : "DocumentInfo.document_idx",
         "부서": "DocumentInfo.user_team",
-        "문서 모델": "DocumentInfo.document_model_type",
-        "유형": "DocumentInfo.document_type",
+        "문서 모델": "DocumentInfo.doc_type_idx",
+        # "유형": "DocumentInfo.document_type",
         "문서명": "DocumentInfo.document_path",
         "등록 담당자": "DocumentInfo.user_email",
         "등록일": "DocumentInfo.document_upload_time",
         "검수 담당자": "InspectInfo.user_email",
         "검수 상태": "InspectInfo.inspect_status",
         "정확도": "InspectInfo.inspect_accuracy",
-        "검수일": "InspectInfo.inspect_end_time"
+        "검수일": "InspectInfo.inspect_end_time",
         
+        "document_id": "DocumentInfo.document_id",
+        "document_pages": "DocumentInfo.document_pages"
     }
     DOCUMENT_LIST_COLUMN_ORDER = [
         "Task ID", # 필수
         "부서",
         "문서 모델",
-        "유형",
+        # "유형",
         "문서명",
         "등록 담당자", # 필수
         "등록일",
         "검수 담당자", # 필수
-        "검수 상태",
+        "검수 상태", # 필수
         "정확도",
-        "검수일"
+        "검수일",
+        
+        "document_id", # 필수
+        "document_pages" # 필수
     ]
+    INSPECT_STATUS_BEFORE = "대기"
+    INSPECT_STATUS_SUSPEND = "검수 중"
+    INSPECT_STATUS_COMPLET = "검수 완료"
 
     # FILE CONFIG
     ZIP_PATH: str = "/workspace/assets/datasets"
