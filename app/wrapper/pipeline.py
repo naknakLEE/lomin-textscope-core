@@ -19,7 +19,7 @@ from app.utils.utils import (
     set_ocr_response,
 )
 
-model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+model_server_url = f"http://{settings.NGINX_SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {
