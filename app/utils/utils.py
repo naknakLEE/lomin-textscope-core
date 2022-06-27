@@ -1,3 +1,4 @@
+import hashlib
 import pdf2image
 import sys
 import json
@@ -335,3 +336,26 @@ def set_ocr_response(
         rec_preds=recognition_result.get("rec_preds", []),
         doc_type=classification_result.get("doc_type", "None"),
     )
+
+
+def get_ts_uuid(resource_type: str, **kwargs: Dict) -> str:
+    data_list: List[str] = list()
+    
+    ts_uuid_length: int = kwargs.get("length", 24)
+    ts_uuid_split: int = kwargs.get("split", 4)
+    ts_uuid_infix: str = kwargs.get("infix", '-')
+    ts_uuid_upper: bool = kwargs.get("upper", True)
+    
+    
+    data_list.append(resource_type)
+    data_list.append(str(datetime.now()))
+    data_list.extend([ v for k, v in kwargs.items() ])
+    data_bytes = ','.join(data_list).encode("utf-8")
+    
+    ts_uuid: str = hashlib.sha256(data_bytes).hexdigest()[:ts_uuid_length]
+    ts_uuid_list: list = list(ts_uuid)
+    for i in range(ts_uuid_length-ts_uuid_split, 0, -ts_uuid_split):
+        ts_uuid_list.insert(i, ts_uuid_infix)
+    
+    
+    return ''.join(ts_uuid_list).upper() if ts_uuid_upper else ''.join(ts_uuid_list)
