@@ -180,7 +180,7 @@ def multiple(
 
 
 # TODO: pipeline 상에서 각 모델의 inference 끝났을 때 결과를 출력하도록 구성
-def single(
+async def single(
     client: Client,
     inputs: Dict,
     response_log: Dict,
@@ -200,7 +200,7 @@ def single(
     response_log["inference_start_time"] = inference_start_time.strftime(
         "%Y-%m-%d %H:%M:%S.%f"
     )[:-3]
-    ocr_response = client.post(
+    ocr_response = await client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,

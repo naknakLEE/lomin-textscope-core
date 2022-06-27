@@ -1,4 +1,4 @@
-from httpx import Client
+from httpx import Client, AsyncClient
 
 from typing import Dict
 from fastapi import APIRouter, Body, Depends
@@ -104,7 +104,7 @@ async def ocr(
             )
     
     
-    with Client() as client:
+    async with AsyncClient() as client:
         # Inference
         if settings.USE_OCR_PIPELINE == 'multiple':
             # TODO: sequence_type을 wrapper에서 받도록 수정
@@ -124,7 +124,7 @@ async def ocr(
                 route_name=inputs.get("route_name", "ocr"),
             )
         elif settings.USE_OCR_PIPELINE == 'single':
-            status_code, inference_results, response_log = pipeline.single(
+            status_code, inference_results, response_log = await pipeline.single(
                 client=client,
                 inputs=inputs,
                 response_log=response_log,
@@ -146,7 +146,7 @@ async def ocr(
             inputs.get("convert_preds_to_texts") is not None
             and "texts" not in inference_results
         ):
-            status_code, texts = pp.convert_preds_to_texts(
+            status_code, texts = await pp.convert_preds_to_texts(
                 client=client,
                 rec_preds=inference_results.get("rec_preds", []),
             )
@@ -175,7 +175,7 @@ async def ocr(
                 image_width=inference_results.get("image_width"),
                 task_id=task_id,
             )
-            status_code, post_processing_results, response_log = pp.post_processing(
+            status_code, post_processing_results, response_log = await pp.post_processing(
                 client=client,
                 task_id=task_id,
                 response_log=response_log,

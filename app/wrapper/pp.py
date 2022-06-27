@@ -8,7 +8,7 @@ from app.common import settings
 from app.wrapper import pp_server_url
 
 
-def post_processing(
+async def post_processing(
     client: Client,
     inputs: Dict,
     post_processing_type: str,
@@ -25,7 +25,7 @@ def post_processing(
         inputs["image_height"],
         inputs["image_width"],
     )
-    pp_response = client.post(
+    pp_response = await client.post(
         f"{pp_server_url}/post_processing/{post_processing_type}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
@@ -42,14 +42,14 @@ def post_processing(
     return (pp_response.status_code, pp_response.json(), response_log)
 
 
-def convert_preds_to_texts(
+async def convert_preds_to_texts(
     client: Client, rec_preds: List, id_type: str = ""
 ) -> Tuple[int, Dict]:
     request_data = dict(
         rec_preds=rec_preds,
         id_type="",
     )
-    convert_response = client.post(
+    convert_response = await client.post(
         f"{pp_server_url}/convert/recognition_to_text",
         json=jsonable_encoder(request_data),
         timeout=settings.TIMEOUT_SECOND,
