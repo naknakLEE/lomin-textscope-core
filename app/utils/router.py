@@ -25,8 +25,9 @@ def model2response_data(models: List[ModelInfo]) -> dict():
     for model in models:
         res.append(
             {
-                "model_index" : model.model_index,
+                "model_idx" : model.model_idx,
                 "model_name_kr" : model.model_name_kr,
+                "model_name_en" : model.model_name_en,
                 
             }
         )
