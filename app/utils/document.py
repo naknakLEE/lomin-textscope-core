@@ -74,7 +74,7 @@ def is_support_format(document_filename: str) -> bool:
 
 def save_upload_document(
     documnet_id: str, documnet_name: str, documnet_base64: str
-) -> Tuple[bool, str]:
+) -> Tuple[bool, Path]:
     
     decoded_image_data = base64.b64decode(documnet_base64)
     success = False
