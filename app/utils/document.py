@@ -1,15 +1,23 @@
+import os
 import tifffile
 import pdf2image
 import base64
 
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from functools import lru_cache
 from typing import Tuple
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
+from typing import Dict
+
 
 from app.utils.logging import logger
 from app.common.const import get_settings
 from app.utils.minio import MinioService
+from app.schemas import error_models as ErrorResponse
+
 
 
 settings = get_settings()
@@ -91,3 +99,12 @@ def save_upload_document(
         success = True
     
     return success, save_path
+
+
+def document_path_verify(document_path: str):
+    if not os.path.isfile(document_path):
+        status_code, error = ErrorResponse.ErrorCode.get(2508)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return True
+    
+    

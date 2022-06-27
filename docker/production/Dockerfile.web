@@ -47,6 +47,9 @@ COPY ./requirements/web/poetry.lock /workspace/
 WORKDIR /workspace
 RUN poetry install --no-dev
 
+COPY ./assets/build_script/rm_init_db_file.py /workspace/assets/build_script/rm_init_db_file.py
+RUN python3 /workspace/assets/build_script/rm_init_db_file.py
+
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
     rm -rf /usr/bin/gcc

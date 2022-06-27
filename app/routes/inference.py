@@ -16,7 +16,7 @@ from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
 from typing import Dict
-from fastapi import APIRouter, BackgroundTasks, Body, Depends
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -43,6 +43,7 @@ router = APIRouter()
 @router.post("/ocr", status_code=200, responses=inference_responses)
 def ocr(
     *,
+    request: Request,
     inputs: Dict = Body(...),
     current_user: dict = Depends(get_current_active_user),
     session: Session = Depends(db.session),
@@ -59,7 +60,10 @@ def ocr(
     document_id = inputs.get("document_id")
     document_path = inputs.get("document_path")
     target_page = inputs.get("page", 1)
-    user_email = inputs.get("user_email", "do@not.use")
+    if request.state.email:
+        user_email = request.state.email
+    else: 
+        user_email = inputs.get("user_email", "do@not.use")
     
     # parameter mapping: web -> inference
     inputs["image_id"] = document_id
