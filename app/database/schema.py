@@ -538,7 +538,8 @@ class GroupPolicy(Base, BaseMixin):
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
     group_idx = Column(ForeignKey('group_info.group_idx'), nullable=False, comment='그룹 유니크 인덱스')
-    permission_code = Column(ForeignKey('policy_info.policy_code'), nullable=False, comment='정책 코드')
+    policy_code = Column(ForeignKey('policy_info.policy_code'), nullable=False, comment='정책 코드')
+    policy_content = Column(JSON, comment='정책 내용')
     is_used = Column(Boolean, comment='사용 여부')
 
     policy_info = relationship('PolicyInfo')

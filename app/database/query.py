@@ -25,7 +25,7 @@ def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInf
     try:
         result = schema.DocTypeInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2106)
+            status_code, error = ErrorResponse.ErrorCode.get(2107)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("doc_type select error")
@@ -40,7 +40,7 @@ def select_doc_type_all(session: Session, **kwargs: Dict) -> Union[List[schema.D
     try:
         result = schema.DocTypeInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2106)
+            status_code, error = ErrorResponse.ErrorCode.get(2107)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("doc_type_all select error")
