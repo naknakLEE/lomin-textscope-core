@@ -71,11 +71,23 @@ def post_inspect_info(
     select_document_result = query.select_document(session, document_id=document_id)
     if isinstance(select_document_result, JSONResponse):
         return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
     
     # 슈퍼어드민 또는 관리자가 아닌데 다른 부서의 문서를 검수 한다면 오류 반환
     if is_admin is False and select_document_result.user_team != user_team:
         status_code, error = ErrorResponse.ErrorCode.get(2505)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 검수 중인데 자신의 검수 중인 문서가 아닐 경우 오류 반환
+    inspect_id = select_document_result.inspect_id
+    select_inspect_result = query.select_inspect_latest(session, inspect_id=inspect_id)
+    if isinstance(select_inspect_result, JSONResponse):
+        return select_inspect_result
+    select_inspect_result: schema.InspectInfo = select_inspect_result
+    if select_inspect_result.inspect_status == settings.INSPECT_STATUS_SUSPEND:
+        if is_admin is False and select_inspect_result.user_email != user_email:
+            status_code, error = ErrorResponse.ErrorCode.get(2511)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     # 검수 결과 저장 page_num이 1보다 작거나, 총 페이지 수보다 크면 오류 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
@@ -123,11 +135,11 @@ def post_inspect_info(
         return update_document_result
     del update_document_result
     
+    
     response = dict(
         resource_id=dict(
             inspect_id=inspect_id
         )
     )
-    
     
     return JSONResponse(status_code=201, content=jsonable_encoder(response))
