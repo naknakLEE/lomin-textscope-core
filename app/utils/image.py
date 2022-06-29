@@ -35,7 +35,7 @@ def read_tiff_one_page_from_bytes(image_bytes, page=1):
     return Image.fromarray(np_image)
 
 
-def read_tiff_page_from_bytes(image_bytes: str, page: int) -> Image:
+def read_tiff_page_from_bytes(image_bytes: str, page: int):
     tiff_images = Image.open(BytesIO(image_bytes))
     tiff_images.seek(page - 1)
     np_image = np.array(tiff_images.convert("RGB"))
@@ -46,7 +46,7 @@ def read_tiff_page_from_bytes(image_bytes: str, page: int) -> Image:
 
 
 @lru_cache(maxsize=15)
-def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1) -> Image:
+def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
     file_extension = Path(image_filename).suffix.lower()
     if file_extension in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
         nparr = np.fromstring(image_bytes, np.uint8)
@@ -86,7 +86,7 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1) -> Image:
 @lru_cache(maxsize=15)
 def read_image_from_bytes(
     image_bytes: str, image_filename: str, angle: Optional[float], page: int
-) -> Image:
+):
     
     image = read_pillow_from_bytes(
         image_bytes=image_bytes, image_filename=image_filename, page=page
@@ -125,25 +125,19 @@ def image_to_base64(image: Image, file_format: str = "jpeg") -> str:
     return base64.b64encode(buffered.getvalue())
 
 
-def load_image(data: dict) -> Image:
-    image_id = data.get("image_id")
-    image_path = data.get("image_path")
-    image_bytes = data.get("image_bytes")
+def load_image(data: dict):
+    image_id:    str = data.get("image_id")
+    image_path:  str = data.get("image_path")
+    image_bytes: str = data.get("image_bytes")
     
     if image_path is None:
         logger.warning(f"Request must have image_path to load image (image_id: {image_id})")
         return None
     
-    image_filename = Path(image_path).name
+    image_path = Path(image_path)
+    image_filename = image_path.name
     if image_bytes is None:
-        if settings.USE_MINIO:
-            image_minio_path = "/".join([image_id, image_filename])
-            image_bytes = minio_client.get(
-                image_minio_path, settings.MINIO_IMAGE_BUCKET
-            )
-        else:
-            with Path(image_path).open("rb") as f:
-                image_bytes = f.read()
+        image_bytes = get_image_bytes(image_id, image_path)
     
     image = read_image_from_bytes(
         image_bytes, image_filename, float(data.get("angle", 0.0)), int(data.get("page", 1))
@@ -192,8 +186,7 @@ def get_image_bytes(image_id: str, image_path: Path) -> str:
     
     if settings.USE_MINIO:
         image_minio_path = "/".join([image_id, image_path.name])
-        image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET,)
-        
+        image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET)
     else:
         with image_path.open("rb") as f:
             image_bytes = f.read()
