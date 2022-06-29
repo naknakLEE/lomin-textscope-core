@@ -1,9 +1,8 @@
-import requests  # type: ignore
-
+from PIL import Image
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
-from fastapi import APIRouter, Depends, Body, HTTPException
+from typing import Any, Dict, List
+from fastapi import APIRouter, Depends, Body
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -13,21 +12,14 @@ from app.database.connection import db
 from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
-from app import models
-from app.utils.utils import cal_time_elapsed_seconds
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
-from app.utils.document import (
-    get_page_count,
-    is_support_format,
-    save_upload_document,
-)
 from app.utils.image import (
-    get_crop_image,
-    get_image_info_from_bytes,
+    read_image_from_bytes,
     get_image_bytes,
-    load_image,
+    image_to_base64,
 )
+
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
@@ -38,6 +30,65 @@ else:
 settings = get_settings()
 router = APIRouter()
 
+
+@router.get("/thumbnail")
+def get_thumbnail(
+    document_id: str,
+    page_num: int = 0,
+    scale: float = 0.4,
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    """
+    ### 문서 썸네일 확인
+    """
+    user_email: str = current_user.email
+    
+    # 자신의 사용자 정보 조회
+    # 조직 정보
+    # 슈퍼어드민 또는 관리자 여부 조회
+    team_role = query.get_user_team_role(session, user_email=user_email)
+    if isinstance(team_role, JSONResponse):
+        return team_role
+    user_team, is_admin = team_role
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    
+    # 슈퍼어드민 또는 관리자가 아닌데 다른 부서의 문서를 보려고 한다면 오류 반환
+    if is_admin is False and select_document_result.user_team != user_team:
+        status_code, error = ErrorResponse.ErrorCode.get(2505)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 오류 반환
+    if page_num < 1 or select_document_result.document_pages < page_num:
+        status_code, error = ErrorResponse.ErrorCode.get(2506)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 문서의 page_num 페이지의 썸네일 base64로 encoding
+    document_path = Path(select_document_result.document_path)
+    document_bytes = get_image_bytes(document_id, document_path)
+    image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page_num)
+    if image is None:
+        status_code, error = ErrorResponse.ErrorCode.get(2103)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    if scale < 0.1: scale = 0.1
+    new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
+    resized_image = image.resize((new_w, new_h))
+    image_base64 = image_to_base64(resized_image)
+    
+    
+    response = dict({
+        "scale": scale,
+        "width": new_w,
+        "height": new_h,
+        "thumbnail": image_base64
+    })
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
 @router.get("/filter/user")

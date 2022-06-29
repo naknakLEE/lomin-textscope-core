@@ -32,6 +32,7 @@ support_file_extension_list = {
 def get_file_extension(document_filename: str = "x.xxx") -> str:
     return Path(document_filename).suffix.lower()
 
+
 @lru_cache(maxsize=15)
 def get_page_count(document_data: str, document_filename: str) -> int:
     document_bytes = base64.b64decode(document_data)
@@ -106,5 +107,16 @@ def document_path_verify(document_path: str):
         status_code, error = ErrorResponse.ErrorCode.get(2508)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return True
+
+
+def get_document_bytes(document_id: str, document_path: Path) -> str:
+    document_bytes = None
     
+    if settings.USE_MINIO:
+        image_minio_path = "/".join([document_id, document_path.name])
+        document_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET)
+    else:
+        with document_path.open("rb") as f:
+            document_bytes = f.read()
     
+    return document_bytes
