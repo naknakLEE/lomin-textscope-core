@@ -3,6 +3,7 @@ import glob
 import copy
 import argparse
 import uuid
+import re
 import pdf2image
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -26,6 +27,22 @@ from app.utils.minio import MinioService
 
 minio_client = MinioService()
 
+
+def cid_to_char(cidx: str):
+    '''
+        pdf내에 text가 cid번호로 구성되어있는 경우 
+        char로 번환하여 return 합니다.
+    '''
+    return chr(int(re.findall(r'\(cid\:(\d+)\)',cidx)[0]) + 29)
+
+def convert_cid_to_str(input: str):
+    res = input
+    if input != "" and input != '(cid:3)':
+        cids = re.findall(r'\(cid\:\d+\)',input)
+        if len(cids) > 0:
+            for cid in cids: res=res.replace(cid, cid_to_char(cid))
+            return res
+    return res
 
 class Pdf2Image:
     def __init__(self, data_dir: Optional[str] = None):
@@ -119,7 +136,8 @@ class Pdf2Image:
         if len(textline_char.strip()) != 0:
             textline_box_array = np.array(textline_box_list)
             box_list.append(self.get_integrated_box(textline_box_array))
-            text_list.append(textline_char.strip())
+            textline_char = convert_cid_to_str(textline_char.strip())
+            text_list.append(textline_char)
         return box_list, text_list
 
     def resize_bbox(self, bbox: np.ndarray, w_ratio: float, h_ratio: float) -> List:
