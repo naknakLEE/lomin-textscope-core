@@ -9,6 +9,7 @@ ENV LANG=C.UTF-8
 ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 ENV API_ENV="production"
 ENV PATH="/root/.local/bin:${PATH}"
+ENV DOCKER_ENV=True
 
 RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
