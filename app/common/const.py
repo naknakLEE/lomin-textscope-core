@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
+    
+    # END POINT ADDRESS
+    SERVING_EP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
