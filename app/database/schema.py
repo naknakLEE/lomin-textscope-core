@@ -4,12 +4,12 @@ import typing
 import io
 import msoffcrypto
 import openpyxl
-from os import environ
-from pathlib import Path, PurePath
 
 
-from typing import Any, Dict, List, Optional, TypeVar, Union
-from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func
+from fastapi.encoders import jsonable_encoder
+from typing import Any, Dict, List, Optional, TypeVar
+from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func
+from sqlalchemy.sql import text
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -35,18 +35,22 @@ primary_column_table = {
     "KeiUserInfo": "emp_eno",
     "KeiOrgInfo": "org_org_id",
     
+    "ClsInfo": "cls_idx",
     "DocTypeInfo": "doc_type_idx",
     "ModelInfo": "model_idx",
     "ClassInfo": "class_code",
     "DocTypeModel": "doc_type_idx,model_idx",
+    "ClsModel": "cls_idx,model_idx",
+    
+    "CompanyInfo": "company_code",
     
     "UserInfo": "user_email",
-    "GroupInfo": "group_idx",
-    "UserGroup": "user_email,group_idx",
+    "GroupInfo": "group_code",
+    "UserGroup": "user_email,group_code",
     "PolicyInfo": "policy_code",
-    "GroupPolicy": "created_time",
+    "GroupPolicy": "group_code,policy_code",
     
-    "DocumentInfo": "document_id",
+    "DocumentInfo": "document_idx,document_id",
     "InspectInfo": "inspect_id",
     
     "InferenceInfo": "inference_id",
@@ -400,15 +404,28 @@ class KeiOrgInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
 
+class ClsInfo(Base, BaseMixin):
+    __tablename__ = 'cls_info'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류(대분류) 정보'}
+    
+    company_code = Column(String, comment='회사 유니크 코드')
+    cls_idx = Column(Integer, primary_key=True, comment='문서 종류(대분류) 유니크 인덱스')
+    cls_code = Column(String, comment='문서 종류(대분류) 표준 코드')
+    cls_name_kr = Column(String, comment='문서 종류(대분류) 한글 명')
+    cls_name_en = Column(String, comment='문서 종류(대분류) 영문 명')
+    is_used = Column(Boolean, comment='사용 여부')
+
+
 class DocTypeInfo(Base, BaseMixin):
     __tablename__ = 'doc_type_info'
-    __table_args__ = {'comment': 'textscope 서비스 문서 종류 정보'}
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류(소분류) 정보'}
     
-    doc_type_idx = Column(Integer, primary_key=True, comment='문서 종류 유니크 인덱스')
-    doc_type_code = Column(String, comment='문서 종류 표준 코드')
-    doc_type_name_kr = Column(String, comment='문서 종류 한글 명')
-    doc_type_name_en = Column(String, comment='문서 종류 영문 명')
-    doc_type_structed = Column(Boolean, comment='문서 유형(true=정형, false=비정형)')
+    doc_type_idx = Column(Integer, primary_key=True, comment='문서 종류(소분류) 유니크 인덱스')
+    doc_type_code = Column(String, comment='문서 종류(소분류) 표준 코드')
+    doc_type_code_parent = Column(String, comment='상위 문서 종류(소분류) 표준 코드')
+    doc_type_name_kr = Column(String, comment='문서 종류(소분류) 한글 명')
+    doc_type_name_en = Column(String, comment='문서 종류(소분류) 영문 명')
+    doc_type_structed = Column(String, comment='문서 유형(정형, 비정형, 반정형)')
     is_used = Column(Boolean, comment='사용 여부')
 
 
@@ -422,9 +439,10 @@ class ModelInfo(Base, BaseMixin):
     model_version = Column(String, comment='모델 버전')
     model_path = Column(String, comment='모델 저장 경로')
     model_type = Column(String, comment='모델 종류')
+    model_route_name = Column(String, comment='모델 route 명')
+    model_artifact_name = Column(String, comment='모델 artifact 명')
     model_created_time = Column(DateTime, default=func.now(), comment='모델 등록 시각')
     is_used = Column(Boolean, comment='사용 여부')
-
 
 
 class DocTypeModel(Base, BaseMixin):
@@ -441,6 +459,19 @@ class DocTypeModel(Base, BaseMixin):
     model_info = relationship('ModelInfo')
 
 
+class ClsModel(Base, BaseMixin):
+    __tablename__ = 'cls_model'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류 대분류 소분류 관계'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    cls_idx = Column(ForeignKey('cls_info.cls_idx'), nullable=False, comment='문서 종류(대분류) 유니크 인덱스')
+    model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='문서 분류 모델 유니크 인덱스')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    cls_info = relationship('ClsInfo')
+    model_info = relationship('ModelInfo')
+
+
 class PolicyInfo(Base, BaseMixin):
     __tablename__ = 'policy_info'
     __table_args__ = {'comment': 'textscope 서비스 정책 정보'}
@@ -454,8 +485,8 @@ class GroupInfo(Base, BaseMixin):
     __tablename__ = 'group_info'
     __table_args__ = {'comment': 'textscope 서비스 그룹 정보'}
 
-    group_idx = Column(Integer, primary_key=True, comment='그룹 유니크 인덱스')
-    group_type = Column(Integer, comment='그룹 종류(권한=1, 부서=2, 팀=3, 개인=4, 직급=5, 그룹=6, 역할=7)')
+    group_code = Column(String, primary_key=True, comment='그룹 유니크 코드')
+    group_level = Column(Integer, comment='그룹 레벨(최상=1)')
     group_name = Column(String, nullable=False, default='그룹이름', comment='그룹 이름')
     is_used = Column(Boolean, comment='사용 여부')
 
@@ -472,22 +503,38 @@ class LogInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
 
+class CompanyInfo(Base, BaseMixin):
+    __tablename__ = 'company_info'
+    __table_args__ = {'comment': 'textscope 서비스 회사 정보'}
+
+    created_time = Column(DateTime, default=func.now())
+    company_code = Column(String, primary_key=True, comment='회사 유니크 코드')
+    company_domain = Column(String, comment='회사 도메인')
+    company_address = Column(String, comment='회사 주소')
+    company_ph = Column(String, comment='회사 대표 연락처')
+    company_ceo = Column(String, comment='회사 대표자 성함')
+
+
 class UserInfo(Base, BaseMixin):
     __tablename__ = 'user_info'
     __table_args__ = {'comment': 'textscope 서비스 사용자 정보'}
 
+    company_code = Column(ForeignKey('company_info.company_code'), nullable=False, comment='회사 유니크 코드')
     user_email = Column(String, primary_key=True, nullable=False, comment='아이디(이메일)')
     user_pw = Column(String, comment='비밀번호')
     user_name = Column(String, comment='이름')
     user_team = Column(String, comment='유저 정보')
     is_used = Column(Boolean, comment='사용 여부')
 
+    company_info = relationship('CompanyInfo')
+
 
 class ClassInfo(Base, BaseMixin):
     __tablename__ = 'class_info'
     __table_args__ = {'comment': 'textscope 서비스 딥러닝 모델의 항목(라벨 클래스)'}
 
-    class_code = Column(String, primary_key=True, comment='항목 코드')
+    class_idx = Column(Integer, primary_key=True, comment='항목 유니크 인덱스')
+    class_code = Column(String, comment='항목 코드')
     model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='모델 유니크 인덱스')
     class_name_kr = Column(String, comment='항목 한글 명')
     class_name_en = Column(String, comment='항목 영문 명')
@@ -501,7 +548,7 @@ class DocumentInfo(Base, BaseMixin):
     __tablename__ = 'document_info'
     __table_args__ = {'comment': 'textscope 서비스 학습 또는 추론을 위해 업로드된 문서 정보'}
 
-    document_idx = Column(Integer, primary_key=True, comment='문서 유니크 인덱스')
+    document_idx = Column(BigInteger, primary_key=True, comment='문서 유니크 인덱스')
     document_id = Column(String, nullable=False, unique=True, comment='문서 아이디')
     user_email = Column(ForeignKey('user_info.user_email'), nullable=False, comment='문서 등록자 아이디(이메일)')
     user_team = Column(String, nullable=False, comment='문서 등록 당시 유저의 정보')
@@ -510,7 +557,7 @@ class DocumentInfo(Base, BaseMixin):
     document_description = Column(String, comment='문서 설명')
     document_pages = Column(Integer, comment='문서 총 페이지 수')
     doc_type_idx = Column(Integer, comment='문서 종류 유니크 인덱스')
-    inspect_id = Column(String, default='None', comment='문서의 최근 검수 아이디')
+    inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 
     user_info = relationship('UserInfo')
@@ -534,12 +581,14 @@ class KeiUserInfo(Base, BaseMixin):
 
 class GroupPolicy(Base, BaseMixin):
     __tablename__ = 'group_policy'
-    __table_args__ = {'comment': 'textscope 서비스 역할 권한'}
+    __table_args__ = {'comment': 'textscope 서비스 그룹 권한'}
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
-    group_idx = Column(ForeignKey('group_info.group_idx'), nullable=False, comment='그룹 유니크 인덱스')
+    group_code = Column(ForeignKey('group_info.group_code'), nullable=False, comment='그룹 유니크 코드')
     policy_code = Column(ForeignKey('policy_info.policy_code'), nullable=False, comment='정책 코드')
     policy_content = Column(JSON, comment='정책 내용')
+    start_time = Column(DateTime, nullable=False, default=func.now(), comment='정책 적용 시작 시각')
+    end_time = Column(DateTime, nullable=False, default=func.now(), comment='정책 적용 종료 시각')
     is_used = Column(Boolean, comment='사용 여부')
 
     policy_info = relationship('PolicyInfo')
@@ -553,7 +602,7 @@ class UserGroup(Base, BaseMixin):
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
     user_email = Column(ForeignKey('user_info.user_email'), nullable=False, comment='아이디(이메일)')
-    group_idx = Column(ForeignKey('group_info.group_idx'), nullable=False, comment='그룹 유니크 인덱스')
+    group_code = Column(ForeignKey('group_info.group_code'), nullable=False, comment='그룹 유니크 코드')
     is_used = Column(Boolean, comment='사용 여부')
 
     group_info = relationship('GroupInfo')
@@ -641,30 +690,49 @@ class VisualizeInfo(Base, BaseMixin):
 
 # 테이블 추가 시, 테이블 명:클래스 명 추가
 table_class_mapping = dict({
-        "VW_IF_CD": VWIFCD,
-        "VW_IF_EMP": VWIFEMP,
-        "VW_IF_ORG_CUR": VWIFORGCUR,
-        "alarm_info": AlarmInfo,
-        "kei_org_info": KeiOrgInfo,
-        "doc_type_info": DocTypeInfo,
-        "model_info": ModelInfo,
-        "doc_type_model": DocTypeModel,
-        "policy_info": PolicyInfo,
-        "group_info": GroupInfo,
-        "log_info": LogInfo,
-        "user_info": UserInfo,
-        "class_info": ClassInfo,
-        "document_info": DocumentInfo,
-        "kei_user_info": KeiUserInfo,
-        "group_policy": GroupPolicy,
-        "user_group": UserGroup,
-        "alarm_read": AlarmRead,
-        "inference_info": InferenceInfo,
-        "user_alarm": UserAlarm,
-        "user_group": UserGroup,
-        "inspect_info": InspectInfo,
-        "visualize_info": VisualizeInfo,
+    "VW_IF_CD": VWIFCD,
+    "VW_IF_EMP": VWIFEMP,
+    "VW_IF_ORG_CUR": VWIFORGCUR,
+    "alarm_info": AlarmInfo,
+    "kei_org_info": KeiOrgInfo,
+    "kei_user_info": KeiUserInfo,
+    "doc_type_info": DocTypeInfo,
+    "model_info": ModelInfo,
+    "doc_type_model": DocTypeModel,
+    "cls_info": ClsInfo,
+    "cls_model": ClsModel,
+    "policy_info": PolicyInfo,
+    "group_info": GroupInfo,
+    "log_info": LogInfo,
+    "company_info": CompanyInfo,
+    "user_info": UserInfo,
+    "class_info": ClassInfo,
+    "document_info": DocumentInfo,
+    "group_policy": GroupPolicy,
+    "user_group": UserGroup,
+    "alarm_read": AlarmRead,
+    "inference_info": InferenceInfo,
+    "user_alarm": UserAlarm,
+    "user_group": UserGroup,
+    "inspect_info": InspectInfo,
+    "visualize_info": VisualizeInfo,
 })
+
+# plugin 계정에 특정 테이블 권한 주기
+grant_table_list = [
+    "user_info",
+    "user_group",
+    "group_info",
+    "group_policy",
+    "policy_info",
+    "document_info",
+    "inspect_info",
+    "alarm_info",
+    "alarm_read",
+    "user_alarm",
+    "kei_org_info",
+    "kei_user_info"
+]
 
 def create_db_table() -> None:
     try:
@@ -675,13 +743,43 @@ def create_db_table() -> None:
         session.close()
 
 
+def create_db_users() -> None:
+    try:
+        connection = db.engine.connect()
+        sql_create_user = """CREATE USER %TS%username%TS% WITH PASSWORD '%TS%passwd%TS%'"""
+        sql_grant_table = """GRANT ALL ON %TS%table%TS% TO %TS%username%TS%"""
+        
+        for user in settings.POSTGRES_USERS:
+            connection.execute(text(
+                sql_create_user \
+                .replace("%TS%username%TS%", user.get("username")) \
+                .replace("%TS%passwd%TS%", user.get("passwd"))
+            ))
+            for table in grant_table_list:
+                connection.execute(text(
+                    sql_grant_table \
+                    .replace("%TS%table%TS%", table) \
+                    .replace("%TS%username%TS%", user.get("username"))
+                ))
+        
+    except Exception as exce:
+        pass
+
+
 def insert_initial_data() -> None:
     try:
         session = next(db.session())
+        
+        initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
+        if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
+            logger.info(f'Textscope service initial data skipped')
+            return
+        
         db_dir="/workspace/app/assets/database/"
         
         total_row_count = 0
         insert_start = dt.datetime.now()
+        
         for file_info in settings.INIT_DATA_XLSX_FILE_LIST:
             if file_info.get("name") not in hydra_cfg.database.insert_initial_filename: continue
             
@@ -697,6 +795,7 @@ def insert_initial_data() -> None:
                 sheets.remove(sheet_ignore)
             
             for table_name in sheets:
+                target_table = table_class_mapping.get(table_name)
                 
                 ws = wb.get_sheet_by_name(table_name)
                 row_cells = list(ws.rows)
@@ -707,14 +806,17 @@ def insert_initial_data() -> None:
                     if column.value in check_columns.split(","): check_idx_list.append(idx)
                 
                 for row_cell in row_cells[1:]:
+                    
                     able_data = True
                     
                     for idx in check_idx_list:
                         if row_cell[idx].value is None: able_data = False
-                    if able_data is False: continue
+                    
+                    if able_data is False:
+                        continue
                     
                     init_data = dict()
-                    target_table = table_class_mapping.get(table_name)
+                    
                     for column, cell in zip(row_cells[0], row_cell):
                         if cell.value is None: continue
                         
@@ -722,6 +824,7 @@ def insert_initial_data() -> None:
                         cell_value = str(cell.value)
                         
                         db_type = getattr(target_table, column_name).type
+                        
                         if isinstance(db_type, Boolean):
                             if cell_value[0].upper() == "Y" or cell_value[0].upper() == "T" or cell_value[0] == "1":
                                 cell_value = True
@@ -729,14 +832,17 @@ def insert_initial_data() -> None:
                                 cell_value = False
                         
                         init_data.update({column_name:cell_value})
-                        
-                    target_table.create(session, auto_commit=True, **init_data)
-                
-                total_row_count += len(row_cells[1:])
-        del init_data, target_table, ws, wb, init_xlsx_e, init_xlsx_d, file_info
+                    
+                    if len(init_data) != 0:
+                        result = target_table.create(session, auto_commit=True, **init_data)
+                        if not isinstance(result, str): total_row_count += 1
+                        del column, cell, column_name, cell_value, init_data
+        del target_table, ws, wb, init_xlsx_e, init_xlsx_d, file_info
         
         logger.info(
-            f"Textscope service initial data insert complet: {total_row_count} rows, {str(round((dt.datetime.now()-insert_start).total_seconds(), 3))}s"
+            f'Textscope service initial data insert Total: {total_row_count} rows, {str(round((dt.datetime.now()-insert_start).total_seconds(), 3))}s'
         )
+    except Exception as exce:
+        logger.error(exce)
     finally:
         session.close()
