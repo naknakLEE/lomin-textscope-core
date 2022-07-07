@@ -4,7 +4,7 @@ import requests  # type: ignore
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
-from fastapi import APIRouter, Depends, Body, HTTPException, Security, Request
+from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
@@ -13,16 +13,18 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer
 )
+import base64
 
 from app import hydra_cfg
-from app.utils.background import bg_run_ocr
+from app.utils.background import bg_ocr
 from app.database.connection import db
 from app.database import query, schema
+from app.models import UserInfo as UserInfoInModel
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
 from app.utils.document import document_path_verify
-from app.utils.utils import cal_time_elapsed_seconds
+from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
 from app.schemas import error_models as ErrorResponse
 from app.schemas import HTTPBearerFake
 from app.utils.document import (
@@ -36,6 +38,10 @@ from app.utils.image import (
     get_image_bytes,
     load_image,
 )
+if hydra_cfg.route.use_token:
+    from app.utils.auth import get_current_active_user as get_current_active_user
+else:
+    from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
 settings = get_settings()
@@ -151,34 +157,47 @@ def get_image(
 
 
 @router.post("/docx")
-def post_upload_document(
-    request: Request,
+async def post_upload_document(
     background_tasks: BackgroundTasks,
+    current_user: UserInfoInModel = Depends(get_current_active_user),
     params: dict = Body(...), 
     session: Session = Depends(db.session),
 ) -> JSONResponse:
-    inputs = params
-    response: Dict = dict()
-    response_log: Dict = dict()
+    
+    response: dict = dict(resource_id=dict())
+    response_log: dict = dict()
     request_datetime = datetime.now()
-    user_email = inputs.get("user_email", "do@not.use")
-    document_id = inputs.get("document_id", "")
-    document_name = inputs.get("file_name", "")
-    document_path = inputs.get("document_path", "")
-    document_data = inputs.get("file", "")
     
-    if document_path and not document_name:
-        document_name = os.path.basename(document_path)
+    user_email:           str = params.get("user_email", current_user.email)
+    document_id:          str = params.get("document_id", get_ts_uuid("document"))
+    document_name:        str = params.get("file_name")
+    document_data:        str = params.get("file")
+    doc_type_idx:         int = params.get("doc_type_idx", 0)
+    document_description: str = params.get("description")
+    document_type:        str = params.get("document_type")
+    document_path:        str = params.get("document_path")
     
-    if hydra_cfg.route.use_token:
-        user_email = request.state.email
-
+    
+    # document_data가 없고 document_path로 요청이 왔는지 확인
+    # document_path로 왔으면 파일 읽기
+    if document_data is None and document_path is not None:
+        file_path = Path(document_path)
+        document_name = file_path.name
+        path_verify = document_path_verify(document_path)
+        if isinstance(path_verify, JSONResponse): return path_verify
+        
+        with file_path.open('rb') as file:
+            document_data = await file.read()
+        document_data = base64.b64encode(document_data)
+    
+    # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
-    
+    select_user_result: schema.UserInfo = select_user_result
     user_team = select_user_result.user_team
     
+    # 자동생성된 document_id 중복 확인
     select_document_result = query.select_document(session, document_id=document_id)
     if isinstance(select_document_result, schema.DocumentInfo):
         status_code, error = ErrorResponse.ErrorCode.get(2102)
@@ -188,44 +207,52 @@ def post_upload_document(
         if select_document_result.status_code != status_code_no_document:
             return select_document_result
     
+    # 업로드된 파일 포맷(확장자) 확인
     is_support = is_support_format(document_name)
     if is_support is False:
         status_code, error = ErrorResponse.ErrorCode.get(2105)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-
-    path_verify = document_path_verify(document_path)
-    if isinstance(path_verify, JSONResponse):
-        return path_verify
+    
+    # 문서 저장(minio or local pc)
+    save_success, save_path = save_upload_document(document_id, document_name, document_data)
+    if save_success:
+        # doc_type_index로 doc_type_code 조회
+        select_doc_type_result = query.select_doc_type(session, doc_type_idx=doc_type_idx)
+        if isinstance(select_doc_type_result, JSONResponse):
+            return select_doc_type_result
+        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+        doc_type_code = select_doc_type_result.doc_type_code
         
-    if document_data:
-        save_success, document_path = save_upload_document(document_id, document_name, document_data)
-        if save_success == False:
-            status_code, error = ErrorResponse.ErrorCode.get(4102)
-            error.error_message = error.error_message.format("문서")
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-    
-    
-    dao_document_params = {
-        "user_email": user_email,
-        "user_team": user_team,
-        "document_id": document_id,
-        "document_path": str(document_path),
-        "document_type": inputs.get("document_type"),
-        "document_model_type": inputs.get("model_index", None),
-        "document_description": inputs.get("description"),
-        "document_pages": get_page_count(document_data, document_name)
-    }
-    insert_document_result = query.insert_document(session, **dao_document_params)
-    if isinstance(insert_document_result, JSONResponse):
-        return insert_document_result
-    
-    if hydra_cfg.document.background_ocr:
-        gb_params ={
-            "save_path": document_path,
+        document_pages = get_page_count(document_data, document_name)
+        dao_document_params = {
+            "document_id": document_id,
             "user_email": user_email,
-            "document_id": document_id
+            "user_team": user_team,
+            "document_path": save_path,
+            "document_description": document_description,
+            "document_pages": document_pages,
+            "doc_type_idx": doc_type_idx,
+            "document_type": document_type
         }
-        bg_run_ocr(background_tasks, session, gb_params)
+        insert_document_result = query.insert_document(session, **dao_document_params)
+        if isinstance(insert_document_result, JSONResponse):
+            return insert_document_result
+        
+        if hydra_cfg.document.background_ocr:
+            # task_id = get_ts_uuid("task")
+            # response.get("resource_id").update(task_id=task_id)
+            background_tasks.add_task(
+                bg_ocr,
+                current_user,
+                save_path=save_path,
+                document_id=document_id,
+                document_pages=document_pages,
+                doc_type_code=doc_type_code
+            )
+    else:
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        error.error_message = error.error_message.format("문서")
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -235,14 +262,15 @@ def post_upload_document(
         elapsed=elapsed,
     ))
     
-    response.update(dict(
+    response.update(
         request_datetime=request_datetime,
         response_datetime=response_datetime,
         elapsed=elapsed,
         response_log=response_log,
-    ))
+    )
+    response.get("resource_id").update(document_id=document_id)
     
-    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+    return JSONResponse(status_code=200, content=jsonable_encoder(response), background=background_tasks)
 
 
 @router.post("/image/crop")

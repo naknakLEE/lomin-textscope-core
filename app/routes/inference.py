@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
-from app.utils.utils import get_pp_api_name, set_json_response
+from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
 from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
@@ -23,6 +23,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.schemas.json_schema import inference_responses
+from app.models import UserInfo as UserInfoInModel
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings
@@ -43,9 +44,8 @@ router = APIRouter()
 @router.post("/ocr", status_code=200, responses=inference_responses)
 def ocr(
     *,
-    request: Request,
     inputs: Dict = Body(...),
-    current_user: dict = Depends(get_current_active_user),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session),
 ) -> Dict:
     """
@@ -55,46 +55,48 @@ def ocr(
     """
     start_time = datetime.now()
     response_log: Dict = dict()
-    response: Dict = dict()
-    task_id = inputs.get("task_id")
+    user_email = inputs.get("user_email", current_user.email)
+    log_id = inputs.get("log_id", get_ts_uuid("log"))
     document_id = inputs.get("document_id")
     document_path = inputs.get("document_path")
     target_page = inputs.get("page", 1)
-    if request.state.email:
-        user_email = request.state.email
-    else: 
-        user_email = inputs.get("user_email", "do@not.use")
     
-    # parameter mapping: web -> inference
+    
+    # parameter mapping:
+    # web -> inference
+    #   docx -> image
+    # web -> pp
+    #   log -> task
     inputs["image_id"] = document_id
     inputs["image_path"] = document_path
+    task_id = log_id
     
     select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
-    
+    select_user_result: schema.UserInfo = select_user_result
     user_team: str = select_user_result.user_team
     
-    select_task_result = query.select_task(session, task_id=task_id) 
-    if isinstance(select_task_result, schema.TaskInfo):
+    select_log_result = query.select_log(session, log_id=task_id) 
+    if isinstance(select_log_result, schema.LogInfo):
         status_code, error = ErrorResponse.ErrorCode.get(2202)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-    elif isinstance(select_task_result, JSONResponse):
-        status_code_no_task, _ = ErrorResponse.ErrorCode.get(2201)
-        if select_task_result.status_code != status_code_no_task:
-            return select_task_result
+    elif isinstance(select_log_result, JSONResponse):
+        status_code_no_log, _ = ErrorResponse.ErrorCode.get(2201)
+        if select_log_result.status_code != status_code_no_log:
+            return select_log_result
     
     logger.debug(f"{task_id}-api request start:\n{pretty_dict(inputs)}")
     
-    insert_task_result = query.insert_task(
+    insert_log_result = query.insert_log(
         session=session,
-        task_id=task_id,
+        log_id=task_id,
         user_email=user_email,
         user_team=user_team,
-        task_content=dict({"request": inputs})
+        log_content=dict({"request": inputs})
     )
-    if isinstance(insert_task_result, JSONResponse):
-        return insert_task_result
+    if isinstance(insert_log_result, JSONResponse):
+        return insert_log_result
     
     # task_pkey = insert_task_result.task_pkey
     
@@ -206,24 +208,43 @@ def ocr(
         
     
     response_log.update(inference_results.get("response_log", {}))
-    response.update(response_log=response_log)
-    response.update(inference_results=inference_results)
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
+
+    inference_id = get_ts_uuid("inference")
+    doc_type_code = inference_results.get("doc_type")
     
-    inference_id = str(uuid.uuid4())
+    # doc_type_code로 doc_type_index 조회
+    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+    if isinstance(select_doc_type_result, JSONResponse):
+        return select_doc_type_result
+    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+    doc_type_idx = select_doc_type_result.doc_type_idx
+    
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
         document_id=document_id,
         user_email=user_email,
         user_team=user_team,
-        model_index=0,
         inference_result=inference_results,
         inference_type=inputs.get("inference_type"),
         page_num=inference_results.get("page", target_page),
+        doc_type_idx=doc_type_idx,
         response_log=response_log
     )
     if isinstance(insert_inference_result, JSONResponse):
         return insert_inference_result
+    del insert_inference_result
+    
+    
+    response = dict(
+        response_log=response_log,
+        inference_results=inference_results
+    )
+    response.update(
+        resource_id=dict(
+            # log_id=task_id
+        )
+    )
     
     return JSONResponse(content=jsonable_encoder(response))

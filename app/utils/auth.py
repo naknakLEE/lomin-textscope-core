@@ -160,5 +160,11 @@ async def initialize_ldap() -> Server:
     server = Server("LDAP://openldap:389", get_info=ALL)
     return server
 
-def get_current_active_user_fake():
-    pass
+def get_current_active_user_fake() -> UserInfoInModel:
+    return UserInfoInModel(
+        email="guest@lomin.ai",
+        password="",
+        team="0000",
+        name="김게스트.auth.disabled",
+        status="active"
+    )

@@ -188,7 +188,7 @@ def single(
 ) -> Tuple[int, Dict, Dict]:
     """doc type hint를 적용하고 inference 요청"""
     # Apply doc type hint
-    hint = inputs.get("hint")
+    hint = inputs.get("hint", {})
     if hint is not None and hint.get("doc_type") is not None:
         doc_type_hint = hint.get("doc_type", {})
         doc_type_hint = DocTypeHint(**doc_type_hint)
@@ -197,33 +197,23 @@ def single(
         inputs["doc_type"] = cls_hint_result.get("doc_type")
 
     inference_start_time = datetime.now()
-    response_log["inference_start_time"] = inference_start_time.strftime(
-        "%Y-%m-%d %H:%M:%S.%f"
-    )[:-3]
+    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+    
+    # TODO 추후 doc_type : route_name 매핑 정보 추가
     if inputs["doc_type"] == "FN-CB":
-        ocr_response = client.post(
-            f"{model_server_url}/bill_enterprise",
-            json=inputs,
-            timeout=settings.TIMEOUT_SECOND,
-            headers={"User-Agent": "textscope core"},
-        )
-    else:
-        ocr_response = client.post(
+        route_name = "bill_enterprise"
+    
+    ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
     )
+    
     inference_end_time = datetime.now()
     response_log.update(
-        {
-            "inference_end_time": inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[
-                :-3
-            ],
-            "inference_total_time": (
-                inference_end_time - inference_start_time
-            ).total_seconds(),
-        }
+        inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+        inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
     )
     logger.info(
         f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"

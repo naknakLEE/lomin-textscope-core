@@ -26,7 +26,8 @@ metadata = Base.metadata
 ModelType = TypeVar("ModelType", bound=Base)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-exist_column_table = {
+# 테이블 추가 시, 테이블 클래스 명 : primary_key 추가
+primary_column_table = {
     "VWIFCD": "cmn_cd_id,cmn_cd_val",
     "VWIFEMP": "eno",
     "VWIFORGCUR": "org_id,dept_st_dt",
@@ -34,12 +35,28 @@ exist_column_table = {
     "KeiUserInfo": "emp_eno",
     "KeiOrgInfo": "org_org_id",
     
+    "DocTypeInfo": "doc_type_idx",
+    "ModelInfo": "model_idx",
+    "ClassInfo": "class_code",
+    "DocTypeModel": "doc_type_idx,model_idx",
+    
     "UserInfo": "user_email",
-    "RoleInfo": "role_index",
-    "UserRole": "user_email,role_index",
-    "Document": "document_id",
-    "ModelInfo": "model_index",
-    "InspectInfo": "inspect_id"
+    "GroupInfo": "group_idx",
+    "UserGroup": "user_email,group_idx",
+    "PolicyInfo": "policy_code",
+    "GroupPolicy": "created_time",
+    
+    "DocumentInfo": "document_id",
+    "InspectInfo": "inspect_id",
+    
+    "InferenceInfo": "inference_id",
+    "VisualizeInfo": "visualize_id",
+    
+    "AlarmInfo": "alarm_idx",
+    "AlarmRead": "created_time",
+    "UserAlarm": "created_time",
+    
+    "LogInfo": "log_id"
 }
 
 
@@ -54,7 +71,7 @@ class BaseMixin:
     @typing.no_type_check
     @classmethod
     def check_raw_exists(cls, session: Session, **kwargs: Dict[str, Any]) -> str:
-        check_columns = exist_column_table.get(cls.__name__)
+        check_columns = primary_column_table.get(cls.__name__)
         message = ""
         if check_columns is None:
             return message
@@ -76,15 +93,6 @@ class BaseMixin:
             col = getattr(cls, key)
             query = query.filter(col == val)
         return query.first()
-    
-    @typing.no_type_check
-    @classmethod
-    def get_all(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
-        query = session.query(cls)
-        for key, val in kwargs.items():
-            col = getattr(cls, key)
-            query = query.filter(col == val)
-        return query.all()
 
     @typing.no_type_check
     @classmethod
@@ -97,16 +105,31 @@ class BaseMixin:
             query = query.filter(col == val)
         query = query.offset(skip).limit(limit)
         return query.all() if query else None
-
+    
+    # 특정 컬럼이 특정 값인 row들을 조회
+    # where id = 'value'
     @typing.no_type_check
     @classmethod
     def get_all(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
         query = session.query(cls)
         for key, val in kwargs.items():
             col = getattr(cls, key)
+            query = query.filter(col == val)
+        return query.all() if query else None
+
+    #특정 컬럼이 특정 값들인 row들을 조회
+    # where id in ('value1', 'value2')
+    @typing.no_type_check
+    @classmethod
+    def get_all_multi(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
+        query = session.query(cls)
+        for key, val in kwargs.items():
+            col = getattr(cls, key)
             query = query.filter(col.in_(val))
         return query.all() if query else None
 
+    # 특정 컬럼이 특정 값인 query 반환
+    # where id = 'value'
     @typing.no_type_check
     @classmethod
     def get_all_query(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
@@ -114,6 +137,17 @@ class BaseMixin:
         for key, val in kwargs.items():
             col = getattr(cls, key)
             query = query.filter(col == val)
+        return query
+
+    #특정 컬럼이 특정 값들인 query 반환
+    # where id in ('value1', 'value2')
+    @typing.no_type_check
+    @classmethod
+    def get_all_query_multi(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
+        query = session.query(cls)
+        for key, val in kwargs.items():
+            col = getattr(cls, key)
+            query = query.filter(col.in_(val))
         return query
 
     @typing.no_type_check
@@ -127,16 +161,19 @@ class BaseMixin:
         session.commit()
         return obj
 
+    # 특정 컬럼(p_key)를 특정 값(p_value)로 업데이트
+    # update '테이블명' set 'p_key' = 'p_value' where **kwargs
     @typing.no_type_check
     @classmethod
     def update(
         cls,
         session: Session,
-        id: int,
+        p_key: str,
+        p_value: Any,
         auto_commit: bool = True,
         **kwargs: Dict[str, Any],
     ) -> Optional[ModelType]:
-        query = session.query(cls).filter(cls.id == id).first()
+        query = session.query(cls).filter(getattr(cls, p_key) == p_value).first()
         for key, val in kwargs.items():
             setattr(query, key, val)
         session.flush()
@@ -341,7 +378,7 @@ class AlarmInfo(Base, BaseMixin):
     __tablename__ = 'alarm_info'
     __table_args__ = {'comment': 'textscope 서비스 알람 목록'}
 
-    alarm_index = Column(Integer, primary_key=True, comment='알람 유니크 인덱스')
+    alarm_idx = Column(Integer, primary_key=True, comment='알람 유니크 인덱스')
     alarm_range = Column(String, nullable=False, default='전체', comment='알람 노출 범위(전체, 팀)')
     alarm_type = Column(String, nullable=False, comment='알람 종류(문서 분류 AI 모델 학습, 구성원)')
     alarm_title = Column(String, nullable=False, comment='알람 제목')
@@ -358,7 +395,20 @@ class KeiOrgInfo(Base, BaseMixin):
     org_org_id = Column(String, primary_key=True, comment='조직ID')
     org_org_nm = Column(String, comment='조직명')
     org_hgh_dpcd = Column(String, comment='상위조직ID')
+    org_dept_lvl_val = Column(String, comment='부서 레벨')
     org_dept_lvl = Column(String, comment='현시점의 부서트리 레벨(뎁스)')
+    is_used = Column(Boolean, comment='사용 여부')
+
+
+class DocTypeInfo(Base, BaseMixin):
+    __tablename__ = 'doc_type_info'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류 정보'}
+    
+    doc_type_idx = Column(Integer, primary_key=True, comment='문서 종류 유니크 인덱스')
+    doc_type_code = Column(String, comment='문서 종류 표준 코드')
+    doc_type_name_kr = Column(String, comment='문서 종류 한글 명')
+    doc_type_name_en = Column(String, comment='문서 종류 영문 명')
+    doc_type_structed = Column(Boolean, comment='문서 유형(true=정형, false=비정형)')
     is_used = Column(Boolean, comment='사용 여부')
 
 
@@ -366,7 +416,7 @@ class ModelInfo(Base, BaseMixin):
     __tablename__ = 'model_info'
     __table_args__ = {'comment': 'textscope 서비스 등록된 딥러닝 모델 정보'}
 
-    model_index = Column(Integer, primary_key=True, comment='모델 유니크 인덱스')
+    model_idx = Column(Integer, primary_key=True, comment='모델 유니크 인덱스')
     model_name_kr = Column(String, comment='모델 한글 명')
     model_name_en = Column(String, comment='모델 영문 명')
     model_version = Column(String, comment='모델 버전')
@@ -376,34 +426,49 @@ class ModelInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
 
-class PermissionInfo(Base, BaseMixin):
-    __tablename__ = 'permission_info'
-    __table_args__ = {'comment': 'textscope 서비스 권한 정보'}
 
-    permission_code = Column(String, primary_key=True, comment='권한 코드')
-    permission_name = Column(String, comment='권한 이름')
+class DocTypeModel(Base, BaseMixin):
+    __tablename__ = 'doc_type_model'
+    __table_args__ = {'comment': 'textscope 서비스 문서 타입별 사용하는 모델'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    doc_type_idx = Column(ForeignKey('doc_type_info.doc_type_idx'), nullable=False, comment='문서 종류 유니크 인덱스')
+    model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='모델 유니크 인덱스')
+    sequence = Column(Integer, nullable=False, comment='모델 사용 순서')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    doc_type_info = relationship('DocTypeInfo')
+    model_info = relationship('ModelInfo')
+
+
+class PolicyInfo(Base, BaseMixin):
+    __tablename__ = 'policy_info'
+    __table_args__ = {'comment': 'textscope 서비스 정책 정보'}
+
+    policy_code = Column(String, primary_key=True, comment='정책 코드')
+    policy_name = Column(String, comment='정책 이름')
     is_used = Column(Boolean, comment='사용 여부')
 
 
-class RoleInfo(Base, BaseMixin):
-    __tablename__ = 'role_info'
+class GroupInfo(Base, BaseMixin):
+    __tablename__ = 'group_info'
     __table_args__ = {'comment': 'textscope 서비스 그룹 정보'}
 
-    role_index = Column(Integer, primary_key=True, comment='역할 유니크 인덱스')
-    role_name = Column(String, nullable=False, default='역할이름', comment='역할 이름')
+    group_idx = Column(Integer, primary_key=True, comment='그룹 유니크 인덱스')
+    group_type = Column(Integer, comment='그룹 종류(권한=1, 부서=2, 팀=3, 개인=4, 직급=5, 그룹=6, 역할=7)')
+    group_name = Column(String, nullable=False, default='그룹이름', comment='그룹 이름')
     is_used = Column(Boolean, comment='사용 여부')
 
 
-class TaskInfo(Base, BaseMixin):
-    __tablename__ = 'task_info'
-    __table_args__ = {'comment': 'textscope 서비스 task 정보'}
+class LogInfo(Base, BaseMixin):
+    __tablename__ = 'log_info'
+    __table_args__ = {'comment': 'textscope 서비스 로그 정보'}
 
-    task_id = Column(String, primary_key=True, comment='테스크 아이디')
-    user_email = Column(ForeignKey('user_info.user_email'), nullable=False, comment='테스크 생성자 아이디(이메일)')
-    user_team = Column(String, nullable=False, comment='테스크 생성 당시 유저의 정보')
-    task_content = Column(JSON, comment='테스크 내용')
-    task_start_time = Column(DateTime, comment='테스크 시작 시각')
-    task_end_time = Column(DateTime, comment='테스크 종료 시각')
+    log_id = Column(String, primary_key=True, comment='로그 아이디')
+    created_time = Column(DateTime, default=func.now())
+    user_email = Column(String, nullable=False, comment='로그 생성자 아이디(이메일)')
+    user_team = Column(String, nullable=False, comment='로그 생성 당시 유저의 정보')
+    log_content = Column(JSON, comment='로그 내용')
     is_used = Column(Boolean, comment='사용 여부')
 
 
@@ -423,7 +488,7 @@ class ClassInfo(Base, BaseMixin):
     __table_args__ = {'comment': 'textscope 서비스 딥러닝 모델의 항목(라벨 클래스)'}
 
     class_code = Column(String, primary_key=True, comment='항목 코드')
-    model_index = Column(ForeignKey('model_info.model_index'), nullable=False, comment='모델 유니크 인덱스')
+    model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='모델 유니크 인덱스')
     class_name_kr = Column(String, comment='항목 한글 명')
     class_name_en = Column(String, comment='항목 영문 명')
     class_use = Column(Boolean, comment='항목 사용 여부')
@@ -436,15 +501,15 @@ class DocumentInfo(Base, BaseMixin):
     __tablename__ = 'document_info'
     __table_args__ = {'comment': 'textscope 서비스 학습 또는 추론을 위해 업로드된 문서 정보'}
 
-    document_id = Column(String, primary_key=True, comment='문서 아이디')
+    document_idx = Column(Integer, primary_key=True, comment='문서 유니크 인덱스')
+    document_id = Column(String, nullable=False, unique=True, comment='문서 아이디')
     user_email = Column(ForeignKey('user_info.user_email'), nullable=False, comment='문서 등록자 아이디(이메일)')
     user_team = Column(String, nullable=False, comment='문서 등록 당시 유저의 정보')
+    document_upload_time = Column(DateTime, default=func.now(), comment='문서 업로드 시각')
     document_path = Column(String, comment='문서 저장 경로')
     document_description = Column(String, comment='문서 설명')
-    document_model_type = Column(String, comment='문서 유형(해외투자 사업 계획서, 해외투자 신고서, ...)')
-    document_type = Column(String, comment='문서 타입(정형, 비정형)')
-    document_upload_time = Column(DateTime, default=func.now(), comment='문서 업로드 시각')
     document_pages = Column(Integer, comment='문서 총 페이지 수')
+    doc_type_idx = Column(Integer, comment='문서 종류 유니크 인덱스')
     inspect_id = Column(String, default='None', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 
@@ -467,30 +532,31 @@ class KeiUserInfo(Base, BaseMixin):
     user_info = relationship('UserInfo')
 
 
-class RolePermission(Base, BaseMixin):
-    __tablename__ = 'role_permission'
+class GroupPolicy(Base, BaseMixin):
+    __tablename__ = 'group_policy'
     __table_args__ = {'comment': 'textscope 서비스 역할 권한'}
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
-    role_index = Column(ForeignKey('role_info.role_index'), nullable=False, comment='역할 유니크 인덱스')
-    permission_code = Column(ForeignKey('permission_info.permission_code'), nullable=False, comment='권한 코드')
+    group_idx = Column(ForeignKey('group_info.group_idx'), nullable=False, comment='그룹 유니크 인덱스')
+    policy_code = Column(ForeignKey('policy_info.policy_code'), nullable=False, comment='정책 코드')
+    policy_content = Column(JSON, comment='정책 내용')
     is_used = Column(Boolean, comment='사용 여부')
 
-    permission_info = relationship('PermissionInfo')
-    role_info = relationship('RoleInfo')
+    policy_info = relationship('PolicyInfo')
+    group_info = relationship('GroupInfo')
 
 
 
-class UserRole(Base, BaseMixin):
-    __tablename__ = 'user_role'
+class UserGroup(Base, BaseMixin):
+    __tablename__ = 'user_group'
     __table_args__ = {'comment': 'textscope 서비스 유저 그룹'}
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
     user_email = Column(ForeignKey('user_info.user_email'), nullable=False, comment='아이디(이메일)')
-    role_index = Column(ForeignKey('role_info.role_index'), nullable=False, comment='역할 유니크 인덱스')
+    group_idx = Column(ForeignKey('group_info.group_idx'), nullable=False, comment='그룹 유니크 인덱스')
     is_used = Column(Boolean, comment='사용 여부')
 
-    role_info = relationship('RoleInfo')
+    group_info = relationship('GroupInfo')
     user_info = relationship('UserInfo')
 
 
@@ -500,7 +566,7 @@ class AlarmRead(Base, BaseMixin):
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
     user_email = Column(ForeignKey('user_info.user_email'), nullable=False, comment='아이디(이메일)')
-    alarm_index = Column(ForeignKey('alarm_info.alarm_index'), nullable=False, comment='알람 유니크 인덱스')
+    alarm_idx = Column(ForeignKey('alarm_info.alarm_idx'), nullable=False, comment='알람 유니크 인덱스')
     is_used = Column(Boolean, comment='사용 여부')
 
     alarm_info = relationship('AlarmInfo')
@@ -515,18 +581,17 @@ class InferenceInfo(Base, BaseMixin):
     document_id = Column(ForeignKey('document_info.document_id'), nullable=False, comment='문서 아이디')
     user_email = Column(String, comment='추론 요청한 유저의 아이디(이메일)')
     user_team = Column(String, nullable=False, comment='추론 요청 당시 요청자의 유저 정보')
-    model_index = Column(Integer, nullable=False, comment='사용된 모델의 유니크 인덱스')
     inference_result = Column(JSON, comment='추론 결과')
     inference_type = Column(String, comment='추론 종류(gocr, kv)')
     inference_start_time = Column(DateTime, nullable=False, default=func.now(), comment='추론 시작 시각')
     inference_end_time = Column(DateTime, comment='추론 완료 시각')
     page_num = Column(Integer, comment='추론한 페이지 페이지')
-    page_doc_type = Column(String, comment='페이지의 문서 타입')
+    doc_type_idx = Column(Integer, comment='페이지의 문서 종류 유니크 인덱스')
     page_width = Column(Integer, comment='이미지 변환 후 가로 크기')
     page_height = Column(Integer, comment='이미지 변환 후 세로 크기')
     is_used = Column(Boolean, comment='사용 여부')
 
-    document = relationship('DocumentInfo')
+    document_info = relationship('DocumentInfo')
 
 
 class UserAlarm(Base, BaseMixin):
@@ -553,20 +618,11 @@ class InspectInfo(Base, BaseMixin):
     inspect_end_time = Column(DateTime, comment='검수 종료 시각')
     inspect_result = Column(JSON, comment='검수 결과')
     inspect_accuracy = Column(Float(53), comment='검수 결과 정확도')
-    inspect_status = Column(String, default='대기', comment='검수 상태(대기, 검수 중, 완료)')
+    inspect_status = Column(String, default='대기', comment='검수 상태(대기, 검수 중, 검수 완료)')
     is_used = Column(Boolean, comment='사용 여부')
 
     user_info = relationship('UserInfo')
     inference = relationship('InferenceInfo')
-    
-    @typing.no_type_check
-    @classmethod
-    def get_all(cls, session: Session, **kwargs: Dict[str, Any]) -> Optional[ModelType]:
-        query = session.query(cls)
-        for key, val in kwargs.items():
-            col = getattr(cls, key)
-            query = query.filter(col.in_(val))
-        return query
 
 
 class VisualizeInfo(Base, BaseMixin):
@@ -583,27 +639,29 @@ class VisualizeInfo(Base, BaseMixin):
 
     inference = relationship('InferenceInfo')
 
-
+# 테이블 추가 시, 테이블 명:클래스 명 추가
 table_class_mapping = dict({
-        "vw_if_cd": VWIFCD,
-        "vw_if_emp": VWIFEMP,
-        "vw_if_org_cur": VWIFORGCUR,
+        "VW_IF_CD": VWIFCD,
+        "VW_IF_EMP": VWIFEMP,
+        "VW_IF_ORG_CUR": VWIFORGCUR,
         "alarm_info": AlarmInfo,
         "kei_org_info": KeiOrgInfo,
+        "doc_type_info": DocTypeInfo,
         "model_info": ModelInfo,
-        "permission_info": PermissionInfo,
-        "role_info": RoleInfo,
-        "task_info": TaskInfo,
+        "doc_type_model": DocTypeModel,
+        "policy_info": PolicyInfo,
+        "group_info": GroupInfo,
+        "log_info": LogInfo,
         "user_info": UserInfo,
         "class_info": ClassInfo,
         "document_info": DocumentInfo,
         "kei_user_info": KeiUserInfo,
-        "role_permission": RolePermission,
-        "user_role": UserRole,
+        "group_policy": GroupPolicy,
+        "user_group": UserGroup,
         "alarm_read": AlarmRead,
         "inference_info": InferenceInfo,
         "user_alarm": UserAlarm,
-        "user_role": UserRole,
+        "user_group": UserGroup,
         "inspect_info": InspectInfo,
         "visualize_info": VisualizeInfo,
 })
@@ -622,41 +680,63 @@ def insert_initial_data() -> None:
         session = next(db.session())
         db_dir="/workspace/app/assets/database/"
         
-        for file in settings.FAKE_DATA_XLSX_FILE_LIST:
-            if file.get("name") in hydra_cfg.database.insert_initial_filename:
-                fake_xlsx_d = io.BytesIO()
+        total_row_count = 0
+        insert_start = dt.datetime.now()
+        for file_info in settings.INIT_DATA_XLSX_FILE_LIST:
+            if file_info.get("name") not in hydra_cfg.database.insert_initial_filename: continue
+            
+            init_xlsx_d = io.BytesIO()
+            with open(db_dir + file_info.get("name") + ".xlsx", 'rb') as xlfile:
+                init_xlsx_e = msoffcrypto.OfficeFile(xlfile)
+                init_xlsx_e.load_key(password=file_info.get("password"))
+                init_xlsx_e.decrypt(init_xlsx_d)
+            wb = openpyxl.load_workbook(filename=init_xlsx_d)
+            
+            sheets: List[str] = wb.get_sheet_names()[1:]
+            for sheet_ignore in file_info.get("ignore", []):
+                sheets.remove(sheet_ignore)
+            
+            for table_name in sheets:
                 
-                with open(db_dir + file.get("name") + ".xlsx", 'rb') as xlfile:
-                    fake_xlsx_e = msoffcrypto.OfficeFile(xlfile)
-                    fake_xlsx_e.load_key(password=file.get("password"))
-                    fake_xlsx_e.decrypt(fake_xlsx_d)
-                wb = openpyxl.load_workbook(filename=fake_xlsx_d)
+                ws = wb.get_sheet_by_name(table_name)
+                row_cells = list(ws.rows)
                 
-                for table_name in wb.get_sheet_names():
+                check_columns = primary_column_table.get(table_class_mapping.get(table_name).__name__)
+                check_idx_list: List[int] = list()
+                for idx, column in enumerate(row_cells[0]):
+                    if column.value in check_columns.split(","): check_idx_list.append(idx)
+                
+                for row_cell in row_cells[1:]:
+                    able_data = True
                     
-                    ws = wb.get_sheet_by_name(table_name)
-                    row_cells = list(ws.rows)
-                    for row_cell in row_cells[1:]:
+                    for idx in check_idx_list:
+                        if row_cell[idx].value is None: able_data = False
+                    if able_data is False: continue
+                    
+                    init_data = dict()
+                    target_table = table_class_mapping.get(table_name)
+                    for column, cell in zip(row_cells[0], row_cell):
+                        if cell.value is None: continue
                         
-                        fake_data = dict()
-                        target_table = table_class_mapping.get(table_name.lower())
-                        for column, cell in zip(row_cells[0], row_cell):
-                            if cell.value is None: continue
-                            
-                            column_name: str = column.value.lower()
-                            cell_value: str = str(cell.value)
-                            
-                            db_type = getattr(target_table, column_name).type
-                            
-                            if isinstance(db_type, Boolean):
-                                if cell_value[0].upper() == "Y" or cell_value[0].upper() == "T" or cell_value[0] == "1":
-                                    cell_value = True
-                                else:
-                                    cell_value = False
-                            
-                            fake_data.update(dict({column_name:cell_value}))
-                        target_table.create(session, auto_commit=True, **fake_data)
-        del fake_data, target_table, ws, wb, fake_xlsx_e, fake_xlsx_d, file
+                        column_name = column.value.lower()
+                        cell_value = str(cell.value)
+                        
+                        db_type = getattr(target_table, column_name).type
+                        if isinstance(db_type, Boolean):
+                            if cell_value[0].upper() == "Y" or cell_value[0].upper() == "T" or cell_value[0] == "1":
+                                cell_value = True
+                            else:
+                                cell_value = False
+                        
+                        init_data.update({column_name:cell_value})
+                        
+                    target_table.create(session, auto_commit=True, **init_data)
+                
+                total_row_count += len(row_cells[1:])
+        del init_data, target_table, ws, wb, init_xlsx_e, init_xlsx_d, file_info
         
+        logger.info(
+            f"Textscope service initial data insert complet: {total_row_count} rows, {str(round((dt.datetime.now()-insert_start).total_seconds(), 3))}s"
+        )
     finally:
         session.close()
