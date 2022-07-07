@@ -14,7 +14,7 @@ from app.common.config import config
 from app.common.const import get_settings
 
 from app.errors.exceptions import ResourceDataError
-from app.database.schema import create_db_table, insert_initial_data
+from app.database.schema import create_db_table, create_db_users, insert_initial_data
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import (
@@ -33,6 +33,7 @@ def app_generator() -> FastAPI:
         db.init_app(app, **asdict(config()))
         if settings.INITIAL_DB:
             create_db_table()
+            create_db_users()
             insert_initial_data()
 
     if settings.PROFILING_TOOL == "pyinstrument":
