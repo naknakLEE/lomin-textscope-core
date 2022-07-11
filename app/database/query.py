@@ -532,12 +532,12 @@ def get_user_team_role(session: Session, user_email: str = "do@not.use") -> Unio
 
 def get_inspecter_list(
     session: Session,
-    user_team: str
+    user_team_list: List[str]
 ) -> Dict[str, str]:
     
     try:
         query = session.query(schema.DocumentInfo, schema.InspectInfo) \
-            .filter(schema.DocumentInfo.user_team == user_team) \
+            .filter(schema.DocumentInfo.user_team.in_(user_team_list)) \
             .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
         
         select_inspecter_result: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
@@ -603,7 +603,7 @@ def get_user_group_policy(
             group_policy: schema.GroupPolicy = policy_result[2]
             
             policy_code: str = group_policy.policy_code
-            policy_content: dict = json.loads(group_policy.policy_content)
+            policy_content: dict = group_policy.policy_content
             
             # 접근 가능한 상대 팀 관련 정책
             if policy_code.endswith("_TEAM"):

@@ -117,7 +117,7 @@ def get_filter_user(
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     # user_team에 속한 사용자 목록 조회
-    select_user_all_result = query.select_user_all(session, user_team=[user_team])
+    select_user_all_result = query.select_user_all(session, user_team=user_team_list)
     if isinstance(select_user_all_result, JSONResponse):
         return select_user_all_result
     select_user_all_result: List[schema.UserInfo] = select_user_all_result
@@ -126,8 +126,8 @@ def get_filter_user(
     for user in select_user_all_result:
         email_name.update({user.user_email:user.user_name})
     
-    # user_team에 속한 사용자가 등록한 문서를 검수한 사용자 목록 조회
-    inspecter_name: Dict[str, str] = query.get_inspecter_list(session, user_team)
+    # (user_team에 속한 사용자가 등록한 문서)를 검수한 사용자 목록 조회
+    inspecter_name: Dict[str, str] = query.get_inspecter_list(session, user_team=user_team_list)
     if isinstance(inspecter_name, JSONResponse):
         return inspecter_name
     
