@@ -1,3 +1,4 @@
+import json
 import datetime as dt
 import yaml  # type: ignore
 import typing
@@ -731,7 +732,13 @@ grant_table_list = [
     "alarm_read",
     "user_alarm",
     "kei_org_info",
-    "kei_user_info"
+    "kei_user_info",
+    
+    "doc_type_info",
+    "doc_type_model",
+    "cls_info",
+    "cls_model",
+    "class_info"
 ]
 
 def create_db_table() -> None:
@@ -830,6 +837,9 @@ def insert_initial_data() -> None:
                                 cell_value = True
                             else:
                                 cell_value = False
+                                
+                        elif isinstance(db_type, JSON):
+                            cell_value: dict = json.loads(cell_value)
                         
                         init_data.update({column_name:cell_value})
                     
