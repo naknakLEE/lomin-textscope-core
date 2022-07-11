@@ -200,6 +200,8 @@ async def single(
     response_log["inference_start_time"] = inference_start_time.strftime(
         "%Y-%m-%d %H:%M:%S.%f"
     )[:-3]
+    if inputs["doc_type"] in settings.PP_MAPPING_TABLE.get("idcard"):
+        route_name = "idcard_with_keypoints"
     ocr_response = await client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,

@@ -14,7 +14,6 @@ from app.utils.utils import get_pp_api_name, set_json_response
 from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
-from typing import Dict
 from fastapi import APIRouter, BackgroundTasks, Body, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -29,6 +28,7 @@ from app.wrapper import pp, pipeline, settings
 from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
+from app.utils.postprocess import get_unmodified_bbox
 from app.errors import exceptions as ex
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
@@ -161,7 +161,7 @@ async def ocr(
         logger.info(f"{task_id}-pp type:{post_processing_type}")
         if (
             post_processing_type is not None
-            and len(inference_results.get("rec_preds", [])) > 0
+            and len(inference_results.get("texts", [])) > 0
         ):
             pp_inputs = dict(
                 boxes=inference_result.get("boxes"),
@@ -173,7 +173,9 @@ async def ocr(
                 doc_type=inference_results.get("doc_type"),
                 image_height=inference_results.get("image_height"),
                 image_width=inference_results.get("image_width"),
-                task_id=task_id,
+                transform_matrix=inference_results.get("transform_matrix", []),
+                angle=inference_results.get("angle", 0),
+                task_id=task_id
             )
             status_code, post_processing_results, response_log = await pp.post_processing(
                 client=client,
@@ -194,7 +196,7 @@ async def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-        
+        inference_results = get_unmodified_bbox(inference_results)
     
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
