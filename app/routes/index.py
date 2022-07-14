@@ -3,7 +3,7 @@ import requests  # type: ignore
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Union
 from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi import BackgroundTasks
@@ -172,11 +172,11 @@ async def post_upload_document(
     document_id:          str = params.get("document_id", get_ts_uuid("document"))
     document_name:        str = params.get("file_name")
     document_data:        str = params.get("file")
-    doc_type_idx:         int = params.get("doc_type_idx", 0)
+    cls_type_idx:         int = params.get("cls_type_idx")
+    doc_type_idx:         int = params.get("doc_type_idx")
     document_description: str = params.get("description")
     document_type:        str = params.get("document_type")
     document_path:        str = params.get("document_path")
-    
     
     # document_data가 없고 document_path로 요청이 왔는지 확인
     # document_path로 왔으면 파일 읽기
@@ -196,6 +196,36 @@ async def post_upload_document(
         return select_user_result
     select_user_result: schema.UserInfo = select_user_result
     user_team = select_user_result.user_team
+    
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=user_email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 조회 가능 문서 종류(대분류) 확인
+    # 조회 가능 문서 종류(소분류) 확인
+    cls_type_list: List[dict] = query.get_user_classification_type(session, user_policy_result)
+    docx_type_list: List[dict] = query.get_user_document_type(session, user_policy_result)
+    
+    cls_type_idx_list: List[int] = list()
+    doc_type_idx_list: List[int] = list()
+    for cls_type in cls_type_list:
+        cls_type_idx_list.append(cls_type.get("index"))
+        doc_type_idx_list.extend( [ x.get("index") for x in cls_type.get("docx_type", [dict()]) ] )
+        
+    for docx_type in docx_type_list:
+        doc_type_idx_list.append(docx_type.get("index"))
+    
+    # 요청한 문서 종류(대분류)가 조회 가능한 문서 목록에 없을 경우 에러 반환
+    if cls_type_idx is not None and cls_type_idx not in list(set(cls_type_idx_list)):
+        status_code, error = ErrorResponse.ErrorCode.get(2509)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 요청한 문서 종류(소분류)가 조회 가능한 문서 목록에 없을 경우 에러 반환
+    if doc_type_idx is not None and doc_type_idx not in list(set(doc_type_idx_list)):
+        status_code, error = ErrorResponse.ErrorCode.get(2509)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     # 자동생성된 document_id 중복 확인
     select_document_result = query.select_document(session, document_id=document_id)

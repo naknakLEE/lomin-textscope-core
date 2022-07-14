@@ -1,4 +1,5 @@
 from typing import Dict
+from app.database import query
 
 from app.database.connection import db
 from app.routes.inference import ocr
@@ -74,6 +75,7 @@ def bg_ocr(current_user: UserInfoInModel, /, **kwargs: Dict):
     else: # GOCR
         ocr_params.update(DEFAULT_GOCR_PARAMS)
     
+    session = next(db.session())
     
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
@@ -86,4 +88,6 @@ def bg_ocr(current_user: UserInfoInModel, /, **kwargs: Dict):
             document_path=document_path,
         )
         
-        ocr(inputs=ocr_params, current_user=current_user, session=next(db.session()))
+        ocr(inputs=ocr_params, current_user=current_user, session=session)
+    
+    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")

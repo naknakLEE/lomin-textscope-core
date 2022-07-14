@@ -3,6 +3,8 @@ from typing import Optional, Union
 
 from ldap3 import Server, ALL
 from fastapi import Depends, HTTPException, Security
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
@@ -20,6 +22,7 @@ from app.models import UserInfo as UserInfoInModel
 from app.common.const import get_settings
 from app.errors import exceptions as ex
 from app.database.connection import db
+from app.schemas import error_models as ErrorResponse
 
 
 settings = get_settings()
@@ -152,7 +155,8 @@ async def get_current_active_user(
     current_user: UserInfoInModel = Depends(get_current_user),
 ) -> UserInfoInModel:
     if current_user.status == "disabled":
-        raise HTTPException(status_code=400, detail="Disabled user")
+        status_code, error = ErrorResponse.ErrorCode.get(2512)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return current_user
 
 

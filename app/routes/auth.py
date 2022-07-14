@@ -5,13 +5,22 @@ from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
+from app import hydra_cfg
 from app.errors import exceptions as ex
 from app.models import Token, OAuth2PasswordRequestForm
 from app.schemas.json_schema import auth_token_responses
 from app.utils.auth import create_access_token, authenticate_user
+from app.utils.utils import is_admin
 from app.common.const import get_settings
+from app.database import query
 from app.database.connection import db
+from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
+
+if hydra_cfg.route.use_token:
+    from app.utils.auth import get_current_active_user as get_current_active_user
+else:
+    from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
 settings = get_settings()
@@ -52,3 +61,30 @@ async def login_for_access_token(
             "token_type": "bearer"
         })
     )
+
+
+@router.get("/token/validation")
+async def token_validation(
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    
+    if isinstance(current_user, JSONResponse):
+        return current_user
+    
+    admin = False
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        admin = False
+    admin = is_admin(user_policy_result)
+    
+    response = dict(
+        email=current_user.email,
+        user_team=current_user.team,
+        name=current_user.name,
+        admin=str(admin)
+    )
+    
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))

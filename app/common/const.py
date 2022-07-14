@@ -45,11 +45,18 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DATABASE: str
+    POSTGRES_USERS: list = [
+        {
+            "username": "lomin_plugin",
+            "passwd": "plugin0001!"
+        }
+    ]
 
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
     USE_AUTO_LOG: bool = True
+    LIMIT_SELECT_ROW: int = 1000
 
     # DATABASE CONFIG
     BASE_DIR: str = base_dir
@@ -130,7 +137,7 @@ class Settings(BaseSettings):
     ENCODING: str = "utf-8"
     FORMAT: str = "complex"  # simple or complex
 
-    # INIT DATA
+    # DATABASE INIT INSERT DATA
     INIT_DATA_XLSX_FILE_LIST: list = [
         {
             "name": "textscope",
@@ -139,10 +146,17 @@ class Settings(BaseSettings):
         {
             "name": "kei2205",
             "password": "g12?oq4C+APT2I4wRKb!",
-            "ignore": ["VW_IF_ORG_CUR", "VW_IF_CD"]
+            # "ignore": ["VW_IF_EMP", "VW_IF_ORG_CUR", "VW_IF_CD"]
         },
     ]
-    
+
+    # ADMIN MUST HAVE POLICY
+    ADMIN_POLICY: list = [
+        "C_GRANT_ADMIN",
+        "D_REVOKE_ADMIN",
+        "C_GRANT_USER",
+        "D_REVOKE_USER"
+    ]
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}
@@ -182,40 +196,41 @@ class Settings(BaseSettings):
     
     # KOREA EXIM BANK CONFIG
     DCOUMENT_LIST_COLUMN_MAPPING = {
+        "document_id": "DocumentInfo.document_id",
         "Task ID" : "DocumentInfo.document_idx",
-        "부서": "DocumentInfo.user_team",
+        "user_team": "DocumentInfo.user_team",
         "문서 모델": "DocumentInfo.doc_type_idx",
         # "유형": "DocumentInfo.document_type",
         "문서명": "DocumentInfo.document_path",
         "등록 담당자": "DocumentInfo.user_email",
         "등록일": "DocumentInfo.document_upload_time",
         "검수 담당자": "InspectInfo.user_email",
-        "검수 상태": "InspectInfo.inspect_status",
+        "상태": "InspectInfo.inspect_status",
         "정확도": "InspectInfo.inspect_accuracy",
         "검수일": "InspectInfo.inspect_end_time",
         
-        "document_id": "DocumentInfo.document_id",
         "document_pages": "DocumentInfo.document_pages"
     }
     DOCUMENT_LIST_COLUMN_ORDER = [
+        "document_id", # 필수
         "Task ID", # 필수
-        "부서",
+        "user_team",
         "문서 모델",
-        # "유형",
+        "유형",
         "문서명",
         "등록 담당자", # 필수
         "등록일",
         "검수 담당자", # 필수
-        "검수 상태", # 필수
+        "상태", # 필수
         "정확도",
         "검수일",
         
-        "document_id", # 필수
         "document_pages" # 필수
     ]
-    INSPECT_STATUS_BEFORE = "대기"
-    INSPECT_STATUS_SUSPEND = "검수 중"
-    INSPECT_STATUS_COMPLET = "검수 완료"
+    STATUS_RUNNING_INFERENCE = "RUNNING_INFERENCE"
+    STATUS_NOT_INSPECTED = "NOT_INSPECTED"
+    STATUS_INSPECTING = "INSPECTING"
+    STATUS_INSPECTED = "INSPECTED"
 
     # FILE CONFIG
     ZIP_PATH: str = "/workspace/assets/datasets"

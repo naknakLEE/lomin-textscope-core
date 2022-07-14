@@ -359,3 +359,10 @@ def get_ts_uuid(resource_type: str, **kwargs: Dict) -> str:
     
     
     return ''.join(ts_uuid_list).upper() if ts_uuid_upper else ''.join(ts_uuid_list)
+
+
+def is_admin(user_policy_result: Dict[str, Union[bool, list]]) -> bool:
+    result = True
+    for code, content in user_policy_result.items():
+        if code in settings.ADMIN_POLICY and isinstance(content, bool): result &= content
+    return result

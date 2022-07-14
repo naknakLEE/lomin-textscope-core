@@ -1,5 +1,5 @@
-import uuid
 from datetime import datetime
+from typing import List
 
 from fastapi import APIRouter, Depends, Body
 from fastapi.encoders import jsonable_encoder
@@ -11,9 +11,10 @@ from app.database.connection import db
 from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
-from app.utils.utils import get_ts_uuid
+from app.utils.utils import get_ts_uuid, is_admin
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
+
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
@@ -38,23 +39,30 @@ def post_inspect_info(
         inspect_date_startㅣ 없을때
         inspect_done True인데 inpsect_end_time이 없을때
     """
-    user_email = params.get("user_email", current_user.email)
-    document_id = params.get("document_id")
-    page_num = params.get("page_num", 0)
-    inspect_date_start = params.get("inspect_date_start")
-    inspect_date_end = params.get("inspect_date_end")
-    inspect_result = params.get("inspect_result", {})
-    inspect_accuracy = params.get("inspect_accuracy", 0.0)
-    inspect_done = params.get("inspect_done", False)
+    user_email:         str   = params.get("user_email", current_user.email)
+    document_id:        str   = params.get("document_id")
+    page_num:           int   = params.get("page_num", 0)
+    inspect_date_start: str   = params.get("inspect_date_start")
+    inspect_date_end:   str   = params.get("inspect_date_end")
+    inspect_result:     dict  = params.get("inspect_result", {})
+    inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
+    inspect_done:       bool  = params.get("inspect_done", False)
     
-    # 자신의 사용자 정보 조회
-    # 조직 정보
-    # 자신의 권한(그룹, 역할) 정보 조회
-    # 슈퍼어드민(0) 또는 관리자(1)이 아닐경우 검수 제한
-    team_role = query.get_user_team_role(session, user_email=user_email)
-    if isinstance(team_role, JSONResponse):
-        return team_role
-    user_team, is_admin = team_role
+    # 사용자 정보 조회
+    select_user_result = query.select_user(session, user_email=user_email)
+    if isinstance(select_user_result, JSONResponse):
+        return select_user_result
+    select_user_result: schema.UserInfo = select_user_result
+    
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=user_email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    user_team_list: List[str] = list()
+    user_team_list.extend(user_policy_result.get("R_INSPECT_TEAM", []))
+    user_team_list = list(set(user_team_list))
     
     # 문서 정보 조회
     select_document_result = query.select_document(session, document_id=document_id)
@@ -62,23 +70,28 @@ def post_inspect_info(
         return select_document_result
     select_document_result: schema.DocumentInfo = select_document_result
     
-    # 슈퍼어드민 또는 관리자가 아닌데 다른 부서의 문서를 검수 한다면 오류 반환
-    if is_admin is False and select_document_result.user_team != user_team:
+    # 문서 상태가 RUNNING_INFERENCE면 에러 응답 반환
+    if select_document_result.inspect_id == "RUNNING_INFERENCE":
+        status_code, error = ErrorResponse.ErrorCode.get(2513)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 문서에 대한 권한이 없을 경우 에러 응답 반환
+    if select_document_result.user_team not in user_team_list:
         status_code, error = ErrorResponse.ErrorCode.get(2505)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # 검수 중인데 자신의 검수 중인 문서가 아닐 경우 오류 반환
+    # 검수 중인데 자신의 검수 중인 문서가 아니거나 관리자가 아닐 경우 에러 응답 반환
     inspect_id = select_document_result.inspect_id
     select_inspect_result = query.select_inspect_latest(session, inspect_id=inspect_id)
     if isinstance(select_inspect_result, JSONResponse):
         return select_inspect_result
     select_inspect_result: schema.InspectInfo = select_inspect_result
-    if select_inspect_result.inspect_status == settings.INSPECT_STATUS_SUSPEND:
-        if is_admin is False and select_inspect_result.user_email != user_email:
+    if select_inspect_result.inspect_status == settings.STATUS_INSPECTING:
+        if not is_admin(user_policy_result) and select_inspect_result.user_email != user_email:
             status_code, error = ErrorResponse.ErrorCode.get(2511)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # 검수 결과 저장 page_num이 1보다 작거나, 총 페이지 수보다 크면 오류 반환
+    # 검수 결과 저장 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
         status_code, error = ErrorResponse.ErrorCode.get(2506)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
@@ -92,9 +105,9 @@ def post_inspect_info(
     
     # inference_id에 해당하는 추론에 대한 검수 결과 저장
     inspect_id = get_ts_uuid("inpsect")
-    inspect_status = settings.INSPECT_STATUS_SUSPEND
+    inspect_status = settings.STATUS_INSPECTING
     if inspect_done is True:
-        inspect_status = settings.INSPECT_STATUS_COMPLET
+        inspect_status = settings.STATUS_INSPECTED
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
     else:
         inspect_date_end = None
@@ -102,7 +115,7 @@ def post_inspect_info(
         session,
         inspect_id=inspect_id,
         user_email=user_email,
-        user_team=user_team,
+        user_team=select_user_result.user_team,
         inference_id=inference_id,
         inspect_start_time=inspect_date_start,
         inspect_end_time=inspect_date_end,

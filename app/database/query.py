@@ -6,7 +6,6 @@ from datetime import datetime
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
@@ -21,6 +20,34 @@ from app.schemas import error_models as ErrorResponse
 settings = get_settings()
 
 
+def select_cls_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsInfo], JSONResponse]:
+    try:
+        result = schema.ClsInfo.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2108)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("cls_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 문서 종류(대분류)")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_cls_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsModel], JSONResponse]:
+    try:
+        result = schema.ClsModel.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2109)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("cls_model_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 문서 종류(대분류)와 모델")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
 def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInfo, JSONResponse]:
     try:
         result = schema.DocTypeInfo.get(session, **kwargs)
@@ -30,10 +57,9 @@ def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInf
     except Exception:
         logger.exception("doc_type select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("문서 종류")
+        error.error_message = error.error_message.format("문서 종류(소분류)")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
-    
 
 
 def select_doc_type_all(session: Session, **kwargs: Dict) -> Union[List[schema.DocTypeInfo], JSONResponse]:
@@ -45,10 +71,9 @@ def select_doc_type_all(session: Session, **kwargs: Dict) -> Union[List[schema.D
     except Exception:
         logger.exception("doc_type_all select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 종류")
+        error.error_message = error.error_message.format("모든 문서 종류(소분류)")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
-    
 
 
 def select_model(session: Session, **kwargs: Dict) -> Union[schema.ModelInfo, JSONResponse]:
@@ -63,7 +88,6 @@ def select_model(session: Session, **kwargs: Dict) -> Union[schema.ModelInfo, JS
         error.error_message = error.error_message.format("모델")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
-    
 
 
 def select_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.ModelInfo], JSONResponse]:
@@ -76,6 +100,20 @@ def select_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.Mode
         logger.exception("model_all select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
         error.error_message = error.error_message.format("모든 모델")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_class_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClassInfo], JSONResponse]:
+    try:
+        result = schema.ClassInfo.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2106)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("class_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 class")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
@@ -232,30 +270,35 @@ def insert_inspect(session: Session, **kwargs: Dict) -> Union[Optional[schema.In
 
 def select_document_inspect_all(
     session: Session,
-    ignore_date: bool,
-    start_date: datetime,
-    end_date: datetime,
+    ignore_upload_date: bool,
+    upload_start_date: datetime,
+    upload_end_date: datetime,
+    ignore_inpsect_date: bool,
+    inspect_start_date: datetime,
+    inspect_end_date: datetime,
+    date_sort_desc: bool,
     
     user_team: List[str] = [],
     uploader_list: List[str] = [],
     inspecter_list: List[str] = [],
-    # document_type: List[str] = [],
     doc_type_idx_list: List[int] = [],
-    inspect_status: List[str] = [],
+    document_status: List[str] = [],
     
     rows_limit: int = 100,
     rows_offset: int = 0,
     column_order: list = [],
-) -> Union[List[Tuple[int, int, list]], JSONResponse]:
+) -> Union[Tuple[int, int, List[List[str]]], JSONResponse]:
+    
+    dao_document = schema.DocumentInfo
+    dao_inspect = schema.InspectInfo
     
     try:
         # table join (inspect_id)
-        query = session.query(schema.DocumentInfo, schema.InspectInfo) \
-            .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id) \
-            .order_by(schema.DocumentInfo.document_upload_time.desc())
+        query = session.query(dao_document, dao_inspect) \
+            .filter(dao_document.inspect_id == dao_inspect.inspect_id)
         
         # 총 업무 개수
-        if len(user_team) > 0: query = query.filter(schema.DocumentInfo.user_team.in_(user_team))
+        if len(user_team) > 0: query = query.filter(dao_document.user_team.in_(user_team))
         total_count = query.count()
         
         # DocumentInfo 필터링
@@ -265,28 +308,42 @@ def select_document_inspect_all(
             user_email=uploader_list
         )
         for column, filter in document_filters.items():
-            if len(filter) > 0: query = query.filter(getattr(schema.DocumentInfo, column).in_(filter))
+            if len(filter) > 0: query = query.filter(getattr(dao_document, column).in_(filter))
+        
+        # DocumentInfo 등록일 필터링
+        if ignore_upload_date is False:
+            query = query.filter(dao_document.document_upload_time.between(upload_start_date, upload_end_date))
+            if date_sort_desc is True:
+                query = query.order_by(dao_document.document_upload_time.desc())
+            else:
+                query = query.order_by(dao_document.document_upload_time.asc())
+        
         
         # InsepctInfo 필터링
         inspect_filters = dict(
             user_email=inspecter_list,
-            inspect_status=inspect_status
+            inspect_status=document_status
         )    
         for column, filter in inspect_filters.items():
-            if len(filter) > 0: query = query.filter(getattr(schema.InspectInfo, column).in_(filter))
+            if len(filter) > 0: query = query.filter(getattr(dao_inspect, column).in_(filter))
         
         # 완료 업무 개수
-        complet_count = query.filter(schema.InspectInfo.inspect_end_time != None).count()
+        complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
         
         # InspectInfo 검수 완료일 필터링
-        if ignore_date is False:
-            query = query.filter(schema.InspectInfo.inspect_end_time != None)
-            query = query.filter(schema.InspectInfo.inspect_end_time.between(start_date, end_date))
+        if ignore_inpsect_date is False:
+            query = query.filter(dao_inspect.inspect_end_time != None)
+            query = query.filter(dao_inspect.inspect_end_time.between(inspect_start_date, inspect_end_date))
+            if date_sort_desc is True:
+                query = query.order_by(dao_inspect.inspect_end_time.desc())
+            else:
+                query = query.order_by(dao_inspect.inspect_end_time.asc())
         
         # 페이징 (한 요청당 최대 1000개)
-        query = query.offset(rows_offset).limit(rows_limit if rows_limit < 501 else 1000)
+        query = query.offset(rows_offset) \
+            .limit(rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW)
         
-        rows: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
+        rows: List[Tuple[dao_document, dao_inspect]] = query.all()
         filtered_rows = list()
         table_mapping = {"DocumentInfo": None, "InspectInfo": None}
         for row in rows:
@@ -411,6 +468,20 @@ def select_group_info(session: Session, **kwargs: Dict) -> schema.GroupInfo:
     return result
 
 
+def select_group_info_all(session: Session, **kwargs: Dict) -> List[schema.GroupInfo]:
+    try:
+        result = schema.GroupInfo.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2509)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("group_info_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 그룹(권한, 역할)")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+# 미사용 -> 수출입은행 관련 함수 플러그인으로 분리 예정
 def select_org(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
     try:
         result = schema.KeiOrgInfo.get(session, **kwargs)
@@ -424,7 +495,7 @@ def select_org(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
-
+# 미사용 -> 수출입은행 관련 함수 플러그인으로 분리 예정
 def select_org_all(session: Session, **kwargs: Dict) -> List[schema.KeiOrgInfo]:
     try:
         result = schema.KeiOrgInfo.get_all_multi(session, **kwargs)
@@ -438,7 +509,7 @@ def select_org_all(session: Session, **kwargs: Dict) -> List[schema.KeiOrgInfo]:
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
-
+# 미사용, get_user_group_policy()대신 사용 -> 제거 예정
 def get_user_team_role(session: Session, user_email: str = "do@not.use") -> Union[Tuple[str, bool], JSONResponse]:
     # 유저의 사용자 정보 조회
     select_user_result = select_user(session, user_email=user_email)
@@ -458,3 +529,212 @@ def get_user_team_role(session: Session, user_email: str = "do@not.use") -> Unio
     del select_user_group_result
     
     return (user_team, is_admin)
+
+
+def get_inspecter_list(
+    session: Session,
+    user_team_list: List[str]
+) -> Dict[str, str]:
+    
+    try:
+        query = session.query(schema.DocumentInfo, schema.InspectInfo) \
+            .filter(schema.DocumentInfo.user_team.in_(user_team_list)) \
+            .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
+        
+        select_inspecter_result: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
+        
+        user_email_name: Dict[str, str] = dict()
+        for select_result in select_inspecter_result:
+            user_email_name.update(dict({select_result[1].user_email:None}))
+        
+        user_name_result = select_user_all(session, user_email=list(user_email_name.keys()))
+        if isinstance(user_name_result, JSONResponse):
+            return user_name_result
+        user_name_result: List[schema.UserInfo] = user_name_result
+        
+        for select_result in user_name_result:
+            user_email_name.update(dict({select_result.user_email:select_result.user_name}))
+        
+        result = user_email_name
+        
+    except Exception:
+        logger.exception("inspecter select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("inspecter")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        
+    return result
+
+# 순수 가지고 있는 정책(권한) 정보
+# TODO 수출입은행 후 불가 정책(권한) 정보 적용 로직 추가 예정
+def get_user_group_policy(
+    session: Session,
+    group_level: Optional[List[int]] = [],
+    user_email: str = "do@not.use"
+) -> Union[Dict[str, Union[bool, list]], JSONResponse]:
+    
+    try:
+        now_datetime = datetime.now()
+        
+        # 사용자 정보 조회
+        select_user_result = select_user(session, user_email=user_email)
+        if isinstance(select_user_result, JSONResponse):
+            return select_user_result
+        
+        user_group_policy_result: List[Tuple[schema.UserGroup, schema.GroupPolicy]]
+        query = session.query(schema.UserGroup, schema.GroupPolicy) \
+            .filter(schema.UserGroup.user_email == user_email) \
+            .filter(schema.GroupInfo.group_code == schema.UserGroup.group_code) \
+            .filter(schema.GroupInfo.group_code == schema.GroupPolicy.group_code) \
+            .filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
+        
+        if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
+        
+        # group_level.desc() -> 낮은 그룹 레벨 먼저 적용
+        user_group_policy_result = query.order_by(schema.GroupInfo.group_level.desc()) \
+            .all()
+        
+        # 없으면 에러 응답
+        if len(user_group_policy_result) == 0:
+            status_code, error = ErrorResponse.ErrorCode.get(2509)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        user_group_policy_result: List[Tuple(schema.UserGroup, schema.GroupPolicy)] = user_group_policy_result
+        
+        user_group_policy: Dict[str, dict] = dict()
+        for policy_result in user_group_policy_result:
+            
+            group_policy: schema.GroupPolicy = policy_result[1]
+            
+            policy_code: str = group_policy.policy_code
+            policy_content: dict = group_policy.policy_content
+            
+            # 접근 가능한 상대 팀 관련 정책
+            if policy_code.endswith("_TEAM"):
+                policy_content = policy_content.get("user_team", [])
+                
+                # user_team: List[str] = user_group_policy.get(policy_code, [])
+                # user_team.extend(policy_content.get("user_team", []))
+                
+                # policy_content = user_team
+                
+            # 사용 가능한 문서 종류(대분류) 관련 정책
+            elif policy_code == "R_DOC_TYPE_CLASSIFICATION":
+                policy_content = policy_content.get("cls_code", [])
+                
+                # doc_type_big: List[str] = user_group_policy.get(policy_code, [])
+                # doc_type_big.extend(policy_content.get("cls_code", []))
+                
+                # policy_content = doc_type_big
+                
+            # 사용 가능한 문서 종류(중분류) 관련 정책
+            elif policy_code == "R_DOC_TYPE_SUB_CATEGORY":
+                policy_content = policy_content.get("doc_type", [])
+                
+                # doc_type_sub: List[str] = user_group_policy.get(policy_code, [])
+                # doc_type_sub.extend(policy_content.get("doc_type", []))
+                
+                # policy_content = doc_type_sub
+                
+            # 가능 여부 관련 정책
+            else:
+                policy_content = policy_content.get("allow", False)
+            
+            user_group_policy.update(dict({policy_code:policy_content}))
+        result = user_group_policy
+        
+    except Exception:
+        logger.exception("user_group_policy select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("유저 그룹 정책")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        
+    return result
+
+# user_policy에서 사용가능한 문서 종류(대분류) 정보 분리
+def get_user_classification_type(session: Session, user_policy: Dict[str, Union[bool, list]]) -> List[dict]:
+    # 문서 종류(대분류) 조회 (cls_code -> cls_idx)
+    select_cls_result = select_cls_all(
+        session,
+        cls_code=list(set(user_policy.get("R_DOC_TYPE_CLASSIFICATION", [])))
+    )
+    if isinstance(select_cls_result, JSONResponse):
+        return select_cls_result
+    select_cls_result: List[schema.ClsInfo] = select_cls_result
+    
+    # 문서 종류(대분류)가 사용하는 cls 모델 정보 조회
+    select_cls_model_result = select_cls_model_all(
+        session,
+        cls_idx=list(set( [ x.cls_idx for x in select_cls_result ] ))
+    )
+    if isinstance(select_cls_model_result, JSONResponse):
+        return select_cls_model_result
+    select_cls_model_result: List[schema.ClsModel] = select_cls_model_result
+    
+    # cls 모델 정보 조회
+    select_model_result = select_model_all(
+        session,
+        model_idx=list(set( [ x.model_idx for x in select_cls_model_result ] ))
+    )
+    if isinstance(select_model_result, JSONResponse):
+        return select_model_result
+    select_model_result: List[schema.ModelInfo] = select_model_result
+    
+    # cls 모델의 문서 종류(소분류) 정보 조회
+    select_class_result = select_class_all(
+        session,
+        model_idx=list(set( [ x.model_idx for x in select_cls_model_result ] ))
+    )
+    if isinstance(select_class_result, JSONResponse):
+        return select_class_result
+    select_class_result: List[schema.ClassInfo] = select_class_result
+    
+    cls_type_list: List[dict] = list()
+    for cls_model_result in select_cls_model_result:
+        
+        cls_info: schema.ClsInfo = cls_model_result.cls_info
+        model_info: schema.ModelInfo = cls_model_result.model_info
+        
+        docx_type_list: List[dict] = list()
+        for class_result in select_class_result:
+            
+            if class_result.model_idx != model_info.model_idx: continue
+            
+            docx_type_list.append(dict(
+                index   = class_result.class_idx,
+                code    = class_result.class_code,
+                name_kr = class_result.class_name_kr,
+                name_en = class_result.class_name_en
+            ))
+        
+        cls_type_list.append(dict(
+            index         = cls_info.cls_idx,
+            code          = cls_info.cls_code,
+            name_kr       = cls_info.cls_name_kr,
+            name_en       = cls_info.cls_name_en,
+            route_name    = model_info.model_route_name,
+            artifact_name = model_info.model_artifact_name,
+            docx_type     = docx_type_list
+        ))
+    
+    return cls_type_list
+
+# user_policy에서 사용가능한 문서 종류(소분류) 정보 분리
+def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, list]]) -> List[dict]:
+    select_doc_type_all_result = select_doc_type_all(
+        session,
+        doc_type_code=list(set(user_policy.get("R_DOC_TYPE_SUB_CATEGORY", [])))
+    )
+    if isinstance(select_doc_type_all_result, JSONResponse):
+        return select_doc_type_all_result
+    select_doc_type_all_result: List[schema.DocTypeInfo] = select_doc_type_all_result
+    
+    doc_type_list: List[dict] = list()
+    for result in select_doc_type_all_result:
+        doc_type_list.append(dict(
+            index   = result.doc_type_idx,
+            code    = result.doc_type_code,
+            name_kr = result.doc_type_name_kr,
+            name_en = result.doc_type_name_en,
+        ))
+    
+    return doc_type_list
