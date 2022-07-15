@@ -80,7 +80,7 @@ def get_unmodified_bbox(input: Dict):
         kv_box = {}
         if "kv" in input:
             for key, value in input.get("kv").items():
-                if isinstance(value, dict):
+                if isinstance(value, dict) and value:
                     kv_box[key] = value.get("box", [])
                     
             unmodified_bbox = reverse_rotated_bbox(
