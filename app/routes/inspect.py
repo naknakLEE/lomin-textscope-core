@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, Request
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -29,6 +29,7 @@ router = APIRouter()
 
 @router.post("/save")
 def post_inspect_info(
+    request: Request,
     params: dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session)
@@ -39,7 +40,7 @@ def post_inspect_info(
         inspect_date_startㅣ 없을때
         inspect_done True인데 inpsect_end_time이 없을때
     """
-    user_email:         str   = params.get("user_email", current_user.email)
+    user_email:         str   = current_user.email
     document_id:        str   = params.get("document_id")
     page_num:           int   = params.get("page_num", 0)
     inspect_date_start: str   = params.get("inspect_date_start")

@@ -33,7 +33,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.user = None
             if settings.USE_TEXTSCOPE_DATABASE:
                 request.state.db = next(db.session())
-            request.state.email = "none@none.none"
             headers = request.headers
             ip = (
                 headers["x-forwarded-for"]

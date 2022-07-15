@@ -158,6 +158,7 @@ def get_image(
 
 @router.post("/docx")
 async def post_upload_document(
+    request: Request,
     background_tasks: BackgroundTasks,
     current_user: UserInfoInModel = Depends(get_current_active_user),
     params: dict = Body(...), 
@@ -168,7 +169,7 @@ async def post_upload_document(
     response_log: dict = dict()
     request_datetime = datetime.now()
     
-    user_email:           str = params.get("user_email", current_user.email)
+    user_email:            str = current_user.email
     document_id:          str = params.get("document_id", get_ts_uuid("document"))
     document_name:        str = params.get("file_name")
     document_data:        str = params.get("file")
@@ -253,6 +254,7 @@ async def post_upload_document(
         select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
         doc_type_code = select_doc_type_result.doc_type_code
         
+        logger.info(f"success save document document_id : {document_id}")
         document_pages = get_page_count(document_data, document_name)
         dao_document_params = {
             "document_id": document_id,
@@ -273,6 +275,7 @@ async def post_upload_document(
             # response.get("resource_id").update(task_id=task_id)
             background_tasks.add_task(
                 bg_ocr,
+                request,
                 current_user,
                 save_path=save_path,
                 document_id=document_id,

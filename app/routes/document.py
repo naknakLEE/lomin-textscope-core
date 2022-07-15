@@ -2,7 +2,7 @@ from PIL import Image
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Set
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, Request
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -227,6 +227,7 @@ def get_filter_doc_type(
 
 @router.post("/list")
 def get_document_list(
+    request: Request,
     params: dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session)
@@ -248,7 +249,7 @@ def get_document_list(
         6-2. 검수 중이면 document_id 제거 -> [# 검수 중이면 document_id 제거]
         6-3. document_id 제거 -> [# doc_type_index를 이름으로 변경, 문서 유형 추가, document_id 제거]
     """
-    user_email:         str        = params.get("user_email", current_user.email)
+    user_email:         str        = current_user.email
     upload_date_start:  str        = params.get("upload_date_start")
     upload_date_end:    str        = params.get("upload_date_end")
     inspect_date_start: str        = params.get("inspect_date_start")
@@ -428,6 +429,7 @@ def get_document_list(
 
 @router.post("/inference")
 def get_document_inference_info(
+    request: Request,
     params: dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session)
@@ -442,7 +444,7 @@ def get_document_inference_info(
         2-2. 해당 문서의 특정 페이지에 대한 추론 결과 조회, 없으면 에러 반환 -> [# document_id로 특정 페이지의 가장 최근 inference info 조회]
         2-3. 해당 문서의 특정 페이지에 대한 검수 결과 조회, 가져오기 -> [# 가장 최근 inspect 결과가 있으면 가져오기]
     """
-    user_email:  str = params.get("user_email", current_user.email)
+    user_email:  str = current_user.email
     document_id: str = params.get("document_id")
     page_num:    int = params.get("page_num", 0)
     

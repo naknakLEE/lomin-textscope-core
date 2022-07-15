@@ -33,7 +33,10 @@ def api_logger(
     processed_time = time() - request.state.start
     status_code = get_status_code(response, error)
     error_log = None
-    email = request.state.email
+    try:
+        email = request.state.email
+    except:
+        email = None
     if error:
         logger.exception("Error")
         if request.state.inspect:

@@ -44,6 +44,7 @@ router = APIRouter()
 @router.post("/ocr", status_code=200, responses=inference_responses)
 def ocr(
     *,
+    request: Request,
     inputs: Dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session),
@@ -55,7 +56,7 @@ def ocr(
     """
     start_time = datetime.now()
     response_log: Dict = dict()
-    user_email = inputs.get("user_email", current_user.email)
+    user_email = current_user.email
     log_id = inputs.get("log_id", get_ts_uuid("log"))
     document_id = inputs.get("document_id")
     document_path = inputs.get("document_path")

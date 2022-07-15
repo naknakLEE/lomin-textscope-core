@@ -1,3 +1,4 @@
+from fastapi import Request
 from typing import Dict
 from app.database import query
 
@@ -59,7 +60,7 @@ DEFAULT_CLSKV_PARAMS = {
     "idcard_version": "v1"
 }
 
-def bg_ocr(current_user: UserInfoInModel, /, **kwargs: Dict):
+def bg_ocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
     document_id = kwargs.get("document_id")
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
@@ -88,6 +89,6 @@ def bg_ocr(current_user: UserInfoInModel, /, **kwargs: Dict):
             document_path=document_path,
         )
         
-        ocr(inputs=ocr_params, current_user=current_user, session=session)
+        ocr(request=request, inputs=ocr_params, current_user=current_user, session=session)
     
     query.update_document(session, document_id, inspect_id="NOT_INSPECTED")

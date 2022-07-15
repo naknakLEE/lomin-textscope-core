@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Union
 
 from ldap3 import Server, ALL
-from fastapi import Depends, HTTPException, Security
+from fastapi import Depends, HTTPException, Security, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.security import (
@@ -164,11 +164,21 @@ async def initialize_ldap() -> Server:
     server = Server("LDAP://openldap:389", get_info=ALL)
     return server
 
-def get_current_active_user_fake() -> UserInfoInModel:
-    return UserInfoInModel(
+def get_current_active_user_fake(request: Request) -> UserInfoInModel:
+    try:
+        user_info = UserInfoInModel(
+        email=request.state.email,
+        password="",
+        team="",
+        name="",
+        status="active"
+    )
+    except:
+        user_info = UserInfoInModel(
         email="guest@lomin.ai",
         password="",
         team="0000",
         name="김게스트.auth.disabled",
         status="active"
     )
+    return user_info
