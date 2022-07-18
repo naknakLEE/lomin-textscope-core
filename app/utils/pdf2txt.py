@@ -86,6 +86,43 @@ class Pdf2Image:
         device.close()
         outfp.close()
 
+
+    @lru_cache(maxsize=10)
+    def save_select_page2xml(
+        self,
+        fname: str,
+        xml_path: str,
+        maxpages: int = 0,
+        caching: bool = True,
+        debug: int = 0,
+    ) -> None:
+        PDFDocument.debug = debug
+        PDFParser.debug = debug
+        CMapDB.debug = debug
+        PDFPageInterpreter.debug = debug
+
+        rsrcmgr = PDFResourceManager(caching=caching)
+        outfp = open(xml_path, "w", encoding="utf-8")
+        device = XMLConverter(
+            rsrcmgr, outfp, laparams=LAParams(), imagewriter=None, stripcontrol=False
+        )
+
+        with open(fname, "rb") as fp:
+            interpreter = PDFPageInterpreter(rsrcmgr, device)
+            for idx, page in enumerate(PDFPage.get_pages(
+                fp,
+                set(),
+                maxpages=maxpages,
+                password=b"",
+                caching=caching,
+                check_extractable=True,
+            )):
+                if maxpages - 1== idx:
+                    page.rotate = (page.rotate + 0) % 360
+                    interpreter.process_page(page)
+        device.close()
+        outfp.close()
+
     def load_lexicon(self) -> None:
         self.lexicon_dict = dict()
 
@@ -175,11 +212,10 @@ class Pdf2Image:
         return {"boxes": bboxes, "texts": texts}
 
     def __call__(
-        self, pages: List, page_num: int, pdf_path: Any, xml_path: str
+        self, page_num: int, xml_path: str, page_size
     ) -> Image:
-        page = pages[page_num]
         text_info = self.read_xml(
-            xml_path=xml_path, page_num=page_num, page_size=page.size
+            xml_path=xml_path, page_num=page_num, page_size=page_size
         )
         return text_info
 
@@ -195,13 +231,13 @@ def parse_pdf_text(text_info: Dict) -> Dict:
 
 
 @lru_cache(maxsize=10)
-def convert_path_to_image(pdf_path: str) -> List:
-    pages = pdf2image.convert_from_path(pdf_path=pdf_path)
+def convert_path_to_image(pdf_path: str, first_page = None, last_page = None) -> List:
+    pages = pdf2image.convert_from_path(pdf_path=pdf_path, first_page=first_page, last_page=last_page)
     return pages
 
 
 def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
-    xml_path = PurePath("/tmp", str(uuid.uuid4()) + ".xml").as_posix()
+    ond_page_xml_path = PurePath("/tmp", str(uuid.uuid4()) + ".xml").as_posix()
     
     pdf_path = None
     if settings.USE_MINIO:
@@ -212,26 +248,21 @@ def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
     else:
         pdf_path = inputs.get("image_path")
     
-    page_num = inputs.get("page", 1) - 1
-    pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))
+    page_num = inputs.get("page")
+    pdf2txt.save_select_page2xml(fname=pdf_path, xml_path=ond_page_xml_path, maxpages=page_num)
     
-    doc = ET.parse(xml_path)
-    pages = doc.findall("page")
-    
-    if 0 > page_num or page_num > (len(pages) - 1):
-        page_num = 0
-    
-    page = pages[page_num]
+    doc = ET.parse(ond_page_xml_path)
+    page = doc.findall("page")[0]
     textbox = page.findall("textbox")
     
     parsed_text_info = {}
     image_size = (0, 0)
     if len(textbox) > 0:
-        pages = convert_path_to_image(pdf_path=pdf_path)
+        select_page = convert_path_to_image(pdf_path=pdf_path, first_page = page_num, last_page = page_num)[0]
         text_info = pdf2txt(
-            pages=pages, page_num=page_num, pdf_path=pdf_path, xml_path=xml_path
+            page_num= 0, xml_path=ond_page_xml_path, page_size = select_page.size
         )
-        image_size = pages[page_num].size
+        image_size = select_page.size
         
         parsed_text_info.update(parse_pdf_text(text_info))
         parsed_text_info.update(dict({
