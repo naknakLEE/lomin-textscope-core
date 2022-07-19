@@ -50,32 +50,104 @@ def dot4_to_rectangle(all_boxes_x, all_boxes_y):
         rectangle.append([x1, y1, x2, y2])
     return rectangle
     
-    
+
+
+def revert_crop_img_from_bbox(
+        origin_width,  
+        origin_height, 
+        crop_coord,
+        bbox,
+    ):
+    """
+        origin_width:int,  원본 이미지 가로
+        origin_height:int, 원본 이미지 세로
+        crop_coord:List[int, int, int, int], 원본 이미지에서 crop 좌표
+        bbox = List[List[int, int, int, int]]): crop 이미지에서 detecting된 좌표
+        
+        example
+            origin_width = 1920
+            origin_height = 1080
+            crop_coord = [ 44.2151,   4.6654, 308.5250, 513.0000]
+            bbox = [[0.0, 0.0, 50.1, 100.20], [4.0, 5.55, 100.1, 200.20]]
+            
+        return [[0.0, 0.0, 50.1, 100.20], [4.0, 5.55, 100.1, 200.20]] <- bbox를 crop이전(원본 이미지)에서 bbox로 나타낼 수 있도록 표현
+        
+    """
+    x_offset, y_offset = crop_coord[:2]
+    res = [
+        [x1+x_offset,y1+y_offset,x2+x_offset,y2+y_offset] 
+        for x1,y1,x2,y2 in bbox
+    ]
+    return res
 
 
 def get_unmodified_bbox(input: Dict):
     if input.get("doc_type") == "idcard":
         kv_box = {}
+        boundary_coord = input.get("boundary_coord")
         if "kv" in input:
             for key, value in input.get("kv").items():
-                
-                if isinstance(value, dict):
+                if isinstance(value, dict) and value:
                     kv_box[key] = value.get("box", [])
-            if kv_box:
-                unmodified_all_box = warp_bboxes_to_origin(kv_box.values(), input.get("transform_matrix"))
-                all_boxes_x = unmodified_all_box.get("all_boxes_x")
-                all_boxes_y = unmodified_all_box.get("all_boxes_y")
-                unmodified_bbox = dot4_to_rectangle(all_boxes_x, all_boxes_y)
+            
+            if boundary_coord:
+                crop_kv_box  = revert_crop_img_from_bbox(
+                    input.get("image_width_origin"),
+                    input.get("image_height_origin"),
+                    boundary_coord,
+                    kv_box.values()
+                )
+                for key, c_box in zip(kv_box.keys(), crop_kv_box):
+                    kv_box[key] = c_box
+            
+            unmodified_bbox = reverse_rotated_bbox(
+                input.get("image_width_origin"), 
+                input.get("image_height_origin"),
+                input.get("angle"),
+                kv_box.values()
+                )
+            for key, nmbbox in zip(kv_box.keys(), unmodified_bbox):
+                input["kv"][key]["unmodified_bbox"] = nmbbox
+        
+        
+        if boundary_coord:
+            crop_kv_box  = revert_crop_img_from_bbox(
+                input.get("image_width_origin"),
+                input.get("image_height_origin"),
+                boundary_coord,
+                kv_box.values()
+            )
+        unmodified_bbox = reverse_rotated_bbox(
+            input.get("image_width_origin"), 
+            input.get("image_height_origin"),
+            input.get("angle"),
+            crop_kv_box)
+        input["unmodified_bbox"] = unmodified_bbox
+        
+        # TODO 아래 주석은 4dot unmodified box를 구하는 좌표입니다.
+        # 신분증에서 4dot detection를 사용하게 된다면, 아래 주석을 해제하고 사용.
+        # 
+        # kv_box = {}
+        # if "kv" in input:
+        #     for key, value in input.get("kv").items():
                 
-                for key, nmbbox in zip(kv_box.keys(), unmodified_bbox):
-                    input["kv"][key]["unmodified_bbox"] = nmbbox
+        #         if isinstance(value, dict):
+        #             kv_box[key] = value.get("box", [])
+        #     if kv_box:
+        #         unmodified_all_box = warp_bboxes_to_origin(kv_box.values(), input.get("transform_matrix"))
+        #         all_boxes_x = unmodified_all_box.get("all_boxes_x")
+        #         all_boxes_y = unmodified_all_box.get("all_boxes_y")
+        #         unmodified_bbox = dot4_to_rectangle(all_boxes_x, all_boxes_y)
                 
-        if input.get("boxes"):
-            unmodified_all_box = warp_bboxes_to_origin(input.get("boxes"), input.get("transform_matrix"))
-            all_boxes_x = unmodified_all_box.get("all_boxes_x")
-            all_boxes_y = unmodified_all_box.get("all_boxes_y")
-            unmodified_bbox = dot4_to_rectangle(all_boxes_x, all_boxes_y)
-            input["unmodified_bbox"] = unmodified_bbox
+        #         for key, nmbbox in zip(kv_box.keys(), unmodified_bbox):
+        #             input["kv"][key]["unmodified_bbox"] = nmbbox
+                
+        # if input.get("boxes"):
+        #     unmodified_all_box = warp_bboxes_to_origin(input.get("boxes"), input.get("transform_matrix"))
+        #     all_boxes_x = unmodified_all_box.get("all_boxes_x")
+        #     all_boxes_y = unmodified_all_box.get("all_boxes_y")
+        #     unmodified_bbox = dot4_to_rectangle(all_boxes_x, all_boxes_y)
+        #     input["unmodified_bbox"] = unmodified_bbox
     else:
         kv_box = {}
         if "kv" in input:
@@ -147,7 +219,16 @@ def reverse_rotated_bbox(origin_w, origin_h, angle, boxes):
     origin_center = (origin_w / 2, origin_h / 2)
     
     for box in boxes:
-        x1, y1 = reverse_rotated_coord(box[0], box[1], angle, origin_center, rot_center)
-        x2, y2 = reverse_rotated_coord(box[2], box[3], angle, origin_center, rot_center)
+        x_tl, y_tl = reverse_rotated_coord(box[0], box[1], angle, origin_center, rot_center)
+        x_br, y_br = reverse_rotated_coord(box[2], box[3], angle, origin_center, rot_center)
+        
+        x_tr, y_tr = reverse_rotated_coord(box[2], box[1], angle, origin_center, rot_center)
+        x_bl, y_bl = reverse_rotated_coord(box[0], box[3], angle, origin_center, rot_center)
+        
+        x1 = min(x_tl, x_br, x_tr, x_bl)
+        y1 = min(y_tl, y_br, y_tr, y_bl)
+        x2 = max(x_tl, x_br, x_tr, x_bl)
+        y2 = max(y_tl, y_br, y_tr, y_bl)
+        
         res.append([x1, y1, x2, y2])
     return res
