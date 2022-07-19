@@ -13,6 +13,7 @@ from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, Forei
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.schema import UniqueConstraint
 
 from passlib.context import CryptContext
 
@@ -33,7 +34,7 @@ primary_column_table = {
     "VWIFEMP": "eno",
     "VWIFORGCUR": "org_id,dept_st_dt",
     
-    "KeiUserInfo": "emp_eno",
+    "CompanyUserInfo": "emp_eno",
     "KeiOrgInfo": "org_org_id",
     
     "ClsInfo": "cls_idx",
@@ -397,12 +398,15 @@ class KeiOrgInfo(Base, BaseMixin):
     __tablename__ = 'kei_org_info'
     __table_args__ = {'comment': 'textscope 서비스에 필요한 조직 정보'}
 
+    company_code = Column(ForeignKey('company_info.company_code'), nullable=False, comment='회사 유니크 코드')
     org_org_id = Column(String, primary_key=True, comment='조직ID')
     org_org_nm = Column(String, comment='조직명')
     org_hgh_dpcd = Column(String, comment='상위조직ID')
     org_dept_lvl_val = Column(String, comment='부서 레벨')
     org_dept_lvl = Column(String, comment='현시점의 부서트리 레벨(뎁스)')
     is_used = Column(Boolean, comment='사용 여부')
+    
+    company_info = relationship('CompanyInfo')
 
 
 class ClsInfo(Base, BaseMixin):
@@ -510,6 +514,7 @@ class CompanyInfo(Base, BaseMixin):
 
     created_time = Column(DateTime, default=func.now())
     company_code = Column(String, primary_key=True, comment='회사 유니크 코드')
+    company_name = Column(String, comment='회사 명')
     company_domain = Column(String, comment='회사 도메인')
     company_address = Column(String, comment='회사 주소')
     company_ph = Column(String, comment='회사 대표 연락처')
@@ -520,14 +525,11 @@ class UserInfo(Base, BaseMixin):
     __tablename__ = 'user_info'
     __table_args__ = {'comment': 'textscope 서비스 사용자 정보'}
 
-    company_code = Column(ForeignKey('company_info.company_code'), nullable=False, comment='회사 유니크 코드')
     user_email = Column(String, primary_key=True, nullable=False, comment='아이디(이메일)')
     user_pw = Column(String, comment='비밀번호')
     user_name = Column(String, comment='이름')
     user_team = Column(String, comment='유저 정보')
     is_used = Column(Boolean, comment='사용 여부')
-
-    company_info = relationship('CompanyInfo')
 
 
 class ClassInfo(Base, BaseMixin):
@@ -564,25 +566,31 @@ class DocumentInfo(Base, BaseMixin):
     user_info = relationship('UserInfo')
 
 
-class KeiUserInfo(Base, BaseMixin):
-    __tablename__ = 'kei_user_info'
+class CompanyUserInfo(Base, BaseMixin):
+    __tablename__ = 'company_user_info'
     __table_args__ = {'comment': 'textscope 서비스에 필요한 인사 정보'}
 
+    company_code = Column(ForeignKey('company_info.company_code'), nullable=False, comment='회사 유니크 코드')
     emp_eno = Column(String, primary_key=True, comment='(SSO)행번')
     emp_usr_emad = Column(ForeignKey('user_info.user_email'), nullable=False, comment='(SSO)사용자이메일주소')
+    emp_usr_mpno = Column(String, comment='(SSO)사용자휴대전화번호')
+    emp_inbk_tno = Column(String, comment='(SSO)행내전화번호')
     emp_usr_nm = Column(String, comment='(SSO)성명')
     emp_decd = Column(String, comment='(SSO)부서코드')
     emp_tecd = Column(String, comment='(SSO)팀코드')
+    emp_org_path = Column(String, comment='(SSO)조직 path')
     emp_ofps_cd = Column(String, comment='(SSO)직위코드')
+    emp_ofps_nm = Column(String, comment='(SSO)직위명')
     emp_pscl_cd = Column(String, comment='(SSO)직급코드')
     is_used = Column(Boolean, comment='사용 여부')
 
+    company_info = relationship('CompanyInfo')
     user_info = relationship('UserInfo')
 
 
 class GroupPolicy(Base, BaseMixin):
     __tablename__ = 'group_policy'
-    __table_args__ = {'comment': 'textscope 서비스 그룹 권한'}
+    __table_args__ = (UniqueConstraint('group_code', 'policy_code', name='_group_police_code'), )
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
     group_code = Column(ForeignKey('group_info.group_code'), nullable=False, comment='그룹 유니크 코드')
@@ -689,6 +697,7 @@ class VisualizeInfo(Base, BaseMixin):
 
     inference = relationship('InferenceInfo')
 
+
 # 테이블 추가 시, 테이블 명:클래스 명 추가
 table_class_mapping = dict({
     "VW_IF_CD": VWIFCD,
@@ -696,7 +705,7 @@ table_class_mapping = dict({
     "VW_IF_ORG_CUR": VWIFORGCUR,
     "alarm_info": AlarmInfo,
     "kei_org_info": KeiOrgInfo,
-    "kei_user_info": KeiUserInfo,
+    "company_user_info": CompanyUserInfo,
     "doc_type_info": DocTypeInfo,
     "model_info": ModelInfo,
     "doc_type_model": DocTypeModel,
@@ -727,12 +736,13 @@ grant_table_list = [
     "group_policy",
     "policy_info",
     "document_info",
+    "inference_info",
     "inspect_info",
     "alarm_info",
     "alarm_read",
     "user_alarm",
     "kei_org_info",
-    "kei_user_info",
+    "company_user_info",
     
     "doc_type_info",
     "doc_type_model",
@@ -743,14 +753,25 @@ grant_table_list = [
 
 def create_db_table() -> None:
     try:
-        session = next(db.session())
+        session: Session = next(db.session())
         Base.metadata.create_all(db._engine)
-        
     finally:
         session.close()
 
+def create_extension() -> None:
+    try:
+        connection = db.engine.connect()
+        connection.execute(text(
+            "create EXTENSION IF NOT EXISTS dblink SCHEMA public"
+        ))
+        
+    except Exception as exce:
+        logger.error(exce)
+    finally:
+        if connection: connection.close()
 
 def create_db_users() -> None:
+    connection = None
     try:
         connection = db.engine.connect()
         sql_create_user = """CREATE USER %TS%username%TS% WITH PASSWORD '%TS%passwd%TS%'"""
@@ -770,7 +791,9 @@ def create_db_users() -> None:
                 ))
         
     except Exception as exce:
-        pass
+        logger.error(exce)
+    finally:
+        if connection: connection.close()
 
 
 def insert_initial_data() -> None:

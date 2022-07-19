@@ -6,7 +6,6 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
 from app import hydra_cfg
-from app.errors import exceptions as ex
 from app.models import Token, OAuth2PasswordRequestForm
 from app.schemas.json_schema import auth_token_responses
 from app.utils.auth import create_access_token, authenticate_user
@@ -44,7 +43,7 @@ async def login_for_access_token(
 
     """
     user = authenticate_user(form_data.email, form_data.password, session)
-    if not user:
+    if user is None:
         status_code, error = ErrorResponse.ErrorCode.get(2401)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     
@@ -53,6 +52,7 @@ async def login_for_access_token(
         data={"sub": form_data.email, "scopes": form_data.scopes},
         expires_delta=access_token_expires,
     )
+    
     
     return JSONResponse(
         status_code=201,
@@ -77,7 +77,9 @@ async def token_validation(
     user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
     if isinstance(user_policy_result, JSONResponse):
         admin = False
-    admin = is_admin(user_policy_result)
+    else:
+        admin = is_admin(user_policy_result)
+    
     
     response = dict(
         email=current_user.email,
@@ -85,6 +87,5 @@ async def token_validation(
         name=current_user.name,
         admin=str(admin)
     )
-    
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))

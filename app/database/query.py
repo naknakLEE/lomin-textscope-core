@@ -481,6 +481,20 @@ def select_group_info_all(session: Session, **kwargs: Dict) -> List[schema.Group
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
+
+def select_company_user_info(session: Session, **kwargs: Dict) -> schema.CompanyUserInfo:
+    try:
+        result = schema.CompanyUserInfo.get(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2524)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("company_user_info select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("사원 정보")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
 # 미사용 -> 수출입은행 관련 함수 플러그인으로 분리 예정
 def select_org(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
     try:

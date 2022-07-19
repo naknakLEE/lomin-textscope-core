@@ -56,11 +56,8 @@ def get_user(email: EmailStr, session: Session) -> Optional[UserInfoInModel]:
     return None
 
 
-def is_email_exist(email: EmailStr, session: Session) -> Optional[UserInfoInDB]:
-    user = UserInfoInDB.get(session=session, user_email=email)
-    if user:
-        return user
-    return None
+def is_email_exist(email: EmailStr, session: Session) -> Union[UserInfoInDB, None]:
+    return UserInfoInDB.get(session=session, user_email=email)
 
 
 def authenticate_user(
@@ -169,16 +166,16 @@ def get_current_active_user_fake(request: Request) -> UserInfoInModel:
         user_info = UserInfoInModel(
         email=request.state.email,
         password="",
-        team="",
+        team="0000",
         name="",
         status="active"
     )
     except:
         user_info = UserInfoInModel(
-        email="guest@lomin.ai",
+        email="admin@lomin.ai",
         password="",
         team="0000",
-        name="김게스트.auth.disabled",
+        name="김관리자.auth.disabled",
         status="active"
     )
     return user_info

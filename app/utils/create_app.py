@@ -7,14 +7,19 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket
+from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users
 from app.routes import document, model, inspect
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
 
 from app.errors.exceptions import ResourceDataError
-from app.database.schema import create_db_table, create_db_users, insert_initial_data
+from app.database.schema import (
+    create_db_table,
+    create_extension,
+    create_db_users,
+    insert_initial_data
+)
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import (
@@ -33,6 +38,7 @@ def app_generator() -> FastAPI:
         db.init_app(app, **asdict(config()))
         if settings.INITIAL_DB:
             create_db_table()
+            create_extension()
             create_db_users()
             insert_initial_data()
 
@@ -82,5 +88,7 @@ def app_generator() -> FastAPI:
     
     app.include_router(document.router, tags=["Kei Document Info"], prefix="/v1/docx/info", include_in_schema=True)
     app.include_router(inspect.router, tags=["Kei Inpsect Info"], prefix="/v1/docx/inspect", include_in_schema=True)
+    
+    app.include_router(users.router, tags=["Company User Info"], prefix="/v1/user", include_in_schema=True)
     
     return app
