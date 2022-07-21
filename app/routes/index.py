@@ -16,7 +16,7 @@ from fastapi.security import (
 import base64
 
 from app import hydra_cfg
-from app.utils.background import bg_ocr
+from app.utils.background import bg_gocr, bg_cls, bg_kv, bg_clskv
 from app.database.connection import db
 from app.database import query, schema
 from app.models import UserInfo as UserInfoInModel
@@ -25,6 +25,7 @@ from app.utils.logging import logger
 from app import models
 from app.utils.document import document_path_verify
 from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
+from app.utils.utils import is_admin, get_company_group_prefix
 from app.schemas import error_models as ErrorResponse
 from app.schemas import HTTPBearerFake
 from app.utils.document import (
@@ -110,6 +111,7 @@ def get_image(
     select_document_result = query.select_document(session, document_id=document_id)
     if isinstance(select_document_result, JSONResponse):
         return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -137,7 +139,6 @@ def get_image(
     document = models.Image(
         filename=document_path.name,
         description=select_document_result.document_description,
-        image_type=select_document_result.document_type,
         upload_datetime=select_document_result.document_upload_time,
         width=document_width,
         height=document_height,
@@ -169,7 +170,7 @@ async def post_upload_document(
     response_log: dict = dict()
     request_datetime = datetime.now()
     
-    user_email:            str = current_user.email
+    user_email:           str = current_user.email
     document_id:          str = params.get("document_id", get_ts_uuid("document"))
     document_name:        str = params.get("file_name")
     document_data:        str = params.get("file")
@@ -204,10 +205,25 @@ async def post_upload_document(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     # 조회 가능 문서 종류(대분류) 확인
     # 조회 가능 문서 종류(소분류) 확인
-    cls_type_list: List[dict] = query.get_user_classification_type(session, user_policy_result)
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_list = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_list, JSONResponse):
+        return cls_type_list
+    
     docx_type_list: List[dict] = query.get_user_document_type(session, user_policy_result)
+    if isinstance(docx_type_list, JSONResponse):
+        return docx_type_list
     
     cls_type_idx_list: List[int] = list()
     doc_type_idx_list: List[int] = list()
@@ -218,12 +234,12 @@ async def post_upload_document(
     for docx_type in docx_type_list:
         doc_type_idx_list.append(docx_type.get("index"))
     
-    # 요청한 문서 종류(대분류)가 조회 가능한 문서 목록에 없을 경우 에러 반환
+    # 요청한 문서 종류(대분류)가 요청 가능한 문서 종류 목록에 없을 경우 에러 반환
     if cls_type_idx is not None and cls_type_idx not in list(set(cls_type_idx_list)):
         status_code, error = ErrorResponse.ErrorCode.get(2509)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # 요청한 문서 종류(소분류)가 조회 가능한 문서 목록에 없을 경우 에러 반환
+    # 요청한 문서 종류(소분류)가 요청 가능한 문서 종류 목록에 없을 경우 에러 반환
     if doc_type_idx is not None and doc_type_idx not in list(set(doc_type_idx_list)):
         status_code, error = ErrorResponse.ErrorCode.get(2509)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
@@ -246,46 +262,28 @@ async def post_upload_document(
     
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
-    if save_success:
-        # doc_type_index로 doc_type_code 조회
-        select_doc_type_result = query.select_doc_type(session, doc_type_idx=doc_type_idx)
-        if isinstance(select_doc_type_result, JSONResponse):
-            return select_doc_type_result
-        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
-        doc_type_code = select_doc_type_result.doc_type_code
-        
-        logger.info(f"success save document document_id : {document_id}")
-        document_pages = get_page_count(document_data, document_name)
-        dao_document_params = {
-            "document_id": document_id,
-            "user_email": user_email,
-            "user_team": user_team,
-            "document_path": save_path,
-            "document_description": document_description,
-            "document_pages": document_pages,
-            "doc_type_idx": doc_type_idx,
-            "document_type": document_type
-        }
-        insert_document_result = query.insert_document(session, **dao_document_params)
-        if isinstance(insert_document_result, JSONResponse):
-            return insert_document_result
-        
-        if hydra_cfg.document.background_ocr:
-            # task_id = get_ts_uuid("task")
-            # response.get("resource_id").update(task_id=task_id)
-            background_tasks.add_task(
-                bg_ocr,
-                request,
-                current_user,
-                save_path=save_path,
-                document_id=document_id,
-                document_pages=document_pages,
-                doc_type_code=doc_type_code
-            )
-    else:
+    
+    if save_success is False:
         status_code, error = ErrorResponse.ErrorCode.get(4102)
         error.error_message = error.error_message.format("문서")
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    logger.info(f"success save document document_id : {document_id}")
+    document_pages = get_page_count(document_data, document_name)
+    dao_document_params = {
+        "document_id": document_id,
+        "user_email": user_email,
+        "user_team": user_team,
+        "document_path": save_path,
+        "document_description": document_description,
+        "document_pages": document_pages,
+        "cls_type_idx": cls_type_idx,
+        "doc_type_idx": doc_type_idx,
+        "document_type": document_type
+    }
+    insert_document_result = query.insert_document(session, **dao_document_params)
+    if isinstance(insert_document_result, JSONResponse):
+        return insert_document_result
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -302,6 +300,37 @@ async def post_upload_document(
         response_log=response_log,
     )
     response.get("resource_id").update(document_id=document_id)
+    
+    
+    if hydra_cfg.document.background_ocr:
+        # task_id = get_ts_uuid("task")
+        # response.get("resource_id").update(task_id=task_id)
+        
+        # cls_type_idx(cls_idx)로 model_info 조회
+        select_cls_group_model_result = query.select_cls_group_model(session, cls_idx=cls_type_idx)
+        if isinstance(select_cls_group_model_result, JSONResponse):
+            status_code_no_info, _ = ErrorResponse.ErrorCode.get(2101)
+            if select_cls_group_model_result.status_code != status_code_no_info:
+                return select_cls_group_model_result
+        cls_model_info: schema.ModelInfo = select_cls_group_model_result.model_info
+        
+        # doc_type_idx로 doc_type_code 조회
+        select_doc_type_result = query.select_doc_type(session, doc_type_idx=doc_type_idx)
+        if isinstance(select_doc_type_result, JSONResponse):
+            return select_doc_type_result
+        doc_type_info: schema.DocTypeInfo = select_doc_type_result
+        
+        # TODO 파라미터에 따라 사용할 bg 변경
+        background_tasks.add_task(
+            bg_clskv,
+            request,
+            current_user,
+            save_path=save_path,
+            document_id=document_id,
+            document_pages=document_pages,
+            cls_model_info=cls_model_info,
+            doc_type_info=doc_type_info
+        )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response), background=background_tasks)
 

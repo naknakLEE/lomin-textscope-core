@@ -20,30 +20,72 @@ from app.schemas import error_models as ErrorResponse
 settings = get_settings()
 
 
-def select_cls_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsInfo], JSONResponse]:
+def select_cls_group(session: Session, **kwargs: Dict) -> Union[schema.ClsGroupInfo, JSONResponse]:
     try:
-        result = schema.ClsInfo.get_all_multi(session, **kwargs)
+        result = schema.ClsGroupInfo.get(session, **kwargs)
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2108)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("cls_all select error")
+        logger.exception("cls_group select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 종류(대분류)")
+        error.error_message = error.error_message.format("문서 대분류 그룹")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
 
-def select_cls_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsModel], JSONResponse]:
+def select_cls_group_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsGroupInfo], JSONResponse]:
     try:
-        result = schema.ClsModel.get_all_multi(session, **kwargs)
+        result = schema.ClsGroupInfo.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2108)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("cls_group_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 문서 대분류 그룹")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_cls_group_model(session: Session, **kwargs: Dict) -> Union[schema.ClsGroupModel, JSONResponse]:
+    try:
+        result = schema.ClsGroupModel.get(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2108)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("cls_group_model select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("문서 대분류 그룹 모델")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_cls_group_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsGroupModel], JSONResponse]:
+    try:
+        result = schema.ClsGroupModel.get_all_multi(session, **kwargs)
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2109)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("cls_model_all select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 종류(대분류)와 모델")
+        error.error_message = error.error_message.format("모든 문서 대분류 그룹과 모델")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
+def select_doc_type_cls_group_all(session: Session, **kwargs: Dict) -> Union[List[schema.DocTypeClsGroup], JSONResponse]:
+    try:
+        result = schema.DocTypeClsGroup.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2109)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("doc_type_cls_group_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 문서 소분류와 문서 대분류 그룹")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
@@ -141,6 +183,7 @@ def insert_document(
     document_description: Optional[str] = None,
     document_type: str = "TRAINING",
     document_pages: int = 0,
+    cls_type_idx: int = 0,
     doc_type_idx: int = 0,
     auto_commit: bool = True
 ) -> Union[Optional[schema.DocumentInfo], JSONResponse]:
@@ -154,6 +197,7 @@ def insert_document(
             document_description=document_description,
             document_type=document_type,
             document_pages=document_pages,
+            cls_idx=cls_type_idx,
             doc_type_idx=doc_type_idx,
             auto_commit=auto_commit,
         )
@@ -437,7 +481,23 @@ def select_user_all(session: Session, **kwargs: Dict) -> Union[List[schema.UserI
     return result
 
 
-def select_user_group_latest(session: Session, **kwargs: Dict) -> schema.UserGroup:
+def select_user_group_all(session: Session, **kwargs: Dict) -> Union[List[schema.UserGroup], JSONResponse]:
+    dao = schema.UserGroup
+    try:
+        result = dao.get_all(session, **kwargs)
+        
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2509)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("user_group_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 사용자의 그룹(권한, 역할)")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_user_group_latest(session: Session, **kwargs: Dict) -> Union[schema.UserGroup, JSONResponse]:
     dao = schema.UserGroup
     try:
         query = dao.get_all_query(session, **kwargs)
@@ -447,7 +507,7 @@ def select_user_group_latest(session: Session, **kwargs: Dict) -> schema.UserGro
             status_code, error = ErrorResponse.ErrorCode.get(2509)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("user_role select error")
+        logger.exception("user_group select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
         error.error_message = error.error_message.format("사용자의 그룹(권한, 역할)")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
@@ -482,7 +542,7 @@ def select_group_info_all(session: Session, **kwargs: Dict) -> List[schema.Group
     return result
 
 
-def select_company_user_info(session: Session, **kwargs: Dict) -> schema.CompanyUserInfo:
+def select_company_user_info(session: Session, **kwargs: Dict) -> Union[schema.CompanyUserInfo, JSONResponse]:
     try:
         result = schema.CompanyUserInfo.get(session, **kwargs)
         if result is None:
@@ -547,12 +607,12 @@ def get_user_team_role(session: Session, user_email: str = "do@not.use") -> Unio
 
 def get_inspecter_list(
     session: Session,
-    user_team_list: List[str]
+    uploader_list: List[str]
 ) -> Dict[str, str]:
     
     try:
         query = session.query(schema.DocumentInfo, schema.InspectInfo) \
-            .filter(schema.DocumentInfo.user_team.in_(user_team_list)) \
+            .filter(schema.DocumentInfo.user_email.in_(uploader_list)) \
             .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
         
         select_inspecter_result: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
@@ -664,70 +724,68 @@ def get_user_group_policy(
         
     return result
 
-# user_policy에서 사용가능한 문서 종류(대분류) 정보 분리
-def get_user_classification_type(session: Session, user_policy: Dict[str, Union[bool, list]]) -> List[dict]:
-    # 문서 종류(대분류) 조회 (cls_code -> cls_idx)
-    select_cls_result = select_cls_all(
-        session,
-        cls_code=list(set(user_policy.get("R_DOC_TYPE_CLASSIFICATION", [])))
-    )
+# user_policy에서 사용가능한 문서 대분류 그룹 정보 분리
+def get_user_classification_type(session: Session, cls_code_list: List[str]) -> List[dict]:
+    # 문서 대분류 그룹 정보 조회 (cls_code -> cls_idx)
+    select_cls_result = select_cls_group_all(session, cls_code=cls_code_list)
     if isinstance(select_cls_result, JSONResponse):
         return select_cls_result
-    select_cls_result: List[schema.ClsInfo] = select_cls_result
+    select_cls_result: List[schema.ClsGroupInfo] = select_cls_result
     
-    # 문서 종류(대분류)가 사용하는 cls 모델 정보 조회
-    select_cls_model_result = select_cls_model_all(
+    # 문서 대분류 그룹이 가지는 문서 종류(소분류) 목록 조회
+    select_doc_type_cls_group_result = select_doc_type_cls_group_all(
         session,
         cls_idx=list(set( [ x.cls_idx for x in select_cls_result ] ))
     )
-    if isinstance(select_cls_model_result, JSONResponse):
-        return select_cls_model_result
-    select_cls_model_result: List[schema.ClsModel] = select_cls_model_result
+    if isinstance(select_doc_type_cls_group_result, JSONResponse):
+        return select_doc_type_cls_group_result
+    select_doc_type_cls_group_result: List[schema.DocTypeClsGroup] = select_doc_type_cls_group_result
     
-    # cls 모델 정보 조회
-    select_model_result = select_model_all(
+    # 문서 대분류 그룹이 사용하는 cls 모델 정보 조회
+    select_cls_group_model_result = select_cls_group_model_all(
         session,
-        model_idx=list(set( [ x.model_idx for x in select_cls_model_result ] ))
+        cls_idx=list(set( [ x.cls_idx for x in select_cls_result ] ))
     )
-    if isinstance(select_model_result, JSONResponse):
-        return select_model_result
-    select_model_result: List[schema.ModelInfo] = select_model_result
+    if isinstance(select_cls_group_model_result, JSONResponse):
+        return select_cls_group_model_result
+    select_cls_group_model_result: List[schema.ClsGroupModel] = select_cls_group_model_result
     
-    # cls 모델의 문서 종류(소분류) 정보 조회
-    select_class_result = select_class_all(
-        session,
-        model_idx=list(set( [ x.model_idx for x in select_cls_model_result ] ))
-    )
-    if isinstance(select_class_result, JSONResponse):
-        return select_class_result
-    select_class_result: List[schema.ClassInfo] = select_class_result
+    # 문서 대분류 그룹과 cls 모델 정보 매핑
+    cls_group_model_map: Dict[int, schema.ModelInfo] = dict()
+    for select_cls_group_model in select_cls_group_model_result:
+        cls_group_model_map.update({select_cls_group_model.cls_idx:select_cls_group_model.model_info})
+    
+    cls_group_map: Dict[int, schema.ClsGroupInfo] = dict()
+    cls_group_doc_type_map: Dict[int, List[dict]] = dict()
+    for select_doc_type_cls_group in select_doc_type_cls_group_result:
+        cls_group_info: schema.ClsGroupInfo = select_doc_type_cls_group.cls_group_info
+        doc_type_info: schema.DocTypeInfo = select_doc_type_cls_group.doc_type_info
+        
+        cls_group_map.update({cls_group_info.cls_idx:cls_group_info})
+        
+        befor_doc_type_info_list = cls_group_doc_type_map.get(cls_group_info.cls_idx, [])
+        befor_doc_type_info_list.append(dict(
+            index=doc_type_info.doc_type_idx,
+            code=doc_type_info.doc_type_code,
+            name_kr=doc_type_info.doc_type_name_kr,
+            name_en=doc_type_info.doc_type_name_en
+        ))
+        
+        cls_group_doc_type_map.update({cls_group_info.cls_idx:befor_doc_type_info_list})
     
     cls_type_list: List[dict] = list()
-    for cls_model_result in select_cls_model_result:
+    for cls_idx, cls_group_info in cls_group_map.items():
         
-        cls_info: schema.ClsInfo = cls_model_result.cls_info
-        model_info: schema.ModelInfo = cls_model_result.model_info
-        
-        docx_type_list: List[dict] = list()
-        for class_result in select_class_result:
-            
-            if class_result.model_idx != model_info.model_idx: continue
-            
-            docx_type_list.append(dict(
-                index   = class_result.class_idx,
-                code    = class_result.class_code,
-                name_kr = class_result.class_name_kr,
-                name_en = class_result.class_name_en
-            ))
+        cls_model_info: schema.ModelInfo = cls_group_model_map.get(cls_idx)
         
         cls_type_list.append(dict(
-            index         = cls_info.cls_idx,
-            code          = cls_info.cls_code,
-            name_kr       = cls_info.cls_name_kr,
-            name_en       = cls_info.cls_name_en,
-            route_name    = model_info.model_route_name,
-            artifact_name = model_info.model_artifact_name,
-            docx_type     = docx_type_list
+            index=cls_group_info.cls_idx,
+            code=cls_group_info.cls_code,
+            name_kr=cls_group_info.cls_name_kr,
+            name_en=cls_group_info.cls_name_en,
+            route_name=cls_model_info.model_route_name if cls_model_info else None,
+            artifact_name=cls_model_info.model_artifact_name if cls_model_info else None,
+            docx_type=cls_group_doc_type_map.get(cls_group_info.cls_idx, {})
         ))
     
     return cls_type_list
