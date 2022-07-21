@@ -37,12 +37,13 @@ primary_column_table = {
     "CompanyUserInfo": "emp_eno",
     "KeiOrgInfo": "org_org_id",
     
-    "ClsInfo": "cls_idx",
+    "ClsGroupInfo": "cls_idx",
     "DocTypeInfo": "doc_type_idx",
     "ModelInfo": "model_idx",
     "ClassInfo": "class_code",
     "DocTypeModel": "doc_type_idx,model_idx",
-    "ClsModel": "cls_idx,model_idx",
+    "ClsGroupModel": "cls_idx,model_idx",
+    "DocTypeClsGroup": "cls_idx,doc_type_idx",
     
     "CompanyInfo": "company_code",
     
@@ -409,9 +410,9 @@ class KeiOrgInfo(Base, BaseMixin):
     company_info = relationship('CompanyInfo')
 
 
-class ClsInfo(Base, BaseMixin):
-    __tablename__ = 'cls_info'
-    __table_args__ = {'comment': 'textscope 서비스 문서 종류(대분류) 정보'}
+class ClsGroupInfo(Base, BaseMixin):
+    __tablename__ = 'cls_group_info'
+    __table_args__ = {'comment': 'textscope 서비스 대분류 그룹 정보'}
     
     company_code = Column(String, comment='회사 유니크 코드')
     cls_idx = Column(Integer, primary_key=True, comment='문서 종류(대분류) 유니크 인덱스')
@@ -441,6 +442,7 @@ class ModelInfo(Base, BaseMixin):
     model_idx = Column(Integer, primary_key=True, comment='모델 유니크 인덱스')
     model_name_kr = Column(String, comment='모델 한글 명')
     model_name_en = Column(String, comment='모델 영문 명')
+    model_description = Column(String, comment='모델 설명')
     model_version = Column(String, comment='모델 버전')
     model_path = Column(String, comment='모델 저장 경로')
     model_type = Column(String, comment='모델 종류')
@@ -450,12 +452,25 @@ class ModelInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
 
+class DocTypeClsGroup(Base, BaseMixin):
+    __tablename__ = 'doc_type_cls_group'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류 분류 그룹'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    cls_idx = Column(ForeignKey('cls_group_info.cls_idx'), nullable=False, comment='문서 종류(대분류) 유니크 인덱스')
+    doc_type_idx = Column(ForeignKey('doc_type_info.doc_type_idx'), nullable=False, comment='문서 종류(소분류) 유니크 인덱스')
+    is_used = Column(Boolean, comment='사용 여부')
+    
+    doc_type_info = relationship('DocTypeInfo')
+    cls_group_info = relationship('ClsGroupInfo')
+
+
 class DocTypeModel(Base, BaseMixin):
     __tablename__ = 'doc_type_model'
     __table_args__ = {'comment': 'textscope 서비스 문서 타입별 사용하는 모델'}
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
-    doc_type_idx = Column(ForeignKey('doc_type_info.doc_type_idx'), nullable=False, comment='문서 종류 유니크 인덱스')
+    doc_type_idx = Column(ForeignKey('doc_type_info.doc_type_idx'), nullable=False, comment='문서 종류(소분류) 유니크 인덱스')
     model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='모델 유니크 인덱스')
     sequence = Column(Integer, nullable=False, comment='모델 사용 순서')
     is_used = Column(Boolean, comment='사용 여부')
@@ -464,16 +479,16 @@ class DocTypeModel(Base, BaseMixin):
     model_info = relationship('ModelInfo')
 
 
-class ClsModel(Base, BaseMixin):
-    __tablename__ = 'cls_model'
-    __table_args__ = {'comment': 'textscope 서비스 문서 종류 대분류 소분류 관계'}
+class ClsGroupModel(Base, BaseMixin):
+    __tablename__ = 'cls_group_model'
+    __table_args__ = {'comment': 'textscope 서비스 대분류 그룹과 모델 관계'}
 
     created_time = Column(DateTime, primary_key=True, default=func.now())
-    cls_idx = Column(ForeignKey('cls_info.cls_idx'), nullable=False, comment='문서 종류(대분류) 유니크 인덱스')
+    cls_idx = Column(ForeignKey('cls_group_info.cls_idx'), nullable=False, comment='문서 종류(대분류) 유니크 인덱스')
     model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='문서 분류 모델 유니크 인덱스')
     is_used = Column(Boolean, comment='사용 여부')
 
-    cls_info = relationship('ClsInfo')
+    cls_group_info = relationship('ClsGroupInfo')
     model_info = relationship('ModelInfo')
 
 
@@ -559,6 +574,7 @@ class DocumentInfo(Base, BaseMixin):
     document_path = Column(String, comment='문서 저장 경로')
     document_description = Column(String, comment='문서 설명')
     document_pages = Column(Integer, comment='문서 총 페이지 수')
+    cls_idx = Column(Integer, comment='문서 대분류 그룹 인덱스')
     doc_type_idx = Column(Integer, comment='문서 종류 유니크 인덱스')
     inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
@@ -709,8 +725,9 @@ table_class_mapping = dict({
     "doc_type_info": DocTypeInfo,
     "model_info": ModelInfo,
     "doc_type_model": DocTypeModel,
-    "cls_info": ClsInfo,
-    "cls_model": ClsModel,
+    "cls_group_info": ClsGroupInfo,
+    "doc_type_cls_group": DocTypeClsGroup,
+    "cls_group_model": ClsGroupModel,
     "policy_info": PolicyInfo,
     "group_info": GroupInfo,
     "log_info": LogInfo,
@@ -746,8 +763,9 @@ grant_table_list = [
     
     "doc_type_info",
     "doc_type_model",
-    "cls_info",
-    "cls_model",
+    "cls_group_info",
+    "doc_type_cls_group",
+    "cls_group_model",
     "class_info"
 ]
 
@@ -863,7 +881,6 @@ def insert_initial_data() -> None:
                             
                         elif isinstance(db_type, JSON):
                             cell_value: dict = json.loads(cell_value)
-                        
                         init_data.update({column_name:cell_value})
                     
                     if len(init_data) != 0:
@@ -877,5 +894,6 @@ def insert_initial_data() -> None:
         )
     except Exception as exce:
         logger.error(exce)
+        logger.error("file: {0}, sheet: {1}, row: {2}".format(file_info.get("name"), table_name, row_cell[0].row))
     finally:
         session.close()
