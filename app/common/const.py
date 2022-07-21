@@ -147,7 +147,7 @@ class Settings(BaseSettings):
             "name": "kei2205",
             "password": "g12?oq4C+APT2I4wRKb!",
             # "ignore": ["VW_IF_EMP", "VW_IF_ORG_CUR", "VW_IF_CD"]
-        },
+        }
     ]
 
     # ADMIN MUST HAVE POLICY
@@ -231,6 +231,12 @@ class Settings(BaseSettings):
     STATUS_NOT_INSPECTED = "NOT_INSPECTED"
     STATUS_INSPECTING = "INSPECTING"
     STATUS_INSPECTED = "INSPECTED"
+    STATUS_MAPPING = {
+        "RUNNING_INFERENCE":"분석대기",
+        "NOT_INSPECTED":"검수대기",
+        "INSPECTING":"검수 중",
+        "INSPECTED":"완료"
+    }
 
     # FILE CONFIG
     ZIP_PATH: str = "/workspace/assets/datasets"
