@@ -19,7 +19,7 @@ from app.utils.image import (
     get_image_bytes,
     image_to_base64,
 )
-from app.utils.utils import is_admin
+from app.utils.utils import is_admin, get_company_group_prefix
 
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
@@ -93,14 +93,14 @@ def get_thumbnail(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
-@router.get("/filter/user")
+@router.get("/filter/user/inspecter")
 def get_filter_user(
     user_team:    str,
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session:      Session         = Depends(db.session)
 ) -> JSONResponse:
     """
-    ### 업무 리스트 필터링시 조회 가능한 등록자, 검수자 목록 조회
+    ### 업무 리스트 필터링시 조회 가능한 검수자 목록 조회
     """
     # 사용자의 모든 정책(권한) 확인
     user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
@@ -108,27 +108,34 @@ def get_filter_user(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list = list(set(user_team_list))
+    user_team_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 응답 반환
-    if user_team not in user_team_list:
+    if group_prefix + user_team not in user_team_list:
         status_code, error = ErrorResponse.ErrorCode.get(2509)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # user_team에 속한 사용자 목록 조회
-    select_user_all_result = query.select_user_all(session, user_team=user_team_list)
+    # group_code가 group_prefix + user_team인 그룹에 속한 사용자 목록 조회
+    select_user_all_result = query.select_user_group_all(session, group_code=group_prefix + user_team)
     if isinstance(select_user_all_result, JSONResponse):
         return select_user_all_result
-    select_user_all_result: List[schema.UserInfo] = select_user_all_result
+    select_user_all_result: List[schema.UserGroup] = select_user_all_result
     
     email_name: Dict[str, str] = dict()
     for user in select_user_all_result:
-        email_name.update({user.user_email:user.user_name})
+        user_info: schema.UserInfo = user.user_info
+        email_name.update({user.user_email:user_info.user_name})
     
-    # (user_team에 속한 사용자가 등록한 문서)를 검수한 사용자 목록 조회
-    inspecter_name: Dict[str, str] = query.get_inspecter_list(session, user_team_list=user_team_list)
+    # (group_code에 속한 사용자가 등록한 문서)를 검수한 사용자 목록 조회
+    inspecter_name: Dict[str, str] = query.get_inspecter_list(session, uploader_list=[ x.user_email for x in select_user_all_result ])
     if isinstance(inspecter_name, JSONResponse):
         return inspecter_name
     
@@ -142,7 +149,56 @@ def get_filter_user(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
-@router.get("/filter/department")
+@router.get("/filter/user/uploader")
+def get_filter_user(
+    user_team:    str,
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session:      Session         = Depends(db.session)
+) -> JSONResponse:
+    """
+    ### 업무 리스트 필터링시 조회 가능한 등록자 목록 조회
+    """
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    user_team_list: List[str] = list()
+    user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
+    user_team_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    
+    # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 응답 반환
+    if group_prefix + user_team not in user_team_list:
+        status_code, error = ErrorResponse.ErrorCode.get(2509)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # group_code가 group_prefix + user_team인 그룹에 속한 사용자 목록 조회
+    select_user_all_result = query.select_user_group_all(session, group_code=group_prefix + user_team)
+    if isinstance(select_user_all_result, JSONResponse):
+        return select_user_all_result
+    select_user_all_result: List[schema.UserGroup] = select_user_all_result
+    
+    email_name: Dict[str, str] = dict()
+    for user in select_user_all_result:
+        user_info: schema.UserInfo = user.user_info
+        email_name.update({user.user_email:user_info.user_name})
+    
+    
+    response = dict(
+        user_info=email_name
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
+@router.get("/filter/group")
 def get_filter_department(
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session:      Session         = Depends(db.session)
@@ -156,9 +212,15 @@ def get_filter_department(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list = list(set(user_team_list))
+    user_team_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     select_group_all_result = query.select_group_info_all(session, group_code=user_team_list)
     if isinstance(select_group_all_result, JSONResponse):
@@ -167,7 +229,7 @@ def get_filter_department(
     
     user_team: dict = dict()
     for group in select_group_all_result:
-        user_team.update({group.group_code:group.group_name})
+        user_team.update({str(group.group_code).replace(group_prefix, ""):group.group_name})
     
     
     response = dict(
@@ -191,7 +253,19 @@ def get_filter_doc_type(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
-    cls_type_list = query.get_user_classification_type(session, user_policy_result)
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_list = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_list, JSONResponse):
+        return cls_type_list
     
     
     response = dict(
@@ -414,6 +488,9 @@ def get_document_list(
             and not is_admin(user_policy_result):
             row[docx_id_index] = ""
         
+        row.insert(insp_st_index, settings.STATUS_MAPPING.get(row[insp_st_index], ""))
+        row.pop(insp_st_index+1)
+        
         response_rows.append(row)
     
     
@@ -505,4 +582,3 @@ def get_document_inference_info(
     )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
-
