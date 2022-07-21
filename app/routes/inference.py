@@ -2,7 +2,7 @@ import uuid
 
 from httpx import Client
 
-from typing import Dict
+from typing import Dict, Union
 from fastapi import APIRouter, Body, Depends
 from pathlib import Path
 from datetime import datetime
@@ -48,7 +48,7 @@ def ocr(
     inputs: Dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session),
-) -> Dict:
+) -> Union[JSONResponse, dict]:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
     입력 데이터: 토큰, ocr에 사용할 파일 <br/>
@@ -175,12 +175,20 @@ def ocr(
         if (
             post_processing_type is not None
         ):
+            text_list = inference_result.get("texts", [])
+            box_list = inference_result.get("boxes", [])
+            score_list = inference_result.get("scores", [])
+            class_list = inference_result.get("classes", [])
+            
+            score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
+            class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
+            
             pp_inputs = dict(
-                boxes=inference_result.get("boxes"),
-                scores=inference_result.get("scores"),
-                classes=inference_result.get("classes"),
+                texts=text_list,
+                boxes=box_list,
+                scores=score_list,
+                classes=class_list,
                 rec_preds=inference_result.get("rec_preds"),
-                texts=inference_results.get("texts"),
                 id_type=inference_results.get("id_type"),
                 doc_type=inference_results.get("doc_type"),
                 image_height=inference_results.get("image_height"),
@@ -210,7 +218,7 @@ def ocr(
     
     response_log.update(inference_results.get("response_log", {}))
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
-
+    
     inference_id = get_ts_uuid("inference")
     doc_type_code = inference_results.get("doc_type")
     
@@ -247,5 +255,8 @@ def ocr(
             # log_id=task_id
         )
     )
+    
+    if inputs.get("background", False): return response
+    
     
     return JSONResponse(content=jsonable_encoder(response))

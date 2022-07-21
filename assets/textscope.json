@@ -225,7 +225,13 @@
   "PP_MAPPING_TABLE": {
     "general_pp": [
       "사업자등록증", 
-      "GV-CBR"
+      "GV-CBR",
+      "FN-OIP",
+      "FN-BP",
+      "TD-CI",
+      "TD-PL",
+      "TD-BL",
+      "TD-PO"
     ],
     "commercial_bill": [
       "FN-CB"

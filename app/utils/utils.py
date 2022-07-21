@@ -17,8 +17,11 @@ from io import BytesIO
 from PIL import Image
 from rich.progress import track
 from datetime import datetime
+from sqlalchemy.orm import Session
 
 from app.common.const import get_settings
+from app.schemas import error_models as ErrorResponse
+from app.database import query, schema
 from app.errors.exceptions import ResourceDataError
 from app.utils.logging import logger
 
@@ -90,26 +93,28 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     if not isinstance(pp_mapping_table, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
     
-    if doc_type in pp_mapping_table.get("general_pp", []):
-        return "general_pp"
-    elif doc_type in pp_mapping_table.get("commercial_bill", []):
-        return "commercial_bill"
-    elif doc_type in pp_mapping_table.get("heungkuk", []):
-        return "heungkuk"
-    elif doc_type in pp_mapping_table.get("idcard", []):
-        return "idcard"
-    elif doc_type in pp_mapping_table.get("bankbook", []):
-        return "bankbook"
-    elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
-        return "seal_imp_cert"
-    elif doc_type in pp_mapping_table.get("ccr", []):
-        return "ccr"
-    elif doc_type in pp_mapping_table.get("busan_bank", []):
-        return "busan_bank"
-    elif customer == "kakaobank" and doc_type in document_type_set:
-        return document_type_set.get(doc_type)
+    pp_type = "general_pp"
     
-    return None
+    if doc_type in pp_mapping_table.get("general_pp", []):
+        pp_type = "general_pp"
+    elif doc_type in pp_mapping_table.get("commercial_bill", []):
+        pp_type = "commercial_bill"
+    elif doc_type in pp_mapping_table.get("heungkuk", []):
+        pp_type = "heungkuk"
+    elif doc_type in pp_mapping_table.get("idcard", []):
+        pp_type = "idcard"
+    elif doc_type in pp_mapping_table.get("bankbook", []):
+        pp_type = "bankbook"
+    elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
+        pp_type = "seal_imp_cert"
+    elif doc_type in pp_mapping_table.get("ccr", []):
+        pp_type = "ccr"
+    elif doc_type in pp_mapping_table.get("busan_bank", []):
+        pp_type = "busan_bank"
+    elif customer == "kakaobank" and doc_type in document_type_set:
+        pp_type = document_type_set.get(doc_type)
+    
+    return pp_type
 
 
 def cal_time_elapsed_seconds(
@@ -365,4 +370,20 @@ def is_admin(user_policy_result: Dict[str, Union[bool, list]]) -> bool:
     result = True
     for code, content in user_policy_result.items():
         if code in settings.ADMIN_POLICY and isinstance(content, bool): result &= content
+    return result
+
+
+def get_company_group_prefix(session: Session, emp_usr_emad: str) -> Union[str, JSONResponse]:
+    result = None
+    
+    company_user_result = query.select_company_user_info(session, emp_usr_emad=emp_usr_emad)
+    if isinstance(company_user_result, schema.CompanyUserInfo):
+        result = company_user_result.company_code + "_"
+        
+    elif isinstance(company_user_result, JSONResponse):
+        status_code_no_company_user, _ = ErrorResponse.ErrorCode.get(2524)
+        if company_user_result.status_code != status_code_no_company_user:
+            result = company_user_result
+        result = ""
+    
     return result
