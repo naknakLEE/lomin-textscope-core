@@ -332,7 +332,6 @@ class ImageCropBbox(BaseModel):
 class ImageMetadata(BaseModel):
     filename: str = "myfilename.jpg"
     description: str = "mydescription"
-    image_type: str = "TRAINING or INFERENCE"
     upload_datetime: datetime = datetime.now()
     width: int = 1920
     height: int = 1080
