@@ -16,8 +16,8 @@ settings = get_settings()
 DEFAULT_PARAMS = {
     "document_id": None,
     "rectify": {
-        'rotation_90n': False, 
-        'rotation_fine': False
+        'rotation_90n': True, 
+        'rotation_fine': True
     },
     "page": 1,
     "use_text_extraction": False, 
@@ -65,86 +65,43 @@ DEFAULT_KV_PARAMS = {
 }
 
 
-def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
-    document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
-    
-    ocr_params = dict()
-    ocr_params.update(DEFAULT_PARAMS)
-    ocr_params.update(DEFAULT_GOCR_PARAMS)
-    
-    session = next(db.session())
-    
-    for page in range(1, document_pages + 1):
-        task_id=get_ts_uuid("task")
-        
-        ocr_params.update(
-            task_id=task_id,
-            request_id=task_id,
-            document_id=document_id,
-            page=page,
-            document_path=document_path,
-        )
-        
-        ocr(request=request, inputs=ocr_params, current_user=current_user, session=session)
-    
-    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
-
-
-def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
-    document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
-    
+def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
     # cls_model_info에 따라 어떤 cls모델을 사용할지는 추 후 논의
     cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
-    
-    session = next(db.session())
-    
-    ocr_params = dict()
-    ocr_params.update(DEFAULT_PARAMS)
-    
-    if cls_model_info is not None:
-        ocr_params.update(DEFAULT_CLS_PARAMS)
-    
-    for page in range(1, document_pages + 1):
-        task_id=get_ts_uuid("task")
-        
-        ocr_params.update(
-            task_id=task_id,
-            request_id=task_id,
-            document_id=document_id,
-            page=page,
-            document_path=document_path,
-        )
-        
-        ocr(request=request, inputs=ocr_params, current_user=current_user, session=session)
-    
-    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
-
-
-def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
-    document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
     
     # doc_type에 따라 어떤 kv모델을 사용할지는 추 후 논의
     doc_type_info: schema.DocTypeInfo = kwargs.get("doc_type_info")
     
+    # TODO 어떤 파라미터에 따라 어떤 ocr을 사용할지 정함
+    bg_ocr = None
+    if cls_model_info is None and doc_type_info.doc_type_idx == 0: # gocr
+        bg_ocr = bg_gocr
+    elif cls_model_info is None and doc_type_info.doc_type_idx != 0: # kv
+        bg_ocr = bg_kv
+    elif cls_model_info is not None and doc_type_info.doc_type_idx == 0: # cls
+        bg_ocr = bg_clskv
+    elif cls_model_info is not None and doc_type_info.doc_type_idx != 0: # clskv
+        bg_ocr = bg_clskv
+    
+    print(bg_ocr.__name__)
+    bg_ocr(request, current_user, **kwargs)
+
+
+def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    document_id = kwargs.get("document_id")
+    document_pages = kwargs.get("document_pages", 1)
+    document_path = kwargs.get("save_path")
+    
+    gocr_params = dict()
+    gocr_params.update(DEFAULT_PARAMS)
+    gocr_params.update(DEFAULT_GOCR_PARAMS)
+    
     session = next(db.session())
-    
-    ocr_params = dict()
-    ocr_params.update(DEFAULT_PARAMS)
-    
-    if doc_type_info is not None: # KV만 한다
-        ocr_params.update(DEFAULT_KV_PARAMS)
-        ocr_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_info.doc_type_code)
     
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
-        ocr_params.update(
+        gocr_params.update(
             task_id=task_id,
             request_id=task_id,
             document_id=document_id,
@@ -152,17 +109,76 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
             document_path=document_path,
         )
         
-        ocr(request=request, inputs=ocr_params, current_user=current_user, session=session)
+        ocr(request=request, inputs=gocr_params, current_user=current_user, session=session)
     
     query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
 
-
-def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
+def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
     document_id = kwargs.get("document_id")
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
     
-    # cls_model_info에 따라 어떤 cls모델을 사용할지는 추 후 논의
+    cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
+    
+    session = next(db.session())
+    
+    cls_params = dict()
+    cls_params.update(DEFAULT_PARAMS)
+    
+    if cls_model_info is not None:
+        cls_params.update(DEFAULT_CLS_PARAMS)
+    
+    for page in range(1, document_pages + 1):
+        task_id=get_ts_uuid("task")
+        
+        cls_params.update(
+            task_id=task_id,
+            request_id=task_id,
+            document_id=document_id,
+            page=page,
+            document_path=document_path,
+        )
+        
+        ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
+    
+    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+
+def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    document_id = kwargs.get("document_id")
+    document_pages = kwargs.get("document_pages", 1)
+    document_path = kwargs.get("save_path")
+    
+    doc_type_info: schema.DocTypeInfo = kwargs.get("doc_type_info")
+    
+    session = next(db.session())
+    
+    kv_params = dict()
+    kv_params.update(DEFAULT_PARAMS)
+    
+    if doc_type_info is not None: # KV만 한다
+        kv_params.update(DEFAULT_KV_PARAMS)
+        kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_info.doc_type_code)
+    
+    for page in range(1, document_pages + 1):
+        task_id=get_ts_uuid("task")
+        
+        kv_params.update(
+            task_id=task_id,
+            request_id=task_id,
+            document_id=document_id,
+            page=page,
+            document_path=document_path,
+        )
+        
+        ocr(request=request, inputs=kv_params, current_user=current_user, session=session)
+    
+    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+
+def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    document_id = kwargs.get("document_id")
+    document_pages = kwargs.get("document_pages", 1)
+    document_path = kwargs.get("save_path")
+    
     cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
     
     session = next(db.session())
@@ -187,12 +203,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             document_path=document_path,
         )
         
-        cls_response: dict = ocr(
-            request=request,
-            inputs=cls_params,
-            current_user=current_user,
-            session=session
-        )
+        cls_response: dict = ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
         
         doc_type_info: str = cls_response.get("inference_results", {}).get("doc_type")
         

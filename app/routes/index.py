@@ -16,7 +16,7 @@ from fastapi.security import (
 import base64
 
 from app import hydra_cfg
-from app.utils.background import bg_gocr, bg_cls, bg_kv, bg_clskv
+from app.utils.background import bg_ocr_wrapper
 from app.database.connection import db
 from app.database import query, schema
 from app.models import UserInfo as UserInfoInModel
@@ -307,22 +307,30 @@ async def post_upload_document(
         # response.get("resource_id").update(task_id=task_id)
         
         # cls_type_idx(cls_idx)로 model_info 조회
+        cls_model_info = None
         select_cls_group_model_result = query.select_cls_group_model(session, cls_idx=cls_type_idx)
         if isinstance(select_cls_group_model_result, JSONResponse):
-            status_code_no_info, _ = ErrorResponse.ErrorCode.get(2101)
+            status_code_no_info, _ = ErrorResponse.ErrorCode.get(2108)
             if select_cls_group_model_result.status_code != status_code_no_info:
                 return select_cls_group_model_result
-        cls_model_info: schema.ModelInfo = select_cls_group_model_result.model_info
+            cls_model_info = None
+        elif isinstance(select_cls_group_model_result, schema.ClsGroupModel):
+            select_cls_group_model_result: schema.ClsGroupModel = select_cls_group_model_result
+            cls_model_info: schema.ModelInfo = select_cls_group_model_result.model_info
         
         # doc_type_idx로 doc_type_code 조회
+        doc_type_info = None
         select_doc_type_result = query.select_doc_type(session, doc_type_idx=doc_type_idx)
         if isinstance(select_doc_type_result, JSONResponse):
-            return select_doc_type_result
-        doc_type_info: schema.DocTypeInfo = select_doc_type_result
+            status_code_no_info, _ = ErrorResponse.ErrorCode.get(2107)
+            if select_doc_type_result.status_code != status_code_no_info:
+                return select_doc_type_result
+            doc_type_info = None
+        elif isinstance(select_doc_type_result, schema.DocTypeInfo):
+            doc_type_info: schema.DocTypeInfo = select_doc_type_result
         
-        # TODO 파라미터에 따라 사용할 bg 변경
         background_tasks.add_task(
-            bg_clskv,
+            bg_ocr_wrapper,
             request,
             current_user,
             save_path=save_path,
