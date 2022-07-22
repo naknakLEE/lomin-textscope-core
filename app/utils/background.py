@@ -72,7 +72,7 @@ def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs:
     # doc_type에 따라 어떤 kv모델을 사용할지는 추 후 논의
     doc_type_info: schema.DocTypeInfo = kwargs.get("doc_type_info")
     
-    # TODO 어떤 파라미터에 따라 어떤 ocr을 사용할지 정함
+    # TODO 어떤 파라미터에 따라 어떤 ocr을 사용할지 정함, 로직 개선 필요
     bg_ocr = None
     if cls_model_info is None and doc_type_info.doc_type_idx == 0: # gocr
         bg_ocr = bg_gocr
@@ -83,7 +83,6 @@ def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs:
     elif cls_model_info is not None and doc_type_info.doc_type_idx != 0: # clskv
         bg_ocr = bg_clskv
     
-    print(bg_ocr.__name__)
     bg_ocr(request, current_user, **kwargs)
 
 
