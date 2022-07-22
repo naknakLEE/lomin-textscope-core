@@ -49,9 +49,15 @@ def get_thumbnail(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list = list(set(user_team_list))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 문서 정보 조회
     select_document_result = query.select_document(session, document_id=document_id)
@@ -60,7 +66,7 @@ def get_thumbnail(
     select_document_result: schema.DocumentInfo = select_document_result
     
     # 해당 문서에 대한 권한이 없을 경우 에러 응답 반환
-    if select_document_result.user_team not in user_team_list:
+    if group_prefix + select_document_result.user_team not in group_list:
         status_code, error = ErrorResponse.ErrorCode.get(2505)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
@@ -116,10 +122,10 @@ def get_filter_user(
     
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 응답 반환
-    if group_prefix + user_team not in user_team_list:
+    if group_prefix + user_team not in group_list:
         status_code, error = ErrorResponse.ErrorCode.get(2509)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
@@ -172,10 +178,10 @@ def get_filter_user(
     
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 응답 반환
-    if group_prefix + user_team not in user_team_list:
+    if group_prefix + user_team not in group_list:
         status_code, error = ErrorResponse.ErrorCode.get(2509)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
@@ -220,9 +226,9 @@ def get_filter_department(
     
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
-    select_group_all_result = query.select_group_info_all(session, group_code=user_team_list)
+    select_group_all_result = query.select_group_info_all(session, group_code=group_list)
     if isinstance(select_group_all_result, JSONResponse):
         return select_group_all_result
     select_group_all_result: List[schema.GroupInfo] = select_group_all_result
@@ -344,12 +350,19 @@ def get_document_list(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
+    group_code_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 반환
     for group_code in group_list:
-        if group_code not in user_team_list:
+        if group_prefix + group_code not in group_code_list:
             status_code, error = ErrorResponse.ErrorCode.get(2509)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
@@ -531,11 +544,15 @@ def get_document_inference_info(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    user_team_list.extend(user_policy_result.get("R_INSPECT_TEAM", []))
-    user_team_list.extend(user_policy_result.get("R_INFERENCE_TEAM", []))
-    user_team_list = list(set(user_team_list))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 문서 정보 조회
     select_document_result = query.select_document(session, document_id=document_id)
@@ -544,7 +561,7 @@ def get_document_inference_info(
     select_document_result: schema.DocumentInfo = select_document_result
     
     # 해당 문서에 대한 권한이 없음
-    if select_document_result.user_team not in user_team_list:
+    if group_prefix + select_document_result.user_team not in group_list:
         status_code, error = ErrorResponse.ErrorCode.get(2505)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
