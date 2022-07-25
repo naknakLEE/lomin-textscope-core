@@ -325,7 +325,7 @@ def select_document_inspect_all(
     user_team: List[str] = [],
     uploader_list: List[str] = [],
     inspecter_list: List[str] = [],
-    doc_type_idx_list: List[int] = [],
+    cls_type_idx_list: List[int] = [],
     document_status: List[str] = [],
     
     rows_limit: int = 100,
@@ -348,7 +348,7 @@ def select_document_inspect_all(
         # DocumentInfo 필터링
         document_filters = dict(
             # document_type=document_type,
-        doc_type_idx=doc_type_idx_list,
+        cls_idx=cls_type_idx_list,
             user_email=uploader_list
         )
         for column, filter in document_filters.items():
