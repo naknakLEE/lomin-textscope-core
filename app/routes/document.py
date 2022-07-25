@@ -1,3 +1,5 @@
+import json
+
 from PIL import Image
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -246,7 +248,7 @@ def get_filter_department(
 
 
 @router.get("/filter/cls-type")
-def get_filter_doc_type(
+def get_filter_cls_type(
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session:      Session         = Depends(db.session)
 ) -> JSONResponse:
@@ -325,7 +327,7 @@ def get_document_list(
         4-1. pkey와 관련된 특정 정보를 가져오려면 인덱스 지정 필수 -> [# pkey를 이름으로 가져오는 컬럼은 인덱스 지정 필수]
     5. 필터링 및 페이징된 결과를 가져옵니다. -> [# 필터링된 업무 리스트]
     6. 업무 리스트의 정보 중 pkey의 정보를 각 이름으로 변경하고, 검수 중인 문서는 document_id를 제거 후 반환합니다.
-        6-1. doc_type_idx로 문서 종류 한글명, 유형 정보를 조회합니다. -> [# doc_type_idx로 문서 종류 이름 검색, 유형(None, 정형, 비정형) 추가]
+        6-1. cls_type_list로 문서 종류 한글명, 유형 정보를 조회합니다. -> [# cls_type_list 문서 종류 이름 검색, 유형(None, 정형, 비정형) 추가]
         6-2. 검수 중이면 document_id 제거 -> [# 검수 중이면 document_id 제거]
         6-3. document_id 제거 -> [# doc_type_index를 이름으로 변경, 문서 유형 추가, document_id 제거]
     """
@@ -338,8 +340,7 @@ def get_document_list(
     group_list:         List[str]  = params.get("group_list", [])
     uploader_list:      List[str]  = params.get("uploader_list", [])
     inspecter_list:     List[str]  = params.get("inspecter_list", [])
-    doc_type_idx_list:  List[int]  = params.get("doc_type_idx_list", [])
-    doc_structed:       List[str]  = params.get("doc_structed", [])
+    cls_type_idx_list:  List[int]  = params.get("cls_type_list", [])
     document_status:    List[str]  = params.get("document_status", [])
     rows_limit:         int        = params.get("rows_limit", 100)
     rows_offset:        int        = params.get("rows_offset", 0)
@@ -366,30 +367,30 @@ def get_document_list(
             status_code, error = ErrorResponse.ErrorCode.get(2509)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # 사용자 정책(조회 가능 문서 종류) 확인
-    doc_type_list: List[str] = list()
-    doc_type_list.extend(user_policy_result.get("R_DOC_TYPE_CATEGORY", []))
-    doc_type_list.extend(user_policy_result.get("R_DOC_TYPE_SUB_CATEGORY", []))
-    doc_type_list = list(set(doc_type_list))
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
     
-    select_doc_type_all_result = query.select_doc_type_all(session, doc_type_code=doc_type_list)
-    if isinstance(select_doc_type_all_result, JSONResponse):
-        return select_doc_type_all_result
-    select_doc_type_all_result: List[schema.DocTypeInfo] = select_doc_type_all_result
+    # 사용자 정책(조회 가능 문서 대분류 그룹) 확인
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
     
-    doc_type_idx_result_list: List[int] = list()
-    for result in select_doc_type_all_result:
-        doc_type_idx_result_list.append(result.doc_type_idx)
+    cls_type_idx_list_result = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_idx_list_result, JSONResponse):
+        return cls_type_idx_list_result
+    
+    cls_type_idx_result_list: List[int] = list()
+    for result in cls_type_idx_list:
+        cls_type_idx_result_list.append(result.get("index"))
     
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
-    for doc_type_idx in doc_type_idx_list:
-        if doc_type_idx not in doc_type_idx_result_list:
+    for cls_type_idx in cls_type_idx_list:
+        if cls_type_idx not in cls_type_idx_result_list:
             status_code, error = ErrorResponse.ErrorCode.get(2509)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-    
-    # 문서 유형 필터 없었으면 "None" 추가
-    if len(doc_structed) == 0:
-        doc_structed.extend(["None", "정형", "비정형", "반정형"])
     
     # 등록일, 검수일 기간 파싱
     ignore_upload_date: bool = True
@@ -422,14 +423,17 @@ def get_document_list(
     
     # 가변 컬럼
     column_order: list = list()
-    doc_type_index: int = 0
+    cls_idx: int = 0
+    doc_type_idx: int = 0
     for i, c in enumerate(settings.DOCUMENT_LIST_COLUMN_ORDER):
         t_c = settings.DCOUMENT_LIST_COLUMN_MAPPING.get(c)
         if t_c is not None: column_order.append(t_c)
         
         # pkey를 이름으로 가져오는 컬럼은 인덱스 지정 필수
-        if t_c == "DocumentInfo.doc_type_idx":
-            doc_type_index = i
+        if t_c == "DocumentInfo.cls_idx":
+            cls_idx = i
+        elif t_c == "DocumentInfo.doc_type_idxs":
+            doc_type_idx = i
     
     # 필터링된 업무 리스트
     total_count, complet_count, filtered_rows = query.select_document_inspect_all(
@@ -448,7 +452,7 @@ def get_document_list(
         uploader_list=uploader_list,
         inspecter_list=inspecter_list,
         
-        doc_type_idx_list=doc_type_idx_list,
+        cls_type_idx_list=cls_type_idx_list,
         
         document_status=document_status,
         rows_limit=rows_limit,
@@ -457,23 +461,6 @@ def get_document_list(
     )
     if isinstance(filtered_rows, JSONResponse):
         return filtered_rows
-    
-    # 업무 리스트에 존재하는 doc_type_idx로 중복없는 리스트로 변경
-    doc_type_idx_list: set = set()
-    for filtered_row in filtered_rows:
-        doc_type_idx_list.add(filtered_row[doc_type_index])
-    doc_type_idx_list = list(set(doc_type_idx_list))
-    
-    # doc_type_idx로 문서 종류 이름 검색, 유형(정형, 비정형, 반정형) 추가
-    doc_type_idx_name: Dict[str, str] = dict()
-    doc_type_idx_structed: Dict[str, bool] = dict()
-    select_doc_type_all_result = query.select_doc_type_all(session, doc_type_idx=doc_type_idx_list)
-    if isinstance(select_doc_type_all_result, JSONResponse):
-        return select_doc_type_all_result
-    for result in select_doc_type_all_result:
-        doc_type_idx_name.update(dict({str(result.doc_type_idx):result.doc_type_name_kr}))
-        doc_type_idx_structed.update(dict({str(result.doc_type_idx):result.doc_type_structed}))
-    del select_doc_type_all_result, doc_type_idx_list
     
     # 검수 중이면 document_id 제거
     docx_id_index = 0
@@ -490,12 +477,8 @@ def get_document_list(
     response_rows: List[list] = list()
     for row in rows:
         
-        structed = doc_type_idx_structed.get(row[doc_type_index])
-        
-        if structed not in doc_structed: continue
-        
-        row[doc_type_index] = doc_type_idx_name.get(row[doc_type_index], "None")
-        row.insert(doc_type_index + 1, structed)
+        doc_type_idxs: dict = json.loads(row.pop(doc_type_idx).replace("'", "\""))
+        row.insert(doc_type_idx, str(doc_type_idxs.get("doc_type_idxs", [])).replace("[", "").replace("]", ""))
         
         if row[insp_st_index] in [settings.STATUS_RUNNING_INFERENCE, settings.STATUS_INSPECTING] \
             and not is_admin(user_policy_result):

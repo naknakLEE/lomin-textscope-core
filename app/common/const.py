@@ -199,8 +199,8 @@ class Settings(BaseSettings):
         "document_id": "DocumentInfo.document_id",
         "Task ID" : "DocumentInfo.document_idx",
         "user_team": "DocumentInfo.user_team",
-        "문서 모델": "DocumentInfo.doc_type_idx",
-        # "유형": "DocumentInfo.document_type",
+        "cls_idx": "DocumentInfo.cls_idx",
+        "doc_type_idxs": "DocumentInfo.doc_type_idxs",
         "문서명": "DocumentInfo.document_path",
         "등록 담당자": "DocumentInfo.user_email",
         "등록일": "DocumentInfo.document_upload_time",
@@ -215,8 +215,8 @@ class Settings(BaseSettings):
         "document_id", # 필수
         "Task ID", # 필수
         "user_team",
-        "문서 모델",
-        "유형",
+        "cls_idx",
+        "doc_type_idxs",
         "문서명",
         "등록 담당자", # 필수
         "등록일",
