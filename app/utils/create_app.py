@@ -9,6 +9,8 @@ pretty.install()
 
 from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users
 from app.routes import document, model, inspect
+from app.routes.api import index as api_index
+from app.routes.api import inference as api_inference
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -90,5 +92,9 @@ def app_generator() -> FastAPI:
     app.include_router(inspect.router, tags=["Kei Inpsect Info"], prefix="/v1/docx/inspect", include_in_schema=True)
     
     app.include_router(users.router, tags=["Company User Info"], prefix="/v1/user", include_in_schema=True)
+    
+    
+    app.include_router(api_index.router, tags=["API"], prefix="/api/v1", include_in_schema=True)
+    app.include_router(api_inference.router, tags=["API"], prefix="/api/v1/inference")
     
     return app
