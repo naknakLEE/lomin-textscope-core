@@ -3,8 +3,8 @@
     "version": "2.2.11",
     "width": 4500,
     "height": 4500,
-    "scrollTop": -1035.8332921730089,
-    "scrollLeft": -1455.8332754837163,
+    "scrollTop": -2294.1665755046706,
+    "scrollLeft": -2262.499910096331,
     "zoomLevel": 1,
     "show": {
       "tableComment": true,
@@ -984,10 +984,10 @@
           }
         ],
         "ui": {
-          "active": true,
+          "active": false,
           "left": 1631.5302,
           "top": 1203.0193,
-          "zIndex": 68,
+          "zIndex": 72,
           "widthName": 87.28076171875,
           "widthComment": 120,
           "color": "#FF6900"
@@ -1856,29 +1856,6 @@
             "id": "3baba318-4243-4f3c-8f2e-533d1a26bbd2"
           },
           {
-            "name": "doc_type_idx",
-            "comment": "문서 종류(소분류)",
-            "dataType": "int",
-            "default": "",
-            "option": {
-              "autoIncrement": false,
-              "primaryKey": false,
-              "unique": false,
-              "notNull": true
-            },
-            "ui": {
-              "active": false,
-              "pk": false,
-              "fk": false,
-              "pfk": false,
-              "widthName": 78.60986328125,
-              "widthComment": 97.99006652832031,
-              "widthDataType": 60,
-              "widthDefault": 60
-            },
-            "id": "fb5cf124-b63b-48d6-8704-28b73c0c8517"
-          },
-          {
             "name": "class_code",
             "comment": "항목 코드",
             "dataType": "varchar",
@@ -1994,6 +1971,29 @@
             "id": "c452aea4-a5ff-470d-a20e-e2cc9f553cae"
           },
           {
+            "name": "doc_type_idx",
+            "comment": "항목이 사용되는 문서 종류(소분류)",
+            "dataType": "int",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 78.60986328125,
+              "widthComment": 120,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "fb5cf124-b63b-48d6-8704-28b73c0c8517"
+          },
+          {
             "name": "is_used",
             "comment": "사용 여부",
             "dataType": "bool",
@@ -2018,10 +2018,10 @@
           }
         ],
         "ui": {
-          "active": false,
+          "active": true,
           "left": 2909.5585,
           "top": 2996.4191,
-          "zIndex": 29,
+          "zIndex": 77,
           "widthName": 60,
           "widthComment": 120,
           "color": "#FF6900"
@@ -4256,7 +4256,7 @@
           "columnIds": [
             "42d5633a-e24c-42dd-9c46-e0e4d5cc07a6"
           ],
-          "x": 3145.538907714844,
+          "x": 3153.087064453125,
           "y": 2996.4191,
           "direction": "top"
         },
