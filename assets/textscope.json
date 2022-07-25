@@ -223,6 +223,9 @@
     "N": "0"
   },
   "PP_MAPPING_TABLE": {
+    "entity_linking":[
+      "MD-PRS"
+    ],
     "general_pp": [
       "사업자등록증", 
       "GV-CBR"
