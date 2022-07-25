@@ -1,7 +1,10 @@
-from typing import Dict
+import json
+from typing import Dict, List
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import Session
 
 from app.database import query, schema
 from app.database.connection import db
@@ -127,6 +130,7 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
     if cls_model_info is not None:
         cls_params.update(DEFAULT_CLS_PARAMS)
     
+    doc_type_list: List[str] = list()
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
@@ -138,8 +142,13 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             document_path=document_path,
         )
         
-        ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
+        cls_response: dict = ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
+        if isinstance(cls_response, JSONResponse): continue
+        
+        doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
+        doc_type_list.append(doc_type_code)
     
+    update_document_info_doc_type_idxs(session, document_id, doc_type_list)
     query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
 
 def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
@@ -191,6 +200,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     if cls_model_info is not None:
         cls_params.update(DEFAULT_CLS_PARAMS)
     
+    doc_type_list: List[str] = list()
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
@@ -203,12 +213,14 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
         )
         
         cls_response: dict = ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
+        if isinstance(cls_response, JSONResponse): continue
         
-        doc_type_info: str = cls_response.get("inference_results", {}).get("doc_type")
+        doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
         
-        if doc_type_info is not None:
+        if doc_type_code is not None:
             kv_params.update(DEFAULT_KV_PARAMS)
-            kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_info)
+            kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_code)
+            doc_type_list.append(doc_type_code)
         
         kv_params.update(
             task_id=task_id,
@@ -220,4 +232,22 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
         
         ocr(request=request, inputs=kv_params, current_user=current_user, session=session)
     
+    update_document_info_doc_type_idxs(session, document_id, doc_type_list)
     query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+
+
+def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_type_list: List[str]) -> None:
+    doc_type_idxs: List[int] = list()
+    select_doc_type_info_all_result = query.select_doc_type_all(session, doc_type_code=doc_type_list)
+    if isinstance(select_doc_type_info_all_result, JSONResponse):
+        doc_type_idxs = list()
+    select_doc_type_info_all_result: List[schema.DocTypeInfo] = select_doc_type_info_all_result
+    
+    for doc_type_info in select_doc_type_info_all_result:
+        doc_type_idxs.append(doc_type_info.doc_type_idx)
+    
+    query.update_document(
+        session,
+        document_id,
+        doc_type_idxs=json.loads(str(dict(doc_type_idxs=doc_type_idxs)).replace("'", "\""))
+    )
