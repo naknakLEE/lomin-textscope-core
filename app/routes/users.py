@@ -52,7 +52,8 @@ def get_user_info_by_user_email(
     user_policy_result: dict = user_policy_result
     
     # 자신이 아닌 다른 사원의 정보를 조회하는데 관리자가 아닐경우 에러 응답 반환
-    if user_email != current_user.email and not is_admin(user_policy_result):
+    admin = is_admin(user_policy_result)
+    if user_email != current_user.email and not admin:
         status_code, error = ErrorResponse.ErrorCode.get(2509)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
@@ -74,6 +75,7 @@ def get_user_info_by_user_email(
             company_code  = str(company_info.company_code),
             company_name  = str(company_info.company_name),
             
+            user_rgst_t   = str(company_user_info.emp_fst_rgst_dttm),
             user_eno      = str(company_user_info.emp_eno),
             user_nm       = str(company_user_info.emp_usr_nm),
             user_email    = str(company_user_info.emp_usr_emad),
@@ -84,7 +86,8 @@ def get_user_info_by_user_email(
             user_tecd     = str(company_user_info.emp_tecd),
             user_org_path = str(company_user_info.emp_org_path),
             user_ofps_cd  = str(company_user_info.emp_ofps_cd),
-            user_ofps_nm  = str(company_user_info.emp_ofps_nm)
+            user_ofps_nm  = str(company_user_info.emp_ofps_nm),
+            admin         = str(admin)
         )
     )
     
