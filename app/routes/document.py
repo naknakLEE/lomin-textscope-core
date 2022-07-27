@@ -16,6 +16,7 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
+from app.middlewares.exception_handler import CoreCustomException
 from app.utils.image import (
     read_image_from_bytes,
     get_image_bytes,
@@ -111,21 +112,18 @@ def get_thumbnail(
     
     # 해당 문서에 대한 권한이 없을 경우 에러 응답 반환
     if group_prefix + select_document_result.user_team not in group_list:
-        status_code, error = ErrorResponse.ErrorCode.get(2505)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2505)
     
     # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
-        status_code, error = ErrorResponse.ErrorCode.get(2506)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2506)
     
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_path = Path(select_document_result.document_path)
     document_bytes = get_image_bytes(document_id, document_path)
     image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page_num)
     if image is None:
-        status_code, error = ErrorResponse.ErrorCode.get(2103)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2103)
     
     if scale < 0.1: scale = 0.1
     new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
@@ -344,8 +342,7 @@ def get_filter_user(
     
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 응답 반환
     if group_prefix + user_team not in group_list:
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     
     # group_code가 group_prefix + user_team인 그룹에 속한 사용자 목록 조회
     select_user_all_result = query.select_user_group_all(session, group_code=group_prefix + user_team)
@@ -411,8 +408,7 @@ def get_filter_user(
     
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 응답 반환
     if group_prefix + user_team not in group_list:
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     
     # group_code가 group_prefix + user_team인 그룹에 속한 사용자 목록 조회
     select_user_all_result = query.select_user_group_all(session, group_code=group_prefix + user_team)
@@ -610,8 +606,7 @@ def get_document_list(
     # 요청한 그룹이 조회 가능한 그룹 목록에 없을 경우 에러 반환
     for group_code in group_list:
         if group_prefix + group_code not in group_code_list:
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
     
     # 사용자 정책(조회 가능 문서 대분류 그룹) 확인
     cls_code_list: List[str] = list()
@@ -635,8 +630,7 @@ def get_document_list(
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
     for cls_type_idx in cls_type_idx_list:
         if cls_type_idx not in cls_type_idx_result_list.keys():
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
     
     # 등록일, 검수일 기간 파싱
     ignore_upload_date: bool = True
@@ -866,13 +860,11 @@ def get_document_inference_info(
     
     # 해당 문서에 대한 권한이 없음
     if group_prefix + select_document_result.user_team not in group_list:
-        status_code, error = ErrorResponse.ErrorCode.get(2505)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2505)
     
     # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 오류 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
-        status_code, error = ErrorResponse.ErrorCode.get(2506)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2506)
     
     # document_id로 특정 페이지의 가장 최근 inference info 조회
     select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)

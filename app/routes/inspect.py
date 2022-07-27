@@ -14,6 +14,7 @@ from app.utils.logging import logger
 from app.utils.utils import get_ts_uuid, is_admin
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
+from app.middlewares.exception_handler import CoreCustomException
 
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
@@ -73,13 +74,11 @@ def post_inspect_info(
     
     # 문서 상태가 RUNNING_INFERENCE면 에러 응답 반환
     if select_document_result.inspect_id == "RUNNING_INFERENCE":
-        status_code, error = ErrorResponse.ErrorCode.get(2513)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2513)
     
     # 문서에 대한 권한이 없을 경우 에러 응답 반환
     if select_document_result.user_team not in user_team_list:
-        status_code, error = ErrorResponse.ErrorCode.get(2505)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2505)
     
     # 검수 중인데 자신의 검수 중인 문서가 아니거나 관리자가 아닐 경우 에러 응답 반환
     inspect_id = select_document_result.inspect_id
@@ -89,13 +88,11 @@ def post_inspect_info(
     select_inspect_result: schema.InspectInfo = select_inspect_result
     if select_inspect_result.inspect_status == settings.STATUS_INSPECTING:
         if not is_admin(user_policy_result) and select_inspect_result.user_email != user_email:
-            status_code, error = ErrorResponse.ErrorCode.get(2511)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2511)
     
     # 검수 결과 저장 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
-        status_code, error = ErrorResponse.ErrorCode.get(2506)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2506)
     
     # document_id로 특정 페이지의 가장 최근 inference info.inference_id 조회
     select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)

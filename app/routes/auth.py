@@ -15,6 +15,7 @@ from app.database import query
 from app.database.connection import db
 from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
+from app.middlewares.exception_handler import CoreCustomException
 
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
@@ -44,8 +45,7 @@ async def login_for_access_token(
     """
     user = authenticate_user(form_data.email, form_data.password, session)
     if user is None:
-        status_code, error = ErrorResponse.ErrorCode.get(2401)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(2401)
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

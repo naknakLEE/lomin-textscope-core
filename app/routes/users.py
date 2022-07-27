@@ -15,7 +15,7 @@ from app.schemas.json_schema import users_me_responses
 from app import models
 from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
-
+from app.middlewares.exception_handler import CoreCustomException
 from app import hydra_cfg
 from app.database import query, schema
 from app.utils.utils import is_admin
@@ -40,8 +40,7 @@ def get_user_info_by_user_email(
     # emp_usr_emad=current_user.email인 사원의 정보
     request_user_info = query.select_company_user_info(session, emp_usr_emad=current_user.email)
     if isinstance(request_user_info, JSONResponse):
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     request_user_info: schema.CompanyUserInfo = request_user_info
     request_company_info: schema.CompanyInfo = request_user_info.company_info
     
@@ -54,8 +53,7 @@ def get_user_info_by_user_email(
     # 자신이 아닌 다른 사원의 정보를 조회하는데 관리자가 아닐경우 에러 응답 반환
     admin = is_admin(user_policy_result)
     if user_email != current_user.email and not admin:
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     
     # emp_usr_emad=user_email인 사원의 정보
     company_user_info = query.select_company_user_info(session, emp_usr_emad=user_email)
@@ -66,8 +64,7 @@ def get_user_info_by_user_email(
     
     # 해당 사원의 회사가 current_user.email의 회사와 다르면 에러 응답 반환
     if company_info.company_code != request_company_info.company_code:
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     
     
     response = dict(

@@ -1,5 +1,6 @@
 import json
 import uuid
+import traceback
 
 from pathlib import Path
 from datetime import datetime
@@ -15,6 +16,7 @@ from app.common.const import get_settings
 from app.utils.logging import logger
 from app.database.connection import Base
 from app.schemas import error_models as ErrorResponse
+from app.middlewares.exception_handler import CoreCustomException
 
 
 settings = get_settings()
@@ -24,13 +26,9 @@ def select_cls_group(session: Session, **kwargs: Dict) -> Union[schema.ClsGroupI
     try:
         result = schema.ClsGroupInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2108)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2108)
     except Exception:
-        logger.exception("cls_group select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("문서 대분류 그룹")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "문서 대분류 그룹")
     return result
 
 
@@ -38,13 +36,9 @@ def select_cls_group_all(session: Session, **kwargs: Dict) -> Union[List[schema.
     try:
         result = schema.ClsGroupInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2108)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2108)
     except Exception:
-        logger.exception("cls_group_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 대분류 그룹")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 문서 대분류 그룹")
     return result
 
 
@@ -55,10 +49,7 @@ def select_cls_group_model(session: Session, **kwargs: Dict) -> Union[schema.Cls
             status_code, error = ErrorResponse.ErrorCode.get(2108)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("cls_group_model select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("문서 대분류 그룹 모델")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "문서 대분류 그룹 모델")
     return result
 
 
@@ -66,13 +57,9 @@ def select_cls_group_model_all(session: Session, **kwargs: Dict) -> Union[List[s
     try:
         result = schema.ClsGroupModel.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2109)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2109)
     except Exception:
-        logger.exception("cls_model_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 대분류 그룹과 모델")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 문서 대분류 그룹과 모델")
     return result
 
 
@@ -80,13 +67,9 @@ def select_doc_type_cls_group_all(session: Session, **kwargs: Dict) -> Union[Lis
     try:
         result = schema.DocTypeClsGroup.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2109)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2109)
     except Exception:
-        logger.exception("doc_type_cls_group_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 소분류와 문서 대분류 그룹")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 문서 소분류와 문서 대분류 그룹")
     return result
 
 
@@ -97,10 +80,7 @@ def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInf
             status_code, error = ErrorResponse.ErrorCode.get(2107)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("doc_type select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("문서 종류(소분류)")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "문서 종류(소분류)")
     return result
 
 
@@ -108,13 +88,9 @@ def select_doc_type_all(session: Session, **kwargs: Dict) -> Union[List[schema.D
     try:
         result = schema.DocTypeInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2107)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2107)
     except Exception:
-        logger.exception("doc_type_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 종류(소분류)")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 문서 종류(소분류)")
     return result
 
 
@@ -136,13 +112,9 @@ def select_model(session: Session, **kwargs: Dict) -> Union[schema.ModelInfo, JS
     try:
         result = schema.ModelInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2106)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2106)
     except Exception:
-        logger.exception("document select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모델")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모델")
     return result
 
 
@@ -150,13 +122,9 @@ def select_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.Mode
     try:
         result = schema.ModelInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2106)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2106)
     except Exception:
-        logger.exception("model_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 모델")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 모델")
     return result
 
 
@@ -164,13 +132,9 @@ def select_class_all(session: Session, **kwargs: Dict) -> Union[List[schema.Clas
     try:
         result = schema.ClassInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2106)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2106)
     except Exception:
-        logger.exception("class_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 class")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 class")
     return result
 
 
@@ -181,10 +145,7 @@ def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentIn
             status_code, error = ErrorResponse.ErrorCode.get(2101)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("document select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("문서")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "문서")
     return result
 
 
@@ -216,11 +177,8 @@ def insert_document(
             auto_commit=auto_commit,
         )
     except Exception:
-        logger.error(f"document insert error")
         session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("문서")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4102, "문서")
     return result
 
 
@@ -233,11 +191,8 @@ def update_document(session: Session, document_id: str, **kwargs: Dict) -> Union
             **kwargs
         )
     except Exception:
-        logger.error(f"document update error")
         session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("문서")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4102, "문서")
     return result
 
 
@@ -248,13 +203,9 @@ def select_inference_latest(session: Session, **kwargs: Dict) -> schema.Inferenc
         result = query.order_by(dao.inference_end_time.desc()).first()
         
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2507)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2507)
     except Exception:
-        logger.exception("inference select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("최근 추론")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "최근 추론")
     return result
 
 
@@ -292,11 +243,9 @@ def insert_inference(
             auto_commit=auto_commit
         )
     except Exception:
-        logger.error(f"inference insert error")
         session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("추론")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        
+        raise CoreCustomException(4102, "추론")
     return result
 
 
@@ -307,10 +256,7 @@ def select_inspect_latest(session: Session, **kwargs: Dict) -> Union[schema.Insp
         result = query.order_by(dao.inspect_end_time.desc()).first()
         
     except Exception:
-        logger.exception("inspect select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("가장 최근 검수")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "가장 최근 검수")
     return result
 
 
@@ -318,11 +264,8 @@ def insert_inspect(session: Session, **kwargs: Dict) -> Union[Optional[schema.In
     try:
         result = schema.InspectInfo.create(session=session, **kwargs)
     except Exception:
-        logger.error(f"inference insert error")
         session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("추론")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4102, "추론")
     return result
 
 
@@ -433,11 +376,7 @@ def select_document_inspect_all(
             filtered_rows.append(row_ordered)
         
     except Exception:
-        logger.exception("document_inspcet_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("필터링된 업무 리스트")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-        return 0, 0, result
+        raise CoreCustomException(4101, "필터링된 업무 리스트")
     
     return total_count, complet_count, filtered_rows
 
@@ -449,10 +388,7 @@ def select_log(session: Session, **kwargs: Dict) -> Union[schema.LogInfo, JSONRe
             status_code, error = ErrorResponse.ErrorCode.get(2201)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("log select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("log")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "log")
     return result
 
 
@@ -474,11 +410,8 @@ def insert_log(
             auto_commit=auto_commit
         )
     except Exception:
-        logger.error(f"task insert error")
         session.rollback()
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("task")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4102, "task")
     return result
 
 
@@ -486,13 +419,9 @@ def select_user(session: Session, **kwargs: Dict) -> schema.UserInfo:
     try:
         result = schema.UserInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2504)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2504)
     except Exception:
-        logger.exception("user select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("사용자")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "사용자")
     return result
 
 
@@ -500,13 +429,9 @@ def select_user_all(session: Session, **kwargs: Dict) -> Union[List[schema.UserI
     try:
         result = schema.UserInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2101)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2101)
     except Exception:
-        logger.exception("user_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 사용자")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "모든 사용자")
     return result
 
 
@@ -516,13 +441,9 @@ def select_user_group_all(session: Session, **kwargs: Dict) -> Union[List[schema
         result = dao.get_all(session, **kwargs)
         
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
     except Exception:
-        logger.exception("user_group_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 사용자의 그룹(권한, 역할)")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "모든 사용자의 그룹(권한, 역할)")
     return result
 
 
@@ -549,13 +470,9 @@ def select_user_group_latest(session: Session, **kwargs: Dict) -> Union[schema.U
         result = query.order_by(dao.created_time.desc()).first()
         
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
     except Exception:
-        logger.exception("user_group select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("사용자의 그룹(권한, 역할)")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "사용자의 그룹(권한, 역할)")
     return result
 
 
@@ -563,13 +480,9 @@ def select_group_info(session: Session, **kwargs: Dict) -> schema.GroupInfo:
     try:
         result = schema.GroupInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
     except Exception:
-        logger.exception("group_info select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("그룹(권한, 역할)")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "그룹(권한, 역할)")
     return result
 
 
@@ -577,13 +490,9 @@ def select_group_info_all(session: Session, **kwargs: Dict) -> List[schema.Group
     try:
         result = schema.GroupInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
     except Exception:
-        logger.exception("group_info_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 그룹(권한, 역할)")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "모든 그룹(권한, 역할)")
     return result
 
 
@@ -594,10 +503,7 @@ def select_company_user_info(session: Session, **kwargs: Dict) -> Union[schema.C
             status_code, error = ErrorResponse.ErrorCode.get(2524)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("company_user_info select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("사원 정보")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "사원 정보")
     return result
 
 
@@ -619,13 +525,9 @@ def select_org(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
     try:
         result = schema.KeiOrgInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2504)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2504)
     except Exception:
-        logger.exception("kei_org select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("수출입은행 조직도")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "수출입은행 조직도")
     return result
 
 # 미사용 -> 수출입은행 관련 함수 플러그인으로 분리 예정
@@ -633,13 +535,9 @@ def select_org_all(session: Session, **kwargs: Dict) -> List[schema.KeiOrgInfo]:
     try:
         result = schema.KeiOrgInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2504)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2504)
     except Exception:
-        logger.exception("kei_org_all select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 수출입은행 조직도")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "모든 수출입은행 조직도")
     return result
 
 # 미사용, get_user_group_policy()대신 사용 -> 제거 예정
@@ -691,10 +589,7 @@ def get_inspecter_list(
         result = user_email_info
         
     except Exception:
-        logger.exception("inspecter select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("inspecter")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+        raise CoreCustomException(4101, "inspecter")
         
     return result
 
@@ -729,8 +624,7 @@ def get_user_group_policy(
         
         # 없으면 에러 응답
         if len(user_group_policy_result) == 0:
-            status_code, error = ErrorResponse.ErrorCode.get(2509)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2509)
         user_group_policy_result: List[Tuple(schema.UserGroup, schema.GroupPolicy)] = user_group_policy_result
         
         user_group_policy: Dict[str, dict] = dict()
@@ -776,10 +670,7 @@ def get_user_group_policy(
         result = user_group_policy
         
     except Exception:
-        logger.exception("user_group_policy select error")
-        status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("유저 그룹 정책")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4101, "유저 그룹 정책")
         
     return result
 

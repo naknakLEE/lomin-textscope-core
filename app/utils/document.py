@@ -17,6 +17,7 @@ from app.utils.logging import logger
 from app.common.const import get_settings
 from app.utils.minio import MinioService
 from app.schemas import error_models as ErrorResponse
+from app.middlewares.exception_handler import CoreCustomException
 
 
 
@@ -104,8 +105,7 @@ def save_upload_document(
 
 def document_path_verify(document_path: str):
     if not os.path.isfile(document_path):
-        status_code, error = ErrorResponse.ErrorCode.get(2508)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2508)
     return True
 
 

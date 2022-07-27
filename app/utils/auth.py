@@ -23,6 +23,7 @@ from app.common.const import get_settings
 from app.errors import exceptions as ex
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
+from app.middlewares.exception_handler import CoreCustomException
 
 
 settings = get_settings()
@@ -152,8 +153,7 @@ async def get_current_active_user(
     current_user: UserInfoInModel = Depends(get_current_user),
 ) -> UserInfoInModel:
     if current_user.status == "disabled":
-        status_code, error = ErrorResponse.ErrorCode.get(2512)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2512)
     return current_user
 
 

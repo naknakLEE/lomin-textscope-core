@@ -28,6 +28,7 @@ from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
 from app.utils.utils import is_admin, get_company_group_prefix
 from app.schemas import error_models as ErrorResponse
 from app.schemas import HTTPBearerFake
+from app.middlewares.exception_handler import CoreCustomException
 from app.utils.document import (
     get_page_count,
     is_support_format,
@@ -133,8 +134,7 @@ def get_image(
     )
     
     if document_bytes is None:
-        status_code, error = ErrorResponse.ErrorCode.get(2103)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2103)
     
     document = models.Image(
         filename=document_path.name,
@@ -236,19 +236,16 @@ async def post_upload_document(
     
     # 요청한 문서 종류(대분류)가 요청 가능한 문서 종류 목록에 없을 경우 에러 반환
     if cls_type_idx is not None and cls_type_idx not in list(set(cls_type_idx_list)):
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     
     # 요청한 문서 종류(소분류)가 요청 가능한 문서 종류 목록에 없을 경우 에러 반환
     if doc_type_idx is not None and doc_type_idx not in list(set(doc_type_idx_list)):
-        status_code, error = ErrorResponse.ErrorCode.get(2509)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2509)
     
     # 자동생성된 document_id 중복 확인
     select_document_result = query.select_document(session, document_id=document_id)
     if isinstance(select_document_result, schema.DocumentInfo):
-        status_code, error = ErrorResponse.ErrorCode.get(2102)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2102)
     elif isinstance(select_document_result, JSONResponse):
         status_code_no_document, _ = ErrorResponse.ErrorCode.get(2101)
         if select_document_result.status_code != status_code_no_document:
@@ -257,16 +254,13 @@ async def post_upload_document(
     # 업로드된 파일 포맷(확장자) 확인
     is_support = is_support_format(document_name)
     if is_support is False:
-        status_code, error = ErrorResponse.ErrorCode.get(2105)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2105)
     
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
     
     if save_success is False:
-        status_code, error = ErrorResponse.ErrorCode.get(4102)
-        error.error_message = error.error_message.format("문서")
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(4102, "문서")
     
     logger.info(f"success save document document_id : {document_id}")
     document_pages = get_page_count(document_data, document_name)
@@ -378,13 +372,11 @@ def image_crop(
     
     image = load_image(data)
     if image is None:
-        status_code, error = ErrorResponse.ErrorCode.get(2103)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2103)
     
     crop_images = get_crop_image(image, params.format, params.crop)
     if len(crop_images) == 0:
-        status_code, error = ErrorResponse.ErrorCode.get(2104)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2104)
     
     response.update(dict(
         request_datetime=request_datetime,

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from dataclasses import asdict
 
 from prometheusrock import PrometheusMiddleware, metrics_route
@@ -25,6 +26,8 @@ from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import (
     validation_exception_handler,
     resource_exception_handler,
+    core_exception_handler,
+    CoreCustomException
 )
 
 
@@ -63,6 +66,7 @@ def app_generator() -> FastAPI:
 
     app.add_exception_handler(RuntimeError, validation_exception_handler)
     app.add_exception_handler(ResourceDataError, resource_exception_handler)
+    app.add_exception_handler(CoreCustomException, core_exception_handler)
 
     app.add_middleware(TimeoutMiddleware)
     app.add_middleware(LoggingMiddleware)

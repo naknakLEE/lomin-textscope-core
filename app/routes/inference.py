@@ -30,6 +30,7 @@ from app.wrapper import pp, pipeline, settings
 from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
+from app.middlewares.exception_handler import CoreCustomException
 from app.errors import exceptions as ex
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
@@ -80,8 +81,7 @@ def ocr(
     
     select_log_result = query.select_log(session, log_id=task_id) 
     if isinstance(select_log_result, schema.LogInfo):
-        status_code, error = ErrorResponse.ErrorCode.get(2202)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        raise CoreCustomException(2202)
     elif isinstance(select_log_result, JSONResponse):
         status_code_no_log, _ = ErrorResponse.ErrorCode.get(2201)
         if select_log_result.status_code != status_code_no_log:
@@ -144,8 +144,7 @@ def ocr(
                 route_name=inputs.get("route_name", "ocr"),
             )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
-            status_code, error = ErrorResponse.ErrorCode.get(3501)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(3501)
         
         # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
         inference_result = inference_results
@@ -164,8 +163,7 @@ def ocr(
                 rec_preds=inference_results.get("rec_preds", []),
             )
             if status_code < 200 or status_code >= 400:
-                status_code, error = ErrorResponse.ErrorCode.get(3503)
-                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+                raise CoreCustomException(3503)
             inference_results["texts"] = texts
         
         
@@ -173,7 +171,7 @@ def ocr(
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
         logger.info(f"{task_id}-pp type:{post_processing_type}")
         if (
-            post_processing_type is not None
+            post_processing_type is not None and inputs.get("route_name", None) != 'cls'
         ):
             text_list = inference_result.get("texts", [])
             box_list = inference_result.get("boxes", [])
@@ -203,8 +201,7 @@ def ocr(
                 post_processing_type=post_processing_type,
             )
             if status_code < 200 or status_code >= 400:
-                status_code, error = ErrorResponse.ErrorCode.get(3502)
-                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+                raise CoreCustomException(3502)
             inference_results["kv"] = post_processing_results["result"]
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
@@ -223,11 +220,7 @@ def ocr(
     doc_type_code = inference_results.get("doc_type")
     
     # doc_type_code로 doc_type_index 조회
-    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
-    if isinstance(select_doc_type_result, JSONResponse):
-        return select_doc_type_result
-    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
-    doc_type_idx = select_doc_type_result.doc_type_idx
+    doc_type_idx = doc_type_code
     
     insert_inference_result = query.insert_inference(
         session=session,
