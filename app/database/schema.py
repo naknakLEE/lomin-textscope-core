@@ -39,8 +39,10 @@ primary_column_table = {
     
     "ClsGroupInfo": "cls_idx",
     "DocTypeInfo": "doc_type_idx",
+    "KvClassInfo": "kv_class_code",
     "ModelInfo": "model_idx",
     "ClassInfo": "class_code",
+    "DocTypeKvClass": "doc_type_idx,kv_class_code",
     "DocTypeModel": "doc_type_idx,model_idx",
     "ClsGroupModel": "cls_idx,model_idx",
     "DocTypeClsGroup": "cls_idx,doc_type_idx",
@@ -436,6 +438,30 @@ class DocTypeInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
 
+class KvClassInfo(Base, BaseMixin):
+    __tablename__ = 'kv_class_info'
+    __table_args__ = {'comment': 'textscope 서비스 kv class 정보'}
+    
+    kv_class_code = Column(String, primary_key=True, comment='항목 서식 코드')
+    kv_class_name_kr = Column(String, comment='항목 서식 한글 명')
+    kv_class_name_en = Column(String, comment='항목 서식 영문 명')
+    kv_class_use = Column(String, comment='항목 사용 여부')
+    is_used = Column(Boolean, comment='사용 여부')
+
+
+class DocTypeKvClass(Base, BaseMixin):
+    __tablename__ = 'doc_type_kv_class'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류(소분류)와 kv class 정보'}
+    
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    doc_type_idx = Column(ForeignKey('doc_type_info.doc_type_idx'), nullable=False, comment='문서 종류(소분류) 유니크 인덱스')
+    kv_class_code = Column(ForeignKey('kv_class_info.kv_class_code'), nullable=False, comment='항목 서식 코드')
+    is_used = Column(Boolean, comment='사용 여부')
+    
+    doc_type_info = relationship('DocTypeInfo')
+    kv_class_info = relationship('KvClassInfo')
+
+
 class ModelInfo(Base, BaseMixin):
     __tablename__ = 'model_info'
     __table_args__ = {'comment': 'textscope 서비스 등록된 딥러닝 모델 정보'}
@@ -727,6 +753,8 @@ table_class_mapping = dict({
     "doc_type_info": DocTypeInfo,
     "model_info": ModelInfo,
     "doc_type_model": DocTypeModel,
+    "kv_class_info": KvClassInfo,
+    "doc_type_kv_class": DocTypeKvClass,
     "cls_group_info": ClsGroupInfo,
     "doc_type_cls_group": DocTypeClsGroup,
     "cls_group_model": ClsGroupModel,
@@ -768,7 +796,8 @@ grant_table_list = [
     "cls_group_info",
     "doc_type_cls_group",
     "cls_group_model",
-    "class_info"
+    "kv_class_info",
+    "doc_type_kv_class"
 ]
 
 def create_db_table() -> None:

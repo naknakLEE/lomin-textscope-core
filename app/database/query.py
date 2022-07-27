@@ -118,6 +118,20 @@ def select_doc_type_all(session: Session, **kwargs: Dict) -> Union[List[schema.D
     return result
 
 
+def select_doc_type_kv_class(session: Session, **kwargs: Dict) -> Union[List[schema.DocTypeKvClass], JSONResponse]:
+    try:
+        result = schema.DocTypeKvClass.get_all(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2107)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("doc_type_kv_class_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 문서 종류(소분류)와 kv class")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
+
+
 def select_model(session: Session, **kwargs: Dict) -> Union[schema.ModelInfo, JSONResponse]:
     try:
         result = schema.ModelInfo.get(session, **kwargs)
@@ -327,6 +341,8 @@ def select_document_inspect_all(
     inspecter_list: List[str] = [],
     cls_type_idx_list: List[int] = [],
     document_status: List[str] = [],
+    document_filename: str = None,
+    document_id_list: List[str] = [],
     
     rows_limit: int = 100,
     rows_offset: int = 0,
@@ -348,8 +364,9 @@ def select_document_inspect_all(
         # DocumentInfo 필터링
         document_filters = dict(
             # document_type=document_type,
-        cls_idx=cls_type_idx_list,
-            user_email=uploader_list
+            cls_idx=cls_type_idx_list,
+            user_email=uploader_list,
+            document_id=document_id_list
         )
         for column, filter in document_filters.items():
             if len(filter) > 0: query = query.filter(getattr(dao_document, column).in_(filter))
@@ -383,13 +400,21 @@ def select_document_inspect_all(
             else:
                 query = query.order_by(dao_inspect.inspect_end_time.asc())
         
+        # 문서명 필터
+        if len(document_filename) > 0:
+            query = query.filter(dao_document.document_path.contains(document_filename))
+        
+        
         # 페이징 (한 요청당 최대 1000개)
         query = query.offset(rows_offset) \
             .limit(rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW)
         
         rows: List[Tuple[dao_document, dao_inspect]] = query.all()
         filtered_rows = list()
-        table_mapping = {"DocumentInfo": None, "InspectInfo": None}
+        table_mapping = {
+            "DocumentInfo": None,
+            "InspectInfo": None,
+        }
         for row in rows:
             
             table_mapping.update(DocumentInfo=row[0])
@@ -397,8 +422,12 @@ def select_document_inspect_all(
             
             row_ordered: list = list()
             for table_column in column_order:
-                t, c = table_column.split(".")
-                v = getattr(table_mapping.get(t), c)
+                tc = table_column.split(".")
+                
+                v = table_mapping.get(tc[0])
+                for i in range(1, len(tc)):
+                    v = getattr(v, tc[i], "None")
+                
                 row_ordered.append(str(v))
             
             filtered_rows.append(row_ordered)
@@ -497,6 +526,22 @@ def select_user_group_all(session: Session, **kwargs: Dict) -> Union[List[schema
     return result
 
 
+def select_user_group_all_multi(session: Session, **kwargs: Dict) -> Union[List[schema.UserGroup], JSONResponse]:
+    dao = schema.UserGroup
+    try:
+        result = dao.get_all_multi(session, **kwargs)
+        
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2509)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("user_group_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 사용자의 그룹(권한, 역할)")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
 def select_user_group_latest(session: Session, **kwargs: Dict) -> Union[schema.UserGroup, JSONResponse]:
     dao = schema.UserGroup
     try:
@@ -555,6 +600,20 @@ def select_company_user_info(session: Session, **kwargs: Dict) -> Union[schema.C
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
     return result
 
+
+def select_company_user_info_all(session: Session, **kwargs: Dict) -> Union[schema.CompanyUserInfo, JSONResponse]:
+    try:
+        result = schema.CompanyUserInfo.get_all_multi(session, **kwargs)
+        if result is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2524)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("company_user_info_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 사원 정보")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
 # 미사용 -> 수출입은행 관련 함수 플러그인으로 분리 예정
 def select_org(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
     try:
@@ -607,29 +666,29 @@ def get_user_team_role(session: Session, user_email: str = "do@not.use") -> Unio
 
 def get_inspecter_list(
     session: Session,
-    uploader_list: List[str]
+    inspecter_list: List[str]
 ) -> Dict[str, str]:
     
     try:
         query = session.query(schema.DocumentInfo, schema.InspectInfo) \
-            .filter(schema.DocumentInfo.user_email.in_(uploader_list)) \
+            .filter(schema.DocumentInfo.user_email.in_(inspecter_list)) \
             .filter(schema.DocumentInfo.inspect_id == schema.InspectInfo.inspect_id)
         
         select_inspecter_result: List[Tuple[schema.DocumentInfo, schema.InspectInfo]] = query.all()
         
-        user_email_name: Dict[str, str] = dict()
+        user_email_info: Dict[str, schema.UserInfo] = dict()
         for select_result in select_inspecter_result:
-            user_email_name.update(dict({select_result[1].user_email:None}))
+            user_email_info.update(dict({select_result[1].user_email:None}))
         
-        user_name_result = select_user_all(session, user_email=list(user_email_name.keys()))
+        user_name_result = select_user_all(session, user_email=list(user_email_info.keys()))
         if isinstance(user_name_result, JSONResponse):
             return user_name_result
         user_name_result: List[schema.UserInfo] = user_name_result
         
-        for select_result in user_name_result:
-            user_email_name.update(dict({select_result.user_email:select_result.user_name}))
+        for user_info in user_name_result:
+            user_email_info.update(dict({user_info.user_email:user_info}))
         
-        result = user_email_name
+        result = user_email_info
         
     except Exception:
         logger.exception("inspecter select error")
