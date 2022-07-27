@@ -130,6 +130,8 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
     if cls_model_info is not None:
         cls_params.update(DEFAULT_CLS_PARAMS)
     
+    update_document_info_doc_type_idxs(session, document_id, [])
+    
     doc_type_list: List[str] = list()
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
@@ -200,6 +202,8 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     if cls_model_info is not None:
         cls_params.update(DEFAULT_CLS_PARAMS)
     
+    update_document_info_doc_type_idxs(session, document_id, [])
+    
     doc_type_list: List[str] = list()
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
@@ -237,17 +241,26 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
 
 
 def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_type_list: List[str]) -> None:
-    doc_type_idxs: List[int] = list()
-    select_doc_type_info_all_result = query.select_doc_type_all(session, doc_type_code=doc_type_list)
+    doc_type_idx_code: Dict[str, int] = dict()
+    
+    select_doc_type_info_all_result = query.select_doc_type_all(session, doc_type_code=list(set(doc_type_list)))
     if isinstance(select_doc_type_info_all_result, JSONResponse):
-        doc_type_idxs = list()
+        return
+    
     select_doc_type_info_all_result: List[schema.DocTypeInfo] = select_doc_type_info_all_result
     
     for doc_type_info in select_doc_type_info_all_result:
-        doc_type_idxs.append(doc_type_info.doc_type_idx)
+        doc_type_idx_code.update({doc_type_info.doc_type_code:doc_type_info.doc_type_idx})
+    
+    doc_type_idxs: List[int] = list()
+    for doc_type_code in doc_type_list:
+        doc_type_idxs.append(doc_type_idx_code.get(doc_type_code))
     
     query.update_document(
         session,
         document_id,
-        doc_type_idxs=json.loads(str(dict(doc_type_idxs=doc_type_idxs)).replace("'", "\""))
+        doc_type_idxs=dict(
+            doc_type_idxs=doc_type_idxs,
+            doc_type_codes=doc_type_list,
+        )
     )

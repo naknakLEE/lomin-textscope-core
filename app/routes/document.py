@@ -143,6 +143,119 @@ def get_thumbnail(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
+@router.get("/{document_id}/preview")
+def get_document_preview(
+    document_id:  str,
+    scale:        float           = 0.4,
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session:      Session         = Depends(db.session)
+) -> JSONResponse:
+    """
+    ### 검수 화면 좌측 문서의 모든 페이지 프리뷰와 문서 종류(소분류) 정보
+    """
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    user_team_list: List[str] = list()
+    user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_list = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_list, JSONResponse):
+        return cls_type_list
+    
+    doc_type_idx_code: Dict[str, int] = dict()
+    for cls_type_info in cls_type_list:
+        for doc_type_info in cls_type_info.get("docx_type", {}):
+            doc_type_idx_code.update({doc_type_info.get("code"):doc_type_info.get("index")})
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 해당 문서에 대한 권한이 없을 경우 에러 응답 반환
+    if group_prefix + select_document_result.user_team not in group_list:
+        status_code, error = ErrorResponse.ErrorCode.get(2505)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 문서가 포함한 문서 종류(소분류) 리스트
+    doc_type_codes: dict = select_document_result.doc_type_idxs
+    
+    # 문서 종류(소분류) 정보
+    select_doc_type_all_result = query.select_doc_type_all(session, doc_type_code=doc_type_codes.get("doc_type_codes", []))
+    if isinstance(select_doc_type_all_result, JSONResponse):
+        return select_doc_type_all_result
+    select_doc_type_all_result: List[schema.DocTypeInfo] = select_doc_type_all_result
+    
+    doc_type_code_info: Dict[str, schema.DocTypeInfo] = dict()
+    for doc_type_info in select_doc_type_all_result:
+        doc_type_code_info.update({doc_type_info.doc_type_code:doc_type_info})
+    
+    # 문서의 page_num 페이지의 썸네일 base64로 encoding
+    document_path = Path(select_document_result.document_path)
+    document_bytes = get_image_bytes(document_id, document_path)
+    
+    preview_list: List[dict] = list()
+    for page, doc_type_code in zip(range(1, select_document_result.document_pages + 1), doc_type_codes.get("doc_type_codes", [])):
+        doc_type_info = doc_type_code_info.get(doc_type_code)
+        doc_type_idx_=""
+        doc_type_code_=""
+        
+        if doc_type_code not in doc_type_idx_code.keys() or doc_type_info is None:
+            doc_type_idx_ = -1
+            doc_type_code_ = "기타 서류"
+        else:
+            doc_type_idx_=doc_type_info.doc_type_idx
+            doc_type_code_=doc_type_info.doc_type_code
+        
+        image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page)
+        
+        if image is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2103)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        
+        if scale < 0.1: scale = 0.1
+        new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
+        resized_image = image.resize((new_w, new_h))
+        image_base64 = image_to_base64(resized_image)
+    
+        preview_list.append(dict(
+            page=page,
+            page_seq="",
+            
+            doc_type_idx=doc_type_idx_,
+            doc_type_code=doc_type_code_,
+            
+            scale = scale,
+            width= new_w,
+            height = new_h,
+            thumbnail = image_base64,
+            
+        ))
+    
+    
+    response = dict(
+        preview=preview_list
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
 @router.get("/{doc_type}/kv")
 def get_doc_type_kv_list(
     doc_type:     str,
@@ -202,6 +315,7 @@ def get_doc_type_kv_list(
     )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
 
 @router.get("/filter/user/inspecter")
 def get_filter_user(
@@ -513,6 +627,11 @@ def get_document_list(
         cls_type_idx = result.get("index")
         cls_type_idx_result_list.update({cls_type_idx:result})
     
+    doc_type_idx_code: Dict[int, str] = dict()
+    for cls_type_info in cls_type_idx_result_list.values():
+        for doc_type_info in cls_type_info.get("docx_type", {}):
+            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info.get("code")})
+    
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
     for cls_type_idx in cls_type_idx_list:
         if cls_type_idx not in cls_type_idx_result_list.keys():
@@ -652,7 +771,14 @@ def get_document_list(
     for row in rows:
         
         doc_type_idxs: dict = json.loads(row.pop(doc_type_index).replace("'", "\""))
-        row.insert(doc_type_index, str(doc_type_idxs.get("doc_type_idxs", [])).replace("[", "").replace("]", ""))
+        
+        doc_type_cnt = 0
+        doc_type_etc = 0
+        for doc_type in set(doc_type_idxs.get("doc_type_idxs", [])):
+            if doc_type in doc_type_idx_code.keys(): doc_type_cnt += 1
+            else: doc_type_etc = 1
+        
+        row.insert(doc_type_index, str(doc_type_cnt + doc_type_etc))
         
         # cls_idx -> cls_name
         if cls_index != 0:
