@@ -34,6 +34,48 @@ settings = get_settings()
 router = APIRouter()
 
 
+def parse_user_info_list(
+    email_user_group_info: Dict[str, schema.UserGroup],
+    email_company_user_info: Dict[str, schema.CompanyUserInfo]
+) -> List[dict]:
+    
+    user_info_list: List[dict] = list()
+    for user_email, user_group_info in email_user_group_info.items():
+        user_info_: dict = dict(
+            user_email=user_email,
+            user_name=user_group_info.user_info.user_name,
+            user_team=user_group_info.user_info.user_team,
+            user_team_name=user_group_info.group_info.group_name,
+            user_group_name=user_group_info.group_info.group_name,
+        )
+        
+        company_user_info: schema.CompanyUserInfo = email_company_user_info.get(user_email, None)
+        if company_user_info is not None:
+            user_info_.update(
+                company_code   = str(company_user_info.company_info.company_code),
+                company_name   = str(company_user_info.company_info.company_name),
+                
+                user_team_name = str(company_user_info.emp_org_path).split("/")[-1],
+                
+                user_rgst_t    = str(company_user_info.emp_fst_rgst_dttm),
+                user_eno       = str(company_user_info.emp_eno),
+                user_nm        = str(company_user_info.emp_usr_nm),
+                user_email     = str(company_user_info.emp_usr_emad),
+                user_ph        = str(company_user_info.emp_usr_mpno),
+                user_tno       = str(company_user_info.emp_inbk_tno),
+                
+                user_decd      = str(company_user_info.emp_decd),
+                user_tecd      = str(company_user_info.emp_tecd),
+                user_org_path  = str(company_user_info.emp_org_path),
+                user_ofps_cd   = str(company_user_info.emp_ofps_cd),
+                user_ofps_nm   = str(company_user_info.emp_ofps_nm)
+            )
+        
+        user_info_list.append(user_info_)
+    
+    return user_info_list
+
+
 @router.get("/thumbnail")
 def get_thumbnail(
     document_id:  str,
@@ -101,6 +143,68 @@ def get_thumbnail(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
+@router.get("/{doc_type}/kv")
+def get_doc_type_kv_list(
+    doc_type:     str,
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session:      Session         = Depends(db.session)
+) -> JSONResponse:
+    """
+    ### 문서 종류(소분류)(doc_type)에서 나올 수 있는 표준 항목코드 정보 목록 조회
+    """
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_list = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_list, JSONResponse):
+        return cls_type_list
+    
+    doc_type_idx_code: Dict[str, int] = dict()
+    for cls_type_info in cls_type_list:
+        for doc_type_info in cls_type_info.get("docx_type", {}):
+            doc_type_idx_code.update({doc_type_info.get("code"):doc_type_info.get("index")})
+    
+    print(doc_type_idx_code.keys())
+    
+    # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
+    if doc_type not in doc_type_idx_code.keys():
+        status_code, error = ErrorResponse.ErrorCode.get(2509)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    select_doc_type_kv_class_result = query.select_doc_type_kv_class(session, doc_type_idx=doc_type_idx_code.get(doc_type))
+    if isinstance(select_doc_type_kv_class_result, JSONResponse):
+        return select_doc_type_kv_class_result
+    select_doc_type_kv_class_result: List[schema.DocTypeKvClass] = select_doc_type_kv_class_result
+    
+    kv_list: List[dict] = list()
+    for kv_class in select_doc_type_kv_class_result:
+        kv_list.append(dict(
+            kv_class_code=kv_class.kv_class_info.kv_class_code,
+            kv_class_name_kr=kv_class.kv_class_info.kv_class_name_kr,
+            kv_class_name_en=kv_class.kv_class_info.kv_class_name_en,
+            kv_class_use=str(kv_class.kv_class_info.kv_class_use),
+        ))
+    
+    
+    response = dict(
+        kv=kv_list
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
 @router.get("/filter/user/inspecter")
 def get_filter_user(
     user_team:    str,
@@ -137,21 +241,32 @@ def get_filter_user(
         return select_user_all_result
     select_user_all_result: List[schema.UserGroup] = select_user_all_result
     
-    email_name: Dict[str, str] = dict()
+    email_user_info: Dict[str, schema.UserGroup] = dict()
     for user in select_user_all_result:
-        user_info: schema.UserInfo = user.user_info
-        email_name.update({user.user_email:user_info.user_name})
+        email_user_info.update({user.user_email:user})
     
     # (group_code에 속한 사용자가 등록한 문서)를 검수한 사용자 목록 조회
-    inspecter_name: Dict[str, str] = query.get_inspecter_list(session, uploader_list=[ x.user_email for x in select_user_all_result ])
+    inspecter_name: Dict[str, schema.UserInfo] = query.get_inspecter_list(session, inspecter_list=[ x.user_email for x in select_user_all_result ])
     if isinstance(inspecter_name, JSONResponse):
         return inspecter_name
     
-    email_name.update(inspecter_name)
+    email_user_info.update(inspecter_name)
     
+    # user_info.user_email이 company_user_info.EMP_USR_EMAD와 같은 유저(=사원) 정보 조회
+    select_comapny_user_all_result = query.select_company_user_info_all(session, emp_usr_emad=email_user_info.keys())
+    if isinstance(select_comapny_user_all_result, JSONResponse):
+        return select_comapny_user_all_result
+    select_comapny_user_all_result: List[schema.CompanyUserInfo] = select_comapny_user_all_result
+    
+    email_company_user_info: Dict[str, schema.CompanyUserInfo] = dict()
+    for company_user in select_comapny_user_all_result:
+        company_user_info: schema.CompanyUserInfo = company_user
+        email_company_user_info.update({company_user_info.emp_usr_emad:company_user_info})
+    
+    user_info_list = parse_user_info_list(email_user_info, email_company_user_info)
     
     response = dict(
-        user_info=email_name
+        user_info=user_info_list
     )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
@@ -193,14 +308,25 @@ def get_filter_user(
         return select_user_all_result
     select_user_all_result: List[schema.UserGroup] = select_user_all_result
     
-    email_name: Dict[str, str] = dict()
+    email_user_info: Dict[str, schema.UserGroup] = dict()
     for user in select_user_all_result:
-        user_info: schema.UserInfo = user.user_info
-        email_name.update({user.user_email:user_info.user_name})
+        email_user_info.update({user.user_email:user})
     
+    # user_info.user_email이 company_user_info.EMP_USR_EMAD와 같은 유저(=사원) 정보 조회
+    select_comapny_user_all_result = query.select_company_user_info_all(session, emp_usr_emad=email_user_info.keys())
+    if isinstance(select_comapny_user_all_result, JSONResponse):
+        return select_comapny_user_all_result
+    select_comapny_user_all_result: List[schema.CompanyUserInfo] = select_comapny_user_all_result
+    
+    email_company_user_info: Dict[str, schema.CompanyUserInfo] = dict()
+    for company_user in select_comapny_user_all_result:
+        company_user_info: schema.CompanyUserInfo = company_user
+        email_company_user_info.update({company_user_info.emp_usr_emad:company_user_info})
+    
+    user_info_list = parse_user_info_list(email_user_info, email_company_user_info)
     
     response = dict(
-        user_info=email_name
+        user_info=user_info_list
     )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
@@ -332,16 +458,24 @@ def get_document_list(
         6-3. document_id 제거 -> [# doc_type_index를 이름으로 변경, 문서 유형 추가, document_id 제거]
     """
     user_email:         str        = current_user.email
-    upload_date_start:  str        = params.get("upload_date_start")
-    upload_date_end:    str        = params.get("upload_date_end")
-    inspect_date_start: str        = params.get("inspect_date_start")
-    inspect_date_end:   str        = params.get("inspect_date_end")
+    
+    # upload_date_start:  str        = params.get("upload_date_start")
+    # upload_date_end:    str        = params.get("upload_date_end")
+    # inspect_date_start: str        = params.get("inspect_date_start")
+    # inspect_date_end:   str        = params.get("inspect_date_end")
     date_sort_desc:     bool       = params.get("date_sort_desc", True)
+    
+    date_start:         str        = params.get("date_start", None)
+    date_end:           str        = params.get("date_end", None)
+    upload_date:        bool       = params.get("upload_date", True)
+    
     group_list:         List[str]  = params.get("group_list", [])
     uploader_list:      List[str]  = params.get("uploader_list", [])
     inspecter_list:     List[str]  = params.get("inspecter_list", [])
     cls_type_idx_list:  List[int]  = params.get("cls_type_list", [])
     document_status:    List[str]  = params.get("document_status", [])
+    document_filename:  str        = params.get("document_filename", "")
+    document_id_list:   List[str]  = params.get("document_id_list", [])
     rows_limit:         int        = params.get("rows_limit", 100)
     rows_offset:        int        = params.get("rows_offset", 0)
     
@@ -367,12 +501,6 @@ def get_document_list(
             status_code, error = ErrorResponse.ErrorCode.get(2509)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
-    group_prefix = get_company_group_prefix(session, current_user.email)
-    if isinstance(group_prefix, JSONResponse):
-        return group_prefix
-    group_prefix: str = group_prefix
-    
     # 사용자 정책(조회 가능 문서 대분류 그룹) 확인
     cls_code_list: List[str] = list()
     cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
@@ -382,13 +510,14 @@ def get_document_list(
     if isinstance(cls_type_idx_list_result, JSONResponse):
         return cls_type_idx_list_result
     
-    cls_type_idx_result_list: List[int] = list()
-    for result in cls_type_idx_list:
-        cls_type_idx_result_list.append(result.get("index"))
+    cls_type_idx_result_list: Dict[int, dict] = dict()
+    for result in cls_type_idx_list_result:
+        cls_type_idx = result.get("index")
+        cls_type_idx_result_list.update({cls_type_idx:result})
     
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
     for cls_type_idx in cls_type_idx_list:
-        if cls_type_idx not in cls_type_idx_result_list:
+        if cls_type_idx not in cls_type_idx_result_list.keys():
             status_code, error = ErrorResponse.ErrorCode.get(2509)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
@@ -401,39 +530,61 @@ def get_document_list(
     inspect_end_date = None
     try:
         # 기간 요청
+        if upload_date is False: raise Exception()
+        
         ignore_upload_date = False
-        upload_start_date = datetime.strptime(upload_date_start, "%Y.%m.%d")
-        upload_end_date = datetime.strptime(upload_date_end, "%Y.%m.%d") + timedelta(days=1)
+        upload_start_date = datetime.strptime(date_start, "%Y.%m.%d")
+        upload_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
     except:
         # 전체 기간 요청
         ignore_upload_date = True
-        upload_start_date = datetime(2022, 6, 1, 0, 0, 0, 0)
+        upload_start_date = datetime.now() - timedelta(days=365)
         upload_end_date = datetime.now() + timedelta(days=1)
     
     try:
         # 기간 요청
+        if upload_date is True: raise Exception()
+        
         ignore_inpsect_date = False
-        inspect_start_date = datetime.strptime(inspect_date_start, "%Y.%m.%d")
-        inspect_end_date = datetime.strptime(inspect_date_end, "%Y.%m.%d") + timedelta(days=1)
+        inspect_start_date = datetime.strptime(date_start, "%Y.%m.%d")
+        inspect_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
     except:
         # 전체 기간 요청
         ignore_inpsect_date = True
-        inspect_start_date = datetime(2022, 6, 1, 0, 0, 0, 0)
+        inspect_start_date = datetime.now() - timedelta(days=365)
         inspect_end_date = datetime.now() + timedelta(days=1)
     
     # 가변 컬럼
     column_order: list = list()
-    cls_idx: int = 0
-    doc_type_idx: int = 0
+    cls_index: int = 0
+    doc_type_index: int = 0
+    docx_id_index: int = 0
+    docx_st_index: int = 0
+    docx_path_index: int = 0
+    uploader_email_index: int = 0
+    inspecter_email_index: int = 0
     for i, c in enumerate(settings.DOCUMENT_LIST_COLUMN_ORDER):
         t_c = settings.DCOUMENT_LIST_COLUMN_MAPPING.get(c)
-        if t_c is not None: column_order.append(t_c)
+        
+        if t_c is None: continue
+        
+        column_order.append(t_c)
         
         # pkey를 이름으로 가져오는 컬럼은 인덱스 지정 필수
         if t_c == "DocumentInfo.cls_idx":
-            cls_idx = i
+            cls_index = i
         elif t_c == "DocumentInfo.doc_type_idxs":
-            doc_type_idx = i
+            doc_type_index = i
+        elif t_c == "DocumentInfo.document_id":
+            docx_id_index = i
+        elif t_c == "InspectInfo.inspect_status":
+            docx_st_index = i
+        elif t_c == "DocumentInfo.document_path":
+            docx_path_index = i
+        elif t_c == "DocumentInfo.user_email":
+            uploader_email_index = i
+        elif t_c == "InspectInfo.user_email":
+            inspecter_email_index = i
     
     # 필터링된 업무 리스트
     total_count, complet_count, filtered_rows = query.select_document_inspect_all(
@@ -455,6 +606,9 @@ def get_document_list(
         cls_type_idx_list=cls_type_idx_list,
         
         document_status=document_status,
+        document_filename=document_filename,
+        document_id_list=document_id_list,
+        
         rows_limit=rows_limit,
         rows_offset=rows_offset,
         column_order=column_order
@@ -462,30 +616,73 @@ def get_document_list(
     if isinstance(filtered_rows, JSONResponse):
         return filtered_rows
     
-    # 검수 중이면 document_id 제거
-    docx_id_index = 0
-    insp_st_index = 8
-    try:
-        docx_id_index = settings.DOCUMENT_LIST_COLUMN_ORDER.index("document_id")
-        insp_st_index = settings.DOCUMENT_LIST_COLUMN_ORDER.index("상태")
-    except:
-        docx_id_index = 0
-        insp_st_index = 8
+    # 등록자, 검수자 user_info 조회
+    email_list: List[str] = list()
+    email_list.extend( [ row[uploader_email_index] for row in filtered_rows ] )
+    email_list.extend( [ row[inspecter_email_index] for row in filtered_rows ] )
     
-    # doc_type_index를 이름으로 변경, 문서 유형 추가, document_id 제거
+    # group_code가 group_prefix + user_team인 그룹에 속한 사용자 목록 조회
+    select_user_all_result = query.select_user_group_all_multi(session, user_email=email_list)
+    if isinstance(select_user_all_result, JSONResponse):
+        return select_user_all_result
+    select_user_all_result: List[schema.UserGroup] = select_user_all_result
+    
+    email_user_info: Dict[str, schema.UserGroup] = dict()
+    for user in select_user_all_result:
+        email_user_info.update({user.user_email:user})
+    
+    # user_info.user_email이 company_user_info.EMP_USR_EMAD와 같은 유저(=사원) 정보 조회
+    select_comapny_user_all_result = query.select_company_user_info_all(session, emp_usr_emad=email_user_info.keys())
+    if isinstance(select_comapny_user_all_result, JSONResponse):
+        return select_comapny_user_all_result
+    select_comapny_user_all_result: List[schema.CompanyUserInfo] = select_comapny_user_all_result
+    
+    email_company_user_info: Dict[str, schema.CompanyUserInfo] = dict()
+    for company_user in select_comapny_user_all_result:
+        company_user_info: schema.CompanyUserInfo = company_user
+        email_company_user_info.update({company_user_info.emp_usr_emad:company_user_info})
+    
+    user_info_list = parse_user_info_list(email_user_info, email_company_user_info)
+    
+    user_email_name: Dict[str, str] = dict()
+    for user_info in user_info_list:
+        user_email_name.update({user_info.get("user_email"):user_info.get("user_team_name")})
+    
+    # cls_idx를 이름으로 변경, 문서 유형 추가, document_id 제거
     rows: List[list] = filtered_rows
     response_rows: List[list] = list()
     for row in rows:
         
-        doc_type_idxs: dict = json.loads(row.pop(doc_type_idx).replace("'", "\""))
-        row.insert(doc_type_idx, str(doc_type_idxs.get("doc_type_idxs", [])).replace("[", "").replace("]", ""))
+        doc_type_idxs: dict = json.loads(row.pop(doc_type_index).replace("'", "\""))
+        row.insert(doc_type_index, str(doc_type_idxs.get("doc_type_idxs", [])).replace("[", "").replace("]", ""))
         
-        if row[insp_st_index] in [settings.STATUS_RUNNING_INFERENCE, settings.STATUS_INSPECTING] \
+        # cls_idx -> cls_name
+        if cls_index != 0:
+            cls_idx = row.pop(cls_index)
+            row.insert(cls_index, cls_type_idx_result_list.get(int(cls_idx), {}).get("name_kr", str(cls_idx)))
+        
+        # 검수중이면 document_id 제거
+        if docx_st_index > 0:
+            docx_status = row.pop(docx_st_index)
+            if docx_status in [settings.STATUS_RUNNING_INFERENCE, settings.STATUS_INSPECTING] \
             and not is_admin(user_policy_result):
-            row[docx_id_index] = ""
+                row[docx_id_index] = ""
+                
+            row.insert(docx_st_index, settings.STATUS_MAPPING.get(docx_status, ""))
         
-        row.insert(insp_st_index, settings.STATUS_MAPPING.get(row[insp_st_index], ""))
-        row.pop(insp_st_index+1)
+        # document_path -> 문서명
+        if docx_path_index > 0:
+            document_path = row.pop(docx_path_index)
+            row.insert(docx_path_index, document_path.split("/")[-1])
+        
+        # user_email로 팀(그룹)명 찾기
+        if uploader_email_index > 0:
+            row.pop(uploader_email_index + 2)
+            row.insert(uploader_email_index + 2, user_email_name.get(row[uploader_email_index], "None"))
+        
+        if uploader_email_index > 0:
+            row.pop(inspecter_email_index + 2)
+            row.insert(inspecter_email_index + 2, user_email_name.get(row[inspecter_email_index], "None"))
         
         response_rows.append(row)
     

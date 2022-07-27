@@ -202,9 +202,13 @@ class Settings(BaseSettings):
         "cls_idx": "DocumentInfo.cls_idx",
         "doc_type_idxs": "DocumentInfo.doc_type_idxs",
         "문서명": "DocumentInfo.document_path",
-        "등록 담당자": "DocumentInfo.user_email",
+        "등록 담당자(아이디)": "DocumentInfo.user_email",
+        "등록 담당자(이름)": "DocumentInfo.user_info.user_name",
+        "등록 담당자(그룹)": "",
         "등록일": "DocumentInfo.document_upload_time",
-        "검수 담당자": "InspectInfo.user_email",
+        "검수 담당자(아이디)": "InspectInfo.user_email",
+        "검수 담당자(이름)": "InspectInfo.user_info.user_name",
+        "검수 담당자(그룹)": "",
         "상태": "InspectInfo.inspect_status",
         "정확도": "InspectInfo.inspect_accuracy",
         "검수일": "InspectInfo.inspect_end_time",
@@ -218,9 +222,13 @@ class Settings(BaseSettings):
         "cls_idx",
         "doc_type_idxs",
         "문서명",
-        "등록 담당자", # 필수
+        "등록 담당자(아이디)", # 필수
+        "등록 담당자(이름)",
+        "등록 담당자(그룹)",
         "등록일",
-        "검수 담당자", # 필수
+        "검수 담당자(아이디)", # 필수
+        "검수 담당자(이름)",
+        "검수 담당자(그룹)",
         "상태", # 필수
         "정확도",
         "검수일",
