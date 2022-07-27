@@ -177,8 +177,6 @@ def get_doc_type_kv_list(
         for doc_type_info in cls_type_info.get("docx_type", {}):
             doc_type_idx_code.update({doc_type_info.get("code"):doc_type_info.get("index")})
     
-    print(doc_type_idx_code.keys())
-    
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
     if doc_type not in doc_type_idx_code.keys():
         status_code, error = ErrorResponse.ErrorCode.get(2509)
