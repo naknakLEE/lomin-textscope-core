@@ -1,0 +1,8 @@
+background_ocr: True
+doc_type:
+  - FN-OIP
+  - FN-BP
+  - TD-CI
+  - TD-PL
+  - TD-BL
+  - TD-PO
