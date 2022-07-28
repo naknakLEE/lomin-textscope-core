@@ -44,7 +44,7 @@ def post_inspect_info(
     user_email:         str   = current_user.email
     document_id:        str   = params.get("document_id")
     page_num:           int   = params.get("page_num", 0)
-    inspect_date_start: str   = params.get("inspect_date_start")
+    inspect_date_start: str   = params.get("inspect_date_start", datetime.now())
     inspect_date_end:   str   = params.get("inspect_date_end")
     inspect_result:     dict  = params.get("inspect_result", {})
     inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
@@ -109,6 +109,7 @@ def post_inspect_info(
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
     else:
         inspect_date_end = None
+    
     insert_inspect_result = query.insert_inspect(
         session,
         inspect_id=inspect_id,
