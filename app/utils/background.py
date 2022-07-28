@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
+from app import hydra_cfg
 from app.database import query, schema
 from app.database.connection import db
 from app.routes.inference import ocr
@@ -66,6 +67,8 @@ DEFAULT_KV_PARAMS = {
     },
     "idcard_version": "v1"
 }
+NOT_INSPECTED = "NOT_INSPECTED"
+INFERENCE_ERROR = "INFERENCE_ERROR"
 
 
 def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
@@ -100,6 +103,10 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
     
     session = next(db.session())
     
+    update_document_info_doc_type_idxs(session, document_id, [])
+    
+    doc_type_list: List[str] = list()
+    inspect_id = NOT_INSPECTED
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
@@ -111,28 +118,30 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
             document_path=document_path,
         )
         
-        ocr(request=request, inputs=gocr_params, current_user=current_user, session=session)
+        try:
+            ocr(request=request, inputs=gocr_params, current_user=current_user, session=session)
+            doc_type_list.append("None")
+        except:
+            inspect_id = INFERENCE_ERROR
     
-    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+    update_document_info_doc_type_idxs(session, document_id, doc_type_list)
+    query.update_document(session, document_id, inspect_id=inspect_id)
 
 def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
     document_id = kwargs.get("document_id")
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
     
-    cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
-    
     session = next(db.session())
     
     cls_params = dict()
     cls_params.update(DEFAULT_PARAMS)
-    
-    if cls_model_info is not None:
-        cls_params.update(DEFAULT_CLS_PARAMS)
+    cls_params.update(DEFAULT_CLS_PARAMS)
     
     update_document_info_doc_type_idxs(session, document_id, [])
     
     doc_type_list: List[str] = list()
+    inspect_id = NOT_INSPECTED
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
@@ -144,14 +153,16 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             document_path=document_path,
         )
         
-        cls_response: dict = ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
-        if isinstance(cls_response, JSONResponse): continue
-        
-        doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
-        doc_type_list.append(doc_type_code)
+        try:
+            cls_response = ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
+            doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
+            doc_type_list.append(doc_type_code)
+            
+        except:
+            inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
-    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+    query.update_document(session, document_id, inspect_id=inspect_id)
 
 def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
     document_id = kwargs.get("document_id")
@@ -165,10 +176,11 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
     kv_params = dict()
     kv_params.update(DEFAULT_PARAMS)
     
-    if doc_type_info is not None: # KV만 한다
+    if doc_type_info is not None:
         kv_params.update(DEFAULT_KV_PARAMS)
         kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_info.doc_type_code)
     
+    inspect_id = NOT_INSPECTED
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
@@ -180,9 +192,13 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
             document_path=document_path,
         )
         
-        ocr(request=request, inputs=kv_params, current_user=current_user, session=session)
+        try:
+            ocr(request=request, inputs=kv_params, current_user=current_user, session=session)
+            
+        except:
+            inspect_id = INFERENCE_ERROR
     
-    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+    query.update_document(session, document_id, inspect_id=inspect_id)
 
 def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
     document_id = kwargs.get("document_id")
@@ -196,8 +212,8 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     cls_params = dict()
     cls_params.update(DEFAULT_PARAMS)
     
-    kv_params = dict()
-    kv_params.update(DEFAULT_PARAMS)
+    params = dict()
+    params.update(DEFAULT_PARAMS)
     
     if cls_model_info is not None:
         cls_params.update(DEFAULT_CLS_PARAMS)
@@ -205,6 +221,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     update_document_info_doc_type_idxs(session, document_id, [])
     
     doc_type_list: List[str] = list()
+    inspect_id = NOT_INSPECTED
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
         
@@ -216,28 +233,36 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             document_path=document_path,
         )
         
-        cls_response: dict = ocr(request=request, inputs=cls_params, current_user=current_user, session=session)
-        if isinstance(cls_response, JSONResponse): continue
-        
-        doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
-        
-        if doc_type_code is not None:
-            kv_params.update(DEFAULT_KV_PARAMS)
-            kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_code)
+        try:
+            cls_response = ocr(request=request, inputs=cls_params, current_user=current_user, session=session) 
+            
+            doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
             doc_type_list.append(doc_type_code)
-        
-        kv_params.update(
-            task_id=task_id,
-            request_id=task_id,
-            document_id=document_id,
-            page=page,
-            document_path=document_path,
-        )
-        
-        ocr(request=request, inputs=kv_params, current_user=current_user, session=session)
+            
+            # cls결과 doc_type이 사용 가능한(kv 모델 유/무) 문서 종류(소분류)일 경우 kv요청
+            if doc_type_code in hydra_cfg.document.doc_type:
+                params.update(DEFAULT_KV_PARAMS)
+                params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_code)
+                
+            # 아닐 경우 gocr요청
+            else:
+                params.update(DEFAULT_GOCR_PARAMS)
+            
+            params.update(
+                task_id=task_id,
+                request_id=task_id,
+                document_id=document_id,
+                page=page,
+                document_path=document_path,
+            )
+            
+            ocr(request=request, inputs=params, current_user=current_user, session=session)
+            
+        except:
+            inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
-    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")
+    query.update_document(session, document_id, inspect_id=inspect_id)
 
 
 def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_type_list: List[str]) -> None:

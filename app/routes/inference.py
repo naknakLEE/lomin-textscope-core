@@ -155,7 +155,7 @@ def ocr(
         
         # convert preds to texts
         if (
-            inputs.get("convert_preds_to_texts") is not None
+            inputs.get("convert_preds_to_texts", False) is True
             and "texts" not in inference_results
         ):
             status_code, texts = pp.convert_preds_to_texts(
@@ -166,13 +166,16 @@ def ocr(
                 raise CoreCustomException(3503)
             inference_results["texts"] = texts
         
+        doc_type_code = inference_results.get("doc_type") 
         
         # Post processing
-        post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
-        logger.info(f"{task_id}-pp type:{post_processing_type}")
+        post_processing_type = get_pp_api_name(doc_type_code)
         if (
-            post_processing_type is not None and inputs.get("route_name", None) != 'cls'
+            post_processing_type is not None \
+            and doc_type_code is not None \
+            and inputs.get("route_name", None) != 'cls'
         ):
+            logger.info(f"{task_id}-pp type:{post_processing_type}")
             text_list = inference_result.get("texts", [])
             box_list = inference_result.get("boxes", [])
             score_list = inference_result.get("scores", [])
@@ -188,7 +191,7 @@ def ocr(
                 classes=class_list,
                 rec_preds=inference_result.get("rec_preds"),
                 id_type=inference_results.get("id_type"),
-                doc_type=inference_results.get("doc_type"),
+                doc_type=doc_type_code,
                 image_height=inference_results.get("image_height"),
                 image_width=inference_results.get("image_width"),
                 task_id=task_id,
@@ -202,6 +205,7 @@ def ocr(
             )
             if status_code < 200 or status_code >= 400:
                 raise CoreCustomException(3502)
+            
             inference_results["kv"] = post_processing_results["result"]
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
@@ -217,7 +221,7 @@ def ocr(
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
     
     inference_id = get_ts_uuid("inference")
-    doc_type_code = inference_results.get("doc_type")
+    doc_type_code = doc_type_code if doc_type_code else "None"
     
     # doc_type_code로 doc_type_index 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
