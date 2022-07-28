@@ -888,6 +888,12 @@ def get_document_inference_info(
         return select_inspect_result
     select_inspect_result: schema.InspectInfo = select_inspect_result
     
+    # kv에 kv_class_name_kr 한글명 추가
+    kv_class_codes = select_inference_result.inference_result.get("kv").keys()
+    select_kv_class_result = query.select_kv_class_info_get_all_multi(session, kv_class_code=kv_class_codes)
+    for class_code, kv_class_object in zip(kv_class_codes, select_kv_class_result):
+        select_inference_result.inference_result["kv"][class_code]["kv_class_name_kr"] = kv_class_object.kv_class_name_kr
+
     
     response = dict(
         document_id=select_inference_result.document_id,

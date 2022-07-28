@@ -41,6 +41,16 @@ def select_cls_group_all(session: Session, **kwargs: Dict) -> Union[List[schema.
         raise CoreCustomException(4101, "모든 문서 대분류 그룹")
     return result
 
+def select_kv_class_info_get_all_multi(session: Session, **kwargs: Dict) -> Union[List[schema.KvClassInfo], JSONResponse]:
+    try:
+        result = schema.KvClassInfo.get_all_multi(session, **kwargs)
+        if result is None:
+            raise CoreCustomException(2108)
+    except Exception:
+        raise CoreCustomException(4101, "모든 key value classes")
+    return result
+
+
 
 def select_cls_group_model(session: Session, **kwargs: Dict) -> Union[schema.ClsGroupModel, JSONResponse]:
     try:
