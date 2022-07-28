@@ -220,7 +220,11 @@ def ocr(
     doc_type_code = inference_results.get("doc_type")
     
     # doc_type_code로 doc_type_index 조회
-    doc_type_idx = doc_type_code
+    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+    if isinstance(select_doc_type_result, JSONResponse):
+        return select_doc_type_result
+    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+    doc_type_idx = select_doc_type_result.doc_type_idx
     
     insert_inference_result = query.insert_inference(
         session=session,
