@@ -160,8 +160,9 @@ def insert_document(
     document_pages: int = 0,
     cls_type_idx: int = 0,
     doc_type_idx: int = 0,
+    is_used: bool = True,
     auto_commit: bool = True
-) -> Union[Optional[schema.DocumentInfo], JSONResponse]:
+) -> Optional[schema.DocumentInfo]:
     try:
         result = schema.DocumentInfo.create(
             session=session,
@@ -174,6 +175,7 @@ def insert_document(
             document_pages=document_pages,
             cls_idx=cls_type_idx,
             doc_type_idx=doc_type_idx,
+            is_used=is_used,
             auto_commit=auto_commit,
         )
     except Exception:
@@ -298,6 +300,7 @@ def select_document_inspect_all(
     try:
         # table join (inspect_id)
         query = session.query(dao_document, dao_inspect) \
+            .filter(dao_document.is_used == True) \
             .filter(dao_document.inspect_id == dao_inspect.inspect_id)
         
         # 총 업무 개수

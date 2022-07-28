@@ -1,5 +1,3 @@
-import uuid
-
 from httpx import Client
 
 from typing import Dict, Union
@@ -26,6 +24,14 @@ from app.schemas.json_schema import inference_responses
 from app.models import UserInfo as UserInfoInModel
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
+from app.utils.document import (
+    save_upload_document,
+)
+from app.utils.image import (
+    read_image_from_bytes,
+    get_image_bytes,
+    image_to_base64,
+)
 from app.wrapper import pp, pipeline, settings
 from app.database import query, schema
 from app.database.connection import db
@@ -63,6 +69,13 @@ def ocr(
     document_path = inputs.get("document_path")
     target_page = inputs.get("page", 1)
     
+    if inputs.get("doc_type_idx"):
+        inputs = ocr_kv(inputs, current_user, session)
+    
+    custom_angle_ocr = False
+    if inputs.get("angle"):
+        custom_angle_ocr = True
+        inputs = ocr_angle(inputs, current_user, session)
     
     # parameter mapping:
     # web -> inference
@@ -230,6 +243,10 @@ def ocr(
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
     
+    if custom_angle_ocr:
+        document_id = document_id if custom_angle_ocr is False else inputs.get("origin_document_id")
+        inference_results.update(angle=(360 - inputs.get("angle", 0.0)))
+    
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
@@ -246,7 +263,6 @@ def ocr(
         return insert_inference_result
     del insert_inference_result
     
-    
     response = dict(
         response_log=response_log,
         inference_results=inference_results
@@ -260,4 +276,146 @@ def ocr(
     if inputs.get("background", False): return response
     
     
+    
     return JSONResponse(content=jsonable_encoder(response))
+
+
+def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> Union[dict, JSONResponse]:
+    document_id = inputs.get("document_id", "")
+    angle_document_id = get_ts_uuid("document")
+    page_num = inputs.get("page", 1)
+    angle = inputs.get("angle", 0.0)
+    
+    # 자동생성된 document_id 중복 확인
+    select_document_result = query.select_document(session, document_id=angle_document_id)
+    if isinstance(select_document_result, schema.DocumentInfo):
+        raise CoreCustomException(2102)
+    elif isinstance(select_document_result, JSONResponse):
+        status_code_no_document, _ = ErrorResponse.ErrorCode.get(2101)
+        if select_document_result.status_code != status_code_no_document:
+            return select_document_result
+    
+    # 유저 정보 확인
+    select_user_result = query.select_user(session, user_email=current_user.email)
+    if isinstance(select_user_result, JSONResponse):
+        return select_user_result
+    select_user_result: schema.UserInfo = select_user_result
+    user_team = select_user_result.user_team
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
+    if page_num < 1 or select_document_result.document_pages < page_num:
+        raise CoreCustomException(2506)
+    
+    # 문서의 page_num 페이지의 썸네일 base64로 encoding
+    document_path = Path(select_document_result.document_path)
+    document_bytes = get_image_bytes(document_id, document_path)
+    angle_image = read_image_from_bytes(document_bytes, document_path.name, 360.0 - angle, page_num)
+    if angle_image is None:
+        raise CoreCustomException(2103)
+    
+    document_data = image_to_base64(angle_image)
+    
+    document_name = "_".join([document_path.name, str(page_num), str(angle)])
+    document_name += document_path.suffix if document_path.suffix != ".pdf" else ".jpeg"
+    
+    # 문서 저장(minio or local pc)
+    save_success, save_path = save_upload_document(document_id, document_name, document_data)
+    
+    if save_success is False:
+        raise CoreCustomException(4102, "문서")
+    
+    logger.info(f"success save angle document document_id : {angle_document_id}")
+    dao_document_params = {
+        "document_id": angle_document_id,
+        "user_email": current_user.email,
+        "user_team": user_team,
+        "document_path": save_path,
+        "document_description": "re-inference custom angle",
+        "document_pages": 1,
+        "cls_type_idx": select_document_result.cls_idx,
+        "doc_type_idx": select_document_result.doc_type_idxs,
+        "document_type": "custom angle",
+        "is_used": False
+    }
+    insert_document_result = query.insert_document(session, **dao_document_params)
+    if isinstance(insert_document_result, JSONResponse):
+        return insert_document_result
+    
+    inputs.update(
+        origin_document_id=document_id,
+        document_id=angle_document_id,
+        rectify=dict(
+            rotation_90n=False,
+            rotation_fine=False
+        )
+    )
+    
+    return inputs
+
+
+def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Union[dict, JSONResponse]:
+    document_id = inputs.get("document_id", "")
+    doc_type_idx = inputs.get("doc_type_idx", 0)
+    page_num = inputs.get("page", 1)
+    
+    # 유저 정보 확인
+    select_user_result = query.select_user(session, user_email=current_user.email)
+    if isinstance(select_user_result, JSONResponse):
+        return select_user_result
+    select_user_result: schema.UserInfo = select_user_result
+    user_team = select_user_result.user_team
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
+    if page_num < 1 or select_document_result.document_pages < page_num:
+        raise CoreCustomException(2506)
+    
+    # doc_type_idx로 doc_type_code 조회
+    select_doc_type_result = query.select_doc_type(session, doc_type_idx=doc_type_idx)
+    if isinstance(select_doc_type_result, JSONResponse):
+        return select_doc_type_result
+    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+    doc_type_code = select_doc_type_result.doc_type_code
+    
+    doc_type_idxs: dict = select_document_result.doc_type_idxs
+    
+    doc_type_idx_list: list = doc_type_idxs.get("doc_type_idxs", [])
+    doc_type_idx_list.pop(page_num - 1)
+    doc_type_idx_list.insert(page_num - 1, doc_type_idx)
+    
+    doc_type_codes_list: list = doc_type_idxs.get("doc_type_codes", [])
+    doc_type_codes_list.pop(page_num - 1)
+    doc_type_codes_list.insert(page_num - 1, doc_type_code)
+    
+    query.update_document(
+        session,
+        document_id,
+        doc_type_idxs=dict(
+            doc_type_idxs=doc_type_idx_list,
+            doc_type_codes=doc_type_codes_list
+        )
+    )
+    
+    inputs.update(
+        hint=dict(
+            doc_type=dict(
+                use=True,
+                trust=True,
+                doc_type=doc_type_code
+            ),
+            key_value=[]
+        )
+    )
+    
+    return inputs
