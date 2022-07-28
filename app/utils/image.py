@@ -47,11 +47,15 @@ def read_tiff_page_from_bytes(image_bytes: str, page: int):
 
 @lru_cache(maxsize=15)
 def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
+    pil_image = None
     file_extension = Path(image_filename).suffix.lower()
     if file_extension in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
-        nparr = np.fromstring(image_bytes, np.uint8)
-        cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        pil_image = Image.fromarray(cv2_img[:, :, ::-1])
+        try:
+            nparr = np.fromstring(image_bytes, np.uint8)
+            cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            pil_image = Image.fromarray(cv2_img[:, :, ::-1])
+        except:
+            pil_image = None
         
     elif file_extension in [".tif", ".tiff"]:
         try:
@@ -62,7 +66,7 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
             except:
                 logger.exception("read pillow")
                 logger.error(f"Cannot read page:{page} in {image_filename}")
-                return None
+                pil_image = None
             
     elif file_extension == ".pdf":
         pages = pdf2image.convert_from_bytes(
@@ -76,9 +80,10 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
         
     else:
         logger.error(f"{image_filename} is not supported!")
-        return None
+        pil_image = None
     
-    pil_image = pil_image.convert("RGB")
+    if pil_image:
+        pil_image = pil_image.convert("RGB")
     
     return pil_image
 
@@ -88,14 +93,9 @@ def read_image_from_bytes(
     image_bytes: str, image_filename: str, angle: Optional[float], page: int
 ):
     
-    image = read_pillow_from_bytes(
-        image_bytes=image_bytes, image_filename=image_filename, page=page
-    )
+    image = read_pillow_from_bytes(image_bytes=image_bytes, image_filename=image_filename, page=page)
     
-    if image is None:
-        return None
-    
-    if angle:
+    if image and angle:
         image = image.rotate(angle, expand=True)
     
     return image
