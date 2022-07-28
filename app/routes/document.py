@@ -17,6 +17,7 @@ from app.utils.logging import logger
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
 from app.middlewares.exception_handler import CoreCustomException
+from app.utils.postprocess import add_unrecognition_kv, add_class_name_kr
 from app.utils.image import (
     read_image_from_bytes,
     get_image_bytes,
@@ -888,6 +889,12 @@ def get_document_inference_info(
         return select_inspect_result
     select_inspect_result: schema.InspectInfo = select_inspect_result
     
+    if select_inference_result.inference_result.get("kv", None):
+        # 인식 되지 않은 class None값으로 추가
+        select_inference_result = add_unrecognition_kv(session, select_inference_result)
+        # kv에 kv_class_name_kr 한글명 추가
+        select_inference_result = add_class_name_kr(session, select_inference_result)
+        
     
     response = dict(
         document_id=select_inference_result.document_id,
