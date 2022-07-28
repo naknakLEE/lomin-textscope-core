@@ -118,10 +118,18 @@ def get_thumbnail(
     if page_num < 1 or select_document_result.document_pages < page_num:
         raise CoreCustomException(2506)
     
+    # page_num 페이지의 가장 최근 추론 결과에서 각도 정보 얻기
+    select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
+    if isinstance(select_inference_result, JSONResponse):
+        return select_inference_result
+    select_inference_result: schema.InferenceInfo = select_inference_result
+    inference_result: dict = select_inference_result.inference_result
+    angle = inference_result.get("angle", 0.0)
+    
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_path = Path(select_document_result.document_path)
     document_bytes = get_image_bytes(document_id, document_path)
-    image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page_num)
+    image = read_image_from_bytes(document_bytes, document_path.name, angle, page_num)
     if image is None:
         raise CoreCustomException(2103)
     
@@ -133,6 +141,7 @@ def get_thumbnail(
     
     response = dict(
         scale     = scale,
+        angle     = angle,
         width     = new_w,
         height    = new_h,
         thumbnail = image_base64
@@ -192,10 +201,10 @@ def get_document_preview(
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     # 문서가 포함한 문서 종류(소분류) 리스트
-    doc_type_codes: dict = select_document_result.doc_type_idxs
+    doc_type_idxs: dict = select_document_result.doc_type_idxs
     
     # 문서 종류(소분류) 정보
-    select_doc_type_all_result = query.select_doc_type_all(session, doc_type_code=doc_type_codes.get("doc_type_codes", []))
+    select_doc_type_all_result = query.select_doc_type_all(session, doc_type_code=list(set(doc_type_idxs.get("doc_type_codes", []))))
     if isinstance(select_doc_type_all_result, JSONResponse):
         return select_doc_type_all_result
     select_doc_type_all_result: List[schema.DocTypeInfo] = select_doc_type_all_result
@@ -209,7 +218,7 @@ def get_document_preview(
     document_bytes = get_image_bytes(document_id, document_path)
     
     preview_list: List[dict] = list()
-    for page, doc_type_code in zip(range(1, select_document_result.document_pages + 1), doc_type_codes.get("doc_type_codes", [])):
+    for page, doc_type_code in zip(range(1, select_document_result.document_pages + 1), doc_type_idxs.get("doc_type_codes", [])):
         doc_type_info = doc_type_code_info.get(doc_type_code)
         doc_type_idx_=""
         doc_type_code_=""
@@ -231,7 +240,7 @@ def get_document_preview(
         new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
         resized_image = image.resize((new_w, new_h))
         image_base64 = image_to_base64(resized_image)
-    
+        
         preview_list.append(dict(
             page=page,
             page_seq="",
