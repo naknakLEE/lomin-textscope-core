@@ -901,7 +901,7 @@ def get_document_inference_info(
     
     if select_inference_result.inference_result.get("kv", None):
         # 인식 되지 않은 class None값으로 추가
-        select_inference_result = add_unrecognition_kv(session, select_inference_result)
+        select_inference_result, _ = add_unrecognition_kv(session, select_inference_result)
         # kv에 kv_class_name_kr 한글명 추가
         select_inference_result = add_class_name_kr(session, select_inference_result)
         

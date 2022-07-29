@@ -11,6 +11,7 @@ def add_unrecognition_kv(session: Session, select_inference_result: dict):
     for d in select_doc_kv_result:
         maximun_kv_code.append(d.kv_class_code)
         
+    unrecognition_kv = dict()
     for max_kv_code in maximun_kv_code:
         if max_kv_code not in kv_class_codes:
             select_inference_result.inference_result["kv"][max_kv_code] = {
@@ -20,7 +21,14 @@ def add_unrecognition_kv(session: Session, select_inference_result: dict):
                 "box": [0,0,0,0],
                 "merged_count": 0,
             }
-    return select_inference_result
+            unrecognition_kv[max_kv_code] =  {
+                "text": "",
+                "score": 0,
+                "class": max_kv_code,
+                "box": [0,0,0,0],
+                "merged_count": 0,
+            }
+    return select_inference_result, unrecognition_kv
 
 def add_class_name_kr(session: Session, select_inference_result):
     

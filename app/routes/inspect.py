@@ -14,6 +14,7 @@ from app.utils.logging import logger
 from app.utils.utils import get_ts_uuid, is_admin
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
+from app.utils.inspect import get_inspect_accuracy
 from app.middlewares.exception_handler import CoreCustomException
 
 if hydra_cfg.route.use_token:
@@ -109,6 +110,10 @@ def post_inspect_info(
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
     else:
         inspect_date_end = None
+        
+    # 인식률 확인
+    inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
+    
     
     insert_inspect_result = query.insert_inspect(
         session,
