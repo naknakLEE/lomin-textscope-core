@@ -274,7 +274,7 @@ def select_inspect_latest(session: Session, **kwargs: Dict) -> Union[schema.Insp
     dao = schema.InspectInfo
     try:
         query = dao.get_all_query(session, **kwargs)
-        result = query.order_by(dao.inspect_end_time.desc()).first()
+        result = query.order_by(dao.inspect_start_time.desc()).first()
         
     except Exception:
         raise CoreCustomException(4101, "가장 최근 검수")
