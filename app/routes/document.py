@@ -203,6 +203,9 @@ def get_document_preview(
     
     # 문서가 포함한 문서 종류(소분류) 리스트
     doc_type_idxs: dict = select_document_result.doc_type_idxs
+    doc_type_total_cnt: Dict[str, int] = dict()
+    for doc_type_code in doc_type_idxs.get("doc_type_codes", []):
+        doc_type_total_cnt.update({doc_type_code:doc_type_total_cnt.get(doc_type_code, 0) + 1})
     
     # 문서 종류(소분류) 정보
     select_doc_type_all_result = query.select_doc_type_all(session, doc_type_code=list(set(doc_type_idxs.get("doc_type_codes", []))))
@@ -219,17 +222,20 @@ def get_document_preview(
     document_bytes = get_image_bytes(document_id, document_path)
     
     preview_list: List[dict] = list()
+    doc_type_code_cnt: Dict[str, int] = dict()
     for page, doc_type_code in zip(range(1, select_document_result.document_pages + 1), doc_type_idxs.get("doc_type_codes", [])):
+        doc_type_code_cnt.update({doc_type_code:doc_type_code_cnt.get(doc_type_code, 0) + 1})
+        
         doc_type_info = doc_type_code_info.get(doc_type_code)
-        doc_type_idx_=""
-        doc_type_code_=""
+        doc_type_idx_ = 0
+        doc_type_name_ = ""
         
         if doc_type_code not in doc_type_idx_code.keys() or doc_type_info is None:
-            doc_type_idx_ = -1
-            doc_type_code_ = "기타 서류"
+            doc_type_idx_ = 0
+            doc_type_name_ = "기타 서류"
         else:
-            doc_type_idx_=doc_type_info.doc_type_idx
-            doc_type_code_=doc_type_info.doc_type_code
+            doc_type_idx_ = doc_type_info.doc_type_idx
+            doc_type_name_ = doc_type_info.doc_type_name_kr
         
         image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page)
         
@@ -244,10 +250,13 @@ def get_document_preview(
         
         preview_list.append(dict(
             page=page,
-            page_seq="",
+            
+            page_doc_type=doc_type_code_cnt.get(doc_type_code),
+            page_doc_type_total=doc_type_total_cnt.get(doc_type_code),
             
             doc_type_idx=doc_type_idx_,
-            doc_type_code=doc_type_code_,
+            doc_type_code=doc_type_info.doc_type_code,
+            doc_type_name=doc_type_name_,
             
             scale = scale,
             width= new_w,
