@@ -667,7 +667,7 @@ def get_document_list(
         upload_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
     except:
         # 전체 기간 요청
-        ignore_upload_date = True
+        ignore_upload_date = False
         upload_start_date = datetime.now() - timedelta(days=365)
         upload_end_date = datetime.now() + timedelta(days=1)
     
@@ -728,6 +728,7 @@ def get_document_list(
         inspect_end_date=inspect_end_date,
         
         date_sort_desc=date_sort_desc,
+        upload_date=upload_date,
         
         user_team=user_team_list,
         uploader_list=uploader_list,

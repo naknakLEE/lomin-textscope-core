@@ -299,6 +299,7 @@ def select_document_inspect_all(
     inspect_start_date: datetime,
     inspect_end_date: datetime,
     date_sort_desc: bool,
+    upload_date: bool,
     
     user_team: List[str] = [],
     uploader_list: List[str] = [],
@@ -339,10 +340,10 @@ def select_document_inspect_all(
         # DocumentInfo 등록일 필터링
         if ignore_upload_date is False:
             query = query.filter(dao_document.document_upload_time.between(upload_start_date, upload_end_date))
-            if date_sort_desc is True:
-                query = query.order_by(dao_document.document_upload_time.desc())
-            else:
-                query = query.order_by(dao_document.document_upload_time.asc())
+        if date_sort_desc is True and upload_date is True:
+            query = query.order_by(dao_document.document_upload_time.desc())
+        else:
+            query = query.order_by(dao_document.document_upload_time.asc())
         
         
         # InsepctInfo 필터링
@@ -360,10 +361,10 @@ def select_document_inspect_all(
         if ignore_inpsect_date is False:
             query = query.filter(dao_inspect.inspect_end_time != None)
             query = query.filter(dao_inspect.inspect_end_time.between(inspect_start_date, inspect_end_date))
-            if date_sort_desc is True:
-                query = query.order_by(dao_inspect.inspect_end_time.desc())
-            else:
-                query = query.order_by(dao_inspect.inspect_end_time.asc())
+        if date_sort_desc is True and upload_date is False:
+            query = query.order_by(dao_inspect.inspect_end_time.desc())
+        else:
+            query = query.order_by(dao_inspect.inspect_end_time.asc())
         
         # 문서명 필터
         if len(document_filename) > 0:

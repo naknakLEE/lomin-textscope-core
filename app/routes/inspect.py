@@ -46,7 +46,7 @@ def post_inspect_info(
     page_num:           int   = params.get("page_num", 0)
     inspect_date_start: str   = params.get("inspect_date_start", datetime.now())
     inspect_date_end:   str   = params.get("inspect_date_end")
-    inspect_result:     dict  = params.get("inspect_result", {})
+    inspect_result:     dict  = params.get("inspect_result")
     inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
     inspect_done:       bool  = params.get("inspect_done", False)
     
