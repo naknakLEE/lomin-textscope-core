@@ -32,5 +32,5 @@ def get_inspect_accuracy(session: Session, select_inference_result: dict, inspec
     
     divide_parent = inference_kv_count + modify_count_unrecognition
     divide_child = divide_parent - (modify_count_unrecognition + modify_count_inference)
-    inspect_accuracy = divide_child / divide_parent
+    inspect_accuracy = (divide_child / divide_parent) * 100
     return inspect_accuracy
