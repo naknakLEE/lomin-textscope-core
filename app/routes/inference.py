@@ -1,4 +1,5 @@
 from httpx import Client
+import unicodedata
 
 from typing import Dict, Union
 from fastapi import APIRouter, Body, Depends
@@ -158,6 +159,9 @@ def ocr(
             )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             raise CoreCustomException(3501)
+        
+        if "texts" in inference_results.keys():
+            inference_results.update(texts= [ unicodedata.normalize('NFKC', x) for x in inference_results.get("texts", []) ] )
         
         # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
         inference_result = inference_results
