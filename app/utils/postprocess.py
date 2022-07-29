@@ -23,8 +23,13 @@ def add_unrecognition_kv(session: Session, select_inference_result: dict):
     return select_inference_result
 
 def add_class_name_kr(session: Session, select_inference_result):
+    
+    doc_type_idx = select_inference_result.doc_type_idx
+    doc_type_kv_result = query.select_doc_type_kv_class_get_all(session, doc_type_idx=doc_type_idx)
+    
+    class_kr_dict = {d.kv_class_info.kv_class_code: d.kv_class_info.kv_class_name_kr for d in doc_type_kv_result}
+    
     kv_class_codes = select_inference_result.inference_result.get("kv").keys()
-    select_kv_class_result = query.select_kv_class_info_get_all_multi(session, kv_class_code=kv_class_codes)
-    for class_code, kv_class_object in zip(kv_class_codes, select_kv_class_result):
-        select_inference_result.inference_result["kv"][class_code]["class_name"] = kv_class_object.kv_class_name_kr
+    for class_code in kv_class_codes:
+        select_inference_result.inference_result["kv"][class_code]["class_name"] = class_kr_dict[class_code]
     return select_inference_result
