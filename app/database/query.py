@@ -337,13 +337,6 @@ def select_document_inspect_all(
         for column, filter in document_filters.items():
             if len(filter) > 0: query = query.filter(getattr(dao_document, column).in_(filter))
         
-        # DocumentInfo 등록일 필터링
-        if ignore_upload_date is False:
-            query = query.filter(dao_document.document_upload_time.between(upload_start_date, upload_end_date))
-        if date_sort_desc is True and upload_date is True:
-            query = query.order_by(dao_document.document_upload_time.desc())
-        else:
-            query = query.order_by(dao_document.document_upload_time.asc())
         
         
         # InsepctInfo 필터링
@@ -357,14 +350,26 @@ def select_document_inspect_all(
         # 완료 업무 개수
         complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
         
-        # InspectInfo 검수 완료일 필터링
+        # DocumentInfo 등록일 기간 필터링
+        if ignore_upload_date is False:
+            query = query.filter(dao_document.document_upload_time.between(upload_start_date, upload_end_date))
+        
+        # InspectInfo 검수 완료일 기간 필터링
         if ignore_inpsect_date is False:
             query = query.filter(dao_inspect.inspect_end_time != None)
             query = query.filter(dao_inspect.inspect_end_time.between(inspect_start_date, inspect_end_date))
-        if date_sort_desc is True and upload_date is False:
-            query = query.order_by(dao_inspect.inspect_end_time.desc())
+
+        # 정렬 방법
+        if upload_date is True:
+            if date_sort_desc is True:
+                query = query.order_by(dao_document.document_upload_time.desc())
+            else:
+                query = query.order_by(dao_document.document_upload_time.asc())
         else:
-            query = query.order_by(dao_inspect.inspect_end_time.asc())
+            if date_sort_desc is True:
+                query = query.order_by(dao_inspect.inspect_end_time.desc())
+            else:
+                query = query.order_by(dao_inspect.inspect_end_time.asc())
         
         # 문서명 필터
         if len(document_filename) > 0:
