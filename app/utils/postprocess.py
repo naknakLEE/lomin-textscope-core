@@ -35,8 +35,8 @@ def add_unrecognition_kv(session: Session, select_inference_result: schema.Infer
         
         unrecognition_kv_item.update({"class":kv_code})
         
-        unrecognition_kv[kv_code] = unrecognition_kv_item
-        select_inference_result.inference_result["kv"][kv_code] = unrecognition_kv_item
+        unrecognition_kv[kv_code] = unrecognition_kv_item.copy()
+        select_inference_result.inference_result["kv"][kv_code] = unrecognition_kv_item.copy()
     
     
     return select_inference_result, unrecognition_kv
