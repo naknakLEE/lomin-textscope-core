@@ -112,7 +112,10 @@ def post_inspect_info(
         inspect_date_end = None
         
     # 인식률 확인
-    inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
+    if inspect_result["doc_type"] == None: # GOCR
+        inspect_accuracy = 0
+    else:
+        inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result["kv"])
     
     
     insert_inspect_result = query.insert_inspect(
