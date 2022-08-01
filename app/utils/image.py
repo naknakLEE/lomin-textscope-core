@@ -20,22 +20,77 @@ settings = get_settings()
 minio_client = MinioService()
 
 
-def read_tiff_one_page_from_bytes(image_bytes, page=1):
+def read_tiff_page_from_bytes(image_bytes):
+    pil_images = list()
     try:
-        tif_image = tifffile.imread(BytesIO(image_bytes), key=page - 1)
-    except IndexError:
-        tif_image = tifffile.imread(BytesIO(image_bytes), key=0)
-    
-    if tif_image.dtype == np.bool:
-        np_image = (tif_image * 255).astype(np.uint8)
+        tif_images = tifffile.imread(BytesIO(image_bytes))
         
-    else: # tif_images.dtype == np.unit8:
-        np_image = tif_image.astype(np.uint8)
+        for tif_image in tif_images:
+            if tif_image.dtype == np.bool:
+                np_image = (tif_image * 255).astype(np.uint8)
+            else: # tif_images.dtype == np.unit8:
+                np_image = tif_image.astype(np.uint8)
+            
+            pil_images.append(Image.fromarray(np_image))
+        
+    except:
+        try:
+            pil_images = read_tiff_page_from_bytes(image_bytes)
+        except:
+            pil_images = None
+        
+    finally:
+        return pil_images
+
+
+def read_tiff_page_from_bytes(image_bytes):
+    pil_images = list()
     
-    return Image.fromarray(np_image)
+    page = 0
+    tiff_images = Image.open(BytesIO(image_bytes))
+    try:
+        while True:
+            tiff_images.seek(page)
+            np_image = np.array(tiff_images.convert("RGB"))
+            np_image = np_image.astype(np.uint8)
+            
+            pil_images.append(Image.fromarray(np_image))
+            page += 1
+        
+    except EOFError:
+        pass
+    
+    tiff_images.close()
+    
+    return pil_images
 
 
-def read_tiff_page_from_bytes(image_bytes: str, page: int):
+def read_tiff_one_page_from_bytes(image_bytes, page=1):
+    pil_image = None
+    try:
+        try:
+            tif_image = tifffile.imread(BytesIO(image_bytes), key=page - 1)
+        except IndexError:
+            tif_image = tifffile.imread(BytesIO(image_bytes), key=0)
+        
+        if tif_image.dtype == np.bool:
+            np_image = (tif_image * 255).astype(np.uint8)
+        else: # tif_images.dtype == np.unit8:
+            np_image = tif_image.astype(np.uint8)
+        
+        pil_image = Image.fromarray(np_image)
+        
+    except:
+        try:
+            pil_image = read_tiff_one_page_from_bytes(image_bytes, page)
+        except:
+            pil_image = None
+        
+    finally:
+        return pil_image
+
+
+def read_tiff_one_page_from_bytes(image_bytes: str, page: int):
     tiff_images = Image.open(BytesIO(image_bytes))
     tiff_images.seek(page - 1)
     np_image = np.array(tiff_images.convert("RGB"))
@@ -46,59 +101,63 @@ def read_tiff_page_from_bytes(image_bytes: str, page: int):
 
 
 @lru_cache(maxsize=15)
-def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
-    pil_image = None
+def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, page_all: bool = False):
+    pil_images = list()
     file_extension = Path(image_filename).suffix.lower()
     if file_extension in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
         try:
             nparr = np.fromstring(image_bytes, np.uint8)
             cv2_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            pil_image = Image.fromarray(cv2_img[:, :, ::-1])
+            pil_images.append(Image.fromarray(cv2_img[:, :, ::-1]))
         except:
-            pil_image = None
+            pil_images = None
         
     elif file_extension in [".tif", ".tiff"]:
-        try:
-            pil_image = read_tiff_one_page_from_bytes(image_bytes, page)
-        except:
-            try:
-                pil_image = read_tiff_page_from_bytes(image_bytes, page)
-            except:
-                logger.exception("read pillow")
-                logger.error(f"Cannot read page:{page} in {image_filename}")
-                pil_image = None
+        if page_all == False:
+            pil_images = read_tiff_one_page_from_bytes(image_bytes, page)
+        else:
+            pass
             
     elif file_extension == ".pdf":
-        pages = pdf2image.convert_from_bytes(
-            image_bytes, fmt="jpeg", first_page=page, last_page=page
-        )
-        if len(pages) == 0:
-            pages = pdf2image.convert_from_bytes(
-                image_bytes, fmt="jpeg", first_page=1, last_page=1
-            )
-        pil_image = pages[0]
+        if page_all == False:
+            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", first_page=page, last_page=page)
+            
+            if len(pil_images) == 0:
+                pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", first_page=1, last_page=1)
+        else:
+            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg")
         
     else:
         logger.error(f"{image_filename} is not supported!")
-        pil_image = None
+        pil_images = None
     
-    if pil_image:
-        pil_image = pil_image.convert("RGB")
+    if pil_images is None:
+        logger.exception("read pillow")
+        logger.error(f"Cannot read page:{page} in {image_filename}")
+        pil_images = None
+        
     
-    return pil_image
+    if pil_images:
+        pil_images = [ x.convert("RGB") for x in pil_images ]
+    
+    return pil_images
 
 
 @lru_cache(maxsize=15)
 def read_image_from_bytes(
-    image_bytes: str, image_filename: str, angle: Optional[float], page: int
+    image_bytes: str, image_filename: str, angle: Optional[float], page: int, page_all: bool = False
 ):
+    images = list()
     
-    image = read_pillow_from_bytes(image_bytes=image_bytes, image_filename=image_filename, page=page)
+    images = read_pillow_from_bytes(image_bytes=image_bytes, image_filename=image_filename, page=page, page_all=page_all)
     
-    if image and angle:
-        image = image.rotate(angle, expand=True)
+    if images and angle:
+        images = [ x.rotate(angle, expand=True) for x in images ]
     
-    return image
+    if page_all == False:
+        return images[0]
+    
+    return images
 
 
 @lru_cache(maxsize=15)
@@ -106,9 +165,7 @@ def get_image_info_from_bytes(
     image_bytes: str, image_filename: str, page: int
 ) -> Tuple[str, int, int, str]:
     
-    image = read_pillow_from_bytes(
-        image_bytes=image_bytes, image_filename=image_filename, page=page
-    )
+    image = read_pillow_from_bytes(image_bytes=image_bytes, image_filename=image_filename, page=page)[0]
     
     if image is None:
         return (None, 0, 0, "")

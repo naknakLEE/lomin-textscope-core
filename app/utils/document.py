@@ -4,18 +4,18 @@ import pdf2image
 import base64
 
 from datetime import datetime
+from PIL import Image
 from io import BytesIO
 from pathlib import Path
 from functools import lru_cache
-from typing import Tuple
+from typing import Tuple, List
 from fastapi.encoders import jsonable_encoder
-from starlette.responses import JSONResponse
-from typing import Dict
 
 
 from app.utils.logging import logger
 from app.common.const import get_settings
 from app.utils.minio import MinioService
+from app.utils.image import read_image_from_bytes
 from app.schemas import error_models as ErrorResponse
 from app.middlewares.exception_handler import CoreCustomException
 
@@ -79,24 +79,42 @@ def save_upload_document(
 ) -> Tuple[bool, Path]:
     
     decoded_image_data = base64.b64decode(documnet_base64)
-    success = False
+    
+    save_document_dict = dict()
+    
+    # 원본 파일
+    save_document_dict.update({'/'.join([documnet_id, documnet_name]): decoded_image_data})
+    
+    document_pages: List[Image.Image] = read_image_from_bytes(decoded_image_data, documnet_name, 0.0, 1, page_all=True)
+    
+    # 장 단위 분리
+    for page, document_page in enumerate(document_pages):
+        buffered = BytesIO()
+        document_page.save(buffered, "png")
+        
+        save_document_dict.update({'/'.join([documnet_id, str(page+1)+".png"]): buffered.getvalue()})
+    
+    success = True
     save_path = ""
     if settings.USE_MINIO:
-        success = minio_client.put(
-            bucket_name=settings.MINIO_IMAGE_BUCKET,
-            object_name=documnet_id + '/' + documnet_name,
-            data=decoded_image_data,
-        )
+        for object_name, data in save_document_dict.items():
+            success &= minio_client.put(
+                bucket_name=settings.MINIO_IMAGE_BUCKET,
+                object_name=object_name,
+                data=data,
+            )
         save_path = "minio/" + documnet_name
         
     else:
         root_path = Path(settings.IMG_PATH)
         base_path = root_path.joinpath(documnet_id)
         base_path.mkdir(parents=True, exist_ok=True)
-        save_path = base_path.joinpath(documnet_name)
         
-        with save_path.open("wb") as file:
-            file.write(decoded_image_data)
+        for object_name, data in save_document_dict.items():
+            save_path = base_path.joinpath(object_name)
+            
+            with save_path.open("wb") as file:
+                file.write(data)
         
         success = True
     
