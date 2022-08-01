@@ -293,10 +293,10 @@ def insert_inspect(session: Session, **kwargs: Dict) -> Union[Optional[schema.In
 
 def select_document_inspect_all(
     session: Session,
-    ignore_upload_date: bool,
+    period_upload_date: bool,
     upload_start_date: datetime,
     upload_end_date: datetime,
-    ignore_inpsect_date: bool,
+    period_inpsect_date: bool,
     inspect_start_date: datetime,
     inspect_end_date: datetime,
     date_sort_desc: bool,
@@ -352,11 +352,11 @@ def select_document_inspect_all(
         complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
         
         # DocumentInfo 등록일 기간 필터링
-        if ignore_upload_date is False:
+        if period_upload_date:
             query = query.filter(dao_document.document_upload_time.between(upload_start_date, upload_end_date))
         
         # InspectInfo 검수 완료일 기간 필터링
-        if ignore_inpsect_date is False:
+        if period_inpsect_date:
             query = query.filter(dao_inspect.inspect_end_time != None)
             query = query.filter(dao_inspect.inspect_end_time.between(inspect_start_date, inspect_end_date))
 

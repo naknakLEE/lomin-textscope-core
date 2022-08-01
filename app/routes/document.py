@@ -652,37 +652,33 @@ def get_document_list(
             raise CoreCustomException(2509)
     
     # 등록일, 검수일 기간 파싱
-    ignore_upload_date: bool = True
     upload_start_date = None
     upload_end_date = None
-    ignore_inpsect_date: bool = True
+    period_inpsect_date: bool = False
+    period_upload_date: bool = False
     inspect_start_date = None
     inspect_end_date = None
-    try:
-        # 기간 요청
-        if upload_date is False: raise Exception()
-        
-        ignore_upload_date = False
-        upload_start_date = datetime.strptime(date_start, "%Y.%m.%d")
-        upload_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
-    except:
-        # 전체 기간 요청
-        ignore_upload_date = False
-        upload_start_date = datetime.now() - timedelta(days=365)
-        upload_end_date = datetime.now() + timedelta(days=1)
     
-    try:
-        # 기간 요청
-        if upload_date is True: raise Exception()
-        
-        ignore_inpsect_date = False
-        inspect_start_date = datetime.strptime(date_start, "%Y.%m.%d")
-        inspect_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
-    except:
-        # 전체 기간 요청
-        ignore_inpsect_date = True
-        inspect_start_date = datetime.now() - timedelta(days=365)
-        inspect_end_date = datetime.now() + timedelta(days=1)
+    if upload_date: # 등록일 기간 확인
+        try:
+            # 기간 요청
+            period_upload_date = True
+            upload_start_date = datetime.strptime(date_start, "%Y-%m-%d")
+            upload_end_date = datetime.strptime(date_end, "%Y-%m-%d") + timedelta(days=1)
+        except:
+            logger.warning(f"날짜의 포맷팅(%Y-%m-%d)이 맞지 않습니다. 기간 없는 전체검색으로 변경합니다.")
+            logger.warning(f"date_start: {date_start} date_end: {date_end}")
+            period_upload_date = False
+    else: # 검수일 기간 확인
+        try:
+            # 기간 요청
+            period_inpsect_date = True
+            inspect_start_date = datetime.strptime(date_start, "%Y-%m-%d")
+            inspect_end_date = datetime.strptime(date_end, "%Y-%m-%d") + timedelta(days=1)
+        except:
+            logger.warning(f"날짜의 포맷팅(%Y-%m-%d)이 맞지 않습니다. 기간 없는 전체검색으로 변경합니다.")
+            logger.warning(f"date_start: {date_start} date_end: {date_end}")
+            period_inpsect_date = False
     
     # 가변 컬럼
     column_order: list = list()
@@ -719,11 +715,11 @@ def get_document_list(
     # 필터링된 업무 리스트
     total_count, complet_count, filtered_count, filtered_rows = query.select_document_inspect_all(
         session,
-        ignore_upload_date=ignore_upload_date,
+        period_upload_date=period_upload_date,
         upload_start_date=upload_start_date,
         upload_end_date=upload_end_date,
         
-        ignore_inpsect_date=ignore_inpsect_date,
+        period_inpsect_date=period_inpsect_date,
         inspect_start_date=inspect_start_date,
         inspect_end_date=inspect_end_date,
         
