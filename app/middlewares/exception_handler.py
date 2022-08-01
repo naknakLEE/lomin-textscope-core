@@ -35,7 +35,7 @@ class CoreCustomException(Exception):
     def __init__(self, error_code: int, error_msg:str = None ):
         self.status_code, self.error = ErrorResponse.ErrorCode.get(error_code)
         if error_msg:
-            self.error.error_message = self.error.error_message.format("추론")
+            self.error.error_message = self.error.error_message.format(error_msg)
         # 백그라운드 로그용
         logger.error(f"status_code {self.status_code} error_code {self.error.error_code} error_message {self.error.error_message}")
 
