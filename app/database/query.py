@@ -312,7 +312,7 @@ def select_document_inspect_all(
     rows_limit: int = 100,
     rows_offset: int = 0,
     column_order: list = [],
-) -> Union[Tuple[int, int, List[List[str]]], JSONResponse]:
+) -> Union[Tuple[int, int, int, List[List[str]]], JSONResponse]:
     
     dao_document = schema.DocumentInfo
     dao_inspect = schema.InspectInfo
@@ -370,6 +370,7 @@ def select_document_inspect_all(
         if len(document_filename) > 0:
             query = query.filter(dao_document.document_path.contains(document_filename))
         
+        filtered_count = len(query.all())
         
         # 페이징 (한 요청당 최대 1000개)
         query = query.offset(rows_offset) \
@@ -401,7 +402,7 @@ def select_document_inspect_all(
     except Exception:
         raise CoreCustomException(4101, "필터링된 업무 리스트")
     
-    return total_count, complet_count, filtered_rows
+    return total_count, complet_count, filtered_count, filtered_rows
 
 
 def select_log(session: Session, **kwargs: Dict) -> Union[schema.LogInfo, JSONResponse]:
