@@ -13,7 +13,9 @@ from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, Forei
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.orm.attributes import flag_modified
 
 from passlib.context import CryptContext
 
@@ -184,6 +186,7 @@ class BaseMixin:
     ) -> Optional[ModelType]:
         query = session.query(cls).filter(getattr(cls, p_key) == p_value).first()
         for key, val in kwargs.items():
+            flag_modified(query, key)
             setattr(query, key, val)
         session.flush()
         if auto_commit:
@@ -602,7 +605,7 @@ class DocumentInfo(Base, BaseMixin):
     document_description = Column(String, comment='문서 설명')
     document_pages = Column(Integer, comment='문서 총 페이지 수')
     cls_idx = Column(Integer, comment='문서 대분류 그룹 인덱스')
-    doc_type_idxs = Column(JSON, comment='문서에 포함된 문서 소분류 인덱스 리스트')
+    doc_type_idxs = Column(MutableDict.as_mutable(JSON), comment='문서에 포함된 문서 소분류 인덱스 리스트')
     inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 
