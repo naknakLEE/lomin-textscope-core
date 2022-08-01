@@ -19,7 +19,9 @@ def add_unrecognition_kv(session: Session, select_inference_result: schema.Infer
     select_doc_kv_result = query.select_doc_type_kv_class_get_all(session, doc_type_idx=doc_type_idx)
     
     # @TODO pp_server로 이동
-    if select_inference_result.inference_result.get("doc_type", "None") in ["FN-OIP", "FN-BP"]:
+    del_class_code(select_inference_result)
+    
+    if select_inference_result.inference_result.get("doc_type", "NONE") in ["FN-OIP", "FN-BP"]:
         modif_class_code(select_inference_result)
     
     maximun_kv_code = [ x.kv_class_code for x in select_doc_kv_result ]
@@ -62,10 +64,8 @@ def modif_class_code(select_inference_result: schema.InferenceInfo) -> None:
     
     inference_result_kv_ : Dict[str, dict] = dict()
     inference_result_kv: Dict[str, dict] = select_inference_result.inference_result.get("kv", {})
+    
     for kv_key, kv_value in inference_result_kv.items():
-        
-        if kv_key == "NONE": continue
-        
         kv_class_doc_type_code_sub = "-" + kv_key.split("-")[1] + "-"
         
         kv_key_modif = kv_key.replace(kv_class_doc_type_code_sub, doc_type_code_sub)
@@ -73,5 +73,16 @@ def modif_class_code(select_inference_result: schema.InferenceInfo) -> None:
         
         inference_result_kv_.update({kv_key_modif:kv_value})
     
+    select_inference_result.inference_result.update(kv=inference_result_kv_)
+
+
+def del_class_code(select_inference_result: schema.InferenceInfo, kv_class_code: str = "NONE") -> None:
+    inference_result_kv_ : Dict[str, dict] = dict()
+    inference_result_kv: Dict[str, dict] = select_inference_result.inference_result.get("kv", {})
     
+    for kv_key, kv_value in inference_result_kv.items():
+        if kv_key == kv_class_code: continue
+        
+        kv_value.update({"class":kv_key})
+        inference_result_kv_.update({kv_key:kv_value})
     select_inference_result.inference_result.update(kv=inference_result_kv_)
