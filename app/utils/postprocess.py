@@ -91,6 +91,7 @@ def get_unmodified_bbox(input: Dict):
                     kv_box[key] = value.get("box", [])
             
             if boundary_coord:
+                # crop 된 image 원본 size image로 돌리기 
                 crop_kv_box  = revert_crop_img_from_bbox(
                     input.get("image_width_origin"),
                     input.get("image_height_origin"),
@@ -100,6 +101,7 @@ def get_unmodified_bbox(input: Dict):
                 for key, c_box in zip(kv_box.keys(), crop_kv_box):
                     kv_box[key] = c_box
             
+            # 회돈 된 image 원본 이지로 돌리기
             unmodified_bbox = reverse_rotated_bbox(
                 input.get("image_width_origin"), 
                 input.get("image_height_origin"),
@@ -115,7 +117,7 @@ def get_unmodified_bbox(input: Dict):
                 input.get("image_width_origin"),
                 input.get("image_height_origin"),
                 boundary_coord,
-                kv_box.values()
+                input.get("boxes")
             )
         unmodified_bbox = reverse_rotated_bbox(
             input.get("image_width_origin"), 
