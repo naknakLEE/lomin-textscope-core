@@ -641,10 +641,10 @@ def get_document_list(
         cls_type_idx = result.get("index")
         cls_type_idx_result_list.update({cls_type_idx:result})
     
-    doc_type_idx_code: Dict[int, str] = dict()
+    doc_type_idx_code: Dict[int, dict] = dict()
     for cls_type_info in cls_type_idx_result_list.values():
         for doc_type_info in cls_type_info.get("docx_type", {}):
-            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info.get("code")})
+            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
     
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
     for cls_type_idx in cls_type_idx_list:
@@ -717,7 +717,7 @@ def get_document_list(
             inspecter_email_index = i
     
     # 필터링된 업무 리스트
-    total_count, complet_count, filtered_rows = query.select_document_inspect_all(
+    total_count, complet_count, filtered_count, filtered_rows = query.select_document_inspect_all(
         session,
         ignore_upload_date=ignore_upload_date,
         upload_start_date=upload_start_date,
@@ -785,6 +785,7 @@ def get_document_list(
     for row in rows:
         
         doc_type_idxs: dict = json.loads(row.pop(doc_type_index).replace("'", "\""))
+        doc_type_idx_first = doc_type_idxs.get("doc_type_idxs", [0])[0]
         
         doc_type_cnt = 0
         doc_type_etc = 0
@@ -792,12 +793,12 @@ def get_document_list(
             if doc_type in doc_type_idx_code.keys(): doc_type_cnt += 1
             else: doc_type_etc = 1
         
-        row.insert(doc_type_index, str(doc_type_cnt + doc_type_etc))
+        row.insert(doc_type_index, str(doc_type_cnt + doc_type_etc - 1))
         
-        # cls_idx -> cls_name
+        # cls_idx -> doc_type_name_kr
         if cls_index != 0:
             cls_idx = row.pop(cls_index)
-            row.insert(cls_index, cls_type_idx_result_list.get(int(cls_idx), {}).get("name_kr", str(cls_idx)))
+            row.insert(cls_index, doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr"))
         
         # 검수중이면 document_id 제거
         if docx_st_index > 0:
@@ -828,6 +829,7 @@ def get_document_list(
     response = dict(
         total_count=total_count,
         complet_count=complet_count,
+        filtered_count=filtered_count,
         columns=settings.DOCUMENT_LIST_COLUMN_ORDER,
         rows=response_rows
     )
