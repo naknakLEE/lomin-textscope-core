@@ -323,7 +323,7 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
         raise CoreCustomException(2506)
     
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
-    document_path = Path(select_document_result.document_path)
+    document_path = Path(str(page_num) + ".png")
     document_bytes = get_image_bytes(document_id, document_path)
     angle_image = read_image_from_bytes(document_bytes, document_path.name, 360.0 - angle, page_num)
     if angle_image is None:

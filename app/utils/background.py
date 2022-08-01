@@ -115,7 +115,7 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=document_path,
+            document_path=str(page)+".png",
         )
         
         try:
@@ -150,7 +150,7 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=document_path,
+            document_path=str(page)+".png",
         )
         
         try:
@@ -189,7 +189,7 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=document_path,
+            document_path=str(page)+".png",
         )
         
         try:
@@ -230,7 +230,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=document_path,
+            document_path=str(page)+".png",
         )
         
         try:
@@ -253,7 +253,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
                 request_id=task_id,
                 document_id=document_id,
                 page=page,
-                document_path=document_path,
+                document_path=str(page)+".png",
             )
             
             ocr(request=request, inputs=params, current_user=current_user, session=session)

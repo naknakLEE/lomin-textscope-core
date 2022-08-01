@@ -120,15 +120,19 @@ def get_thumbnail(
         raise CoreCustomException(2506)
     
     # page_num 페이지의 가장 최근 추론 결과에서 각도 정보 얻기
-    select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
-    if isinstance(select_inference_result, JSONResponse):
-        return select_inference_result
-    select_inference_result: schema.InferenceInfo = select_inference_result
-    inference_result: dict = select_inference_result.inference_result
-    angle = inference_result.get("angle", 0.0)
+    angle = 0.0
+    try:
+        select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
+        if isinstance(select_inference_result, JSONResponse):
+            return select_inference_result
+        select_inference_result: schema.InferenceInfo = select_inference_result
+        inference_result: dict = select_inference_result.inference_result
+        angle = inference_result.get("angle", 0.0)
+    except CoreCustomException:
+        angle = 0.0
     
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
-    document_path = Path(select_document_result.document_path)
+    document_path = Path(str(page_num) + ".png")
     document_bytes = get_image_bytes(document_id, document_path)
     image = read_image_from_bytes(document_bytes, document_path.name, angle, page_num)
     if image is None:
@@ -220,6 +224,7 @@ def get_document_preview(
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_path = Path(select_document_result.document_path)
     document_bytes = get_image_bytes(document_id, document_path)
+    document_pages: List[Image.Image] = read_image_from_bytes(document_bytes, document_path.name, 0.0, 1, page_all=True)
     
     preview_list: List[dict] = list()
     doc_type_code_cnt: Dict[str, int] = dict()
@@ -237,8 +242,7 @@ def get_document_preview(
             doc_type_idx_ = doc_type_info.doc_type_idx
             doc_type_name_ = doc_type_info.doc_type_name_kr
         
-        image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page)
-        
+        image = document_pages[page-1]
         if image is None:
             status_code, error = ErrorResponse.ErrorCode.get(2103)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))

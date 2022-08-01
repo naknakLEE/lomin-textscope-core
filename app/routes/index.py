@@ -124,7 +124,7 @@ def get_image(
         )
     )
     
-    document_path = Path(select_document_result.document_path)
+    document_path = Path(str(page) + ".png")
     document_bytes = get_image_bytes(document_id, document_path)
     
     document_base64, document_width, document_height, document_format = get_image_info_from_bytes(
@@ -137,7 +137,7 @@ def get_image(
         raise CoreCustomException(2103)
     
     document = models.Image(
-        filename=document_path.name,
+        filename=Path(select_document_result.document_path).name,
         description=select_document_result.document_description,
         upload_datetime=select_document_result.document_upload_time,
         width=document_width,
