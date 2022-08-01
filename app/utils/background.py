@@ -282,7 +282,7 @@ def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_t
         doc_type_idxs.append(doc_type_idx_code.get(doc_type_code))
     
     if len(doc_type_idxs) == 0: doc_type_idxs.append(0)
-    if len(doc_type_list) == 0: doc_type_list.append("None")
+    if len(doc_type_list) == 0: doc_type_list.append("NONE")
     
     query.update_document(
         session,
