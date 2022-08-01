@@ -64,9 +64,9 @@ def modif_class_code(select_inference_result: schema.InferenceInfo) -> None:
     inference_result_kv: Dict[str, dict] = select_inference_result.inference_result.get("kv", {})
     for kv_key, kv_value in inference_result_kv.items():
         
-        kv_class_doc_type_code_sub = kv_key
-        if kv_key != "NONE":
-            kv_class_doc_type_code_sub = "-" + kv_key.split("-")[1] + "-"
+        if kv_key == "NONE": continue
+        
+        kv_class_doc_type_code_sub = "-" + kv_key.split("-")[1] + "-"
         
         kv_key_modif = kv_key.replace(kv_class_doc_type_code_sub, doc_type_code_sub)
         kv_value.update({"class":kv_key_modif})
