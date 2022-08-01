@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
+from app.utils.logging import logger
 from app import hydra_cfg
 from app.database import query, schema
 from app.database.connection import db
@@ -121,7 +122,8 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
         try:
             ocr(request=request, inputs=gocr_params, current_user=current_user, session=session)
             doc_type_list.append("None")
-        except:
+        except Exception as ex:
+            logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
@@ -158,7 +160,8 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             doc_type_code: str = cls_response.get("inference_results", {}).get("doc_type")
             doc_type_list.append(doc_type_code)
             
-        except:
+        except Exception as ex:
+            logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
@@ -195,7 +198,8 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
         try:
             ocr(request=request, inputs=kv_params, current_user=current_user, session=session)
             
-        except:
+        except Exception as ex:
+            logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
     query.update_document(session, document_id, inspect_id=inspect_id)
@@ -258,7 +262,8 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             
             ocr(request=request, inputs=params, current_user=current_user, session=session)
             
-        except:
+        except Exception as ex:
+            logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
