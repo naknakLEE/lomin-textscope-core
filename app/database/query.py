@@ -7,6 +7,7 @@ from datetime import datetime
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
+from sqlalchemy import nullslast
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
@@ -367,9 +368,9 @@ def select_document_inspect_all(
                 query = query.order_by(dao_document.document_upload_time.asc())
         else:
             if date_sort_desc is True:
-                query = query.order_by(dao_inspect.inspect_end_time.desc())
+                query = query.order_by(nullslast(dao_inspect.inspect_end_time.desc()))
             else:
-                query = query.order_by(dao_inspect.inspect_end_time.asc())
+                query = query.order_by(nullslast(dao_inspect.inspect_end_time.asc()))
         
         # 문서명 필터
         if len(document_filename) > 0:
