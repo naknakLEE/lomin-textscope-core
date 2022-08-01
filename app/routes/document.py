@@ -4,7 +4,7 @@ from PIL import Image
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Set
-from fastapi import APIRouter, Depends, Body, Request
+from fastapi import APIRouter, Depends, Body, Request, Path as fastPath
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -557,6 +557,51 @@ def get_filter_doc_type(
         docx_type=docx_type_list
     )
     
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
+@router.delete("/list/{document_id}")
+async def delete_document_list(
+    request: Request,
+    document_id: str = fastPath(..., description="문서 아이디"),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
+    
+) -> JSONResponse:
+    """
+        업무 리스트 삭제
+    """
+    
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    user_team_list: List[str] = list()
+    user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 해당 문서에 대한 권한이 없을 경우 에러 응답 반환
+    if group_prefix + select_document_result.user_team not in group_list:
+        raise CoreCustomException(2505)
+    
+    query.update_document(session, document_id=document_id, is_used=False)
+    
+    response = {
+        "message" : "success"
+    }
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
