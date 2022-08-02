@@ -40,7 +40,7 @@ DEFAULT_PARAMS = {
 DEFAULT_GOCR_PARAMS = {
     "use_general_ocr": True,
     "convert_preds_to_texts": True,
-    "route_name": "ocr",
+    "route_name": "gocr",
 }
 DEFAULT_CLS_PARAMS = {
     "use_general_ocr": False, 
@@ -121,7 +121,7 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
         
         try:
             ocr(request=request, inputs=gocr_params, current_user=current_user, session=session)
-            doc_type_list.append("None")
+            doc_type_list.append("GOCR")
         except Exception as ex:
             logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR

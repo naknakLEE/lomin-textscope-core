@@ -168,6 +168,7 @@ def ocr(
                     for x in inference_results.get("texts", [])
                 ]
             )
+            inference_results.update(sort_text_tblr(inference_results))
         
         # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
         inference_result = inference_results
@@ -188,16 +189,15 @@ def ocr(
             if status_code < 200 or status_code >= 400:
                 raise CoreCustomException(3503)
             inference_results["texts"] = texts
-
-        doc_type_code = inference_results.get("doc_type") 
-
+        
+        doc_type_code = inference_results.get("doc_type")
+        
         # Post processing
         post_processing_type = get_pp_api_name(doc_type_code)
-        if (
-            post_processing_type is not None \
+        if post_processing_type is not None \
             and doc_type_code is not None \
-            and inputs.get("route_name", None) != 'cls'
-        ):
+            and inputs.get("route_name", None) != 'cls':
+            
             logger.info(f"{task_id}-pp type:{post_processing_type}")
             text_list = inference_result.get("texts", [])
             box_list = inference_result.get("boxes", [])
@@ -243,7 +243,7 @@ def ocr(
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
     
     inference_id = get_ts_uuid("inference")
-    doc_type_code = doc_type_code if doc_type_code != "NONE" else "GOCR"
+    doc_type_code = doc_type_code if doc_type_code not in ["NONE", None] else "GOCR"
     
     # doc_type_code로 doc_type_index 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
@@ -332,7 +332,8 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
         rectify=dict(
             rotation_90n=False,
             rotation_fine=False
-        )
+        ),
+        route_name="gocr"
     )
     
     return inputs
@@ -394,7 +395,38 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
                 doc_type=doc_type_code
             ),
             key_value=[]
-        )
+        ),
+        route_name="kv"
     )
     
     return inputs
+
+
+def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
+    t_list = inference_result.get("texts", [])
+    b_list = inference_result.get("boxes", [])
+    s_list = inference_result.get("scores", [])
+    c_list = inference_result.get("classes", [])
+    
+    s_list = s_list if len(s_list) > 0 else [ 0.0 for i in range(len(t_list)) ]
+    c_list = c_list if len(c_list) > 0 else [ "" for i in range(len(t_list)) ]
+    
+    tbsc_list = [ (t, b, s, c) for t, b, s, c in zip(t_list, b_list, s_list, c_list) ]
+    
+    tbsc_list.sort(key= lambda x : (x[1][1], x[1][0]))
+    
+    t_list_, b_list_, s_list_, c_list_ = (list(), list(), list(), list())
+    for tbsc in tbsc_list:
+        t_list_.append(tbsc[0])
+        b_list_.append(tbsc[1])
+        s_list_.append(tbsc[2])
+        c_list_.append(tbsc[3])
+    
+    return dict(
+        texts=t_list_,
+        boxes=b_list_,
+        # scores=s_list_, @TODO
+        scores=inference_result.get("scores", []),
+        # classes=c_list_, @TODO
+        classes=inference_result.get("classes", [])
+    )
