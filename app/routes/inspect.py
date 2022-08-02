@@ -110,13 +110,9 @@ def post_inspect_info(
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
     else:
         inspect_date_end = None
-        
-    # 인식률 확인
-    if inspect_result["doc_type"] == None: # GOCR
-        inspect_accuracy = 0
-    else:
-        inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
     
+    # 인식률 확인
+    inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
     
     insert_inspect_result = query.insert_inspect(
         session,
