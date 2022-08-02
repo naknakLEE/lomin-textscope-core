@@ -183,6 +183,8 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
         kv_params.update(DEFAULT_KV_PARAMS)
         kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_info.doc_type_code)
     
+    update_document_info_doc_type_idxs(session, document_id, [])
+    
     inspect_id = NOT_INSPECTED
     for page in range(1, document_pages + 1):
         task_id=get_ts_uuid("task")
@@ -202,6 +204,7 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
             logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
+    update_document_info_doc_type_idxs(session, document_id, [doc_type_info.doc_type_idx])
     query.update_document(session, document_id, inspect_id=inspect_id)
 
 def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
@@ -273,6 +276,9 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
 def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_type_list: List[str]) -> None:
     doc_type_idx_code: Dict[str, int] = dict()
     
+    if len(doc_type_list) == 0: doc_type_list.append("NONE")
+    doc_type_list = [ x if x != "NONE" else "GOCR" for x in doc_type_list ]
+    
     select_doc_type_info_all_result = query.select_doc_type_all(session, doc_type_code=list(set(doc_type_list)))
     if isinstance(select_doc_type_info_all_result, JSONResponse):
         return
@@ -285,9 +291,6 @@ def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_t
     doc_type_idxs: List[int] = list()
     for doc_type_code in doc_type_list:
         doc_type_idxs.append(doc_type_idx_code.get(doc_type_code))
-    
-    if len(doc_type_idxs) == 0: doc_type_idxs.append(0)
-    if len(doc_type_list) == 0: doc_type_list.append("NONE")
     
     query.update_document(
         session,

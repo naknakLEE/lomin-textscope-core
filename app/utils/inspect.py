@@ -4,8 +4,11 @@ from app.database import schema
 
 
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
-    # 인식 되지 않은 class None값으로 추가
+    doc_type_code = select_inference_result.inference_result.get("doc_type")
+    if doc_type_code in ["NONE", None]: # GOCR
+        return 0
     
+    # 인식 되지 않은 class None값으로 추가
     select_inference_result, unrecognition_kv = add_unrecognition_kv(session, select_inference_result)
     inference_kv = select_inference_result.inference_result.get("kv")
     inference_kv_count = len(inference_kv)
@@ -29,9 +32,8 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
             inspect_kv[k]["class"] != inference_kv[k]["class"]:
             modify_count_inference += 1
     
-    
-    
     divide_parent = inference_kv_count + modify_count_unrecognition
     divide_child = divide_parent - (modify_count_unrecognition + modify_count_inference)
     inspect_accuracy = (divide_child / divide_parent) * 100
+    
     return inspect_accuracy

@@ -188,9 +188,9 @@ def ocr(
             if status_code < 200 or status_code >= 400:
                 raise CoreCustomException(3503)
             inference_results["texts"] = texts
-        
+
         doc_type_code = inference_results.get("doc_type") 
-        
+
         # Post processing
         post_processing_type = get_pp_api_name(doc_type_code)
         if (
@@ -238,13 +238,12 @@ def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-        
     
     response_log.update(inference_results.get("response_log", {}))
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
     
     inference_id = get_ts_uuid("inference")
-    doc_type_code = doc_type_code if doc_type_code else "NONE"
+    doc_type_code = doc_type_code if doc_type_code != "NONE" else "GOCR"
     
     # doc_type_code로 doc_type_index 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
