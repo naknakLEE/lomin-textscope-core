@@ -224,7 +224,7 @@ def get_document_preview(
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_path = Path(select_document_result.document_path)
     document_bytes = get_image_bytes(document_id, document_path)
-    document_pages: List[Image.Image] = read_image_from_bytes(document_bytes, document_path.name, 0.0, 1, page_all=True)
+    document_pages: List[Image.Image] = read_image_from_bytes(document_bytes, document_path.name, 0.0, 1, separate=True)
     
     preview_list: List[dict] = list()
     doc_type_code_cnt: Dict[str, int] = dict()

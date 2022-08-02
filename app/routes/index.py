@@ -257,7 +257,7 @@ async def post_upload_document(
         raise CoreCustomException(2105)
     
     # 문서 저장(minio or local pc)
-    save_success, save_path = save_upload_document(document_id, document_name, document_data)
+    save_success, save_path = save_upload_document(document_id, document_name, document_data, separate=True)
     
     if save_success is False:
         raise CoreCustomException(4102, "문서")
