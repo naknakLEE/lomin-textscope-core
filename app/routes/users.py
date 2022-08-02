@@ -51,9 +51,14 @@ def get_user_info_by_user_email(
     user_policy_result: dict = user_policy_result
     
     # 자신이 아닌 다른 사원의 정보를 조회하는데 관리자가 아닐경우 에러 응답 반환
-    admin = is_admin(user_policy_result)
-    if user_email != current_user.email and not admin:
+    if user_email != current_user.email and not is_admin(user_policy_result):
         raise CoreCustomException(2509)
+    
+    # user_email이 가지고 있는 모든 정책(권한) 정보 조회
+    target_user_policy_result = query.get_user_group_policy(session, user_email=user_email)
+    if isinstance(target_user_policy_result, JSONResponse):
+        return target_user_policy_result
+    target_user_policy_result: dict = target_user_policy_result
     
     # emp_usr_emad=user_email인 사원의 정보
     company_user_info = query.select_company_user_info(session, emp_usr_emad=user_email)
@@ -84,7 +89,7 @@ def get_user_info_by_user_email(
             user_org_path = str(company_user_info.emp_org_path),
             user_ofps_cd  = str(company_user_info.emp_ofps_cd),
             user_ofps_nm  = str(company_user_info.emp_ofps_nm),
-            admin         = str(admin)
+            admin         = str(is_admin(target_user_policy_result))
         )
     )
     

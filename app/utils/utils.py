@@ -368,8 +368,12 @@ def get_ts_uuid(resource_type: str, **kwargs: Dict) -> str:
 
 def is_admin(user_policy_result: Dict[str, Union[bool, list]]) -> bool:
     result = True
-    for code, content in user_policy_result.items():
-        if code in settings.ADMIN_POLICY and isinstance(content, bool): result &= content
+    
+    for admin_code in settings.ADMIN_POLICY:
+        if admin_code not in user_policy_result.keys(): return False
+        v = user_policy_result.get(admin_code)
+        if isinstance(v, bool): result &= v
+    
     return result
 
 
