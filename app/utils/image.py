@@ -101,7 +101,7 @@ def read_tiff_one_page_from_bytes(image_bytes: str, page: int):
 
 
 @lru_cache(maxsize=15)
-def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, page_all: bool = False):
+def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, separate: bool = False):
     pil_images = list()
     file_extension = Path(image_filename).suffix.lower()
     if file_extension in [".jpg", ".jpeg", ".jp2", ".png", ".bmp"]:
@@ -113,19 +113,19 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, page_all:
             pil_images = None
         
     elif file_extension in [".tif", ".tiff"]:
-        if page_all == False:
+        if separate == False:
             pil_images = read_tiff_one_page_from_bytes(image_bytes, page)
         else:
             pass
             
     elif file_extension == ".pdf":
-        if page_all == False:
-            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", first_page=page, last_page=page)
+        if separate == False:
+            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="png", first_page=page, last_page=page)
             
             if len(pil_images) == 0:
-                pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", first_page=1, last_page=1)
+                pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="png", first_page=1, last_page=1)
         else:
-            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg")
+            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="png")
         
     else:
         logger.error(f"{image_filename} is not supported!")
@@ -145,16 +145,16 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, page_all:
 
 @lru_cache(maxsize=15)
 def read_image_from_bytes(
-    image_bytes: str, image_filename: str, angle: Optional[float], page: int, page_all: bool = False
+    image_bytes: str, image_filename: str, angle: Optional[float], page: int, /, separate: bool = False
 ):
     images = list()
     
-    images = read_pillow_from_bytes(image_bytes=image_bytes, image_filename=image_filename, page=page, page_all=page_all)
+    images = read_pillow_from_bytes(image_bytes, image_filename, page, separate=separate)
     
     if images and angle:
         images = [ x.rotate(angle, expand=True) for x in images ]
     
-    if page_all == False:
+    if separate == False:
         return images[0]
     
     return images
@@ -165,7 +165,7 @@ def get_image_info_from_bytes(
     image_bytes: str, image_filename: str, page: int
 ) -> Tuple[str, int, int, str]:
     
-    image = read_pillow_from_bytes(image_bytes=image_bytes, image_filename=image_filename, page=page)[0]
+    image = read_pillow_from_bytes(image_bytes, image_filename, page)[0]
     
     if image is None:
         return (None, 0, 0, "")

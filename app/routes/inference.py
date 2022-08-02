@@ -254,7 +254,6 @@ def ocr(
     doc_type_idx = select_doc_type_result.doc_type_idx
     
     if custom_angle_ocr:
-        document_id = document_id if custom_angle_ocr is False else inputs.get("origin_document_id")
         inference_results.update(angle=(360 - inputs.get("angle", 0.0)))
     
     insert_inference_result = query.insert_inference(
@@ -286,24 +285,13 @@ def ocr(
     if inputs.get("background", False): return response
     
     
-    
     return JSONResponse(content=jsonable_encoder(response))
 
 
 def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> Union[dict, JSONResponse]:
     document_id = inputs.get("document_id", "")
-    angle_document_id = get_ts_uuid("document")
     page_num = inputs.get("page", 1)
     angle = inputs.get("angle", 0.0)
-    
-    # 자동생성된 document_id 중복 확인
-    select_document_result = query.select_document(session, document_id=angle_document_id)
-    if isinstance(select_document_result, schema.DocumentInfo):
-        raise CoreCustomException(2102)
-    elif isinstance(select_document_result, JSONResponse):
-        status_code_no_document, _ = ErrorResponse.ErrorCode.get(2101)
-        if select_document_result.status_code != status_code_no_document:
-            return select_document_result
     
     # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=current_user.email)
@@ -331,8 +319,8 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
     
     document_data = image_to_base64(angle_image)
     
-    document_name = "_".join([document_path.name, str(page_num), str(angle)])
-    document_name += document_path.suffix if document_path.suffix != ".pdf" else ".jpeg"
+    document_name = "_".join([str(page_num), str(angle)])
+    document_name += document_path.suffix if document_path.suffix != ".pdf" else ".png"
     
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
@@ -340,26 +328,8 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
     if save_success is False:
         raise CoreCustomException(4102, "문서")
     
-    logger.info(f"success save angle document document_id : {angle_document_id}")
-    dao_document_params = {
-        "document_id": angle_document_id,
-        "user_email": current_user.email,
-        "user_team": user_team,
-        "document_path": save_path,
-        "document_description": "re-inference custom angle",
-        "document_pages": 1,
-        "cls_type_idx": select_document_result.cls_idx,
-        "doc_type_idx": select_document_result.doc_type_idxs,
-        "document_type": "custom angle",
-        "is_used": False
-    }
-    insert_document_result = query.insert_document(session, **dao_document_params)
-    if isinstance(insert_document_result, JSONResponse):
-        return insert_document_result
-    
     inputs.update(
-        origin_document_id=document_id,
-        document_id=angle_document_id,
+        documnet_path=document_name,
         rectify=dict(
             rotation_90n=False,
             rotation_fine=False

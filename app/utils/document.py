@@ -75,7 +75,7 @@ def is_support_format(document_filename: str) -> bool:
 
 
 def save_upload_document(
-    documnet_id: str, documnet_name: str, documnet_base64: str
+    documnet_id: str, documnet_name: str, documnet_base64: str, /, separate: bool = False
 ) -> Tuple[bool, Path]:
     
     decoded_image_data = base64.b64decode(documnet_base64)
@@ -85,14 +85,14 @@ def save_upload_document(
     # 원본 파일
     save_document_dict.update({'/'.join([documnet_id, documnet_name]): decoded_image_data})
     
-    document_pages: List[Image.Image] = read_image_from_bytes(decoded_image_data, documnet_name, 0.0, 1, page_all=True)
-    
     # 장 단위 분리
-    for page, document_page in enumerate(document_pages):
-        buffered = BytesIO()
-        document_page.save(buffered, "png")
-        
-        save_document_dict.update({'/'.join([documnet_id, str(page+1)+".png"]): buffered.getvalue()})
+    if separate:
+        document_pages: List[Image.Image] = read_image_from_bytes(decoded_image_data, documnet_name, 0.0, 1, separate=separate)
+        for page, document_page in enumerate(document_pages):
+            buffered = BytesIO()
+            document_page.save(buffered, "png")
+            
+            save_document_dict.update({'/'.join([documnet_id, str(page+1)+".png"]): buffered.getvalue()})
     
     success = True
     save_path = ""
