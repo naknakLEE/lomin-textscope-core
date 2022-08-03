@@ -114,9 +114,9 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, separate:
         
     elif file_extension in [".tif", ".tiff"]:
         if separate == False:
-            pil_images = read_tiff_one_page_from_bytes(image_bytes, page)
+            pil_images.append(read_tiff_one_page_from_bytes(image_bytes, page))
         else:
-            pass
+            pil_images = read_tiff_page_from_bytes(image_bytes)
             
     elif file_extension == ".pdf":
         if separate == False:
