@@ -20,7 +20,7 @@ settings = get_settings()
 minio_client = MinioService()
 
 
-def read_tiff_page_from_bytes(image_bytes):
+def read_tiff_multi_page_from_bytes(image_bytes):
     pil_images = list()
     try:
         tif_images = tifffile.imread(BytesIO(image_bytes))
@@ -35,7 +35,7 @@ def read_tiff_page_from_bytes(image_bytes):
         
     except:
         try:
-            pil_images = read_tiff_page_from_bytes(image_bytes)
+            pil_images = read_tiff_multi_page_from_bytes_(image_bytes)
         except:
             pil_images = None
         
@@ -43,7 +43,7 @@ def read_tiff_page_from_bytes(image_bytes):
         return pil_images
 
 
-def read_tiff_page_from_bytes(image_bytes):
+def read_tiff_multi_page_from_bytes_(image_bytes):
     pil_images = list()
     
     page = 0
@@ -82,7 +82,7 @@ def read_tiff_one_page_from_bytes(image_bytes, page=1):
         
     except:
         try:
-            pil_image = read_tiff_one_page_from_bytes(image_bytes, page)
+            pil_image = read_tiff_one_page_from_bytes_(image_bytes, page)
         except:
             pil_image = None
         
@@ -90,7 +90,7 @@ def read_tiff_one_page_from_bytes(image_bytes, page=1):
         return pil_image
 
 
-def read_tiff_one_page_from_bytes(image_bytes: str, page: int):
+def read_tiff_one_page_from_bytes_(image_bytes: str, page: int):
     tiff_images = Image.open(BytesIO(image_bytes))
     tiff_images.seek(page - 1)
     np_image = np.array(tiff_images.convert("RGB"))
@@ -116,7 +116,7 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, separate:
         if separate == False:
             pil_images.append(read_tiff_one_page_from_bytes(image_bytes, page))
         else:
-            pil_images = read_tiff_page_from_bytes(image_bytes)
+            pil_images = read_tiff_multi_page_from_bytes(image_bytes)
             
     elif file_extension == ".pdf":
         if separate == False:
