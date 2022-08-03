@@ -29,6 +29,7 @@ from app.utils.utils import is_admin, get_company_group_prefix
 from app.schemas import error_models as ErrorResponse
 from app.schemas import HTTPBearerFake
 from app.middlewares.exception_handler import CoreCustomException
+from app.utils.document import load_file2base64, DRM
 from app.utils.document import (
     get_page_count,
     is_support_format,
@@ -183,15 +184,12 @@ async def post_upload_document(
     # document_data가 없고 document_path로 요청이 왔는지 확인
     # document_path로 왔으면 파일 읽기
     if document_data is None and document_path is not None:
-        file_path = Path(document_path)
-        document_name = file_path.name
-        path_verify = document_path_verify(document_path)
-        if isinstance(path_verify, JSONResponse): return path_verify
-        
-        with file_path.open('rb') as file:
-            document_data = await file.read()
-        document_data = base64.b64encode(document_data)
+        document_data = load_file2base64(document_path)
     
+    if hydra_cfg.common.drm.use: # drm 복호화
+        drm = DRM()
+        document_data = await drm.drm_decryption(document_data, document_name)
+            
     # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
