@@ -50,25 +50,20 @@ def add_class_name_kr(session: Session, select_inference_result: schema.Inferenc
     
     kv_class_codes = select_inference_result.inference_result.get("kv").keys()
     for class_code in kv_class_codes:
-        if class_code not in class_kr_dict.keys(): continue
-        
-        select_inference_result.inference_result["kv"][class_code]["class_name"] = class_kr_dict[class_code]
+        select_inference_result.inference_result["kv"][class_code]["class_name"] = class_kr_dict.get(class_code, "None")
     
     
     return select_inference_result
 
 
 def modif_class_code(select_inference_result: schema.InferenceInfo) -> None:
-    doc_type_code: str = select_inference_result.inference_result.get("doc_type")
-    doc_type_code_sub = "-" + doc_type_code.split("-")[1] + "-"
+    modif_doc_type_code: str = select_inference_result.inference_result.get("doc_type")
     
     inference_result_kv_ : Dict[str, dict] = dict()
     inference_result_kv: Dict[str, dict] = select_inference_result.inference_result.get("kv", {})
     
     for kv_key, kv_value in inference_result_kv.items():
-        kv_class_doc_type_code_sub = "-" + kv_key.split("-")[1] + "-"
-        
-        kv_key_modif = kv_key.replace(kv_class_doc_type_code_sub, doc_type_code_sub)
+        kv_key_modif = kv_key.replace("FN-OIP", modif_doc_type_code).replace("FN-BP", modif_doc_type_code)
         kv_value.update({"class":kv_key_modif})
         
         inference_result_kv_.update({kv_key_modif:kv_value})

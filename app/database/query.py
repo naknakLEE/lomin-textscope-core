@@ -293,19 +293,18 @@ def insert_inspect(session: Session, **kwargs: Dict) -> Union[Optional[schema.In
 
 def select_document_inspect_all(
     session: Session,
-    period_upload_date: bool,
     upload_start_date: datetime,
     upload_end_date: datetime,
-    period_inpsect_date: bool,
     inspect_start_date: datetime,
     inspect_end_date: datetime,
-    date_sort_desc: bool,
     upload_date: bool,
+    date_sort_desc: bool,
+    upload_date_sort: bool,
     
     user_team: List[str] = [],
     uploader_list: List[str] = [],
     inspecter_list: List[str] = [],
-    cls_type_idx_list: List[int] = [],
+    doc_type_idx_list: List[int] = [],
     document_status: List[str] = [],
     document_filename: str = None,
     document_id_list: List[str] = [],
@@ -330,14 +329,11 @@ def select_document_inspect_all(
         
         # DocumentInfo 필터링
         document_filters = dict(
-            # document_type=document_type,
-            cls_idx=cls_type_idx_list,
             user_email=uploader_list,
             document_id=document_id_list
         )
         for column, filter in document_filters.items():
             if len(filter) > 0: query = query.filter(getattr(dao_document, column).in_(filter))
-        
         
         
         # InsepctInfo 필터링
@@ -352,16 +348,15 @@ def select_document_inspect_all(
         complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
         
         # DocumentInfo 등록일 기간 필터링
-        if period_upload_date:
+        if upload_date:
             query = query.filter(dao_document.document_upload_time.between(upload_start_date, upload_end_date))
-        
         # InspectInfo 검수 완료일 기간 필터링
-        if period_inpsect_date:
+        elif upload_date is False:
             query = query.filter(dao_inspect.inspect_end_time != None)
             query = query.filter(dao_inspect.inspect_end_time.between(inspect_start_date, inspect_end_date))
-
+        
         # 정렬 방법
-        if upload_date is True:
+        if upload_date_sort is True:
             if date_sort_desc is True:
                 query = query.order_by(dao_document.document_upload_time.desc())
             else:
@@ -376,8 +371,6 @@ def select_document_inspect_all(
         if len(document_filename) > 0:
             query = query.filter(dao_document.document_path.contains(document_filename))
         
-        filtered_count = len(query.all())
-        
         # 페이징 (한 요청당 최대 1000개)
         query = query.offset(rows_offset) \
             .limit(rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW)
@@ -388,7 +381,19 @@ def select_document_inspect_all(
             "DocumentInfo": None,
             "InspectInfo": None,
         }
+        
+        filter_doc_type_idx = False
+        if len(doc_type_idx_list) != 0: filter_doc_type_idx = True
+        
         for row in rows:
+            doc_type_exist = False
+            if filter_doc_type_idx:
+                doc_type_list: List[int] = set(row[0].doc_type_idxs.get("doc_type_idxs", []))
+                
+                for doc_type in doc_type_list:
+                    if doc_type in doc_type_idx_list: doc_type_exist |= True
+            
+            if filter_doc_type_idx is True and doc_type_exist is False: continue
             
             table_mapping.update(DocumentInfo=row[0])
             table_mapping.update(InspectInfo=row[1])
@@ -401,9 +406,11 @@ def select_document_inspect_all(
                 for i in range(1, len(tc)):
                     v = getattr(v, tc[i], "None")
                 
-                row_ordered.append(str(v))
+                row_ordered.append(v)
             
             filtered_rows.append(row_ordered)
+        
+        filtered_count = len(filtered_rows)
         
     except Exception:
         raise CoreCustomException(4101, "필터링된 업무 리스트")

@@ -120,16 +120,16 @@ def get_thumbnail(
         raise CoreCustomException(2506)
     
     # page_num 페이지의 가장 최근 추론 결과에서 각도 정보 얻기
-    angle = 0.0
+    angle = 0
     try:
         select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
         if isinstance(select_inference_result, JSONResponse):
             return select_inference_result
         select_inference_result: schema.InferenceInfo = select_inference_result
         inference_result: dict = select_inference_result.inference_result
-        angle = inference_result.get("angle", 0.0)
+        angle = inference_result.get("angle", 0)
     except CoreCustomException:
-        angle = 0.0
+        angle = 0
     
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_path = Path(str(page_num) + ".png")
@@ -640,15 +640,16 @@ def get_document_list(
     # inspect_date_start: str        = params.get("inspect_date_start")
     # inspect_date_end:   str        = params.get("inspect_date_end")
     date_sort_desc:     bool       = params.get("date_sort_desc", True)
+    upload_date_sort:   bool       = params.get("upload_date_sort", True)
     
     date_start:         str        = params.get("date_start", None)
     date_end:           str        = params.get("date_end", None)
-    upload_date:        bool       = params.get("upload_date", True)
+    filter_standard:    str        = params.get("filter_standard", "register")
     
     group_list:         List[str]  = params.get("group_list", [])
     uploader_list:      List[str]  = params.get("uploader_list", [])
     inspecter_list:     List[str]  = params.get("inspecter_list", [])
-    cls_type_idx_list:  List[int]  = params.get("cls_type_list", [])
+    doc_type_idx_list:  List[int]  = params.get("doc_type_idx_list", [])
     document_status:    List[str]  = params.get("document_status", [])
     document_filename:  str        = params.get("document_filename", "")
     document_id_list:   List[str]  = params.get("document_id_list", [])
@@ -696,38 +697,33 @@ def get_document_list(
             doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
     
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
-    for cls_type_idx in cls_type_idx_list:
-        if cls_type_idx not in cls_type_idx_result_list.keys():
+    for doc_type_idx in doc_type_idx_list:
+        if doc_type_idx not in doc_type_idx_code.keys():
             raise CoreCustomException(2509)
     
     # 등록일, 검수일 기간 파싱
     upload_start_date = None
     upload_end_date = None
-    period_inpsect_date: bool = False
-    period_upload_date: bool = False
     inspect_start_date = None
     inspect_end_date = None
     
-    if upload_date: # 등록일 기간 확인
+    upload_date = True if filter_standard == "register" else False
+    if upload_date: # 등록일 기준 확인
         try:
             # 기간 요청
-            period_upload_date = True
-            upload_start_date = datetime.strptime(date_start, "%Y-%m-%d")
-            upload_end_date = datetime.strptime(date_end, "%Y-%m-%d") + timedelta(days=1)
+            upload_start_date = datetime.strptime(date_start, "%Y.%m.%d")
+            upload_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
         except:
-            logger.warning(f"날짜의 포맷팅(%Y-%m-%d)이 맞지 않습니다. 기간 없는 전체검색으로 변경합니다.")
+            logger.warning(f"날짜의 포맷팅(%Y.%m.%d)이 맞지 않습니다. 기간 없는 전체검색으로 변경합니다.")
             logger.warning(f"date_start: {date_start} date_end: {date_end}")
-            period_upload_date = False
-    else: # 검수일 기간 확인
+    else: # filter_standard == "inspector" 검수일 기준 확인
         try:
             # 기간 요청
-            period_inpsect_date = True
-            inspect_start_date = datetime.strptime(date_start, "%Y-%m-%d")
-            inspect_end_date = datetime.strptime(date_end, "%Y-%m-%d") + timedelta(days=1)
+            inspect_start_date = datetime.strptime(date_start, "%Y.%m.%d")
+            inspect_end_date = datetime.strptime(date_end, "%Y.%m.%d") + timedelta(days=1)
         except:
-            logger.warning(f"날짜의 포맷팅(%Y-%m-%d)이 맞지 않습니다. 기간 없는 전체검색으로 변경합니다.")
+            logger.warning(f"날짜의 포맷팅(%Y.%m.%d)이 맞지 않습니다. 기간 없는 전체검색으로 변경합니다.")
             logger.warning(f"date_start: {date_start} date_end: {date_end}")
-            period_inpsect_date = False
     
     # 가변 컬럼
     column_order: list = list()
@@ -764,22 +760,22 @@ def get_document_list(
     # 필터링된 업무 리스트
     total_count, complet_count, filtered_count, filtered_rows = query.select_document_inspect_all(
         session,
-        period_upload_date=period_upload_date,
         upload_start_date=upload_start_date,
         upload_end_date=upload_end_date,
         
-        period_inpsect_date=period_inpsect_date,
         inspect_start_date=inspect_start_date,
         inspect_end_date=inspect_end_date,
         
-        date_sort_desc=date_sort_desc,
         upload_date=upload_date,
+        
+        date_sort_desc=date_sort_desc,
+        upload_date_sort=upload_date_sort,
         
         user_team=user_team_list,
         uploader_list=uploader_list,
         inspecter_list=inspecter_list,
         
-        cls_type_idx_list=cls_type_idx_list,
+        doc_type_idx_list=doc_type_idx_list,
         
         document_status=document_status,
         document_filename=document_filename,
@@ -825,11 +821,12 @@ def get_document_list(
         user_email_name.update({user_info.get("user_email"):user_info.get("user_team_name")})
     
     # cls_idx를 이름으로 변경, 문서 유형 추가, document_id 제거
-    rows: List[list] = filtered_rows
+    # rows: List[list] = filtered_rows
     response_rows: List[list] = list()
-    for row in rows:
+    for row in filtered_rows:
         
-        doc_type_idxs: dict = json.loads(row.pop(doc_type_index).replace("'", "\""))
+        # doc_type_idxs: dict = json.loads(row.pop(doc_type_index).replace("'", "\""))
+        doc_type_idxs: dict = row.pop(doc_type_index)
         doc_type_idx_first = doc_type_idxs.get("doc_type_idxs", [0])[0]
         
         doc_type_cnt = 0
@@ -838,20 +835,16 @@ def get_document_list(
             if doc_type in doc_type_idx_code.keys(): doc_type_cnt += 1
             else: doc_type_etc = 1
         
-        row.insert(doc_type_index, str(doc_type_cnt + doc_type_etc - 1))
+        row.insert(doc_type_index, doc_type_cnt + doc_type_etc - 1)
         
         # cls_idx -> doc_type_name_kr
         if cls_index != 0:
             cls_idx = row.pop(cls_index)
             row.insert(cls_index, doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr"))
         
-        # 검수중이면 document_id 제거
+        # 검수 상태 매핑
         if docx_st_index > 0:
             docx_status = row.pop(docx_st_index)
-            if docx_status in [settings.STATUS_RUNNING_INFERENCE, settings.STATUS_INSPECTING] \
-            and not is_admin(user_policy_result):
-                row[docx_id_index] = ""
-                
             row.insert(docx_st_index, settings.STATUS_MAPPING.get(docx_status, ""))
         
         # document_path -> 문서명
@@ -868,7 +861,8 @@ def get_document_list(
             row.pop(inspecter_email_index + 2)
             row.insert(inspecter_email_index + 2, user_email_name.get(row[inspecter_email_index], "None"))
         
-        response_rows.append(row)
+        # 문자열로 변환
+        response_rows.append( [ str(x) for x in row ] )
     
     
     response = dict(
@@ -933,6 +927,16 @@ def get_document_inference_info(
     if page_num < 1 or select_document_result.document_pages < page_num:
         raise CoreCustomException(2506)
     
+    # 검수 중인데 자신의 검수 중인 문서가 아니거나 관리자가 아닐 경우 에러 응답 반환
+    inspect_id = select_document_result.inspect_id
+    select_inspect_result = query.select_inspect_latest(session, inspect_id=inspect_id)
+    if isinstance(select_inspect_result, JSONResponse):
+        return select_inspect_result
+    select_inspect_result: schema.InspectInfo = select_inspect_result
+    if select_inspect_result.inspect_status == settings.STATUS_INSPECTING:
+        if not is_admin(user_policy_result) and select_inspect_result.user_email != user_email:
+            raise CoreCustomException(2511)
+    
     # document_id로 특정 페이지의 가장 최근 inference info 조회
     select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
     if isinstance(select_inference_result, JSONResponse):
@@ -951,7 +955,7 @@ def get_document_inference_info(
         select_inference_result, _ = add_unrecognition_kv(session, select_inference_result)
         # kv에 kv_class_name_kr 한글명 추가
         select_inference_result = add_class_name_kr(session, select_inference_result)
-        
+    
     
     response = dict(
         document_id=select_inference_result.document_id,
