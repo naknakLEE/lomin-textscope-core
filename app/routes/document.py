@@ -146,7 +146,7 @@ def get_thumbnail(
     
     response = dict(
         scale     = scale,
-        angle     = angle,
+        angle     = -angle,
         width     = new_w,
         height    = new_h,
         thumbnail = image_base64

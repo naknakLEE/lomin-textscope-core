@@ -70,12 +70,10 @@ def ocr(
     document_path = inputs.get("document_path")
     target_page = inputs.get("page", 1)
     
-    if inputs.get("doc_type_idx"):
+    if inputs.get("doc_type_idx") is not None:
         inputs = ocr_kv(inputs, current_user, session)
     
-    custom_angle_ocr = False
-    if inputs.get("angle"):
-        custom_angle_ocr = True
+    if inputs.get("angle", 0) != 0:
         inputs = ocr_angle(inputs, current_user, session)
     
     # parameter mapping:
@@ -252,8 +250,7 @@ def ocr(
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
     
-    if custom_angle_ocr:
-        inference_results.update(angle=(360 - inputs.get("angle", 0.0)))
+    inference_results.update(angle=inputs.get("angle", 0))
     
     insert_inference_result = query.insert_inference(
         session=session,
@@ -290,7 +287,10 @@ def ocr(
 def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> Union[dict, JSONResponse]:
     document_id = inputs.get("document_id", "")
     page_num = inputs.get("page", 1)
-    angle = inputs.get("angle", 0.0)
+    angle = inputs.get("angle")
+    
+    angle = -angle
+    inputs.update(angle=angle)
     
     # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=current_user.email)
@@ -312,7 +312,7 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_path = Path(str(page_num) + ".png")
     document_bytes = get_image_bytes(document_id, document_path)
-    angle_image = read_image_from_bytes(document_bytes, document_path.name, 360.0 - angle, page_num)
+    angle_image = read_image_from_bytes(document_bytes, document_path.name, angle, page_num)
     if angle_image is None:
         raise CoreCustomException(2103)
     
@@ -332,8 +332,7 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
         rectify=dict(
             rotation_90n=False,
             rotation_fine=False
-        ),
-        route_name="gocr"
+        )
     )
     
     return inputs
@@ -341,7 +340,7 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
 
 def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Union[dict, JSONResponse]:
     document_id = inputs.get("document_id", "")
-    doc_type_idx = inputs.get("doc_type_idx", 0)
+    doc_type_idx = inputs.get("doc_type_idx")
     page_num = inputs.get("page", 1)
     
     # 유저 정보 확인
@@ -360,6 +359,10 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
     # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
         raise CoreCustomException(2506)
+    
+    # 요청한 doc_type_idx 가 0이면 route_name을 gocr로 변경
+    if doc_type_idx == 0:
+        inputs.update(route_name="gocr")
     
     # doc_type_idx로 doc_type_code 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_idx=doc_type_idx)
@@ -395,8 +398,7 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
                 doc_type=doc_type_code
             ),
             key_value=[]
-        ),
-        route_name="kv"
+        )
     )
     
     return inputs
