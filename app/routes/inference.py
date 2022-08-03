@@ -250,7 +250,8 @@ def ocr(
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
     
-    inference_results.update(angle=inputs.get("angle", 0))
+    if inputs.get("angle", 0) != 0:
+        inference_results.update(angle=inputs.get("angle", 0))
     
     insert_inference_result = query.insert_inference(
         session=session,
