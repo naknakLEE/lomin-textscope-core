@@ -564,6 +564,62 @@ def get_filter_doc_type(
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
+@router.get("/list-sequence")
+async def get_document_list_sequence(
+    document_id: str,
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    """
+    현재 문서의 이전또 다음 문서의 document_id를 조회
+    """
+    
+    # 사용자의 모든 정책(권한) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    user_team_list: List[str] = list()
+    user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
+    # group_code_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    
+    # 사용자 정책(조회 가능 문서 대분류 그룹) 확인
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_idx_list_result = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_idx_list_result, JSONResponse):
+        return cls_type_idx_list_result
+    
+    cls_type_idxs: List[int] = list()
+    for result in cls_type_idx_list_result:
+        cls_type_idxs.append(result.get("index"))
+    
+    select_document_info_result = query.get_prev_next_documnet_id(
+        session,
+        document_id,
+        user_team=user_team_list,
+        cls_idx= [ x.get("index") for x in cls_type_idx_list_result ]
+    )
+    
+    # document_ids = [ x.document_id for x in select_document_info_result ]
+    # document_id
+    
+    response = dict(
+        select_document_info_result
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
 @router.delete("/list/{document_id}")
 async def delete_document_list(
     request: Request,

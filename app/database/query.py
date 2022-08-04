@@ -162,6 +162,8 @@ def select_class_all(session: Session, **kwargs: Dict) -> Union[List[schema.Clas
         result = schema.ClassInfo.get_all_multi(session, **kwargs)
         if result is None:
             raise CoreCustomException(2106)
+    except CoreCustomException as cce:
+        raise cce
     except Exception:
         raise CoreCustomException(4101, "모든 class")
     return result
@@ -171,11 +173,65 @@ def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentIn
     try:
         result = schema.DocumentInfo.get(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2101)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            raise CoreCustomException(2101)
+    except CoreCustomException as cce:
+        raise cce
     except Exception:
         raise CoreCustomException(4101, "문서")
     return result
+
+
+def select_document_all(session: Session, **kwargs: Dict) -> Union[List[schema.DocumentInfo], JSONResponse]:
+    try:
+        query = schema.DocumentInfo.get_all_query_multi(session, **kwargs)
+        result = query.order_by(schema.DocumentInfo.document_upload_time.asc()).all()
+        if len(result) == 0:
+            raise CoreCustomException(2101)
+    except Exception:
+        raise CoreCustomException(4101, "모든 문서")
+    return result
+
+
+def get_prev_next_documnet_id(
+    session: Session,
+    document_id: str,
+    user_team: List[str],
+    cls_idx: List[int]
+) -> dict:
+    try:
+        try:
+            document_upload_date = session.query(schema.DocumentInfo) \
+                .filter(schema.DocumentInfo.document_id == document_id) \
+                .first().document_upload_time
+        except Exception:
+            raise CoreCustomException(2101)
+        
+        prev_document = session.query(schema.DocumentInfo) \
+            .filter(schema.DocumentInfo.is_used == True) \
+            .filter(schema.DocumentInfo.user_team.in_(user_team)) \
+            .filter(schema.DocumentInfo.cls_idx.in_(cls_idx)) \
+            .filter(schema.DocumentInfo.document_upload_time < document_upload_date) \
+            .order_by(schema.DocumentInfo.document_upload_time.desc()) \
+            .first()
+        
+        next_document = session.query(schema.DocumentInfo) \
+            .filter(schema.DocumentInfo.is_used == True) \
+            .filter(schema.DocumentInfo.user_team.in_(user_team)) \
+            .filter(schema.DocumentInfo.cls_idx.in_(cls_idx)) \
+            .filter(schema.DocumentInfo.document_upload_time > document_upload_date) \
+            .order_by(schema.DocumentInfo.document_upload_time.asc()) \
+            .first()
+        
+    except CoreCustomException as cce:
+        raise cce
+    except Exception:
+        raise CoreCustomException(4101, "모든 문서")
+    
+    return {
+        "prev":prev_document.document_id if prev_document is not None else "",
+        "now":document_id,
+        "next":next_document.document_id if next_document is not None else ""
+    }
 
 
 def insert_document(
