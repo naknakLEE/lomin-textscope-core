@@ -7,6 +7,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "aiofiles"
+version = "0.8.0"
+description = "File support for asyncio."
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[[package]]
 name = "alive-progress"
 version = "2.1.0"
 description = "A new kind of Progress Bar, with real time throughput, ETA and very cool animations!"
@@ -1090,12 +1098,16 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8, <3.9"
-content-hash = "a36c7a0777a690b1c5573f04dbdb1246dbc65e200b45a287870f23f8aa50d693"
+content-hash = "41e74d22c7a7ad5e89fe5faf7b9ebfad654c20ab0f5c6ec580ce0e41dd431784"
 
 [metadata.files]
 about-time = [
     {file = "about-time-3.1.1.tar.gz", hash = "sha256:586b329450c9387d1ae8c42d2db4f5b4c57a54508d0f1b7bb00322ffd5ce9f9b"},
     {file = "about_time-3.1.1-py3-none-any.whl", hash = "sha256:96841beb3f9b5de1cbb323d2bdb0fa9abdecbc46f2d546b9b3c2483d23daa17a"},
+]
+aiofiles = [
+    {file = "aiofiles-0.8.0-py3-none-any.whl", hash = "sha256:7a973fc22b29e9962d0897805ace5856e6a566ab1f0c8e5c91ff6c866519c937"},
+    {file = "aiofiles-0.8.0.tar.gz", hash = "sha256:8334f23235248a3b2e83b2c3a78a22674f39969b96397126cc93664d9a901e59"},
 ]
 alive-progress = [
     {file = "alive-progress-2.1.0.tar.gz", hash = "sha256:c418ccbf9b900b25b156db3978e9e2bc740c6c7f1db470da323b7f6c33808d68"},

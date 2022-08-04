@@ -50,6 +50,7 @@ msoffcrypto-tool = "^5.0.0"
 openpyxl = "^3.0.10"
 xlrd = "^2.0.1"
 XlsxWriter = "^3.0.3"
+aiofiles = "^0.8.0"
 
 [tool.poetry.dev-dependencies]
 Nuitka = "0.7.5"
