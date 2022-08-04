@@ -1,31 +1,43 @@
+import traceback
 import pandas as pd
 import os
+import base64
 import shutil
 from typing import Any, Dict, List, Union
-from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
+from fastapi import APIRouter, File, UploadFile, Body
 
+from app import hydra_cfg
 from app.utils.logging import logger
 from app.common.const import get_settings
 from app.schemas import HTTPBearerFake
 from app.utils.rpa import send_rpa
+from app.utils.document import load_file2base64, DRM
+
 
 settings = get_settings()
 router = APIRouter()
 
 
 
-@router.post("/drm/decryption")
-def drm_decryption(
+@router.post("/java/drm/decryption")
+def post_java_drm_decryption(
         params: dict = Body(...)
     ) -> Any:
     try:
         from_file_nm = params.get("from_file_nm")
         to_file_nm = params.get("to_file_nm")
-        file_from_path = "/workspace/drm/file_from"
-        file_to_path = "/workspace/drm/file_to"
+        drm_user = params.get("drm_user")
         
+        logger.info(f"/java/drm/decryption inputs: \n\
+            from_file_nm: {from_file_nm}  \n\
+            to_file_nm: {to_file_nm}  \n\
+            drm_user: {drm_user}  \n\
+                ")
+        drm_cfg = hydra_cfg.common.drm
+        file_from_path = drm_cfg.save_path
+        file_to_path = drm_cfg.get_path
         
 
         isExist = os.path.exists(file_to_path)
@@ -36,6 +48,7 @@ def drm_decryption(
 
         
     except Exception as ex:
+        traceback.print_exc()
         res = {
                 "msg": "암호화해제중 에러가 발생하였습니다. 관리자에게 문의해주세요.\nERROR Exceptionnull",
                 "data": "",
@@ -50,62 +63,32 @@ def drm_decryption(
     return JSONResponse(content=jsonable_encoder(res))
 
 
-@router.post("/drm/encryption")
-def drm_encryption(
-        from_file_nm: str,
-        to_file_nm: str
-    ) -> Any:
-    try:
-        file_from_path = "/workspace/drm/file_from"
-        file_to_path = "/workspace/drm/file_to"
-        
-        import os
-        import shutil
-
-        isExist = os.path.exists(file_to_path)
-        if not isExist:
-            os.makedirs(file_to_path)
-        shutil.copyfile(os.path.join(file_from_path, from_file_nm), os.path.join(file_to_path, to_file_nm))
-
-        
-    except Exception as ex:
-        res = {
-                "msg": "암호화해제중 에러가 발생하였습니다. 관리자에게 문의해주세요.\nERROR Exceptionnull",
-                "data": "",
-                "status": "9999"
-            }
-    res = {
-        "msg": "암호화해제 정상처리 되었습니다.",
-        "data": "",
-        "status": "0000"
-    }
-
-    return JSONResponse(content=jsonable_encoder(res))
-
-
-
-
-
-@router.post("/drm/decryption")
-def drm_decryption(
+@router.post("/java/drm/encryption")
+def post_java_drm_encryption(
         params: dict = Body(...)
     ) -> Any:
     try:
         from_file_nm = params.get("from_file_nm")
         to_file_nm = params.get("to_file_nm")
-        file_from_path = "/workspace/drm/file_from"
-        file_to_path = "/workspace/drm/file_to"
+        drm_user = params.get("drm_user")
+        drm_cfg = hydra_cfg.common.drm
+        file_from_path = drm_cfg.save_path
+        file_to_path = drm_cfg.get_path
         
-        
+        logger.info(f"/java/drm/decryption inputs: \n\
+            from_file_nm: {from_file_nm}  \n\
+            to_file_nm: {to_file_nm}  \n\
+            drm_user: {drm_user}  \n\
+                ")
 
         isExist = os.path.exists(file_to_path)
         if not isExist:
             os.makedirs(file_to_path)
-            
         shutil.copyfile(os.path.join(file_from_path, from_file_nm), os.path.join(file_to_path, to_file_nm))
 
         
     except Exception as ex:
+        traceback.print_exc()
         res = {
                 "msg": "암호화해제중 에러가 발생하였습니다. 관리자에게 문의해주세요.\nERROR Exceptionnull",
                 "data": "",
@@ -120,62 +103,7 @@ def drm_decryption(
     return JSONResponse(content=jsonable_encoder(res))
 
 
-@router.post("/kei/send_rpa")
-async def post_kei_rpa(
-        send_mail_addr: str,
-        to_mail_addr: str,
-        cc_mail_addr: str,
-        bcc_mail_addr: str,
-        subject_title: str,
-        body_data: str,
-        upload_file_count: int,
-        append_file_count: int
-    ) -> Any:
-    
-    
-    
-    
-    root_path = "/workspace/app/assets/sample/"
-    file_list = ["kei2205_rpa_sample_1.xlsx", "kei2205_rpa_sample_2.xlsx"]
-    
-    upload_pd_files= []
-    for i in range((upload_file_count)):
-        idx = i % 2 
-        file_name = file_list[idx]
-        with open(os.path.join(root_path, file_name), 'rb') as file:
-            df = file.read()
-        upload_pd_files.append([file_name, df])
-    
-    append_pd_files= []
-    for i in range((append_file_count)):
-        idx = i % 2 
-        file_name = file_list[idx]
-        with open(os.path.join(root_path, file_name), 'rb') as file:
-            df = file.read()
-        append_pd_files.append([file_name, df])
-    
-    await send_rpa(
-        send_mail_addr,
-        to_mail_addr,
-        cc_mail_addr,
-        bcc_mail_addr,
-        subject_title,
-        body_data,
-        upload_pd_files,
-        append_pd_files
-    )
-    res = {
-        "msg": "정상처리 되었습니다.",
-        "data": "",
-        "status": "0000"
-    }
-    return JSONResponse(content=jsonable_encoder(res))
-
-
-
-
-
-@router.post("/rpa/sendDwpMail")
+@router.post("/java/rpa/sendDwpMail")
 def drm_decryption(
         params: dict = Body(...)
     ) -> Any:
@@ -220,6 +148,7 @@ def drm_decryption(
 
         
     except Exception as ex:
+        traceback.print_exc()
         res = {
             "msg": "에러가 발생하였습니다. 관리자에게 문의해주세요.",
             "data": "",
@@ -233,3 +162,89 @@ def drm_decryption(
     }
 
     return JSONResponse(content=jsonable_encoder(res))
+
+
+
+@router.post("/kei/send_rpa")
+async def post_kei_send_rpa(
+        send_mail_addr: str,
+        to_mail_addr: str,
+        cc_mail_addr: str,
+        bcc_mail_addr: str,
+        subject_title: str,
+        body_data: str,
+        upload_file_count: int,
+        append_file_count: int
+    ) -> Any:
+    
+    
+    root_path = "/workspace/app/assets/sample/"
+    file_list = ["kei2205_rpa_sample_1.xlsx", "kei2205_rpa_sample_2.xlsx"]
+    
+    upload_pd_files= []
+    for i in range((upload_file_count)):
+        idx = i % 2 
+        file_name = file_list[idx]
+        with open(os.path.join(root_path, file_name), 'rb') as file:
+            df = file.read()
+        upload_pd_files.append([file_name, df])
+    
+    append_pd_files= []
+    for i in range((append_file_count)):
+        idx = i % 2 
+        file_name = file_list[idx]
+        with open(os.path.join(root_path, file_name), 'rb') as file:
+            df = file.read()
+        append_pd_files.append([file_name, df])
+    
+    await send_rpa(
+        send_mail_addr,
+        to_mail_addr,
+        cc_mail_addr,
+        bcc_mail_addr,
+        subject_title,
+        body_data,
+        upload_pd_files,
+        append_pd_files
+    )
+    res = {
+        "msg": "정상처리 되었습니다.",
+        "data": "",
+        "status": "0000"
+    }
+    return JSONResponse(content=jsonable_encoder(res))
+
+
+
+
+@router.post("/kei/encryption")
+async def post_kei_encryption(\
+        drm_user: str,
+        file: UploadFile = File(..., description= "암호화 할 문서"),
+    ) -> Any:
+    
+    document_name = file.filename
+    document_data = await file.read()
+    encoded_image_data = base64.b64encode(document_data)
+    drm = DRM()
+    document_data = await drm.drm_encryption(encoded_image_data, document_name, drm_user)
+    
+    return {"msg": "sucess"}
+
+
+@router.post("/kei/decryption")
+async def post_kei_decryption(
+        drm_user: str,
+        file: UploadFile = File(..., description= "복호화 할 문서"),
+    ) -> Any:
+    
+    document_name = file.filename
+    document_data = await file.read()
+    encoded_image_data = base64.b64encode(document_data)
+    drm = DRM()
+    document_data = await drm.drm_decryption(encoded_image_data, document_name, drm_user)
+    
+    return {"msg": "sucess"}
+
+
+

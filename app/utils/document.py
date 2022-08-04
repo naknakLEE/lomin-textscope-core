@@ -96,7 +96,7 @@ class DRM:
         self.nas_decryption_url = drm_cfg.nas_decryption_url
         self.nas_encryption_url = drm_cfg.nas_encryption_url
 
-    async def file_nas_share(self, base64_data: str, file_name: str, url: str) -> str:
+    async def file_nas_share(self, base64_data: str, file_name: str, url: str, drm_user: str) -> str:
         try:
             document_save_path = os.path.join(self.save_path, file_name)
             if not os.path.exists(self.save_path):
@@ -112,7 +112,8 @@ class DRM:
                     f"http://{self.drm_ip}:{self.drm_port}{url}",
                     json={
                         "from_file_nm": file_name,
-                        "to_file_nm": file_name
+                        "to_file_nm": file_name,
+                        "drm_user": drm_user
                     },
                     timeout=settings.TIMEOUT_SECOND,
                 )
@@ -128,17 +129,17 @@ class DRM:
         base64_data = load_file2base64(load_path)
         return base64_data
     
-    async def drm_encryption(self, base64_data: str, file_name: str, encryption_url: str = None) -> str:
+    async def drm_encryption(self, base64_data: str, file_name: str, drm_user: str, encryption_url: str = None) -> str:
         if not encryption_url:
             encryption_url = self.nas_encryption_url
-        base64_data = await self.file_nas_share(base64_data, file_name, encryption_url)
+        base64_data = await self.file_nas_share(base64_data, file_name, encryption_url, drm_user)
         return base64_data
         
         
-    async def drm_decryption(self, base64_data: str, file_name: str, decryption_url: str = None) -> str:
+    async def drm_decryption(self, base64_data: str, file_name: str, drm_user: str, decryption_url: str = None) -> str:
         if not decryption_url:
             decryption_url = self.nas_decryption_url
-        base64_data = await self.file_nas_share(base64_data, file_name, decryption_url)
+        base64_data = await self.file_nas_share(base64_data, file_name, decryption_url, drm_user)
         return base64_data
         
 

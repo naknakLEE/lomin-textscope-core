@@ -188,7 +188,9 @@ async def post_upload_document(
     
     if hydra_cfg.common.drm.use: # drm 복호화
         drm = DRM()
-        document_data = await drm.drm_decryption(document_data, document_name)
+        # TODO drm_user 수정 필요
+        drm_user = "user01"
+        document_data = await drm.drm_decryption(document_data, document_name, drm_user)
             
     # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=user_email)

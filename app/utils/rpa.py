@@ -3,12 +3,33 @@ import os
 import httpx
 import base64
 import pandas as pd
+from typing import Optional, List, Any
 
+from app import hydra_cfg
 from app.common.const import get_settings
 from app.middlewares.exception_handler import CoreCustomException
 
 
 settings = get_settings()
+
+async def save_bytes_to_nas(file_list:List):
+    rpa_cfg = hydra_cfg.common.rpa
+    nas_path = rpa_cfg.save_nas_path
+    file_name_separator = rpa_cfg.file_name_separator
+    
+    upload_file_name = []
+    for file_name, bytes_data in file_list:
+        # 파일 있으면 파일 저장
+        try:
+            document_save_path = os.path.join(nas_path, file_name)
+            if not os.path.exists(nas_path):
+                os.makedirs(nas_path)
+            with open(document_save_path, "wb") as file:
+                file.write(bytes_data)
+            upload_file_name.append(file_name)
+        except Exception as ex:
+            raise CoreCustomException("C01.002.5001")
+    upload_file_name = file_name_separator.join(upload_file_name)
 
 async def send_rpa(
     send_mail_addr: str,
@@ -21,38 +42,14 @@ async def send_rpa(
     append_file_list: list = []
     
 ):
-    nas_path = "/workspace/data/file_attach"
-    rpa_ip = "textscope-web"
-    rpa_port = "8000"
-    rpa_url = "/test/rpa/sendDwpMail"
+    rpa_cfg = hydra_cfg.common.rpa
+    rpa_ip = rpa_cfg.rpa_ip
+    rpa_port = rpa_cfg.rpa_port
+    rpa_url = rpa_cfg.rpa_url
     
-    upload_file_name = []
-    for file_name, pd_xlsx in upload_file_list:
-        # 파일 있으면 파일 저장
-        try:
-            document_save_path = os.path.join(nas_path, file_name)
-            if not os.path.exists(nas_path):
-                os.makedirs(nas_path)
-            with open(document_save_path, "wb") as file:
-                file.write(pd_xlsx)
-            upload_file_name.append(file_name)
-        except Exception as ex:
-            raise CoreCustomException("C01.002.5001")
-    upload_file_name = "||".join(upload_file_name)
+    upload_file_name = await save_bytes_to_nas(upload_file_list)
+    append_file_name = await save_bytes_to_nas(append_file_list)
     
-    append_file_name = []
-    for file_name, pd_xlsx in append_file_list:
-        # 파일 있으면 파일 저장
-        try:
-            document_save_path = os.path.join(nas_path, file_name)
-            if not os.path.exists(nas_path):
-                os.makedirs(nas_path)
-            with open(document_save_path, "wb") as file:
-                file.write(pd_xlsx)
-            append_file_name.append(file_name)
-        except Exception as ex:
-            raise CoreCustomException("C01.002.5001")
-    append_file_name = "||".join(append_file_name)
         
     try:
         async with httpx.AsyncClient() as client:
@@ -69,7 +66,7 @@ async def send_rpa(
                     "append_file_name": append_file_name
                     
                 },
-                timeout=10,
+                timeout=settings.TIMEOUT_SECOND,
             )
     except:
         raise CoreCustomException("C01.006.5001")
