@@ -371,6 +371,8 @@ def select_document_inspect_all(
         if len(document_filename) > 0:
             query = query.filter(dao_document.document_path.contains(document_filename))
         
+        filtered_count = len(query.all())
+        
         # 페이징 (한 요청당 최대 1000개)
         query = query.offset(rows_offset) \
             .limit(rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW)
@@ -393,7 +395,9 @@ def select_document_inspect_all(
                 for doc_type in doc_type_list:
                     if doc_type in doc_type_idx_list: doc_type_exist |= True
             
-            if filter_doc_type_idx is True and doc_type_exist is False: continue
+            if filter_doc_type_idx is True and doc_type_exist is False:
+                filtered_count -= 1
+                continue
             
             table_mapping.update(DocumentInfo=row[0])
             table_mapping.update(InspectInfo=row[1])
@@ -410,7 +414,6 @@ def select_document_inspect_all(
             
             filtered_rows.append(row_ordered)
         
-        filtered_count = len(filtered_rows)
         
     except Exception:
         raise CoreCustomException(4101, "필터링된 업무 리스트")
