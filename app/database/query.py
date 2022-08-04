@@ -3,7 +3,7 @@ import uuid
 import traceback
 
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
@@ -697,6 +697,65 @@ def get_inspecter_list(
         raise CoreCustomException(4101, "inspecter")
         
     return result
+
+# 개인 권한 적용 기간 조회
+def get_user_policy_time(session: Session, user_email: str = "do@not.use", authrotiy: str = "없음") -> dict:
+    try:
+        now_datetime = datetime.now()
+        
+        user_group_policy_result: List[schema.GroupPolicy]
+        query = session.query(schema.GroupPolicy) \
+            .filter(schema.GroupPolicy.group_code == user_email) \
+            .filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time) \
+        
+        user_group_policy_result = query.all()
+        
+        # 없으면 무제한 기간
+        if len(user_group_policy_result) == 0:
+            return {
+                "start_time":datetime.now(),
+                "end_time":datetime.now() + timedelta(days=365),
+            }
+        
+        user_group_policy: Dict[str, schema.GroupPolicy] = dict()
+        user_group_policy = { x.policy_code : x for x in user_group_policy_result }
+        
+        start_time = None
+        end_time = None
+        if authrotiy == "관리자":
+            start_time = user_group_policy.get("C_GRANT_ADMIN").start_time
+            end_time = user_group_policy.get("C_GRANT_ADMIN").end_time
+        else:
+            start_time = user_group_policy.get("R_DOCX_TEAM").start_time
+            end_time = user_group_policy.get("R_DOCX_TEAM").end_time
+        
+    except Exception:
+        raise CoreCustomException(4101, "유저 정책")
+        
+    return {
+        "start_time":start_time,
+        "end_time":end_time
+    }
+
+
+def get_user_authority(user_policy_result: Dict[str, Union[bool, list]]) -> str:
+    authority = "없음"
+    
+    admin = True
+    for admin_code in settings.ADMIN_POLICY:
+        if admin_code not in user_policy_result.keys(): admin = False
+        v = user_policy_result.get(admin_code)
+        if isinstance(v, bool): admin &= v
+    
+    if admin is True:
+        authority = "관리자"
+    elif len(user_policy_result.get("R_DOCX_TEAM", [])) > 0:
+        authority = "실무담당자"
+    else:
+        authority = "없음"
+    
+    return authority
+
 
 # 순수 가지고 있는 정책(권한) 정보
 # TODO 수출입은행 후 불가 정책(권한) 정보 적용 로직 추가 예정

@@ -71,6 +71,9 @@ def get_user_info_by_user_email(
     if company_info.company_code != request_company_info.company_code:
         raise CoreCustomException(2509)
     
+    # 권한 확인 및 개인 권한 적용 기간 조회
+    authority = query.get_user_authority(target_user_policy_result)
+    authority_time = query.get_user_policy_time(session, user_email, authority)
     
     response = dict(
         user_info = dict(
@@ -89,7 +92,9 @@ def get_user_info_by_user_email(
             user_org_path = str(company_user_info.emp_org_path),
             user_ofps_cd  = str(company_user_info.emp_ofps_cd),
             user_ofps_nm  = str(company_user_info.emp_ofps_nm),
-            admin         = str(is_admin(target_user_policy_result))
+            authority     = str(authority),
+            authority_time_start = str(authority_time.get("start_time")),
+            authority_time_end   = str(authority_time.get("end_time"))
         )
     )
     
