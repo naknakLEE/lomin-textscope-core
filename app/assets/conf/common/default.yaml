@@ -1,0 +1,11 @@
+drm:
+  use: False
+  save_path: /workspace/drm/file_from
+  get_path: /workspace/drm/file_to
+  drm_ip: textscope-web
+  drm_port: 8000
+  nas_decryption_url: /test/drm/decryption
+  nas_encryption_url: /test/drm/encryption
+  
+use_sso: True
+use_rpa: True

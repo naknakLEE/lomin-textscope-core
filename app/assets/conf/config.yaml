@@ -2,3 +2,4 @@ defaults:
   - route: default
   - document: default
   - database: default
+  - common: default

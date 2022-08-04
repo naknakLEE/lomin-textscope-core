@@ -1,9 +1,11 @@
 from typing import Dict
 from datetime import timedelta
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
+from jose import jwt
+
 
 from app import hydra_cfg
 from app.models import Token, OAuth2PasswordRequestForm
@@ -25,6 +27,47 @@ else:
 
 settings = get_settings()
 router = APIRouter()
+
+@router.post("/kei/sso/token", response_model=Token, responses=auth_token_responses)
+async def post_kei_sso_token(
+    params: dict = Body(...),
+    session: Session = Depends(db.session),
+) -> Dict:
+    
+    secret_key = "ZCZnhNcW0D9P7EgbYzkc9/KI1H2syha1zHQ7LDeFY/YU9pCSWyqi6ctKatHZ0hDs"
+    algorithms ="HS256"
+    
+    token = params.get("token")
+    
+    try:
+        token_info = jwt.decode(token, secret_key, algorithms=[algorithms])
+    except:
+        raise CoreCustomException("C01.004.5001")
+    
+    compNm = token_info.get("compNm", None)
+    sub = token_info.get("sub", None)
+    # uid = token_info.get("uid")
+    uid = "2689"
+    exp = token_info.get("exp", None)
+    
+    user = query.select_vw_if_emp(session, eno = uid)
+    if user is None:
+        raise CoreCustomException(2401)
+    
+    user_email = user.usr_emad
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user_email, "scopes": []},
+        expires_delta=access_token_expires,
+    )
+    
+    return JSONResponse(
+        status_code=201,
+        content=jsonable_encoder({
+            "access_token": access_token,
+            "token_type": "bearer"
+        })
+    )
 
 
 @router.post("/token", response_model=Token, responses=auth_token_responses)
