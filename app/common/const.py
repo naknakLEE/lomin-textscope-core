@@ -143,11 +143,6 @@ class Settings(BaseSettings):
             "name": "textscope",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
-        {
-            "name": "kei2205",
-            "password": "g12?oq4C+APT2I4wRKb!",
-            # "ignore": ["VW_IF_EMP", "VW_IF_ORG_CUR", "VW_IF_CD"]
-        },
     ]
 
     # ADMIN MUST HAVE POLICY
