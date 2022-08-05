@@ -54,6 +54,7 @@ def post_java_drm_decryption(
                 "data": "",
                 "status": "9999"
             }
+        return JSONResponse(content=jsonable_encoder(res))
     res = {
         "msg": "암호화해제 정상처리 되었습니다.",
         "data": "",
@@ -94,6 +95,7 @@ def post_java_drm_encryption(
                 "data": "",
                 "status": "9999"
             }
+        return JSONResponse(content=jsonable_encoder(res))
     res = {
         "msg": "암호화해제 정상처리 되었습니다.",
         "data": "",
@@ -104,7 +106,7 @@ def post_java_drm_encryption(
 
 
 @router.post("/java/rpa/sendDwpMail")
-def drm_decryption(
+def post_java_rpa_sendDwpMail(
         params: dict = Body(...)
     ) -> Any:
     try:
@@ -129,10 +131,12 @@ def drm_decryption(
             append_file_name: {append_file_name} \n\
             ")
         
+        rpa_cfg = hydra_cfg.common.rpa
+        nas_path = rpa_cfg.save_nas_path
+        separator = rpa_cfg.file_name_separator
         
-        nas_path = "/workspace/data/file_attach"
-        separator = "||"
-        
+        logger.info(f"upload_file_name {upload_file_name}")
+        logger.info(f"append_file_name {append_file_name}")
         upload_files = upload_file_name.split(separator)[:-1]
         append_files = append_file_name.split(separator)[:-1]
         
@@ -155,6 +159,7 @@ def drm_decryption(
             "errMsg": "javax.mail.MessagingException: IOException while sending message;\n  nested exception is:\n\tjava.io.FileNotFoundException: /data/file_attach/202207221234567890.xlsx (No such file or directory)",
             "status": "9999"
         }
+        return JSONResponse(content=jsonable_encoder(res))
     res = {
         "msg": "정상처리 되었습니다.",
         "data": "",
@@ -197,6 +202,7 @@ async def post_kei_send_rpa(
             df = file.read()
         append_pd_files.append([file_name, df])
     
+    logger.info(f"call send_rpa upload_pd_files len: {len(upload_pd_files)} append_pd_files len: {len(append_pd_files)}")
     await send_rpa(
         send_mail_addr,
         to_mail_addr,

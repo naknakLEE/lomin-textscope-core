@@ -31,22 +31,26 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install poppler-utils
 
-# RUN pip3 install --upgrade pip
-
+# POETRY
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
     poetry config virtualenvs.create false
+COPY ./requirements/web/pyproject.toml /workspace/
+COPY ./requirements/web/poetry.lock /workspace/
+WORKDIR /workspace
+RUN poetry install --no-dev
+
 
 COPY ./app/assets/ /workspace/app/assets/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/web/ /workspace/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
 COPY ./.env.prod /workspace/.env
 
-COPY ./requirements/web/pyproject.toml /workspace/
-COPY ./requirements/web/poetry.lock /workspace/
 
-WORKDIR /workspace
-RUN poetry install --no-dev
+# Swagger offilne
+COPY ./app/static /workspace/static/.
+
+
 
 COPY ./assets/build_script/rm_init_db_file.py /workspace/assets/build_script/rm_init_db_file.py
 RUN python3 /workspace/assets/build_script/rm_init_db_file.py

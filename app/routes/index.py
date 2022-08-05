@@ -180,7 +180,7 @@ async def post_upload_document(
     document_description: str = params.get("description")
     document_type:        str = params.get("document_type")
     document_path:        str = params.get("document_path")
-    
+    logger.info("start post /docx")
     # document_data가 없고 document_path로 요청이 왔는지 확인
     # document_path로 왔으면 파일 읽기
     if document_data is None and document_path is not None:
@@ -191,19 +191,20 @@ async def post_upload_document(
         # TODO drm_user 수정 필요
         drm_user = "user01"
         document_data = await drm.drm_decryption(document_data, document_name, drm_user)
-            
+    logger.info("load document data")
     # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=user_email)
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
     select_user_result: schema.UserInfo = select_user_result
     user_team = select_user_result.user_team
-    
+    logger.info("check user info")
     # 사용자의 모든 정책(권한) 확인
     user_policy_result = query.get_user_group_policy(session, user_email=user_email)
     if isinstance(user_policy_result, JSONResponse):
         return user_policy_result
     user_policy_result: dict = user_policy_result
+    logger.info("check user policy")
     
     # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
     group_prefix = get_company_group_prefix(session, current_user.email)
@@ -256,8 +257,10 @@ async def post_upload_document(
     if is_support is False:
         raise CoreCustomException(2105)
     
+    logger.info(f"start save document name : {document_name}")
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data, separate=True)
+    logger.info(f"start save document done name : {document_name}")
     
     if save_success is False:
         raise CoreCustomException(4102, "문서")

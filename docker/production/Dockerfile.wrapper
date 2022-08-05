@@ -44,6 +44,8 @@ COPY ./.env.prod /workspace/.env
 COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/
 COPY ./requirements/${CUSTOMER}/poetry.lock /workspace/
 
+# Swagger offilne
+COPY ./${CUSTOMER}_wrapper/wrapper/static /workspace/${CUSTOMER}_wrapper/static/.
 WORKDIR /workspace
 RUN poetry install --no-dev
 
