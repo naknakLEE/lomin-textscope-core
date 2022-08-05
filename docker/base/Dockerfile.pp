@@ -41,6 +41,7 @@ RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as pos
 
 WORKDIR /workspace/pp_server/lovit
 COPY ./pp_server/lovit /workspace/pp_server/lovit
+RUN pip3 install -r /workspace/pp_server/lovit/requirements.txt
 RUN python3 setup.py build develop && \
     rm -rf /workspace/pp_server/lovit
 

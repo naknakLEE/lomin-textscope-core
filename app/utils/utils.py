@@ -106,6 +106,9 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
         return "ccr"
     elif doc_type in pp_mapping_table.get("busan_bank", []):
         return "busan_bank"
+    # 처방전 PP        
+    elif doc_type in pp_mapping_table.get("entity_linking", []):
+        return "general_pp_el"        
     # 주민등록등본 전용 PP
     elif doc_type == "GV-ARR":
         return "rrtable"

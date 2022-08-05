@@ -202,7 +202,10 @@ def single(
     # TODO 추후 doc_type : route_name 매핑 정보 추가
     if inputs["doc_type"] == "FN-CB":
         route_name = "bill_enterprise"
-    
+    # 처방전
+    if inputs["doc_type"] == "MD-PRS":
+        route_name = "el"
+
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
