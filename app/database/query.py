@@ -162,8 +162,6 @@ def select_class_all(session: Session, **kwargs: Dict) -> Union[List[schema.Clas
         result = schema.ClassInfo.get_all_multi(session, **kwargs)
         if result is None:
             raise CoreCustomException(2106)
-    except CoreCustomException as cce:
-        raise cce
     except Exception:
         raise CoreCustomException(4101, "모든 class")
     return result
@@ -173,9 +171,8 @@ def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentIn
     try:
         result = schema.DocumentInfo.get(session, **kwargs)
         if result is None:
-            raise CoreCustomException(2101)
-    except CoreCustomException as cce:
-        raise cce
+            status_code, error = ErrorResponse.ErrorCode.get(2101)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         raise CoreCustomException(4101, "문서")
     return result
@@ -755,6 +752,31 @@ def get_user_authority(user_policy_result: Dict[str, Union[bool, list]]) -> str:
         authority = "없음"
     
     return authority
+
+
+def insert_user_group_policy(
+    session: Session,
+    user_email: str = "do@not.use",
+    policy_code: str = "NO_CODE",
+    policy_content: dict = {},
+    authority_time_start: str = datetime.now(),
+    authority_time_end:   str = datetime.now() + timedelta(days=1),
+    auto_commit: bool = True
+) -> Union[Optional[schema.GroupPolicy], JSONResponse]:
+    try:
+        result = schema.GroupPolicy.create(
+            session=session,
+            group_code=user_email,
+            policy_code=policy_code,
+            policy_content=policy_content,
+            start_time=authority_time_start,
+            end_time=authority_time_end,
+            auto_commit=auto_commit
+        )
+    except Exception:
+        session.rollback()
+        raise CoreCustomException(4102, "사용자 권한")
+    return result
 
 
 # 순수 가지고 있는 정책(권한) 정보
