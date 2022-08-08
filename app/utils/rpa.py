@@ -1,5 +1,6 @@
 import os
 
+import traceback
 import httpx
 import base64
 import pandas as pd
@@ -7,6 +8,7 @@ from typing import Optional, List, Any
 
 from app import hydra_cfg
 from app.common.const import get_settings
+from app.utils.logging import logger
 from app.middlewares.exception_handler import CoreCustomException
 
 
@@ -21,15 +23,19 @@ async def save_bytes_to_nas(file_list:List):
     for file_name, bytes_data in file_list:
         # 파일 있으면 파일 저장
         try:
+            
             document_save_path = os.path.join(nas_path, file_name)
+            logger.info(f"save bytes to nas : {document_save_path}")
             if not os.path.exists(nas_path):
                 os.makedirs(nas_path)
             with open(document_save_path, "wb") as file:
                 file.write(bytes_data)
             upload_file_name.append(file_name)
         except Exception as ex:
+            traceback.print_exc()
             raise CoreCustomException("C01.002.5001")
     upload_file_name = file_name_separator.join(upload_file_name)
+    return upload_file_name
 
 async def send_rpa(
     send_mail_addr: str,

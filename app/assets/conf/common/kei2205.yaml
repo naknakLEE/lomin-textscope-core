@@ -1,15 +1,15 @@
 drm:
-  use: True
-  save_path: /workspace/drm/file_from
-  get_path: /workspace/drm/file_to
+  use: False
+  save_path: /workspace/nas/drm/file_from
+  get_path: /workspace/nas/drm/file_to
   drm_ip: textscope-web
   drm_port: 8000
   nas_decryption_url: /test/java/drm/decryption
   nas_encryption_url: /test/java/drm/encryption
   
 rpa: 
-  use: True
-  save_nas_path: /workspace/data/file_attach
+  use: False
+  save_nas_path: /workspace/nas/rpa/file_attach
   rpa_ip: textscope-web
   rpa_port: 8000
   rpa_url: /test/java/rpa/sendDwpMail
