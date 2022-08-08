@@ -225,9 +225,9 @@ def get_prev_next_documnet_id(
         raise CoreCustomException(4101, "모든 문서")
     
     return {
-        "prev":prev_document.document_id if prev_document is not None else "",
+        "prev":prev_document.document_id if prev_document is not None else "None",
         "now":document_id,
-        "next":next_document.document_id if next_document is not None else ""
+        "next":next_document.document_id if next_document is not None else "None"
     }
 
 
@@ -483,6 +483,33 @@ def select_document_inspect_all(
     return total_count, complet_count, filtered_count, filtered_rows
 
 
+def get_log_all_by_created_time(
+    session: Session,
+    authority_date_start,
+    authority_date_end,
+    **kwargs: Dict
+) -> List[schema.LogInfo]:
+    try:
+        result = schema.LogInfo.get_all_query(session, **kwargs) \
+            .filter(schema.LogInfo.created_time.between(authority_date_start, authority_date_end)) \
+            .order_by(schema.LogInfo.created_time.desc()) \
+            .all()
+    except Exception:
+        raise CoreCustomException(4101, "모든 로그")
+    return result
+
+
+def select_log_all(session: Session, **kwargs: Dict) -> Union[List[schema.LogInfo], JSONResponse]:
+    try:
+        result = schema.LogInfo.get_all(session, **kwargs)
+        if len(result) == 0:
+            status_code, error = ErrorResponse.ErrorCode.get(2201)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        raise CoreCustomException(4101, "모든 로그")
+    return result
+
+
 def select_log(session: Session, **kwargs: Dict) -> Union[schema.LogInfo, JSONResponse]:
     try:
         result = schema.LogInfo.get(session, **kwargs)
@@ -490,22 +517,24 @@ def select_log(session: Session, **kwargs: Dict) -> Union[schema.LogInfo, JSONRe
             status_code, error = ErrorResponse.ErrorCode.get(2201)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        raise CoreCustomException(4101, "log")
+        raise CoreCustomException(4101, "로그")
     return result
 
 
 def insert_log(
     session: Session,
     log_id: str,
+    log_type: str,
     user_email: int,
     user_team: str,
     log_content: dict = {},
     auto_commit: bool = True
-) -> Union[Optional[schema.LogInfo], JSONResponse]:
+) -> Optional[schema.LogInfo]:
     try:
         result = schema.LogInfo.create(
             session=session,
             log_id=log_id,
+            log_type=log_type,
             user_email=user_email,
             user_team=user_team,
             log_content=jsonable_encoder(log_content),
@@ -513,7 +542,7 @@ def insert_log(
         )
     except Exception:
         session.rollback()
-        raise CoreCustomException(4102, "task")
+        raise CoreCustomException(4102, "로그")
     return result
 
 
@@ -707,7 +736,7 @@ def get_user_policy_time(session: Session, user_email: str = "do@not.use", authr
         
         user_group_policy_result = query.all()
         
-        # 없으면 무제한 기간
+        # 없으면 최대 1년 기간 설정
         if len(user_group_policy_result) == 0:
             return {
                 "start_time":datetime.now(),
@@ -747,36 +776,87 @@ def get_user_authority(user_policy_result: Dict[str, Union[bool, list]]) -> str:
     if admin is True:
         authority = "관리자"
     elif len(user_policy_result.get("R_DOCX_TEAM", [])) > 0:
-        authority = "실무담당자"
+        authority = "일반"
     else:
         authority = "없음"
     
     return authority
 
 
-def insert_user_group_policy(
+def select_group_policy(session: Session, group_code: str = "NO_CODE") -> Union[List[schema.GroupPolicy], JSONResponse]:
+    try:
+        result = schema.GroupPolicy.get_all(
+            session=session,
+            group_code=group_code
+        )
+        if len(result) == 0:
+            raise CoreCustomException(2509)
+    except CoreCustomException as cce:
+        raise cce
+    except Exception:
+        raise CoreCustomException(4102, "사용자 권한")
+    return result
+
+
+def upsert_user_group_policy(
     session: Session,
-    user_email: str = "do@not.use",
+    group_code: str = "0000_0000",
     policy_code: str = "NO_CODE",
     policy_content: dict = {},
-    authority_time_start: str = datetime.now(),
-    authority_time_end:   str = datetime.now() + timedelta(days=1),
+    authority_time_start: datetime = datetime.now(),
+    authority_time_end:   datetime = datetime.now() + timedelta(days=30),
     auto_commit: bool = True
 ) -> Union[Optional[schema.GroupPolicy], JSONResponse]:
     try:
-        result = schema.GroupPolicy.create(
-            session=session,
-            group_code=user_email,
-            policy_code=policy_code,
-            policy_content=policy_content,
-            start_time=authority_time_start,
-            end_time=authority_time_end,
-            auto_commit=auto_commit
-        )
+        query: schema.GroupPolicy = session.query(schema.GroupPolicy) \
+            .filter(schema.GroupPolicy.group_code == group_code) \
+            .filter(schema.GroupPolicy.policy_code == policy_code) \
+            .first()
+        
+        if query is not None:
+            query.group_code = group_code
+            query.policy_code = policy_code
+            query.policy_content = policy_content
+            query.start_time = authority_time_start
+            query.end_time = authority_time_end
+            
+        elif query is None:
+            query = schema.GroupPolicy(
+                group_code=group_code,
+                policy_code=policy_code,
+                policy_content=policy_content,
+                start_time=authority_time_start,
+                end_time=authority_time_end
+            )
+            session.add(query)
+            
+        session.commit()
+        
     except Exception:
-        session.rollback()
         raise CoreCustomException(4102, "사용자 권한")
-    return result
+    return query
+
+
+def delete_user_group_policy(
+    session: Session,
+    group_code: str = "0000_0000",
+    policy_code: str = "NO_CODE",
+    auto_commit: bool = True
+) -> None:
+    try:
+        query = session.query(schema.GroupPolicy) \
+            .filter(schema.GroupPolicy.group_code == group_code) \
+            .filter(schema.GroupPolicy.policy_code == policy_code) \
+            .first()
+        
+        if query is not None:
+            session.delete(query)
+            session.commit()
+        
+    except Exception:
+        raise CoreCustomException("D01.900.5003", "사용자 권한")
+    return query
+
 
 
 # 순수 가지고 있는 정책(권한) 정보
@@ -786,7 +866,6 @@ def get_user_group_policy(
     group_level: Optional[List[int]] = [],
     user_email: str = "do@not.use"
 ) -> Union[Dict[str, Union[bool, list]], JSONResponse]:
-    
     try:
         now_datetime = datetime.now()
         
@@ -795,12 +874,14 @@ def get_user_group_policy(
         if isinstance(select_user_result, JSONResponse):
             return select_user_result
         
-        user_group_policy_result: List[Tuple[schema.UserGroup, schema.GroupPolicy]]
-        query = session.query(schema.UserGroup, schema.GroupPolicy) \
-            .filter(schema.UserGroup.user_email == user_email) \
-            .filter(schema.GroupInfo.group_code == schema.UserGroup.group_code) \
-            .filter(schema.GroupInfo.group_code == schema.GroupPolicy.group_code) \
-            .filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
+        select_user_group_result: List[schema.UserGroup] = select_user_group_all(session, user_email=user_email)
+        group_list: List[str] = [ x.group_code for x in select_user_group_result ]
+        
+        user_group_policy_result: List[Tuple[schema.GroupInfo, schema.GroupPolicy]] = list()
+        query = session.query(schema.GroupInfo, schema.GroupPolicy)
+        query = query.filter(schema.GroupInfo.group_code.in_(group_list))
+        query = query.filter(schema.GroupInfo.group_code == schema.GroupPolicy.group_code)
+        query = query.filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
         
         if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
         
@@ -857,7 +938,7 @@ def get_user_group_policy(
         
     except Exception:
         raise CoreCustomException(4101, "유저 그룹 정책")
-        
+    
     return result
 
 # user_policy에서 사용가능한 문서 대분류 그룹 정보 분리
