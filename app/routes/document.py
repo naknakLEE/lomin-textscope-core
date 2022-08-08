@@ -588,7 +588,6 @@ async def get_document_list_sequence(
     
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
-    # group_code_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
     # 사용자 정책(조회 가능 문서 대분류 그룹) 확인
     cls_code_list: List[str] = list()
@@ -599,9 +598,7 @@ async def get_document_list_sequence(
     if isinstance(cls_type_idx_list_result, JSONResponse):
         return cls_type_idx_list_result
     
-    cls_type_idxs: List[int] = list()
-    for result in cls_type_idx_list_result:
-        cls_type_idxs.append(result.get("index"))
+    cls_type_idx: List[int] = [ x.get("index") for x in cls_type_idx_list_result ]
     
     select_document_info_result = query.get_prev_next_documnet_id(
         session,
@@ -610,8 +607,6 @@ async def get_document_list_sequence(
         cls_idx= [ x.get("index") for x in cls_type_idx_list_result ]
     )
     
-    # document_ids = [ x.document_id for x in select_document_info_result ]
-    # document_id
     
     response = dict(
         select_document_info_result
@@ -742,14 +737,11 @@ def get_document_list(
     if isinstance(cls_type_idx_list_result, JSONResponse):
         return cls_type_idx_list_result
     
-    cls_type_idx_result_list: Dict[int, dict] = dict()
-    for result in cls_type_idx_list_result:
-        cls_type_idx = result.get("index")
-        cls_type_idx_result_list.update({cls_type_idx:result})
+    cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
     
     doc_type_idx_code: Dict[int, dict] = dict()
     for cls_type_info in cls_type_idx_result_list.values():
-        for doc_type_info in cls_type_info.get("docx_type", {}):
+        for doc_type_info in cls_type_info.get("docx_type", []):
             doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
     
     # 요청한 문서 종류가 조회 가능한 문서 목록에 없을 경우 에러 반환
@@ -855,9 +847,7 @@ def get_document_list(
         return select_user_all_result
     select_user_all_result: List[schema.UserGroup] = select_user_all_result
     
-    email_user_info: Dict[str, schema.UserGroup] = dict()
-    for user in select_user_all_result:
-        email_user_info.update({user.user_email:user})
+    email_user_info: Dict[str, schema.UserGroup] = { x.user_email : x for x in select_user_all_result }
     
     # user_info.user_email이 company_user_info.EMP_USR_EMAD와 같은 유저(=사원) 정보 조회
     select_comapny_user_all_result = query.select_company_user_info_all(session, emp_usr_emad=email_user_info.keys())
@@ -865,16 +855,11 @@ def get_document_list(
         return select_comapny_user_all_result
     select_comapny_user_all_result: List[schema.CompanyUserInfo] = select_comapny_user_all_result
     
-    email_company_user_info: Dict[str, schema.CompanyUserInfo] = dict()
-    for company_user in select_comapny_user_all_result:
-        company_user_info: schema.CompanyUserInfo = company_user
-        email_company_user_info.update({company_user_info.emp_usr_emad:company_user_info})
+    email_company_user_info: Dict[str, schema.CompanyUserInfo] = { x.emp_usr_emad : x for x in select_comapny_user_all_result }
     
     user_info_list = parse_user_info_list(email_user_info, email_company_user_info)
     
-    user_email_name: Dict[str, str] = dict()
-    for user_info in user_info_list:
-        user_email_name.update({user_info.get("user_email"):user_info.get("user_team_name")})
+    user_email_name: Dict[str, str] = { x.get("user_email") : x.get("user_team_name") for x in user_info_list }
     
     # cls_idx를 이름으로 변경, 문서 유형 추가, document_id 제거
     # rows: List[list] = filtered_rows
