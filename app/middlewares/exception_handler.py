@@ -37,7 +37,7 @@ class CoreCustomException(Exception):
         if error_msg:
             self.error.error_message = self.error.error_message.format(error_msg)
         # 백그라운드 로그용
-        logger.error(f"status_code {self.status_code} error_code {self.error.error_code} error_message {self.error.error_message}")
+        logger.error(f"status_code: {self.status_code}, error_code: \"{self.error.error_code}\", error_message: \"{self.error.error_message}\"")
 
 async def core_exception_handler(request: Request, exc: CoreCustomException) -> JSONResponse:
     traceback.print_exc()
