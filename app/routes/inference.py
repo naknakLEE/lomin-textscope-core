@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.json_schema import inference_responses
 from app.models import UserInfo as UserInfoInModel
-from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
+from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict, get_company_group_prefix
 from app.utils.logging import logger
 from app.utils.document import (
     save_upload_document,
@@ -91,6 +91,11 @@ def ocr(
     select_user_result: schema.UserInfo = select_user_result
     user_team: str = select_user_result.user_team
     
+    group_prefix = get_company_group_prefix(session, user_email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     select_log_result = query.select_log(session, log_id=task_id) 
     if isinstance(select_log_result, schema.LogInfo):
         raise CoreCustomException(2202)
@@ -104,12 +109,11 @@ def ocr(
     insert_log_result = query.insert_log(
         session=session,
         log_id=task_id,
+        log_type=group_prefix + "OCR_REQUEST",
         user_email=user_email,
         user_team=user_team,
         log_content=dict({"request": inputs})
     )
-    if isinstance(insert_log_result, JSONResponse):
-        return insert_log_result
     
     # task_pkey = insert_task_result.task_pkey
     

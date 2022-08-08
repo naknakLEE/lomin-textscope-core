@@ -155,7 +155,8 @@ class Settings(BaseSettings):
         "C_GRANT_ADMIN",
         "D_REVOKE_ADMIN",
         "C_GRANT_USER",
-        "D_REVOKE_USER"
+        "D_REVOKE_USER",
+        "R_ORG_CHART"
     ]
 
     # KBCARD CONFIG

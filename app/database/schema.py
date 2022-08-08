@@ -546,6 +546,7 @@ class LogInfo(Base, BaseMixin):
     __table_args__ = {'comment': 'textscope 서비스 로그 정보'}
 
     log_id = Column(String, primary_key=True, comment='로그 아이디')
+    log_type = Column(String, comment='로그 종류')
     created_time = Column(DateTime, default=func.now())
     user_email = Column(String, nullable=False, comment='로그 생성자 아이디(이메일)')
     user_team = Column(String, nullable=False, comment='로그 생성 당시 유저의 정보')
@@ -642,7 +643,7 @@ class GroupPolicy(Base, BaseMixin):
     created_time = Column(DateTime, primary_key=True, default=func.now())
     group_code = Column(ForeignKey('group_info.group_code'), nullable=False, comment='그룹 유니크 코드')
     policy_code = Column(ForeignKey('policy_info.policy_code'), nullable=False, comment='정책 코드')
-    policy_content = Column(JSON, comment='정책 내용')
+    policy_content = Column(MutableDict.as_mutable(JSON), comment='정책 내용')
     start_time = Column(DateTime, nullable=False, default=func.now(), comment='정책 적용 시작 시각')
     end_time = Column(DateTime, nullable=False, default=func.now(), comment='정책 적용 종료 시각')
     is_used = Column(Boolean, comment='사용 여부')
