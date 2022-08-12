@@ -10,6 +10,9 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV PYTHONPATH="$PYTHONPATH:/workspace/${APP_NAME}"
 
+RUN rm /etc/apt/sources.list.d/cuda.list
+RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+
 RUN apt-get update && \
     apt-get install -y git  && \
     apt-get install wget && \
