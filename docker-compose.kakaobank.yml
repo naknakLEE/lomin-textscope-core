@@ -89,7 +89,7 @@ services:
     tty: true
     
     working_dir: /workspace
-    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000 --timeout=${TIMEOUT_SECOND}
     networks:
       our_net:
           ipv4_address: ${WEB_IP_ADDR}
@@ -116,7 +116,7 @@ services:
       - CUSTOMER=${CUSTOMER}
     tty: true
     working_dir: /workspace/pp_server
-    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080
+    command: gunicorn main:app -w 9 -k uvicorn.workers.UvicornWorker -b 0:8080 --timeout=${TIMEOUT_SECOND}
     networks:
       our_net:
           ipv4_address: ${PP_IP_ADDR}
@@ -148,7 +148,7 @@ services:
     networks:
       our_net:
           ipv4_address: ${WRAPPER_IP_ADDR}
-    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090 --timeout=${TIMEOUT_SECOND}
     
   multiple_gpu_load_balancing:
     image: nginx:1.21.1
