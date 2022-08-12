@@ -23,13 +23,13 @@ from app.models import UserInfo as UserInfoInModel
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
-from app.utils.document import document_path_verify
+from app.utils.drm import document_path_verify
 from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
 from app.utils.utils import is_admin, get_company_group_prefix
 from app.schemas import error_models as ErrorResponse
 from app.schemas import HTTPBearerFake
 from app.middlewares.exception_handler import CoreCustomException
-from app.utils.document import load_file2base64, DRM
+from app.utils.drm import load_file2base64, DRM
 from app.utils.document import (
     get_page_count,
     is_support_format,

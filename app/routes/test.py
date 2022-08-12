@@ -13,12 +13,11 @@ from app.utils.logging import logger
 from app.common.const import get_settings
 from app.schemas import HTTPBearerFake
 from app.utils.rpa import send_rpa
-from app.utils.document import load_file2base64, DRM
+from app.utils.drm import load_file2base64, DRM
 
 
 settings = get_settings()
 router = APIRouter()
-
 
 
 @router.post("/java/drm/decryption")

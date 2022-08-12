@@ -56,12 +56,7 @@ async def send_rpa(
     upload_file_name = await save_bytes_to_nas(upload_file_list)
     append_file_name = await save_bytes_to_nas(append_file_list)
     
-        
-    try:
-        async with httpx.AsyncClient() as client:
-            res = await client.post(
-                f"http://{rpa_ip}:{rpa_port}{rpa_url}",
-                json={
+    input_params = {
                     "send_mail_addr": send_mail_addr,
                     "to_mail_addr": to_mail_addr,
                     "cc_mail_addr": cc_mail_addr,
@@ -71,9 +66,20 @@ async def send_rpa(
                     "upload_file_name": upload_file_name,
                     "append_file_name": append_file_name
                     
-                },
+                }
+    logger.info(f"rpa request ip: http://{rpa_ip}:{rpa_port}{rpa_url}")
+    logger.info(f"rpa request input params: {input_params}")
+        
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                f"http://{rpa_ip}:{rpa_port}{rpa_url}",
+                json=input_params,
                 timeout=settings.TIMEOUT_SECOND,
             )
-    except:
+        
+        logger.info(f"response status_code : {res.status_code}, response json: {res.json()}")
+        
+    except Exception as ex:
         raise CoreCustomException("C01.006.5001")
     
