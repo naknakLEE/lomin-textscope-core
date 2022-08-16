@@ -46,8 +46,7 @@ async def post_kei_sso_token(
     
     compNm = token_info.get("compNm", None)
     sub = token_info.get("sub", None)
-    # uid = token_info.get("uid")
-    uid = "2689"
+    uid = token_info.get("UID")
     exp = token_info.get("exp", None)
     
     user = query.select_vw_if_emp(session, eno = uid)

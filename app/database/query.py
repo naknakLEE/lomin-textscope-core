@@ -35,10 +35,10 @@ def select_cls_group(session: Session, **kwargs: Dict) -> Union[schema.ClsGroupI
 def select_vw_if_emp(session: Session, **kwargs: Dict)-> schema.VWIFEMP:
     try:
         result = schema.VWIFEMP.get(session, **kwargs)
-        if result is None:
-            raise CoreCustomException("C01.004.4019")
     except Exception as ex:
         raise CoreCustomException(4101, "수출입은행 인사 정보")
+    if result is None:
+        raise CoreCustomException("C01.004.4019")
     return result
     
 
