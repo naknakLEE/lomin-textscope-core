@@ -236,12 +236,12 @@ async def post_upload_document(
         doc_type_idx_list.append(docx_type.get("index"))
     
     # 요청한 문서 종류(대분류)가 요청 가능한 문서 종류 목록에 없을 경우 에러 반환
-    if cls_type_idx is not None and cls_type_idx not in list(set(cls_type_idx_list)):
-        raise CoreCustomException(2509)
+    # if cls_type_idx is not None and cls_type_idx not in list(set(cls_type_idx_list)):
+    #     raise CoreCustomException(2509)
     
     # 요청한 문서 종류(소분류)가 요청 가능한 문서 종류 목록에 없을 경우 에러 반환
-    if doc_type_idx is not None and doc_type_idx not in list(set(doc_type_idx_list)):
-        raise CoreCustomException(2509)
+    # if doc_type_idx is not None and doc_type_idx not in list(set(doc_type_idx_list)):
+    #     raise CoreCustomException(2509)
     
     # 자동생성된 document_id 중복 확인
     select_document_result = query.select_document(session, document_id=document_id)
@@ -253,8 +253,7 @@ async def post_upload_document(
             return select_document_result
     
     # 업로드된 파일 포맷(확장자) 확인
-    is_support = is_support_format(document_name)
-    if is_support is False:
+    if is_support_format(document_name) is False:
         raise CoreCustomException(2105)
     
     logger.info(f"start save document name : {document_name}")
