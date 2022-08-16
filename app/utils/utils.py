@@ -97,6 +97,8 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     
     if doc_type in pp_mapping_table.get("general_pp", []):
         pp_type = "general_pp"
+    elif doc_type in pp_mapping_table.get("kxm", []):
+        pp_type = "kxm"
     elif doc_type in pp_mapping_table.get("commercial_bill", []):
         pp_type = "commercial_bill"
     elif doc_type in pp_mapping_table.get("heungkuk", []):

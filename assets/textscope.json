@@ -226,12 +226,14 @@
     "general_pp": [
       "사업자등록증", 
       "GV-CBR",
-      "FN-OIP",
-      "FN-BP",
       "TD-CI",
       "TD-PL",
       "TD-BL",
       "TD-PO"
+    ],
+    "kxm": [
+      "FN-OIP",
+      "FN-BP"
     ],
     "commercial_bill": [
       "FN-CB"
