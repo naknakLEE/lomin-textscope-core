@@ -69,6 +69,18 @@ def select_doc_type_kv_class_get_all(session: Session, **kwargs: Dict) -> Union[
         raise CoreCustomException(4101, "소분류와 kv class 정보")
     return result
 
+def select_rpa_form_info_get_all_latest(session: Session, **kwargs: Dict) -> Union[List[schema.RpaFormInfo], JSONResponse]:
+    
+    dao = schema.RpaFormInfo
+    try:
+        query = dao.get_all_query(session, **kwargs)
+        result = query.order_by(dao.rpa_created_time.desc()).first()
+    except Exception:
+        raise CoreCustomException(4101, "rpa 템플릿 정보")
+    if result is None:
+        raise CoreCustomException("C01.007.4001")
+    return result
+
 
 
 def select_cls_group_model(session: Session, **kwargs: Dict) -> Union[schema.ClsGroupModel, JSONResponse]:
@@ -350,6 +362,14 @@ def insert_inspect(session: Session, **kwargs: Dict) -> Union[Optional[schema.In
     except Exception:
         session.rollback()
         raise CoreCustomException(4102, "추론")
+    return result
+
+def insert_rpa_form_info(session: Session, **kwargs: Dict) -> Union[Optional[schema.RpaFormInfo], JSONResponse]:
+    try:
+        result = schema.RpaFormInfo.create(session=session, **kwargs)
+    except Exception:
+        session.rollback()
+        raise CoreCustomException(4102, "rpa 템플릿")
     return result
 
 

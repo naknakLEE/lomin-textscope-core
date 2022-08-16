@@ -67,7 +67,10 @@ primary_column_table = {
     "AlarmRead": "created_time",
     "UserAlarm": "created_time",
     
-    "LogInfo": "log_id"
+    "RpaFormInfo": "rpa_idx",
+    
+    "LogInfo": "log_id",
+    "LogDbLink": "log_idx"
 }
 
 
@@ -744,6 +747,38 @@ class VisualizeInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
     inference = relationship('InferenceInfo')
+    
+
+class RpaFormInfo(Base, BaseMixin):
+    __tablename__ = 'rpa_form_info'
+    __table_args__ = {'comment': 'RPA 양식 이력'}
+
+    rpa_idx = Column(Integer, primary_key=True, comment='rpa 양식 유니크 인텍스')
+    rpa_receiver_email = Column(String, nullable=False, comment='수신자')
+    rpa_title = Column(String, nullable=False, comment='rpa 양식 제목')
+    rpa_body = Column(String, nullable=False, comment='rpa 양식 본문')
+    rpa_nas_path = Column(String, nullable=False,comment='rpa nas 경로')
+    rpa_created_time = Column(DateTime, nullable=False, default=func.now(), comment='rpa 양식 생성 시각')
+    rpa_created_owner = Column(String, comment='rpa 양식 생성자(이메일)')
+    rpa_modified_time = Column(DateTime, default=func.now(), comment='rpa 양식 수정 시각')
+    rpa_modified_owner = Column(String, comment='rpa 양식 수정자(이메일)')
+    is_used = Column(Boolean, comment='사용 여부')
+
+
+class LogDbLink(Base, BaseMixin):
+    __tablename__ = 'log_db_link'
+    __table_args__ = {'comment': 'db link 배치이력 조회'}
+
+    log_idx = Column(Integer, primary_key=True, comment='로그 유니크 인텍스')
+    batch_type = Column(String, nullable=False, comment='배치 유형')
+    batch_name = Column(String, nullable=False, comment='배치명')
+    result_message = Column(String, nullable=False, comment='결과 메시지')
+    db_link_start_time = Column(DateTime, comment='dblink 시작일시')
+    db_link_end_time = Column(DateTime, comment='dblink 종료일시')
+    created_time = Column(DateTime, nullable=False, default=func.now(), comment='dblink 생성 시각')
+    created_owner = Column(String, comment='rpa 양식 수정자(이메일)')
+    is_used = Column(Boolean, comment='사용 여부')
+
 
 
 # 테이블 추가 시, 테이블 명:클래스 명 추가
@@ -777,6 +812,8 @@ table_class_mapping = dict({
     "user_group": UserGroup,
     "inspect_info": InspectInfo,
     "visualize_info": VisualizeInfo,
+    "rpa_form_info": RpaFormInfo,
+    "log_db_link": LogDbLink,
 })
 
 # plugin 계정에 특정 테이블 권한 주기
