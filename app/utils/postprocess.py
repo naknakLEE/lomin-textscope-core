@@ -17,6 +17,7 @@ def add_unrecognition_kv(session: Session, select_inference_result: schema.Infer
     
     doc_type_idx = select_inference_result.doc_type_idx
     select_doc_kv_result = query.select_doc_type_kv_class_get_all(session, doc_type_idx=doc_type_idx)
+    select_doc_kv_result = [ x for x in select_doc_kv_result if x.kv_class_info.kv_class_use == "true" ]
     
     # @TODO pp_server로 이동
     del_class_code(select_inference_result)

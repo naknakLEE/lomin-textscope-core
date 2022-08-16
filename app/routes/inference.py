@@ -1,7 +1,7 @@
 from httpx import Client
 import unicodedata
 
-from typing import Dict, Union
+from typing import Dict, List, Union
 from fastapi import APIRouter, Body, Depends
 from pathlib import Path
 from datetime import datetime
@@ -166,7 +166,7 @@ def ocr(
             inference_results.update(texts= [ unicodedata.normalize('NFKC', x) for x in inference_results.get("texts", []) ] )
             inference_results.update(
                 texts= [
-                    x.replace("[UNK]", "").replace('\"', "").replace('\/', "").replace('\/', "").replace("\\", "").replace("/", "")
+                    x.replace("[UNK]", "").replace('\"', "").replace('\/', "").replace("\\", "")
                     for x in inference_results.get("texts", [])
                 ]
             )
@@ -232,6 +232,7 @@ def ocr(
                 raise CoreCustomException(3502)
             
             inference_results["kv"] = post_processing_results["result"]
+            inference_results.update(parse_kv_class(session, inference_result))
             inference_results.update(sort_kv_tblr(inference_results))
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
@@ -409,7 +410,7 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
     
     return inputs
 
-
+# @TODO utils로 이동
 def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
     t_list = inference_result.get("texts", [])
     b_list = inference_result.get("boxes", [])
@@ -437,7 +438,7 @@ def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
         classes=c_list_
     )
 
-
+# @TODO utils로 이동
 def sort_kv_tblr(inference_result: dict) -> Dict:
     z_b = [0, 0, 0, 0]
     
@@ -447,6 +448,29 @@ def sort_kv_tblr(inference_result: dict) -> Dict:
     kv_list.sort(key= lambda x : (-x[1].get("box", z_b)[1], x[1].get("box", z_b)[0]))
     for order, kv_ in enumerate(kv_list):
         kv.get(kv_[0], {}).update(order=order)
+    
+    return dict(
+        kv=kv
+    )
+
+# @TODO utils로 이동
+def parse_kv_class(session: Session, inference_result: dict) -> Dict:
+    doc_type_code = inference_result.get("doc_type")
+    doc_type_code = doc_type_code if doc_type_code not in ["NONE", None] else "GOCR"
+    
+    # doc_type_code로 doc_type_index 조회
+    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+    if isinstance(select_doc_type_result, JSONResponse):
+        return select_doc_type_result
+    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+    doc_type_idx = select_doc_type_result.doc_type_idx
+    
+    select_doc_kv_result: List[schema.DocTypeKvClass] = query.select_doc_type_kv_class_get_all(session, doc_type_idx=doc_type_idx)
+    select_doc_kv_result = [ x for x in select_doc_kv_result if x.kv_class_info.kv_class_use == "false" ]
+    
+    kv = inference_result.get("kv", {})
+    for no_use_kv_class in [ x.kv_class_code for x in select_doc_kv_result ]:
+        kv.pop(no_use_kv_class, None)
     
     return dict(
         kv=kv
