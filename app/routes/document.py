@@ -181,18 +181,23 @@ def get_document_preview(
     user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
     group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
     
+    # 사용자 정책(조회 가능 문서 종류(대분류)) 확인
     cls_code_list: List[str] = list()
     cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
     cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
     
-    cls_type_list = query.get_user_classification_type(session, cls_code_list=cls_code_list)
-    if isinstance(cls_type_list, JSONResponse):
-        return cls_type_list
+    cls_type_idx_list_result = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_idx_list_result, JSONResponse):
+        return cls_type_idx_list_result
     
-    doc_type_idx_code: Dict[str, int] = dict()
-    for cls_type_info in cls_type_list:
-        for doc_type_info in cls_type_info.get("docx_type", {}):
-            doc_type_idx_code.update({doc_type_info.get("code"):doc_type_info.get("index")})
+    cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
+    cls_type_doc_type_list: Dict[int, List[int]] = { cls_type : [ x.get("index") for x in doc_type.get("docx_type", []) ] for cls_type, doc_type in cls_type_idx_result_list.items() }
+    
+    # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
+    doc_type_idx_code: Dict[int, dict] = dict()
+    for cls_type_info in cls_type_idx_result_list.values():
+        for doc_type_info in cls_type_info.get("docx_type", []):
+            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
     
     # 문서 정보 조회
     select_document_result = query.select_document(session, document_id=document_id)
@@ -235,7 +240,11 @@ def get_document_preview(
         doc_type_idx_ = 0
         doc_type_name_ = ""
         
-        if doc_type_code not in doc_type_idx_code.keys() or doc_type_info is None:
+        # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)일때 "기타서류"
+        if doc_type_code not in cls_type_doc_type_list.get(select_document_result.cls_idx, []) \
+            or doc_type_code not in doc_type_idx_code.keys() \
+            or doc_type_info is None:
+            
             doc_type_idx_ = 0
             doc_type_name_ = "기타 서류"
         else:
@@ -738,6 +747,7 @@ def get_document_list(
         return cls_type_idx_list_result
     
     cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
+    cls_type_doc_type_list: Dict[int, List[int]] = { cls_type : [ x.get("index") for x in doc_type.get("docx_type", []) ] for cls_type, doc_type in cls_type_idx_result_list.items() }
     
     # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
     doc_type_idx_code: Dict[int, dict] = dict()
@@ -883,7 +893,11 @@ def get_document_list(
             cls_idx = row.pop(cls_index)
             
             first_doc_type_name = doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr")
-            if doc_type_idx_first not in doc_type_idx_code.keys():
+            
+            # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)일때 "기타서류"
+            if doc_type_idx_first not in cls_type_doc_type_list.get(cls_idx, []) \
+                or doc_type_idx_first not in doc_type_idx_code.keys():
+                
                 first_doc_type_name = "기타 서류"
             
             row.insert(cls_index, first_doc_type_name)
@@ -975,6 +989,7 @@ def get_document_inference_info(
         return cls_type_idx_list_result
     
     cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
+    cls_type_doc_type_list: Dict[int, List[int]] = { cls_type : [ x.get("index") for x in doc_type.get("docx_type", []) ] for cls_type, doc_type in cls_type_idx_result_list.items() }
     
     # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
     doc_type_idx_code: Dict[int, dict] = dict()
@@ -1019,6 +1034,11 @@ def get_document_inference_info(
         # kv에 kv_class_name_kr 한글명 추가
         select_inference_result = add_class_name_kr(session, select_inference_result)
     
+    # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)일때 "기타서류"
+    doc_type_idx = select_inference_result.doc_type_idx
+    if select_inference_result.doc_type_idx not in cls_type_doc_type_list.get(select_document_result.cls_idx, []) \
+        or select_inference_result.doc_type_idx not in doc_type_idx_code.keys():
+        doc_type_idx = 0
     
     response = dict(
         document_id=select_inference_result.document_id,
@@ -1029,7 +1049,7 @@ def get_document_inference_info(
         
         inspect_result=select_inspect_result.inspect_result if select_inspect_result else None,
         
-        doc_type_idx=select_inference_result.doc_type_idx if select_inference_result.doc_type_idx in doc_type_idx_code else 0,
+        doc_type_idx=doc_type_idx,
         page_width=select_inference_result.page_width,
         page_height=select_inference_result.page_height
     )
