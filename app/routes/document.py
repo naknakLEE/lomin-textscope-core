@@ -205,7 +205,7 @@ def get_document_preview(
         status_code, error = ErrorResponse.ErrorCode.get(2505)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
-    # 문서가 포함한 문서 종류(소분류) 리스트
+    # 문서에 포함된 문서 종류(소분류) 리스트
     doc_type_idxs: dict = select_document_result.doc_type_idxs
     doc_type_total_cnt: Dict[str, int] = dict()
     for doc_type_code in doc_type_idxs.get("doc_type_codes", []):
@@ -728,7 +728,7 @@ def get_document_list(
         if group_prefix + group_code not in group_code_list:
             raise CoreCustomException(2509)
     
-    # 사용자 정책(조회 가능 문서 대분류 그룹) 확인
+    # 사용자 정책(조회 가능 문서 종류(대분류)) 확인
     cls_code_list: List[str] = list()
     cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
     cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
@@ -739,6 +739,7 @@ def get_document_list(
     
     cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
     
+    # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
     doc_type_idx_code: Dict[int, dict] = dict()
     for cls_type_info in cls_type_idx_result_list.values():
         for doc_type_info in cls_type_info.get("docx_type", []):
@@ -861,12 +862,11 @@ def get_document_list(
     
     user_email_name: Dict[str, str] = { x.get("user_email") : x.get("user_team_name") for x in user_info_list }
     
-    # cls_idx를 이름으로 변경, 문서 유형 추가, document_id 제거
+    # 첫번째 장의 문서 종류(소분류) 명 추가, document_id 제거
     # rows: List[list] = filtered_rows
     response_rows: List[list] = list()
     for row in filtered_rows:
         
-        # doc_type_idxs: dict = json.loads(row.pop(doc_type_index).replace("'", "\""))
         doc_type_idxs: dict = row.pop(doc_type_index)
         doc_type_idx_first = doc_type_idxs.get("doc_type_idxs", [0])[0]
         
@@ -881,7 +881,12 @@ def get_document_list(
         # cls_idx -> doc_type_name_kr
         if cls_index != 0:
             cls_idx = row.pop(cls_index)
-            row.insert(cls_index, doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr"))
+            
+            first_doc_type_name = doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr")
+            if doc_type_idx_first not in doc_type_idx_code.keys():
+                first_doc_type_name = "기타 서류"
+            
+            row.insert(cls_index, first_doc_type_name)
         
         # 검수 상태 매핑
         if docx_st_index > 0:
@@ -960,6 +965,23 @@ def get_document_inference_info(
         return select_document_result
     select_document_result: schema.DocumentInfo = select_document_result
     
+    # 사용자 정책(조회 가능 문서 종류(대분류)) 확인
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_idx_list_result = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_idx_list_result, JSONResponse):
+        return cls_type_idx_list_result
+    
+    cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
+    
+    # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
+    doc_type_idx_code: Dict[int, dict] = dict()
+    for cls_type_info in cls_type_idx_result_list.values():
+        for doc_type_info in cls_type_info.get("docx_type", []):
+            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
+    
     # 해당 문서에 대한 권한이 없음
     if group_prefix + select_document_result.user_team not in group_list:
         raise CoreCustomException(2505)
@@ -1007,7 +1029,7 @@ def get_document_inference_info(
         
         inspect_result=select_inspect_result.inspect_result if select_inspect_result else None,
         
-        doc_type_idx=select_inference_result.doc_type_idx,
+        doc_type_idx=select_inference_result.doc_type_idx if select_inference_result.doc_type_idx in doc_type_idx_code else 0,
         page_width=select_inference_result.page_width,
         page_height=select_inference_result.page_height
     )
