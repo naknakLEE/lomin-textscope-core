@@ -232,6 +232,7 @@ def ocr(
                 raise CoreCustomException(3502)
             
             inference_results["kv"] = post_processing_results["result"]
+            inference_results.update(sort_kv_tblr(inference_results))
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
             )
@@ -420,7 +421,7 @@ def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
     
     tbsc_list = [ (t, b, s, c) for t, b, s, c in zip(t_list, b_list, s_list, c_list) ]
     
-    tbsc_list.sort(key= lambda x : (x[1][1], x[1][0]))
+    tbsc_list.sort(key= lambda x : (-x[1][1], x[1][0]))
     
     t_list_, b_list_, s_list_, c_list_ = (list(), list(), list(), list())
     for tbsc in tbsc_list:
@@ -432,8 +433,21 @@ def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
     return dict(
         texts=t_list_,
         boxes=b_list_,
-        # scores=s_list_, @TODO
-        scores=inference_result.get("scores", []),
-        # classes=c_list_, @TODO
-        classes=inference_result.get("classes", [])
+        scores=s_list_,
+        classes=c_list_
+    )
+
+
+def sort_kv_tblr(inference_result: dict) -> Dict:
+    z_b = [0, 0, 0, 0]
+    
+    kv = inference_result.get("kv", {})
+    kv_list = [ (k, v) for k, v in kv.items() ]
+    
+    kv_list.sort(key= lambda x : (-x[1].get("box", z_b)[1], x[1].get("box", z_b)[0]))
+    for order, kv_ in enumerate(kv_list):
+        kv.get(kv_[0], {}).update(order=order)
+    
+    return dict(
+        kv=kv
     )
