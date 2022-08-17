@@ -838,7 +838,8 @@ grant_table_list = [
     "doc_type_cls_group",
     "cls_group_model",
     "kv_class_info",
-    "doc_type_kv_class"
+    "doc_type_kv_class",
+    "log_db_link"
 ]
 
 def create_db_table() -> None:
