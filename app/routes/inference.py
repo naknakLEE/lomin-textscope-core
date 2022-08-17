@@ -166,7 +166,7 @@ def ocr(
             inference_results.update(texts= [ unicodedata.normalize('NFKC', x) for x in inference_results.get("texts", []) ] )
             inference_results.update(
                 texts= [
-                    x.replace("[UNK]", "").replace('\"', "").replace('\/', "").replace("\\", "")
+                    x.replace("[UNK]", "").replace('\"', "").replace("\\", "")
                     for x in inference_results.get("texts", [])
                 ]
             )
