@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app import hydra_cfg
+from app.utils.rpa import send_rpa_only_cls_FN
 from app.database.connection import db
 from app.database import query, schema
 from app.common.const import get_settings
@@ -30,7 +31,7 @@ router = APIRouter()
 
 
 @router.post("/save")
-def post_inspect_info(
+async def post_inspect_info(
     request: Request,
     params: dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
@@ -108,6 +109,14 @@ def post_inspect_info(
     if inspect_done is True:
         inspect_status = settings.STATUS_INSPECTED
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
+        
+        if hydra_cfg.common.rpa.use: # rpa 시작
+            inference_doc_type = select_inference_result.inference_result.get("doc_type")
+            try:
+                await send_rpa_only_cls_FN(session, user_email, inference_doc_type)
+            except Exception as ex:
+                logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
+        
     else:
         inspect_date_end = None
     

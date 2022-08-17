@@ -4,6 +4,7 @@ from fastapi import Depends, APIRouter, HTTPException, Body
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 
+from app.utils.rpa import send_rpa_only_cls_FN
 from app.utils.auth import get_current_active_user
 from app.database.connection import db
 from app.common.const import get_settings
@@ -101,6 +102,49 @@ def post_rpa_template(
         rpa_created_owner = current_user.email
     )
     del insert_rpa_form_info_result
+    
+    response = dict(
+        status="success"
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+    
+    
+
+@router.post(
+    "/")
+async def post_rpa(
+    params: dict = Body(...),
+    session: Session = Depends(db.session),
+    current_user: models.UserInfo = Depends(get_current_active_user),
+) -> Any:
+    """
+    ### RPA 전송을 수동으로 진행합니다.
+    
+    문서 종류 해외 투자 신고서류에 한에서만 RPA 전송이 이루어집니다.
+    
+    해외 투자 신고서류 이외에 파일이 들어오면 RPA 전송을 진행하지 않습니다.
+    
+    document_id를 리스트 형태로 받습니다.
+    """
+        
+    document_id:  str  = params.get("document_id")
+    
+    # emp_usr_emad=current_user.email인 사원의 정보
+    request_company_user_info = query.select_company_user_info(session, emp_usr_emad=current_user.email)
+    if isinstance(request_company_user_info, JSONResponse):
+        raise CoreCustomException(2509)
+    
+    # current_user.email이 가지고 있는 모든 정책(권한) 정보 조회
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    user_policy_result: dict = user_policy_result
+    
+    # 관리자가 아닐경우 에러 응답 반환
+    if not is_admin(user_policy_result):
+        raise CoreCustomException(2509)
+    
+    
+    await send_rpa_only_cls_FN(session, current_user.email, document_id)
     
     response = dict(
         status="success"

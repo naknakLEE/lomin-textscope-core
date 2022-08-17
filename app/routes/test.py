@@ -177,6 +177,7 @@ async def post_kei_send_rpa(
         bcc_mail_addr: str,
         subject_title: str,
         body_data: str,
+        nas_file_path: str,
         upload_file_count: int,
         append_file_count: int
     ) -> Any:
@@ -209,6 +210,7 @@ async def post_kei_send_rpa(
         bcc_mail_addr,
         subject_title,
         body_data,
+        nas_file_path,
         upload_pd_files,
         append_pd_files
     )

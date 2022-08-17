@@ -182,11 +182,10 @@ def select_class_all(session: Session, **kwargs: Dict) -> Union[List[schema.Clas
 def select_document(session: Session, **kwargs: Dict) -> Union[schema.DocumentInfo, JSONResponse]:
     try:
         result = schema.DocumentInfo.get(session, **kwargs)
-        if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2101)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         raise CoreCustomException(4101, "문서")
+    if result is None:
+        raise CoreCustomException(2101)
     return result
 
 
@@ -194,10 +193,10 @@ def select_document_all(session: Session, **kwargs: Dict) -> Union[List[schema.D
     try:
         query = schema.DocumentInfo.get_all_query_multi(session, **kwargs)
         result = query.order_by(schema.DocumentInfo.document_upload_time.asc()).all()
-        if len(result) == 0:
-            raise CoreCustomException(2101)
     except Exception:
         raise CoreCustomException(4101, "모든 문서")
+    if len(result) == 0:
+        raise CoreCustomException(2101)
     return result
 
 
