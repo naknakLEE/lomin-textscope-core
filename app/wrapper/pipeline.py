@@ -87,6 +87,13 @@ inference_pipeline_list = {
 model_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 route_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 
+# kdt용 doc_type_mapping_table
+doc_type_mapping_table = {
+    "KDT1_CBR": "GV-CBR-A",
+    "KDT1_CIPA": "KDT1-CIUA",
+    "KDT1_CTF": "KDT1-CERT",
+    "KDT1_UR": "KDT1-URF"
+}
 
 inference_pipeline: Dict[str, Dict] = inference_pipeline_list.get(settings.CUSTOMER)  # type: ignore
 
@@ -205,6 +212,11 @@ def single(
     # 처방전
     if inputs["doc_type"] == "MD-PRS":
         route_name = "el"
+    # 한국평가데이터: KDT1이 입력받은 doc_type에 있을경우 doc_type 변환(textscope 형태로) 후 kv로 보내기
+    # -> inference_server에 kv 부분이 doc_type을 textscope 형태로 사용중
+    if 'KDT1' in inputs["doc_type"]:
+        inputs["doc_type"] = doc_type_mapping_table.get(inputs["doc_type"])
+        route_name = "kv"                
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
