@@ -445,9 +445,9 @@ def sort_kv_tblr(inference_result: dict) -> Dict:
     kv: Dict[str, Dict] = inference_result.get("kv", {})
     kv_list = [ (k, v) for k, v in kv.items() if k.endswith("_VALUE") ]
     
-    kv_list.sort(key= lambda x : (-x[1].get("box", z_b)[1], x[1].get("box", z_b)[0]))
+    kv_list.sort(key= lambda x : (x[1].get("box", z_b)[1], x[1].get("box", z_b)[0]))
     for order, kv_ in enumerate(kv_list):
-        kv.get(kv_[0], {}).update(order=order)
+        kv.get(kv_[0], {}).update(order=order+1)
     
     return dict(
         kv=kv
