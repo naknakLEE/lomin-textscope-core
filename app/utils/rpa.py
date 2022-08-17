@@ -6,6 +6,7 @@ import base64
 import pandas as pd
 from typing import Optional, List, Any
 from sqlalchemy.orm import Session
+from starlette.responses import JSONResponse
 
 from app.database import query, schema
 from app import hydra_cfg
@@ -97,6 +98,8 @@ async def send_rpa_only_cls_FN(session: Session, user_email: str, document_id: s
     CLS_FN_IDX = 1
     
     select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        raise CoreCustomException(2101)
     select_document_result: schema.DocumentInfo = select_document_result
     
     
