@@ -123,9 +123,8 @@ async def post_rpa(
     
     문서 종류 해외 투자 신고서류에 한에서만 RPA 전송이 이루어집니다.
     
-    해외 투자 신고서류 이외에 파일이 들어오면 RPA 전송을 진행하지 않습니다.
+    해외 투자 신고서류 이외의 파일이 들어오면 RPA 전송을 진행하지 않습니다.
     
-    document_id를 리스트 형태로 받습니다.
     """
         
     document_id:  str  = params.get("document_id")
