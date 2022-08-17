@@ -422,7 +422,7 @@ def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
     
     tbsc_list = [ (t, b, s, c) for t, b, s, c in zip(t_list, b_list, s_list, c_list) ]
     
-    tbsc_list.sort(key= lambda x : (-x[1][1], x[1][0]))
+    tbsc_list.sort(key= lambda x : (x[1][1], x[1][0]))
     
     t_list_, b_list_, s_list_, c_list_ = (list(), list(), list(), list())
     for tbsc in tbsc_list:
@@ -442,8 +442,8 @@ def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
 def sort_kv_tblr(inference_result: dict) -> Dict:
     z_b = [0, 0, 0, 0]
     
-    kv = inference_result.get("kv", {})
-    kv_list = [ (k, v) for k, v in kv.items() ]
+    kv: Dict[str, Dict] = inference_result.get("kv", {})
+    kv_list = [ (k, v) for k, v in kv.items() if k.endswith("_VALUE") ]
     
     kv_list.sort(key= lambda x : (-x[1].get("box", z_b)[1], x[1].get("box", z_b)[0]))
     for order, kv_ in enumerate(kv_list):
