@@ -839,7 +839,13 @@ grant_table_list = [
     "cls_group_model",
     "kv_class_info",
     "doc_type_kv_class",
-    "log_db_link"
+    "log_db_link",
+    
+]
+
+# plugin 계정에 특정 시퀀스 권한 주기
+grant_sequences_list = [
+    "log_db_link_log_idx_seq"
 ]
 
 def create_db_table() -> None:
@@ -867,6 +873,8 @@ def create_db_users() -> None:
         connection = db.engine.connect()
         sql_create_user = """CREATE USER %TS%username%TS% WITH PASSWORD '%TS%passwd%TS%'"""
         sql_grant_table = """GRANT ALL ON %TS%table%TS% TO %TS%username%TS%"""
+        sql_grant_sequences = """GRANT ALL on %TS%sequences%TS% to %TS%username%TS%;"""
+
         
         for user in settings.POSTGRES_USERS:
             connection.execute(text(
@@ -878,6 +886,12 @@ def create_db_users() -> None:
                 connection.execute(text(
                     sql_grant_table \
                     .replace("%TS%table%TS%", table) \
+                    .replace("%TS%username%TS%", user.get("username"))
+                ))
+            for sequence in grant_sequences_list:
+                connection.execute(text(
+                    sql_grant_sequences \
+                    .replace("%TS%sequences%TS%", sequence) \
                     .replace("%TS%username%TS%", user.get("username"))
                 ))
         
