@@ -14,7 +14,7 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, test, rpa
+from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, test, rpa, drm
 from app.routes import document, model, inspect
 from app.database.connection import db
 from app.common.config import config
@@ -129,5 +129,6 @@ def app_generator() -> FastAPI:
     
     app.include_router(test.router, tags=["Kei Connection Test Api"], prefix="/test", include_in_schema=True)
     app.include_router(rpa.router, tags=["Kei Robotic Process Automation"], prefix="/v1/rpa", include_in_schema=True)
+    app.include_router(drm.router, tags=["Kei DRM"], prefix="/v1/drm", include_in_schema=True)
     
     return app
