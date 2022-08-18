@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, Body, Request
+from fastapi import APIRouter, Depends, Body, Request, Security
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -17,6 +17,8 @@ from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
 from app.utils.inspect import get_inspect_accuracy
 from app.middlewares.exception_handler import CoreCustomException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
@@ -24,7 +26,7 @@ else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
-
+security = HTTPBearer()
 settings = get_settings()
 router = APIRouter()
 
@@ -51,6 +53,7 @@ async def post_inspect_info(
     inspect_result:     dict  = params.get("inspect_result")
     inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
     inspect_done:       bool  = params.get("inspect_done", False)
+    token:              HTTPAuthorizationCredentials = Security(security)
     
     # 사용자 정보 조회
     select_user_result = query.select_user(session, user_email=user_email)
@@ -111,9 +114,8 @@ async def post_inspect_info(
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
         
         if hydra_cfg.common.rpa.use: # rpa 시작
-            inference_doc_type = select_inference_result.inference_result.get("doc_type")
             try:
-                await send_rpa_only_cls_FN(session, user_email, inference_doc_type)
+                await send_rpa_only_cls_FN(session, user_email, document_id, token)
             except Exception as ex:
                 logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
         

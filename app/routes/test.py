@@ -105,7 +105,7 @@ def post_java_drm_encryption(
 
 
 @router.post("/java/rpa/sendDwpMail")
-def post_java_rpa_sendDwpMail(
+async def post_java_rpa_sendDwpMail(
         params: dict = Body(...)
     ) -> Any:
     try:
@@ -117,6 +117,7 @@ def post_java_rpa_sendDwpMail(
         body_data = params.get("body_data")
         upload_file_name = params.get("upload_file_name")
         append_file_name = params.get("append_file_name")
+        dwp_file_path = params.get("dwp_file_path")
         
         
         logger.info(f"/test/rpa/sendDwpMail inputs \n\
@@ -128,25 +129,26 @@ def post_java_rpa_sendDwpMail(
             body_data: {body_data} \n\
             upload_file_name: {upload_file_name} \n\
             append_file_name: {append_file_name} \n\
+            dwp_file_path: {dwp_file_path} \n\
             ")
         
         rpa_cfg = hydra_cfg.common.rpa
-        nas_path = rpa_cfg.save_nas_path
+        nas_path = dwp_file_path
         separator = rpa_cfg.file_name_separator
         
         logger.info(f"upload_file_name {upload_file_name}")
         logger.info(f"append_file_name {append_file_name}")
-        upload_files = upload_file_name.split(separator)[:-1]
-        append_files = append_file_name.split(separator)[:-1]
+        upload_files = upload_file_name.split(separator)
+        append_files = append_file_name.split(separator)
         
         for file_name in upload_files:
             file_path = os.path.join(nas_path, file_name)
-            with open(os.path.join(file_path, file_name), 'rb') as file:
+            with open(file_path, 'rb') as file:
                 read_test = file.read()
                 
         for file_name in append_files:
             file_path = os.path.join(nas_path, file_name)
-            with open(os.path.join(file_path, file_name), 'rb') as file:
+            with open(file_path, 'rb') as file:
                 read_test = file.read()
 
         
@@ -177,7 +179,7 @@ async def post_kei_send_rpa(
         bcc_mail_addr: str,
         subject_title: str,
         body_data: str,
-        nas_file_path: str,
+        dwp_file_path: str,
         upload_file_count: int,
         append_file_count: int
     ) -> Any:
@@ -210,7 +212,7 @@ async def post_kei_send_rpa(
         bcc_mail_addr,
         subject_title,
         body_data,
-        nas_file_path,
+        dwp_file_path,
         upload_pd_files,
         append_pd_files
     )

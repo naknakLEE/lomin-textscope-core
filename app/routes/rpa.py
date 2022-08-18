@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from fastapi import Depends, APIRouter, HTTPException, Body
+from fastapi import Depends, APIRouter, HTTPException, Body, Security
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 
@@ -13,14 +13,14 @@ from starlette.responses import JSONResponse
 from app.middlewares.exception_handler import CoreCustomException
 from app.utils.utils import is_admin, get_ts_uuid, get_company_group_prefix
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import (HTTPBearer, HTTPAuthorizationCredentials)
 
 
 
 from app import models
 from app.database import query, schema
 
-
-
+security = HTTPBearer()
 settings = get_settings()
 router = APIRouter()
 
@@ -117,6 +117,7 @@ async def post_rpa(
     params: dict = Body(...),
     session: Session = Depends(db.session),
     current_user: models.UserInfo = Depends(get_current_active_user),
+    token: HTTPAuthorizationCredentials = Security(security),
 ) -> Any:
     """
     ### RPA 전송을 수동으로 진행합니다.
@@ -143,7 +144,7 @@ async def post_rpa(
         raise CoreCustomException(2509)
     
     
-    await send_rpa_only_cls_FN(session, current_user.email, document_id)
+    await send_rpa_only_cls_FN(session, current_user.email, document_id, token)
     
     response = dict(
         status="success"
