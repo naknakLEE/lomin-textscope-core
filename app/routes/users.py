@@ -31,7 +31,7 @@ router = APIRouter()
 settings = get_settings()
 
 
-# 이메일 정보로 사원정보 조회
+# 이메일 정보로 "사원정보" 조회
 @router.get("/{user_email}")
 def get_user_info_by_user_email(
     user_email:   str,
@@ -283,6 +283,69 @@ def get_all_policy_log(
         total_count=len(select_log_result),
         columns=["권한 설정 시각", "관리자", "관리자 이름", "구성원", "구성원 이름", "권한", "권한 적용 시작", "권한 적용 종료"],
         rows=log_authority
+    )
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+# "사원"정보 조회
+@router.get("/authority/list")
+def get_company_users_authority(
+    search_text:  str,
+    rows_limit:   int,
+    rows_offset:  int,
+    session:      Session         = Depends(db.session),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+) -> JSONResponse:
+    
+    # emp_usr_emad=current_user.email인 사원의 정보
+    request_user_info = query.select_company_user_info(session, emp_usr_emad=current_user.email)
+    if isinstance(request_user_info, JSONResponse):
+        raise CoreCustomException(2509)
+    request_user_info: schema.CompanyUserInfo = request_user_info
+    # request_company_info: schema.CompanyInfo = request_user_info.company_info
+    
+    # current_user.email이 가지고 있는 모든 정책(권한) 정보 조회
+    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 관리자가 아닐경우 에러 응답 반환
+    if is_admin(user_policy_result) is False:
+        raise CoreCustomException(2509)
+    
+    # current_user와 같은 company에 속한 company_user 정보를 조회
+    select_company_user_query = query.select_company_user_info_query(session, search_text, company_code=request_user_info.company_code)
+    select_company_user_query: List[schema.CompanyUserInfo] = select_company_user_query
+    
+    filtered_count = len(select_company_user_query)
+    
+    rows_limit = rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW 
+    
+    response_rows: List[list] = list()
+    for company_user_info in select_company_user_query[rows_offset:rows_offset+rows_limit]:
+    # user_email이 가지고 있는 모든 정책(권한) 정보 조회
+        target_user_policy_result = query.get_user_group_policy(session, user_email=company_user_info.emp_usr_emad)
+        if isinstance(target_user_policy_result, JSONResponse):
+            return target_user_policy_result
+        target_user_policy_result: dict = target_user_policy_result
+        
+        response_rows.append([
+            str(company_user_info.emp_eno),
+            str(company_user_info.emp_usr_nm),
+            str(company_user_info.emp_ofps_nm),
+            str(query.get_user_authority(target_user_policy_result)),
+            str(company_user_info.emp_usr_emad),
+            str(company_user_info.emp_inbk_tno),
+            str(company_user_info.emp_org_path),
+            str(company_user_info.emp_fst_rgst_dttm),
+        ])
+    
+    
+    response = dict(
+        filtered_count=filtered_count,
+        columns=["행번", "이름", "직위", "권한", "이메일", "내선번호", "부서", "사원 등록일"],
+        rows=response_rows
     )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))

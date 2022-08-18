@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import nullslast
+from sqlalchemy import nullslast, or_
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
@@ -664,6 +664,28 @@ def select_company_user_info_all(session: Session, **kwargs: Dict) -> Union[sche
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2524)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("company_user_info_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 사원 정보")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+
+def select_company_user_info_query(session: Session, search_text: str, **kwargs: Dict) -> Union[schema.CompanyUserInfo, JSONResponse]:
+    dao = schema.CompanyUserInfo
+    try:
+        query = dao.get_all_query(session, **kwargs)
+        result = query.filter(
+            or_(
+                dao.emp_eno.contains(search_text),
+                dao.emp_usr_nm.contains(search_text),
+                dao.emp_usr_emad.contains(search_text),
+                
+                # dao.emp_usr_mpno.contains(search_text),
+                # dao.emp_org_path.contains(search_text)
+            )
+        ).all()
     except Exception:
         logger.exception("company_user_info_all select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)

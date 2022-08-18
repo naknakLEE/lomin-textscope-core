@@ -11,10 +11,14 @@ from sqlalchemy.orm import Session
 from app.utils.utils import cal_time_elapsed_seconds
 from app.database import query
 from app.utils.utils import load_image2base64, basic_time_formatter
-
+# from app.utils.ocr_to_pdf import (
+#     HOCRParser as SearchablePDF,
+#     Word as WordPDF
+# )
 
 settings = get_settings()
 router = APIRouter()
+# pdf_parser = SearchablePDF()
 
 
 @router.get("/")
@@ -300,3 +304,8 @@ def get_gocr_prediction(
     )
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
+@router.get("/download/documents/pdf")
+def get_document_info_inference_pdf():
+    pass
