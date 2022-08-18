@@ -67,7 +67,8 @@ async def post_kei_sso_token(
         status_code=201,
         content=jsonable_encoder({
             "access_token": access_token,
-            "token_type": "bearer"
+            "token_type": "bearer",
+            "email": user_email
         })
     )
 
