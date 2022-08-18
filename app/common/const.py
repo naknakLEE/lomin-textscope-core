@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
+    PLUGIN_DASHBOARD_IP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
@@ -40,6 +41,7 @@ class Settings(BaseSettings):
     KV_DETECTION_SERVICE_PORT: int = 5000
     ROTATE_SERVICE_PORT: int = 5000
     MINIO_IP_PORT: int
+    PLUGIN_DASHBOARD_IP_PORT: int
 
     # POSTGRESQL CONFIG
     POSTGRES_USER: str
