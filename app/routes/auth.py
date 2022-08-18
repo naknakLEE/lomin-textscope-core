@@ -14,6 +14,7 @@ from app.utils.auth import create_access_token, authenticate_user
 from app.utils.utils import is_admin
 from app.common.const import get_settings
 from app.database import query
+from app.utils.logging import logger
 from app.database.connection import db
 from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
@@ -48,6 +49,8 @@ async def post_kei_sso_token(
     sub = token_info.get("sub", None)
     uid = token_info.get("UID")
     exp = token_info.get("exp", None)
+
+    logger.info(f"jwt decode info compNm: {compNm} sub: {sub} uid: {uid} exp: {exp}")
     
     user = query.select_vw_if_emp(session, eno = uid)
     if user is None:
