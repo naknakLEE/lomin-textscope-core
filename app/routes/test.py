@@ -228,22 +228,23 @@ async def post_kei_send_rpa(
 
 @router.post("/kei/encryption")
 async def post_kei_encryption(\
-        drm_user: str,
+        user_email: str,
         file: UploadFile = File(..., description= "암호화 할 문서"),
+        
     ) -> Any:
     
     document_name = file.filename
     document_data = await file.read()
     encoded_image_data = base64.b64encode(document_data)
     drm = DRM()
-    document_data = await drm.drm_encryption(encoded_image_data, document_name, drm_user)
+    document_data = await drm.drm_encryption(encoded_image_data, document_name, user_email)
     
     return {"msg": "sucess"}
 
 
 @router.post("/kei/decryption")
 async def post_kei_decryption(
-        drm_user: str,
+        user_email: str,
         file: UploadFile = File(..., description= "복호화 할 문서"),
     ) -> Any:
     
@@ -251,7 +252,7 @@ async def post_kei_decryption(
     document_data = await file.read()
     encoded_image_data = base64.b64encode(document_data)
     drm = DRM()
-    document_data = await drm.drm_decryption(encoded_image_data, document_name, drm_user)
+    document_data = await drm.drm_decryption(encoded_image_data, document_name, user_email)
     
     return {"msg": "sucess"}
 

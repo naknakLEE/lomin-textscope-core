@@ -4,9 +4,13 @@ import base64
 from pathlib import Path
 
 from app import hydra_cfg
+from starlette.responses import JSONResponse
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.middlewares.exception_handler import CoreCustomException
+from app.database import query, schema
+from app.database.connection import db
+
 
 settings = get_settings()
 
@@ -75,16 +79,30 @@ class DRM:
         base64_data = load_file2base64(load_path)
         return base64_data
     
-    async def drm_encryption(self, base64_data: str, file_name: str, drm_user: str, encryption_url: str = None) -> str:
+    async def _get_employee_number(self, user_email: str):
+        # session = db.session
+        session =next(db.session())
+        
+        # emp_usr_emad=user_email인 사원의 정보
+        company_user_info = query.select_company_user_info(session, emp_usr_emad=user_email)
+        if isinstance(company_user_info, JSONResponse):
+            raise CoreCustomException(2524)
+        company_user_info: schema.CompanyUserInfo = company_user_info
+        
+        return company_user_info.emp_eno
+    
+    async def drm_encryption(self, base64_data: str, file_name: str, user_email: str, encryption_url: str = None) -> str:
         if not encryption_url:
             encryption_url = self.nas_encryption_url
-        base64_data = await self.file_nas_share(base64_data, file_name, encryption_url, drm_user)
+        employee_number = await self._get_employee_number(user_email)
+        base64_data = await self.file_nas_share(base64_data, file_name, encryption_url, employee_number)
         return base64_data
         
         
-    async def drm_decryption(self, base64_data: str, file_name: str, drm_user: str, decryption_url: str = None) -> str:
+    async def drm_decryption(self, base64_data: str, file_name: str, user_email: str, decryption_url: str = None) -> str:
         if not decryption_url:
             decryption_url = self.nas_decryption_url
-        base64_data = await self.file_nas_share(base64_data, file_name, decryption_url, drm_user)
+        employee_number = await self._get_employee_number(user_email)
+        base64_data = await self.file_nas_share(base64_data, file_name, decryption_url, employee_number)
         return base64_data
     
