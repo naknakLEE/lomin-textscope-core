@@ -186,11 +186,7 @@ async def post_upload_document(
     if document_data is None and document_path is not None:
         document_data = load_file2base64(document_path)
     
-    if hydra_cfg.common.drm.use: # drm 복호화
-        drm = DRM()
-        # TODO drm_user 수정 필요
-        drm_user = "user01"
-        document_data = await drm.drm_decryption(document_data, document_name, drm_user)
+    
     logger.info("load document data")
     # 유저 정보 확인
     select_user_result = query.select_user(session, user_email=user_email)
@@ -255,6 +251,10 @@ async def post_upload_document(
     # 업로드된 파일 포맷(확장자) 확인
     if is_support_format(document_name) is False:
         raise CoreCustomException(2105)
+    
+    if hydra_cfg.common.drm.use: # drm 복호화
+        drm = DRM()
+        document_data = await drm.drm_decryption(base64_data=document_data, file_name=document_name, user_email=user_email)
     
     logger.info(f"start save document name : {document_name}")
     # 문서 저장(minio or local pc)

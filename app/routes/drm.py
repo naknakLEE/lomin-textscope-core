@@ -25,8 +25,7 @@ async def post_drm_encryption(
     file_data: str = params.get("file")
     filename: str = params.get("file_name")
     
-    drm_user = "user01"
-    encrypted_file = await drm.drm_encryption(file_data, filename, drm_user)
+    encrypted_file = await drm.drm_encryption(base64_data=file_data, file_name=filename, user_email=current_user.email)
     
     
     return Response(
