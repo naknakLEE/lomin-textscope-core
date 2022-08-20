@@ -367,8 +367,8 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
     if page_num < 1 or select_document_result.document_pages < page_num:
         raise CoreCustomException(2506)
     
-    # 요청한 doc_type_idx 가 0이면 route_name을 gocr로 변경
-    if doc_type_idx == 0:
+    # 요청한 doc_type_idx 가 0 또는 31이면 route_name을 gocr로 변경
+    if doc_type_idx == 0 or doc_type_idx == 31:
         inputs.update(route_name="gocr")
     
     # doc_type_idx로 doc_type_code 조회
