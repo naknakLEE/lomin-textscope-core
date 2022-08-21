@@ -83,4 +83,4 @@ services:
 
   grafana:
     ports:
-      - 8053:3000
+      - 3001:3000
