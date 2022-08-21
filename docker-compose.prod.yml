@@ -74,7 +74,7 @@ services:
         POETRY_VERSION: ${POETRY_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8050:${WRAPPER_IP_PORT}
+      - 8090:${WRAPPER_IP_PORT}
     tty: true
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
