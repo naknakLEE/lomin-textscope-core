@@ -36,6 +36,7 @@ router = APIRouter()
 async def post_inspect_info(
     request: Request,
     params: dict = Body(...),
+    token: HTTPAuthorizationCredentials = Security(security),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session)
 ) -> JSONResponse:
@@ -53,7 +54,6 @@ async def post_inspect_info(
     inspect_result:     dict  = params.get("inspect_result")
     inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
     inspect_done:       bool  = params.get("inspect_done", False)
-    token:              HTTPAuthorizationCredentials = Security(security)
     
     # 사용자 정보 조회
     select_user_result = query.select_user(session, user_email=user_email)
