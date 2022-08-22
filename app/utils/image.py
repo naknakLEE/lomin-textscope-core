@@ -25,7 +25,7 @@ def read_tiff_multi_page_from_bytes(image_bytes):
     try:
         tif_images = list()
         with tifffile.TiffFile(BytesIO(image_bytes)) as tif:
-            tif_images = [ x.asarray() for x in tif ]
+            tif_images = [ x.asarray() for x in tif.pages ]
         
         for tif_image in tif_images:
             if tif_image.dtype == np.bool:
