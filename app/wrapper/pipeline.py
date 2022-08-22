@@ -200,9 +200,10 @@ async def single(
     response_log["inference_start_time"] = inference_start_time.strftime(
         "%Y-%m-%d %H:%M:%S.%f"
     )[:-3]
-    # 신분증 모델이 4dot -> boudarymodel로 롤백되어 4dot호출 함수를 주석처리합니다.
-    # if inputs["doc_type"] in settings.PP_MAPPING_TABLE.get("idcard"):
-    #     route_name = "idcard_with_keypoints"
+    # 신분증 모델일경우 idcard_keypoints_for_correcting_angle_alignment 으로 보냅니다.
+    if inputs["doc_type"] in settings.PP_MAPPING_TABLE.get("idcard"):
+        route_name = "idcard_keypoints_for_correcting_angle_alignment"    
+        
     ocr_response = await client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,

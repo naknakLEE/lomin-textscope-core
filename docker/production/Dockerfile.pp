@@ -14,6 +14,7 @@ ENV LANG=C.UTF-8
 ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 ENV API_ENV="production"
+ENV DOCKER_ENV="True"
 
 RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
@@ -47,11 +48,13 @@ COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/main.py /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/assets /workspace/pp_server/assets
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
 
+COPY ./pp_server/lovit/requirements.txt /workspace/pp_server/lovit/requirements.txt
 COPY ./requirements/pp/pyproject.toml /workspace/
 COPY ./requirements/pp/poetry.lock /workspace/
 
 WORKDIR /workspace
 
+RUN pip3 install -r /workspace/pp_server/lovit/requirements.txt
 RUN poetry install --no-dev
 
 COPY ./.env.prod /workspace/.env

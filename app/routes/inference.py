@@ -177,6 +177,9 @@ async def ocr(
                 angle=inference_results.get("angle", 0),
                 task_id=task_id
             )
+            if(post_processing_type == 'idcard_pp'):
+                pp_inputs['rotation_matrix'] = inference_results.get("rotation_matrix")
+                pp_inputs['pad_tuple'] = inference_results.get("pad_tuple")
             status_code, post_processing_results, response_log = await pp.post_processing(
                 client=client,
                 task_id=task_id,
@@ -196,7 +199,8 @@ async def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-        inference_results = get_unmodified_bbox(inference_results)
+        if(post_processing_type != 'idcard_pp'):
+            inference_results = get_unmodified_bbox(inference_results)
     
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)

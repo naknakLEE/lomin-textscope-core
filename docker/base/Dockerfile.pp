@@ -9,6 +9,7 @@ ENV LANG=C.UTF-8
 ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 ENV API_ENV="production"
 ENV PATH="/root/.local/bin:${PATH}"
+ENV DOCKER_ENV="True"
 
 RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
@@ -38,10 +39,11 @@ RUN poetry install
 # Nuitka
 RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as possible./env.Append(CCFLAGS=["-fcf-protection=none"])/' /usr/local/lib/python${PYTHON_VERSION}/dist-packages/nuitka/build/SconsCompilerSettings.py
 
-WORKDIR /workspace/lovit
-COPY ./lovit /workspace/lovit
+WORKDIR /workspace/pp_server/lovit
+COPY ./pp_server/lovit /workspace/pp_server/lovit
+RUN pip3 install -r /workspace/pp_server/lovit/requirements.txt
 RUN python3 setup.py build develop && \
-    rm -rf /workspace/lovit
+    rm -rf /workspace/pp_server/lovit
 
 COPY ./.env /workspace/
 

@@ -95,8 +95,9 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
         return "commercial_bill"
     elif doc_type in pp_mapping_table.get("heungkuk", []):
         return "heungkuk"
+    # 기존 idcard -> idcard_pp로 변경        
     elif doc_type in pp_mapping_table.get("idcard", []):
-        return "idcard"
+        return "idcard_pp"
     elif doc_type in pp_mapping_table.get("bankbook", []):
         return "bankbook"
     elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
