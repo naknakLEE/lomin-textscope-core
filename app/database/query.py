@@ -408,10 +408,10 @@ def select_document_inspect_all(
         if len(user_team) > 0: query = query.filter(dao_document.user_team.in_(user_team))
         
         # 총 업무 개수
-        total_count = query.count()
+        # total_count = query.count()
         
         # 완료 업무 개수
-        complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
+        # complet_count = query.filter(dao_inspect.inspect_status == "NOT_INSPECTED").count()
         
         # DocumentInfo 필터링
         document_filters = dict(
@@ -453,7 +453,8 @@ def select_document_inspect_all(
         if len(document_filename) > 0:
             query = query.filter(dao_document.document_path.contains(document_filename))
         
-        filtered_count = len(query.all())
+        filtered_count = query.count()
+        complet_count = 0
         
         # 페이징 (한 요청당 최대 1000개)
         query = query.offset(rows_offset) \
@@ -481,6 +482,9 @@ def select_document_inspect_all(
                 filtered_count -= 1
                 continue
             
+            if row[1].inspect_status == "INSPECTED":
+                complet_count += 1
+            
             table_mapping.update(DocumentInfo=row[0])
             table_mapping.update(InspectInfo=row[1])
             
@@ -500,7 +504,7 @@ def select_document_inspect_all(
     except Exception:
         raise CoreCustomException(4101, "필터링된 업무 리스트")
     
-    return total_count, complet_count, filtered_count, filtered_rows
+    return filtered_count, complet_count, filtered_count, filtered_rows
 
 
 def get_log_all_by_created_time(
