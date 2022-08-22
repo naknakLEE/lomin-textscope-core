@@ -49,9 +49,15 @@ def add_class_name_kr(session: Session, select_inference_result: schema.Inferenc
     
     class_kr_dict = { d.kv_class_info.kv_class_code : d.kv_class_info.kv_class_name_kr for d in select_doc_kv_result }
     
-    kv_class_codes = select_inference_result.inference_result.get("kv").keys()
-    for class_code in kv_class_codes:
-        select_inference_result.inference_result["kv"][class_code]["class_name"] = class_kr_dict.get(class_code, "None")
+    inference_result_ = dict()
+    for class_code, v in select_inference_result.inference_result.get("kv").items():
+        class_name_kr = class_kr_dict.get(class_code)
+        if class_name_kr is None: continue
+        
+        v.update(class_name=class_name_kr)
+        inference_result_.update({class_code:v})
+    
+    select_inference_result.inference_result.update(kv=inference_result_)
     
     
     return select_inference_result
