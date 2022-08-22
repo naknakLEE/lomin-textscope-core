@@ -405,9 +405,13 @@ def select_document_inspect_all(
             .filter(dao_document.is_used == True) \
             .filter(dao_document.inspect_id == dao_inspect.inspect_id)
         
-        # 총 업무 개수
         if len(user_team) > 0: query = query.filter(dao_document.user_team.in_(user_team))
+        
+        # 총 업무 개수
         total_count = query.count()
+        
+        # 완료 업무 개수
+        complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
         
         # DocumentInfo 필터링
         document_filters = dict(
@@ -417,7 +421,6 @@ def select_document_inspect_all(
         for column, filter in document_filters.items():
             if len(filter) > 0: query = query.filter(getattr(dao_document, column).in_(filter))
         
-        
         # InsepctInfo 필터링
         inspect_filters = dict(
             user_email=inspecter_list,
@@ -425,9 +428,6 @@ def select_document_inspect_all(
         )    
         for column, filter in inspect_filters.items():
             if len(filter) > 0: query = query.filter(getattr(dao_inspect, column).in_(filter))
-        
-        # 완료 업무 개수
-        complet_count = query.filter(dao_inspect.inspect_end_time != None).count()
         
         # DocumentInfo 등록일 기간 필터링
         if upload_date:
