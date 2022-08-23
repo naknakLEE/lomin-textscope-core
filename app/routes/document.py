@@ -1035,6 +1035,7 @@ def get_document_inference_info(
         
         inspect_result=select_inspect_result.inspect_result if select_inspect_result else None,
         
+        cls_idx=select_document_result.cls_idx,
         doc_type_idx=doc_type_idx,
         page_width=select_inference_result.page_width,
         page_height=select_inference_result.page_height
