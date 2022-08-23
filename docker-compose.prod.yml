@@ -15,7 +15,7 @@ services:
         PYTHON_VERSION: ${PYTHON_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8052:5000
+      - 5000:5000
     environment:
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
