@@ -7,7 +7,7 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users
+from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, base
 from app.routes import document, model, inspect
 from app.routes.api import index as api_index
 from app.routes.api import inference as api_inference
@@ -92,6 +92,9 @@ def app_generator() -> FastAPI:
     app.include_router(inspect.router, tags=["Kei Inpsect Info"], prefix="/v1/docx/inspect", include_in_schema=True)
     
     app.include_router(users.router, tags=["Company User Info"], prefix="/v1/user", include_in_schema=True)
+
+    # Base Function Route 등록
+    app.include_router(base.router, tags=["Base Function"], prefix="/base", include_in_schema=True)
     
     
     app.include_router(api_index.router, tags=["API"], prefix="/api/v1", include_in_schema=True)

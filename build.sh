@@ -76,7 +76,7 @@ do
             filename=${build_model_path##*/} # split / get last char
             folder_path=`echo $build_model_path | rev | cut -d '/' -f2- | rev ` # /로 나누고 마지막(파일명) 제외
             parent_path="$(dirname "$folder_path")"
-
+            
             mkdir -p build/textscope/serving/${folder_path}
             # cp inference_server/${model_path} build/textscope/serving/${build_model_path}
             cp -r inference_server/assets/${folder_path} build/textscope/serving/${parent_path}
