@@ -169,23 +169,36 @@ def ocr(
             inference_results["texts"] = texts
         
         
+        doc_type_code = inference_results.get("doc_type")
+        
         # Post processing
-        post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
-        logger.info(f"{task_id}-pp type:{post_processing_type}")
-        if (
-            post_processing_type is not None
-        ):
+        post_processing_type = get_pp_api_name(doc_type_code)
+
+        if post_processing_type is not None \
+            and doc_type_code is not None \
+            and inputs.get("route_name", None) != 'cls':
+
+            logger.info(f"{task_id}-pp type:{post_processing_type}")
+
+            text_list = inference_result.get("texts", [])
+            box_list = inference_result.get("boxes", [])
+            score_list = inference_result.get("scores", [])
+            class_list = inference_result.get("classes", [])
+            
+            score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
+            class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
+
             pp_inputs = dict(
-                boxes=inference_result.get("boxes"),
-                scores=inference_result.get("scores"),
-                classes=inference_result.get("classes"),
+                texts=text_list,
+                boxes=box_list,
+                scores=score_list,
+                classes=class_list,
                 rec_preds=inference_result.get("rec_preds"),
-                texts=inference_results.get("texts"),
                 id_type=inference_results.get("id_type"),
                 doc_type=inference_results.get("doc_type"),
                 image_height=inference_results.get("image_height"),
                 image_width=inference_results.get("image_width"),
-                relations=inference_results.get("relations", []),
+                relations=inference_results.get("relations"),
                 task_id=task_id,
             )
             status_code, post_processing_results, response_log = pp.post_processing(
@@ -199,6 +212,8 @@ def ocr(
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["kv"] = post_processing_results["result"]
+            if post_processing_results.get("tables"):
+                inference_results["tables"] = post_processing_results["tables"]
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
             )
@@ -212,7 +227,33 @@ def ocr(
     response_log.update(inference_results.get("response_log", {}))
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
 
-        
+    inference_id = get_ts_uuid("inference")
+    doc_type_code = inference_results.get("doc_type")
+    
+    # doc_type_code로 doc_type_index 조회
+    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+    if isinstance(select_doc_type_result, JSONResponse):
+        return select_doc_type_result
+    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+    doc_type_idx = select_doc_type_result.doc_type_idx
+    
+    insert_inference_result = query.insert_inference(
+        session=session,
+        inference_id=inference_id,
+        document_id=document_id,
+        user_email=user_email,
+        user_team=user_team,
+        inference_result=inference_results,
+        inference_type=inputs.get("inference_type"),
+        page_num=inference_results.get("page", target_page),
+        doc_type_idx=doc_type_idx,
+        response_log=response_log
+    )
+    if isinstance(insert_inference_result, JSONResponse):
+        return insert_inference_result
+    del insert_inference_result
+    
+    
     response = dict(
         response_log=response_log,
         inference_results=inference_results
