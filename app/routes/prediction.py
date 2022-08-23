@@ -1,25 +1,34 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from pathlib import Path
+from PIL import Image
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Body
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from typing import List, Dict
 
+from sqlalchemy.orm import Session
+
+from app import models
+from app.database import schema, query
 from app.database.connection import db
 from app.common.const import get_settings
-from app import models
-from sqlalchemy.orm import Session
+from app.middlewares.exception_handler import CoreCustomException
+from app.utils.auth import get_current_active_user
+from app.utils.utils import get_company_group_prefix
+from app.utils.ocr_to_pdf import PdfParser, Word
+from app.utils.image import (
+    read_image_from_bytes,
+    get_image_bytes
+)
+
+
 from app.utils.utils import cal_time_elapsed_seconds
-from app.database import query
 from app.utils.utils import load_image2base64, basic_time_formatter
-# from app.utils.ocr_to_pdf import (
-#     HOCRParser as SearchablePDF,
-#     Word as WordPDF
-# )
+
 
 settings = get_settings()
 router = APIRouter()
-# pdf_parser = SearchablePDF()
-
+pdfparser = PdfParser()
 
 @router.get("/")
 def get_all_prediction(session: Session = Depends(db.session)) -> JSONResponse:
@@ -307,5 +316,118 @@ def get_gocr_prediction(
 
 
 @router.get("/download/documents/pdf")
-def get_document_info_inference_pdf():
-    pass
+def get_document_info_inference_pdf(
+    document_id:   str,
+    pdf_file_name:      str,
+    text_type:     str,
+    apply_inspect: bool,
+    session: Session = Depends(db.session),
+    current_user: models.UserInfo = Depends(get_current_active_user)
+):
+    """
+    특정 문서의 gocr 또는 kv 인식 결과를 searchablePDF로 저장합니다.
+    """
+    user_email:    str  = current_user.email
+    
+    # 사용자 권한(정책) 확인
+    user_policy_result = query.get_user_group_policy(session, user_email=user_email)
+    if isinstance(user_policy_result, JSONResponse):
+        return user_policy_result
+    user_policy_result: dict = user_policy_result
+    
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
+    user_team_list: List[str] = list()
+    user_team_list.extend(user_policy_result.get("R_DOCX_TEAM", []))
+    group_list = list(set( [ group_prefix + x for x in user_team_list ] ))
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 사용자 정책(조회 가능 문서 종류(대분류)) 확인
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_idx_list_result = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_idx_list_result, JSONResponse):
+        return cls_type_idx_list_result
+    
+    cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
+    
+    # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
+    doc_type_idx_code: Dict[int, dict] = dict()
+    for cls_type_info in cls_type_idx_result_list.values():
+        for doc_type_info in cls_type_info.get("docx_type", []):
+            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
+    
+    # 해당 문서에 대한 권한이 없음
+    if group_prefix + select_document_result.user_team not in group_list:
+        raise CoreCustomException(2505)
+    
+    wordss: List[List[Word]] = list()
+    images: List[Image.Image] = list()
+    for page in range(select_document_result.document_pages):
+        # document_id로 특정 페이지의 가장 최근 inference info 조회
+        select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page+1)
+        if isinstance(select_inference_result, JSONResponse):
+            return select_inference_result
+        select_inference_result: schema.InferenceInfo = select_inference_result
+        inference_id = select_inference_result.inference_id
+        angle = select_inference_result.inference_result.get("angle", 0)
+        
+        # 가장 최근 inspect 결과가 있으면 가져오기
+        select_inspect_result = None
+        if apply_inspect is True:
+            select_inspect_result = query.select_inspect_latest(session, inference_id=inference_id)
+            if isinstance(select_inspect_result, JSONResponse):
+                return select_inspect_result
+            select_inspect_result: schema.InspectInfo = select_inspect_result
+            
+            if select_inspect_result is not None:
+                angle = select_inspect_result.inspect_result.get("angle", 0)
+        
+        words: List[Word] = list()
+        if text_type == "kv":
+            kv = None
+            if select_inspect_result is not None and apply_inspect is True:
+                kv = select_inspect_result.inspect_result.get("kv", {})
+            else:
+                kv = select_inference_result.inference_result.get("kv", {})
+            
+            for k, v in kv.items():
+                if k.endswith("_KEY"): continue
+                words.append(Word(text=v.get("text", ""), bbox=v.get("box", [0., 0., 0., 0.])))
+        
+        else: # text_type == "gocr":
+            gocr = None
+            if select_inspect_result is not None and apply_inspect is True:
+                gocr = select_inspect_result.inspect_result
+            else:
+                gocr = select_inference_result.inference_result
+            
+            for text, box in zip (gocr.get("texts", []), gocr.get("boxes", [])):
+                words.append(Word(text=text, bbox=box))
+        
+        wordss.append(words)
+        
+        # 문서의 page_num 페이지의 썸네일 base64로 encoding
+        document_path = Path(str(page+1) + ".png")
+        document_bytes = get_image_bytes(document_id, document_path)
+        images.append(read_image_from_bytes(document_bytes, document_path.name, angle, page+1))
+    
+    content: bytes = pdfparser.export_pdf(wordss, images)
+    
+    
+    return Response(
+        content=content,
+        headers={'Content-Disposition': f'attachment; filename="{pdf_file_name}.pdf"'},
+        media_type="application/pdf"
+    )
