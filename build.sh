@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -eux
 
 # set enviroments
@@ -49,6 +51,8 @@ do
     echo "Create folder, ${file}"
     mkdir -p ${build_folder_name}/${created_folder_name}/assets/${file}
 done
+
+
 ####################################################################vv
 # model을 build폴더로 저장하는 로직
 rm -rf build/textscope/serving/models
@@ -71,9 +75,11 @@ do
             build_model_path=${model_path#assets/}
             filename=${build_model_path##*/} # split / get last char
             folder_path=`echo $build_model_path | rev | cut -d '/' -f2- | rev ` # /로 나누고 마지막(파일명) 제외
-
+            parent_path="$(dirname "$folder_path")"
+            
             mkdir -p build/textscope/serving/${folder_path}
-            cp inference_server/${model_path} build/textscope/serving/${build_model_path}
+            # cp inference_server/${model_path} build/textscope/serving/${build_model_path}
+            cp -r inference_server/assets/${folder_path} build/textscope/serving/${parent_path}
 
             # copy meta data
             if cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.model_metadata; then
@@ -81,9 +87,11 @@ do
                 build_metadata_path=${metedata_path#assets/}
                 metadata_filename=${build_metadata_path##*/} # split / get last char
                 metadata_folder_path=`echo $build_metadata_path | rev | cut -d '/' -f2- | rev ` # /로 나누고 마지막(파일명) 제외
+                metadata_parent_path="$(dirname "$metadata_folder_path")"
 
                 mkdir -p build/textscope/serving/${metadata_folder_path}
-                cp inference_server/${metedata_path} build/textscope/serving/${build_metadata_path}
+                # cp inference_server/${metedata_path} build/textscope/serving/${build_metadata_path}
+                cp -r inference_server/assets/${metadata_folder_path} build/textscope/serving/${metadata_parent_path}
             fi
         fi
     else
@@ -95,6 +103,7 @@ done
 mkdir -p build/textscope/serving/models
 cp -r build/textscope/serving/models inference_server/build/textscope/serving/models
 ####################################################################vv
+
 docker-compose down
 
 # sh assets/apply-thales.sh"
