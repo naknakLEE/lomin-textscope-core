@@ -1,4 +1,6 @@
+import base64
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
@@ -7,10 +9,11 @@ from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from app import hydra_cfg
 from app.common.const import get_settings
-from app.utils.auth import create_access_token
+from app.utils.auth import authenticate_user, create_access_token
 from app.utils.logging import logger
 
 from app.utils.document import (
+    document_path_verify,
     get_page_count,
     is_support_format,
     save_upload_document,
@@ -37,12 +40,18 @@ minio_client = MinioService()   # minio service setting
 
 @router.post("/auth")
 async def post_auth_token(
-    inputs: OAuth2PasswordRequestForm = Depends()
+    inputs: OAuth2PasswordRequestForm = Depends(),
+    session: Session = Depends(db.session),    
 ) -> JSONResponse:
     """
     ### [Base]전용 OAuth2.0 토큰 발급
     입력받은 Email을 토대로 OAuth2.0 토큰을 생성후 Return
     """
+    user = authenticate_user(inputs.email, inputs.password, session)
+    if user is None:
+        status_code, error = ErrorResponse.ErrorCode.get(2401)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+
     # AceessToken 만료시간 세팅
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     # OAuth2.0 생성 
@@ -77,10 +86,22 @@ async def post_upload_document(
     user_email:str    = current_user.email
     document_name:str = inputs.get("document_name")
     document_data:str = inputs.get("document_data")
+    document_path:str = inputs.get("document_path")    
 
     response: dict = dict(resource_id=dict())
     response_log: dict = dict()
     request_datetime = datetime.now()
+
+    # [20220824_박일우] 파일이 아닌 Path로 파라미터가 넘어올경우 Path에 연결 후 document 가져오기
+    if document_data is None and document_path is not None:
+        file_path = Path(document_path)
+        document_name = file_path.name
+        path_verify = document_path_verify(document_path)
+        if isinstance(path_verify, JSONResponse): return path_verify
+        
+        with file_path.open('rb') as file:
+            document_data = file.read()
+            document_data = base64.b64encode(document_data)    
     
     # 업로드된 파일 포맷(확장자) 확인
     is_support = is_support_format(document_name)
