@@ -62,8 +62,9 @@ def select_kv_class_info_get_all_multi(session: Session, **kwargs: Dict) -> Unio
 
 def select_doc_type_kv_class_get_all(session: Session, **kwargs: Dict) -> Union[List[schema.DocTypeKvClass], JSONResponse]:
     try:
-        result = schema.DocTypeKvClass.get_all(session, **kwargs)
-        if result is None:
+        query = schema.DocTypeKvClass.get_all_query(session, **kwargs)
+        result = query.order_by(nullslast(schema.DocTypeKvClass.sequence)).all()
+        if len(result) == 0:
             raise CoreCustomException(2108)
     except Exception:
         raise CoreCustomException(4101, "소분류와 kv class 정보")

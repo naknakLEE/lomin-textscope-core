@@ -3,8 +3,8 @@
     "version": "2.2.11",
     "width": 4500,
     "height": 4500,
-    "scrollTop": -1035.8332921730175,
-    "scrollLeft": -1237.4999508261697,
+    "scrollTop": -1219.1666182213403,
+    "scrollLeft": -467.49998142322414,
     "zoomLevel": 0.9,
     "show": {
       "tableComment": true,
@@ -4212,13 +4212,36 @@
               "widthDefault": 60
             },
             "id": "64a448ea-15ee-492f-b438-4f3dabd1e6e5"
+          },
+          {
+            "name": "sequence",
+            "comment": "항목 표시 순서",
+            "dataType": "int",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 60,
+              "widthComment": 80.98367309570312,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "6f503403-fe12-4853-b73c-1313cc847188"
           }
         ],
         "ui": {
           "active": false,
           "left": 1637.5097,
           "top": 2593.3329,
-          "zIndex": 26,
+          "zIndex": 46,
           "widthName": 111.83984375,
           "widthComment": 120,
           "color": "#FF6900"
@@ -5468,7 +5491,7 @@
             "d46d8476-bdcb-4c5b-abc6-c714e0fb58ac"
           ],
           "x": 2120.73772734375,
-          "y": 2658.5829,
+          "y": 2668.8329,
           "direction": "right"
         },
         "constraintName": "fk_doc_type_info_to_doc_type_kv_class",
@@ -5494,7 +5517,7 @@
             "64a448ea-15ee-492f-b438-4f3dabd1e6e5"
           ],
           "x": 1879.123713671875,
-          "y": 2723.8329,
+          "y": 2744.3329,
           "direction": "bottom"
         },
         "constraintName": "fk_kv_class_info_to_doc_type_kv_class",

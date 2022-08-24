@@ -462,6 +462,7 @@ class DocTypeKvClass(Base, BaseMixin):
     created_time = Column(DateTime, primary_key=True, default=func.now())
     doc_type_idx = Column(ForeignKey('doc_type_info.doc_type_idx'), nullable=False, comment='문서 종류(소분류) 유니크 인덱스')
     kv_class_code = Column(ForeignKey('kv_class_info.kv_class_code'), nullable=False, comment='항목 서식 코드')
+    sequence = Column(Integer, comment='항목 표시 순서')
     is_used = Column(Boolean, comment='사용 여부')
     
     doc_type_info = relationship('DocTypeInfo')
@@ -905,10 +906,10 @@ def insert_initial_data() -> None:
     try:
         session = next(db.session())
         
-        initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
-        if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
-            logger.info(f'Textscope service initial data skipped')
-            return
+        # initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
+        # if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
+        #     logger.info(f'Textscope service initial data skipped')
+        #     return
         
         db_dir="/workspace/app/assets/database/"
         
