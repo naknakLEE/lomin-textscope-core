@@ -906,10 +906,10 @@ def insert_initial_data() -> None:
     try:
         session = next(db.session())
         
-        # initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
-        # if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
-        #     logger.info(f'Textscope service initial data skipped')
-        #     return
+        initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
+        if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
+            logger.info(f'Textscope service initial data skipped')
+            return
         
         db_dir="/workspace/app/assets/database/"
         
