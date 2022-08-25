@@ -338,7 +338,7 @@ def get_company_users_authority(
             str(company_user_info.emp_usr_emad),
             str(company_user_info.emp_inbk_tno),
             str(company_user_info.emp_org_path),
-            str(company_user_info.emp_fst_rgst_dttm),
+            str(company_user_info.emp_fst_rgst_dttm)[:10],
         ])
     
     

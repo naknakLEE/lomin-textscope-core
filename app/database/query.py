@@ -690,7 +690,10 @@ def select_company_user_info_query(session: Session, search_text: str, **kwargs:
                 # dao.emp_usr_mpno.contains(search_text),
                 # dao.emp_org_path.contains(search_text)
             )
-        ).all()
+        ) \
+        .filter(dao.emp_fst_rgst_dttm != None) \
+        .order_by(dao.emp_eno.asc()) \
+        .all()
     except Exception:
         logger.exception("company_user_info_all select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
