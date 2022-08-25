@@ -982,7 +982,8 @@ def get_user_group_policy(
             
             user_group_policy.update(dict({policy_code:policy_content}))
         result = user_group_policy
-        
+    except CoreCustomException as cce:
+        raise cce
     except Exception:
         raise CoreCustomException(4101, "유저 그룹 정책")
     
