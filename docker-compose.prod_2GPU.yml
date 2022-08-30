@@ -101,7 +101,7 @@ services:
     ports:
       - 8050:${WRAPPER_IP_PORT}
     tty: true
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout=300
 
   grafana:
     ports:
