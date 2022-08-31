@@ -812,9 +812,9 @@ def get_document_list(
             inspecter_email_index = i
     
     # 기타 서류도 목록에 보이게 하기
-    filter_doc_type_gocr_etc = 31 in doc_type_idx_list
-    if filter_doc_type_gocr_etc:
-        doc_type_idx_list.remove(31)
+    # filter_doc_type_gocr_etc = 31 in doc_type_idx_list
+    # if filter_doc_type_gocr_etc:
+    #     doc_type_idx_list.remove(31)
     
     # 필터링된 업무 리스트
     total_count, complet_count, filtered_count, filtered_rows = query.select_document_inspect_all(
@@ -901,12 +901,12 @@ def get_document_list(
                 doc_type_idx_first = 31
                 
             # filter_doc_type_gocr_etc = True -> 기타 서류도 목록에 보이게 하기
-            if filter_doc_type_gocr_etc is False:
-                total_count -= total_count
-                filtered_count -= filtered_count
-                if row[docx_st_index] == "INSPECTED": total_count -= total_count
+            # if filter_doc_type_gocr_etc is False:
+            #     total_count -= total_count
+            #     filtered_count -= filtered_count
+            #     if row[docx_st_index] == "INSPECTED": total_count -= total_count
                 
-                continue
+            #     continue
             
             first_doc_type_name = doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr")
             
