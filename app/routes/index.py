@@ -256,25 +256,28 @@ async def post_upload_document(
         drm = DRM()
         document_data = await drm.drm_decryption(base64_data=document_data, file_name=document_name, user_email=user_email)
     
-    logger.info(f"start save document name : {document_name}")
     # 문서 저장(minio or local pc)
-    save_success, save_path = save_upload_document(document_id, document_name, document_data, separate=True)
-    logger.info(f"start save document done name : {document_name}")
+    logger.info(f"try saving document file_name: {document_name}")
+    
+    try:
+        save_success, save_path, pages = save_upload_document(document_id, document_name, document_data)
+    except CoreCustomException as cce:
+        raise cce
     
     if save_success is False:
+        logger.info(f"saving document was failed file_name: {document_name}")
         raise CoreCustomException(4102, "문서")
     
-    logger.info(f"success save document document_id : {document_id}")
-    document_pages = get_page_count(document_data, document_name)
+    logger.info(f"saving document was succeed file_name: {document_name}")
     dao_document_params = {
         "document_id": document_id,
         "user_email": user_email,
         "user_team": user_team,
         "document_path": save_path,
         "document_description": document_description,
-        "document_pages": document_pages,
+        "document_pages": pages,
         "cls_type_idx": cls_type_idx,
-        "doc_type_idx": doc_type_idx,
+        # "doc_type_idx": doc_type_idx,
         "document_type": document_type
     }
     insert_document_result = query.insert_document(session, **dao_document_params)
@@ -331,7 +334,7 @@ async def post_upload_document(
             current_user,
             save_path=save_path,
             document_id=document_id,
-            document_pages=document_pages,
+            document_pages=pages,
             cls_model_info=cls_model_info,
             doc_type_info=doc_type_info
         )

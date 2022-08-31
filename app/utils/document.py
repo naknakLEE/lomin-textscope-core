@@ -6,6 +6,7 @@ import base64
 import httpx
 from datetime import datetime
 from PIL import Image
+from PIL.Image import DecompressionBombError
 from io import BytesIO
 from pathlib import Path
 from functools import lru_cache
@@ -21,7 +22,6 @@ from app.schemas import error_models as ErrorResponse
 from app.middlewares.exception_handler import CoreCustomException
 
 
-
 settings = get_settings()
 minio_client = MinioService()
 support_file_extension_list = {
@@ -33,6 +33,16 @@ support_file_extension_list = {
 
 def get_file_extension(document_filename: str = "x.xxx") -> str:
     return Path(document_filename).suffix.lower()
+
+
+def get_stored_file_extension(document_path: str) -> str:
+    stored_ext = Path(document_path).suffix
+    doc_ext = stored_ext
+    
+    if doc_ext.lower() in settings.MULTI_PAGE_DOCUMENT:
+        stored_ext = settings.MULTI_PAGE_SEPARATE_EXTENSION
+    
+    return stored_ext
 
 
 @lru_cache(maxsize=15)
@@ -75,28 +85,33 @@ def is_support_format(document_filename: str) -> bool:
     return support
 
 
-
-        
-
 def save_upload_document(
-    documnet_id: str, documnet_name: str, documnet_base64: str, /, separate: bool = False
-) -> Tuple[bool, Path]:
+    documnet_id: str, documnet_name: str, documnet_base64: str, /,  new_document: bool = True
+) -> Tuple[bool, Path, int]:
     
-    decoded_image_data = base64.b64decode(documnet_base64)
+    document_extension = Path(documnet_name).suffix
     
     save_document_dict = dict()
+    decoded_image_data = base64.b64decode(documnet_base64)
     
     # 원본 파일
     save_document_dict.update({'/'.join([documnet_id, documnet_name]): decoded_image_data})
     
-    # 장 단위 분리
-    if separate:
-        document_pages: List[Image.Image] = read_image_from_bytes(decoded_image_data, documnet_name, 0.0, 1, separate=separate)
+    # pdf나 tif, tiff 일 경우 장 단위 분리
+    if document_extension.lower() in settings.MULTI_PAGE_DOCUMENT:
+        buffered = BytesIO()
+        
+        try:
+            document_pages: List[Image.Image] = read_image_from_bytes(decoded_image_data, documnet_name, 0.0, 1, separate=True)
+        except DecompressionBombError:
+            raise CoreCustomException("C01.003.401A")
+        
         for page, document_page in enumerate(document_pages):
-            buffered = BytesIO()
-            document_page.save(buffered, "png")
-            
-            save_document_dict.update({'/'.join([documnet_id, str(page+1)+".png"]): buffered.getvalue()})
+            document_page.save(buffered, settings.MULTI_PAGE_SEPARATE_EXTENSION[1:])
+            save_document_dict.update({'/'.join([documnet_id, str(page+1)+settings.MULTI_PAGE_SEPARATE_EXTENSION]): buffered.getvalue()})
+            buffered.seek(0)
+    elif new_document:
+        save_document_dict.update({'/'.join([documnet_id, "1" + document_extension]): decoded_image_data})
     
     success = True
     save_path = ""
@@ -122,8 +137,7 @@ def save_upload_document(
         
         success = True
     
-    return success, save_path
-
+    return success, save_path, (len(save_document_dict) - 1)
 
 
 def get_document_bytes(document_id: str, document_path: Path) -> str:

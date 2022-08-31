@@ -54,7 +54,6 @@ class Settings(BaseSettings):
         }
     ]
 
-
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
     USE_AUTO_LOG: bool = True
@@ -203,7 +202,7 @@ class Settings(BaseSettings):
         "Task ID" : "DocumentInfo.document_idx",
         "user_team": "DocumentInfo.user_team",
         "cls_idx": "DocumentInfo.cls_idx",
-        "doc_type_idxs": "DocumentInfo.doc_type_idxs",
+        "doc_type_idx": "DocumentInfo.doc_type_idx",
         "문서명": "DocumentInfo.document_path",
         "등록 담당자(아이디)": "DocumentInfo.user_email",
         "등록 담당자(이름)": "DocumentInfo.user_info.user_name",
@@ -223,7 +222,7 @@ class Settings(BaseSettings):
         "Task ID", # 필수
         "user_team",
         "cls_idx",
-        "doc_type_idxs",
+        "doc_type_idx",
         "문서명",
         "등록 담당자(아이디)", # 필수
         "등록 담당자(이름)",
@@ -262,6 +261,12 @@ class Settings(BaseSettings):
         ".jp2",
         ".bmp",
     ]
+    MULTI_PAGE_DOCUMENT: List = [
+        ".pdf",
+        ".tif",
+        ".tiff"
+    ]
+    MULTI_PAGE_SEPARATE_EXTENSION: str = ".jpeg"
     KEY_LENGTH_TABLE: Dict = {}
     DATABASE_INITIAL_DATA: Dict = {}
     KV_CATEGORY_MAPPING: Dict = {}

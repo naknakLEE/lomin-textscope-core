@@ -6,7 +6,7 @@ import base64
 
 from io import BytesIO
 from PIL import Image
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List, Union
 from pathlib import Path
 from functools import lru_cache
 from app.models import ImageCropBbox
@@ -18,6 +18,12 @@ from app.utils.minio import MinioService
 
 settings = get_settings()
 minio_client = MinioService()
+
+jpegopt={
+    "quality": 100,
+    "progressive": False,
+    "optimize": False
+}
 
 
 def read_tiff_multi_page_from_bytes(image_bytes):
@@ -122,12 +128,12 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, separate:
             
     elif file_extension == ".pdf":
         if separate == False:
-            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="png", first_page=page, last_page=page)
+            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", first_page=page, last_page=page, jpegopt=jpegopt)
             
             if len(pil_images) == 0:
-                pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="png", first_page=1, last_page=1)
+                pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", first_page=1, last_page=1, jpegopt=jpegopt)
         else:
-            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="png")
+            pil_images = pdf2image.convert_from_bytes(image_bytes, fmt="jpeg", jpegopt=jpegopt)
         
     else:
         logger.error(f"{image_filename} is not supported!")
@@ -137,23 +143,28 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, separate:
         logger.exception("read pillow")
         logger.error(f"Cannot read page:{page} in {image_filename}")
         pil_images = None
-        
     
-    if pil_images:
-        pil_images = [ x.convert("RGB") for x in pil_images ]
+    pil_images_ = list()
+    for pil_image in pil_images:
+        if pil_image.mode == "RGB":
+            pil_images_.append(pil_image)
+        else:
+            pil_images_.append(pil_image.convert("RGB"))
     
-    return pil_images
+    return pil_images_
 
 
-@lru_cache(maxsize=15)
+# @lru_cache(maxsize=15)
 def read_image_from_bytes(
     image_bytes: str, image_filename: str, angle: Optional[float], page: int, /, separate: bool = False
-):
-    images = list()
-    
+) -> Union[List[Image.Image], Image.Image]:
+    """
+    Get pillow images or image from image_bytes
+    separate: true will return list of images, false will return one image
+    """
     images = read_pillow_from_bytes(image_bytes, image_filename, page, separate=separate)
     
-    if images and angle:
+    if images and angle != 0.0:
         images = [ x.rotate(angle, expand=True) for x in images ]
     
     if separate == False:

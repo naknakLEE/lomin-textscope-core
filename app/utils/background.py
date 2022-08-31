@@ -12,6 +12,7 @@ from app.database import query, schema
 from app.database.connection import db
 from app.routes.inference import ocr
 from app.utils.utils import get_ts_uuid
+from app.utils.document import get_stored_file_extension
 from app.models import UserInfo as UserInfoInModel
 from app.common.const import get_settings
 
@@ -98,6 +99,8 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
     
+    document_extension = get_stored_file_extension(document_path)
+    
     gocr_params = dict()
     gocr_params.update(DEFAULT_PARAMS)
     gocr_params.update(DEFAULT_GOCR_PARAMS)
@@ -116,7 +119,7 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=str(page)+".png",
+            document_path=str(page)+document_extension,
         )
         
         try:
@@ -133,6 +136,8 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
     document_id = kwargs.get("document_id")
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
+    
+    document_extension = get_stored_file_extension(document_path)
     
     session = next(db.session())
     
@@ -152,7 +157,7 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=str(page)+".png",
+            document_path=str(page)+document_extension,
         )
         
         try:
@@ -171,6 +176,8 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
     document_id = kwargs.get("document_id")
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
+    
+    document_extension = get_stored_file_extension(document_path)
     
     doc_type_info: schema.DocTypeInfo = kwargs.get("doc_type_info")
     
@@ -194,7 +201,7 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=str(page)+".png",
+            document_path=str(page)+document_extension,
         )
         
         try:
@@ -211,6 +218,8 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     document_id = kwargs.get("document_id")
     document_pages = kwargs.get("document_pages", 1)
     document_path = kwargs.get("save_path")
+    
+    document_extension = get_stored_file_extension(document_path)
     
     cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
     
@@ -237,7 +246,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             request_id=task_id,
             document_id=document_id,
             page=page,
-            document_path=str(page)+".png",
+            document_path=str(page)+document_extension,
         )
         
         try:
@@ -260,7 +269,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
                 request_id=task_id,
                 document_id=document_id,
                 page=page,
-                document_path=str(page)+".png",
+                document_path=str(page)+document_extension,
             )
             
             ocr(request=request, inputs=params, current_user=current_user, session=session)
@@ -298,5 +307,7 @@ def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_t
         doc_type_idxs=dict(
             doc_type_idxs=doc_type_idxs,
             doc_type_codes=doc_type_list,
-        )
+        ),
+        doc_type_idx=doc_type_idxs,
+        doc_type_code=doc_type_list
     )
