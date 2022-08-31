@@ -27,6 +27,7 @@ from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict, get
 from app.utils.logging import logger
 from app.utils.document import (
     save_upload_document,
+    get_stored_file_extension
 )
 from app.utils.image import (
     read_image_from_bytes,
@@ -317,7 +318,8 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
         raise CoreCustomException(2506)
     
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
-    document_path = Path(str(page_num) + ".png")
+    document_extension = get_stored_file_extension(select_document_result.document_path)
+    document_path = Path(str(page_num) + document_extension)
     document_bytes = get_image_bytes(document_id, document_path)
     angle_image = read_image_from_bytes(document_bytes, document_path.name, angle, page_num)
     if angle_image is None:
@@ -326,10 +328,10 @@ def ocr_angle(inputs: dict, current_user: UserInfoInModel, session: Session) -> 
     document_data = image_to_base64(angle_image)
     
     document_name = "_".join([str(page_num), str(angle)])
-    document_name += document_path.suffix if document_path.suffix != ".pdf" else ".png"
+    document_name += document_path.suffix
     
     # 문서 저장(minio or local pc)
-    save_success, save_path = save_upload_document(document_id, document_name, document_data)
+    save_success, save_path, pages = save_upload_document(document_id, document_name, document_data, new_document=False)
     
     if save_success is False:
         raise CoreCustomException(4102, "문서")
@@ -394,7 +396,9 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
         doc_type_idxs=dict(
             doc_type_idxs=doc_type_idx_list,
             doc_type_codes=doc_type_codes_list
-        )
+        ),
+        doc_type_idx=doc_type_idx_list,
+        doc_type_code=doc_type_codes_list
     )
     
     inputs.update(

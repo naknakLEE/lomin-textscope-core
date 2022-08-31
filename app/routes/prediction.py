@@ -20,6 +20,7 @@ from app.utils.image import (
     read_image_from_bytes,
     get_image_bytes
 )
+from app.utils.document import get_stored_file_extension
 
 
 from app.utils.utils import cal_time_elapsed_seconds
@@ -374,7 +375,7 @@ def get_document_info_inference_pdf(
     
     wordss: List[List[Word]] = list()
     images: List[Image.Image] = list()
-    for page in range(select_document_result.document_pages):
+    for page_num in range(1, select_document_result.document_pages + 1):
         # document_id로 특정 페이지의 가장 최근 inference info 조회
         select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page+1)
         if isinstance(select_inference_result, JSONResponse):
@@ -419,7 +420,8 @@ def get_document_info_inference_pdf(
         wordss.append(words)
         
         # 문서의 page_num 페이지의 썸네일 base64로 encoding
-        document_path = Path(str(page+1) + ".png")
+        document_extension = get_stored_file_extension(select_document_result.document_path)
+        document_path = Path(str(page_num) + document_extension)
         document_bytes = get_image_bytes(document_id, document_path)
         images.append(read_image_from_bytes(document_bytes, document_path.name, angle, page+1))
     

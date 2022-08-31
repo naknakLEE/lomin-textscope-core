@@ -23,6 +23,7 @@ from app.utils.image import (
     get_image_bytes,
     image_to_base64,
 )
+from app.utils.document import get_stored_file_extension
 from app.utils.utils import is_admin, get_company_group_prefix
 
 if hydra_cfg.route.use_token:
@@ -132,16 +133,17 @@ def get_thumbnail(
         angle = 0
     
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
-    document_path = Path(str(page_num) + ".png")
+    document_extension = get_stored_file_extension(select_document_result.document_path)
+    document_path = Path(str(page_num) + document_extension)
     document_bytes = get_image_bytes(document_id, document_path)
     image = read_image_from_bytes(document_bytes, document_path.name, angle, page_num)
     if image is None:
         raise CoreCustomException(2103)
     
     if scale < 0.1: scale = 0.1
-    new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
-    resized_image = image.resize((new_w, new_h))
-    image_base64 = image_to_base64(resized_image)
+    if scale <= 1.0:
+        new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
+        image = image.resize((new_w, new_h))
     
     
     response = dict(
@@ -149,7 +151,7 @@ def get_thumbnail(
         angle     = -angle,
         width     = new_w,
         height    = new_h,
-        thumbnail = image_base64
+        thumbnail = image_to_base64(image)
     )
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
@@ -158,7 +160,8 @@ def get_thumbnail(
 @router.get("/{document_id}/preview")
 def get_document_preview(
     document_id:  str,
-    scale:        float           = 0.4,
+    scale:        float = 0.4,
+    page_max:     int   = 0,
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session:      Session         = Depends(db.session)
 ) -> JSONResponse:
@@ -211,19 +214,21 @@ def get_document_preview(
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     # 문서에 포함된 문서 종류(소분류) 묶음 리스트
-    doc_type_idxs: dict = select_document_result.doc_type_idxs
+    # doc_type_idxs: dict = select_document_result.doc_type_idxs
     doc_type_total_cnt: Dict[str, int] = dict()
-    for doc_type_code in doc_type_idxs.get("doc_type_codes", []):
+    # for doc_type_code in doc_type_idxs.get("doc_type_codes", []):
+    for doc_type_code in select_document_result.doc_type_code:
         doc_type_total_cnt.update({doc_type_code:doc_type_total_cnt.get(doc_type_code, 0) + 1})
     
-    # 문서의 page_num 페이지의 썸네일 base64로 encoding
-    document_path = Path(select_document_result.document_path)
-    document_bytes = get_image_bytes(document_id, document_path)
-    document_pages: List[Image.Image] = read_image_from_bytes(document_bytes, document_path.name, 0.0, 1, separate=True)
+    document_extension = get_stored_file_extension(select_document_result.document_path)
+    
+    if page_max == 0:
+        page_max = select_document_result.document_pages
     
     preview_list: List[dict] = list()
     doc_type_code_cnt: Dict[str, int] = dict()
-    for page, doc_type_idx, doc_type_code in zip(range(1, select_document_result.document_pages + 1), doc_type_idxs.get("doc_type_idxs", []), doc_type_idxs.get("doc_type_codes", [])):
+    # for page_num, doc_type_idx, doc_type_code in zip(range(1, page_max + 1), doc_type_idxs.get("doc_type_idxs", []), doc_type_idxs.get("doc_type_codes", [])):
+    for page_num, doc_type_idx, doc_type_code in zip(range(1, page_max + 1), select_document_result.doc_type_idx, select_document_result.doc_type_code):
         doc_type_code_cnt.update({doc_type_code:doc_type_code_cnt.get(doc_type_code, 0) + 1})
         
         doc_type_idx_ = doc_type_idx
@@ -238,18 +243,22 @@ def get_document_preview(
         doc_type_name_ = doc_type_info.get("name_kr")
         doc_type_code_ = doc_type_info.get("code")
         
-        image = document_pages[page-1]
+        # 문서의 page_num 페이지의 썸네일 base64로 encoding
+        document_path = Path(str(page_num) + document_extension)
+        document_bytes = get_image_bytes(document_id, document_path)
+        image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page_num)
+        
         if image is None:
             status_code, error = ErrorResponse.ErrorCode.get(2103)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
         
         if scale < 0.1: scale = 0.1
-        new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
-        resized_image = image.resize((new_w, new_h))
-        image_base64 = image_to_base64(resized_image)
+        if scale <= 1.0:
+            new_w, new_h = ((int(image.size[0] * scale), int(image.size[1] * scale)))
+            image = image.resize((new_w, new_h))
         
         preview_list.append(dict(
-            page=page,
+            page=page_num,
             
             page_doc_type=doc_type_code_cnt.get(doc_type_code),
             page_doc_type_total=doc_type_total_cnt.get(doc_type_code),
@@ -261,8 +270,7 @@ def get_document_preview(
             scale = scale,
             width= new_w,
             height = new_h,
-            thumbnail = image_base64,
-            
+            thumbnail = image_to_base64(image),
         ))
     
     
@@ -790,7 +798,7 @@ def get_document_list(
         # pkey를 이름으로 가져오는 컬럼은 인덱스 지정 필수
         if t_c == "DocumentInfo.cls_idx":
             cls_index = i
-        elif t_c == "DocumentInfo.doc_type_idxs":
+        elif t_c == "DocumentInfo.doc_type_idx":
             doc_type_index = i
         elif t_c == "DocumentInfo.document_id":
             docx_id_index = i
@@ -802,6 +810,11 @@ def get_document_list(
             uploader_email_index = i
         elif t_c == "InspectInfo.user_email":
             inspecter_email_index = i
+    
+    # 기타 서류도 목록에 보이게 하기
+    filter_doc_type_gocr_etc = 31 in doc_type_idx_list
+    if filter_doc_type_gocr_etc:
+        doc_type_idx_list.remove(31)
     
     # 필터링된 업무 리스트
     total_count, complet_count, filtered_count, filtered_rows = query.select_document_inspect_all(
@@ -864,12 +877,15 @@ def get_document_list(
     response_rows: List[list] = list()
     for row in filtered_rows:
         
-        doc_type_idxs: dict = row.pop(doc_type_index)
-        doc_type_idx_first = doc_type_idxs.get("doc_type_idxs", [0])[0]
+        # doc_type_idxs: list = row.pop(doc_type_index)
+        # doc_type_idx_first = doc_type_idxs.get("doc_type_idxs", [0])[0]
+        
+        doc_type_idxs: List[int] = row.pop(doc_type_index)
+        doc_type_idx_first = doc_type_idxs[0]
         
         doc_type_cnt = 0
         doc_type_etc = 0
-        for doc_type in set(doc_type_idxs.get("doc_type_idxs", [])):
+        for doc_type in set(doc_type_idxs):
             if doc_type in doc_type_idx_code.keys(): doc_type_cnt += 1
             else: doc_type_etc = 1
         
@@ -883,6 +899,14 @@ def get_document_list(
             if doc_type_idx_first not in cls_type_doc_type_list.get(cls_idx, []) \
                 or doc_type_idx_first not in doc_type_idx_code.keys():
                 doc_type_idx_first = 31
+                
+            # filter_doc_type_gocr_etc = True -> 기타 서류도 목록에 보이게 하기
+            if filter_doc_type_gocr_etc is False:
+                total_count -= total_count
+                filtered_count -= filtered_count
+                if row[docx_st_index] == "INSPECTED": total_count -= total_count
+                
+                continue
             
             first_doc_type_name = doc_type_idx_code.get(doc_type_idx_first, {}).get("name_kr")
             

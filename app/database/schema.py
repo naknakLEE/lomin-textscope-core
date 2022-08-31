@@ -9,7 +9,7 @@ import openpyxl
 
 from fastapi.encoders import jsonable_encoder
 from typing import Any, Dict, List, Optional, TypeVar
-from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func
+from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func, ARRAY
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -611,6 +611,9 @@ class DocumentInfo(Base, BaseMixin):
     document_pages = Column(Integer, comment='문서 총 페이지 수')
     cls_idx = Column(Integer, comment='문서 대분류 그룹 인덱스')
     doc_type_idxs = Column(MutableDict.as_mutable(JSON), comment='문서에 포함된 문서 소분류 인덱스 리스트')
+    doc_type_idx = Column(ARRAY(Integer, zero_indexes=True), comment="")
+    doc_type_code = Column(ARRAY(String, zero_indexes=True), comment="")
+    doc_type_cls_match = Column(ARRAY(Boolean, zero_indexes=True), comment="")
     inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 

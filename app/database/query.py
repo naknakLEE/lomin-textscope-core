@@ -115,6 +115,15 @@ def select_doc_type_cls_group_all(session: Session, **kwargs: Dict) -> Union[Lis
     return result
 
 
+def select_doc_type_cls_group(session: Session, **kwargs: Dict) -> List[schema.DocTypeClsGroup]:
+    try:
+        result = schema.DocTypeClsGroup.get_all(session, **kwargs)
+        if result is None:
+            raise CoreCustomException(2109)
+    except Exception:
+        raise CoreCustomException(4101, "문서 소분류와 문서 대분류 그룹")
+    return result
+
 def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInfo, JSONResponse]:
     try:
         result = schema.DocTypeInfo.get(session, **kwargs)
@@ -254,7 +263,6 @@ def insert_document(
     document_type: str = "TRAINING",
     document_pages: int = 0,
     cls_type_idx: int = 0,
-    doc_type_idx: int = 0,
     is_used: bool = True,
     auto_commit: bool = True
 ) -> Optional[schema.DocumentInfo]:
@@ -269,7 +277,6 @@ def insert_document(
             document_type=document_type,
             document_pages=document_pages,
             cls_idx=cls_type_idx,
-            doc_type_idx=doc_type_idx,
             is_used=is_used,
             auto_commit=auto_commit,
         )
@@ -408,12 +415,6 @@ def select_document_inspect_all(
         
         if len(user_team) > 0: query = query.filter(dao_document.user_team.in_(user_team))
         
-        # 총 업무 개수
-        # total_count = query.count()
-        
-        # 완료 업무 개수
-        # complet_count = query.filter(dao_inspect.inspect_status == "NOT_INSPECTED").count()
-        
         # DocumentInfo 필터링
         document_filters = dict(
             user_email=uploader_list,
@@ -421,6 +422,10 @@ def select_document_inspect_all(
         )
         for column, filter in document_filters.items():
             if len(filter) > 0: query = query.filter(getattr(dao_document, column).in_(filter))
+        
+        # 문서의 첫번째 이미지 문서 종류(소분류) 필터링
+        if len(doc_type_idx_list) > 0:
+            query = query.filter(dao_document.doc_type_idx[0].in_(doc_type_idx_list))
         
         # InsepctInfo 필터링
         inspect_filters = dict(
@@ -455,7 +460,7 @@ def select_document_inspect_all(
             query = query.filter(dao_document.document_path.contains(document_filename))
         
         filtered_count = query.count()
-        complet_count = 0
+        complet_count = query.filter(dao_inspect.inspect_status == "INSPECTED").count()
         
         # 페이징 (한 요청당 최대 1000개)
         query = query.offset(rows_offset) \
@@ -468,24 +473,7 @@ def select_document_inspect_all(
             "InspectInfo": None,
         }
         
-        filter_doc_type_idx = False
-        if len(doc_type_idx_list) != 0: filter_doc_type_idx = True
-        
         for row in rows:
-            doc_type_exist = False
-            if filter_doc_type_idx:
-                doc_type_list: List[int] = set(row[0].doc_type_idxs.get("doc_type_idxs", []))
-                
-                for doc_type in doc_type_list:
-                    if doc_type in doc_type_idx_list: doc_type_exist |= True
-            
-            if filter_doc_type_idx is True and doc_type_exist is False:
-                filtered_count -= 1
-                continue
-            
-            if row[1].inspect_status == "INSPECTED":
-                complet_count += 1
-            
             table_mapping.update(DocumentInfo=row[0])
             table_mapping.update(InspectInfo=row[1])
             
