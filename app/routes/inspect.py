@@ -15,7 +15,7 @@ from app.utils.logging import logger
 from app.utils.utils import get_ts_uuid, is_admin
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
-from app.utils.inspect import get_inspect_accuracy
+from app.utils.inspect import get_inspect_accuracy, get_inspect_accuracy_avg
 from app.middlewares.exception_handler import CoreCustomException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -29,7 +29,6 @@ else:
 security = HTTPBearer()
 settings = get_settings()
 router = APIRouter()
-
 
 
 @router.post("/save")
@@ -109,7 +108,11 @@ async def post_inspect_info(
     # inference_id에 해당하는 추론에 대한 검수 결과 저장
     inspect_id = get_ts_uuid("inpsect")
     inspect_status = settings.STATUS_INSPECTING
+    inspect_accuracy_avg = None
     if inspect_done is True:
+        # 문서 평균 정확도
+        inspect_accuracy_avg = get_inspect_accuracy_avg(session, select_document_result)
+        
         inspect_status = settings.STATUS_INSPECTED
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
         
@@ -145,6 +148,7 @@ async def post_inspect_info(
     update_document_result = query.update_document(
         session,
         document_id,
+        document_accuracy=inspect_accuracy_avg,
         inspect_id=inspect_id
     )
     if isinstance(update_document_result, JSONResponse):

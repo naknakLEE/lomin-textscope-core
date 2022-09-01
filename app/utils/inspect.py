@@ -1,6 +1,11 @@
 from sqlalchemy.orm import Session
+
+from app.common.const import get_settings
 from app.utils.postprocess import add_unrecognition_kv
-from app.database import schema
+from app.database import schema, query
+
+
+settings = get_settings()
 
 
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
@@ -37,3 +42,17 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
     inspect_accuracy = (divide_child / divide_parent) * 100
     
     return inspect_accuracy
+
+
+def get_inspect_accuracy_avg(session: Session, select_document_info: schema.DocumentInfo) -> float:
+    document_pages = select_document_info.document_pages
+    
+    inspect_accuracy_list = list()
+    for inference_id in [ query.select_inference_latest(session, page_num=x).inference_id for x in range(1, document_pages + 1) ]:
+        res = query.select_inspect_latest(session, inference_id=inference_id, inspect_status=settings.STATUS_INSPECTED)
+        if res is None: continue
+        inspect_accuracy_list.append(res.inspect_accuracy)
+    
+    inspect_accuracy_list += [100.0] * ( document_pages - len(inspect_accuracy_list))
+    
+    return sum(inspect_accuracy_list) / document_pages

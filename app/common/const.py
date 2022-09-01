@@ -212,7 +212,7 @@ class Settings(BaseSettings):
         "검수 담당자(이름)": "InspectInfo.user_info.user_name",
         "검수 담당자(그룹)": "",
         "상태": "InspectInfo.inspect_status",
-        "정확도": "InspectInfo.inspect_accuracy",
+        "정확도": "DocumentInfo.document_accuracy",
         "검수일": "InspectInfo.inspect_end_time",
         
         "document_pages": "DocumentInfo.document_pages"
