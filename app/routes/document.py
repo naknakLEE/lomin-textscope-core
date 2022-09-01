@@ -877,16 +877,18 @@ def get_document_list(
     response_rows: List[list] = list()
     for row in filtered_rows:
         
-        # doc_type_idxs: list = row.pop(doc_type_index)
-        # doc_type_idx_first = doc_type_idxs.get("doc_type_idxs", [0])[0]
-        
         doc_type_idxs: List[int] = row.pop(doc_type_index)
         doc_type_idx_first = doc_type_idxs[0]
+        
+        if cls_index != 0:
+            cls_idx = row[cls_index]
         
         doc_type_cnt = 0
         doc_type_etc = 0
         for doc_type in set(doc_type_idxs):
-            if doc_type in doc_type_idx_code.keys(): doc_type_cnt += 1
+            if doc_type in cls_type_doc_type_list.get(cls_idx, []) \
+                and doc_type in doc_type_idx_code.keys():
+                doc_type_cnt += 1
             else: doc_type_etc = 1
         
         row.insert(doc_type_index, doc_type_cnt + doc_type_etc - 1)
