@@ -122,11 +122,14 @@ async def post_inspect_info(
             except Exception as ex:
                 logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
         
+        # 인식률 확인
+        inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
     else:
         inspect_date_end = None
+        inspect_accuracy = None
     
-    # 인식률 확인
-    inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
+    
+    
     
     insert_inspect_result = query.insert_inspect(
         session,
