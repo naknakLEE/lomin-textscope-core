@@ -23,16 +23,19 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
     
     
     # _KEY, NONE 인식률에서 제거
+    inspect_kv = copy.deepcopy(inspect_kv)
     for key in list(inspect_kv.keys()):
         if "_KEY" in key or "NONE" in key:
             del inspect_kv[key]
 
     # _KEY, NONE 인식률에서 제거   
+    inference_kv = copy.deepcopy(inference_kv)
     for key in list(inference_kv.keys()):
         if "_KEY" in key or "NONE" in key:
             del inference_kv[key]
     
     # _KEY, NONE 인식률에서 제거
+    unrecognition_kv = copy.deepcopy(unrecognition_kv)
     for key in list(unrecognition_kv.keys()):
         if "_KEY" in key or "NONE" in key:
             del unrecognition_kv[key]
