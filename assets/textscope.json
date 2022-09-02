@@ -223,6 +223,23 @@
     "N": "0"
   },
   "PP_MAPPING_TABLE": {
+    "kbl1_el" : [
+      "MD-MED", 
+      "MD-PRS",
+      "KBL1_MED", 
+      "KBL1_PRS"
+
+    ],
+    "kbl1_kv" : [
+      "MD-CS",
+      "MD-CAD",
+      "MD-MC",
+      "MD-COT",
+      "KBL1_CS",
+      "KBL1_CAD",
+      "KBL1_MC",
+      "KBL1_COT"
+    ],
     "entity_linking":[
       "MD-PRS"
     ],    

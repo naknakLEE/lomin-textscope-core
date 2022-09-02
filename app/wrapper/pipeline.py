@@ -200,11 +200,16 @@ def single(
     response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
     
     # TODO 추후 doc_type : route_name 매핑 정보 추가
-    if inputs["doc_type"] == "FN-CB":
-        route_name = "bill_enterprise"
-    # 처방전
-    if inputs["doc_type"] == "MD-PRS":
-        route_name = "el"
+    print(type(inputs["doc_type"]))
+    # 고객사 doc_type -> 로민 doc_type
+    lomin_doc_type = get_lomin_doc_type(inputs["doc_type"])
+    if lomin_doc_type != None and lomin_doc_type != "None":
+        route_name = get_route_name(lomin_doc_type)
+    # if inputs["doc_type"] == "FN-CB":
+    #     route_name = "bill_enterprise"
+    # # 처방전
+    # if inputs["doc_type"] == "MD-PRS":
+    #     route_name = "el"
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
@@ -415,3 +420,35 @@ def heungkuk_life(
     logger.debug(f"{task_id}-output:\n{pretty_dict(ocr_response)}")
     kv_result_status_code: int = kv_result.get("status_code", 400)
     return (kv_result_status_code, ocr_response, response_log)
+
+def get_route_name(doc_type: str):
+    if doc_type == "FN-CB":
+        return "bill_enterprise"
+    elif doc_type in ["MD-PRS", "MD-MED", "KBL1_PRS", "KBL1_MED"]:
+        return "el"
+    elif doc_type in ["MD-CS", "MD-CAD", "MD-MC", "MD-COT","KBL1_CS", "KBL1_CAD", "KBL1_MC", "KBL1_COT"]:
+        return "kv"
+    return doc_type
+
+KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE = {
+    "KBL1_CFR" : "GV-CFR",        # 가족관계증명서
+    "KBL1_BC" : "GV-BC",          # 기본증명서
+    "KBL1_DN" : "MD-DN",          # 소견서
+    "KBL1_CS" : "MD-CS",          # 수술확인서
+    "KBL1_CIUA" : "KYOBO1-L1_CIUA",  # 신용정보동의서
+    "KBL1_CAD" : "MD-CAD",        # 입퇴원확인서
+    "KBL1_ARR": "GV-ARR",        # 주민등록등본
+    "KBL1_MC" : "MD-MC",          # 진단서
+    "KBL1_CP" : "MD-CPE",        # 약제비납입확인서
+    "KBL1_MED" : "MD-MED",        # 진료비세부내역서
+    "KBL1_MB" : "MD-MB",          # 진료비영수증
+    "KBL1_CMT" : "MD-CMT",        # 진료확인서
+    "KBL1_PRS" : "MD-PRS",        # 처방전
+    "KBL1_IC" : "KYOBO1-IC",      # 청구서
+    "KBL1_CO" : "MD-COT",        # 통원확인서
+}
+
+def get_lomin_doc_type(doc_type: str):
+    if doc_type in KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE:
+        return KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE[doc_type]
+    return doc_type   
