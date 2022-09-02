@@ -1,3 +1,4 @@
+from typing import Dict, List
 from sqlalchemy.orm import Session
 
 from app.common.const import get_settings
@@ -5,13 +6,15 @@ from app.utils.postprocess import add_unrecognition_kv
 from app.database import schema, query
 import copy
 
+
 settings = get_settings()
+doc_type_cls_group_dict: Dict[int, List[schema.DocTypeInfo]] = dict()
 
 
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
     doc_type_code = select_inference_result.inference_result.get("doc_type")
-    if doc_type_code in ["NONE", None]: # GOCR
-        return 0
+    if doc_type_code in ["GOCR", "NONE", None]: # GOCR
+        return None
     
     
     # 인식 되지 않은 class None값으로 추가
@@ -70,12 +73,26 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
 def get_inspect_accuracy_avg(session: Session, select_document_info: schema.DocumentInfo) -> float:
     document_id = select_document_info.document_id
     document_pages = select_document_info.document_pages
+    document_cls_idx = select_document_info.cls_idx
+    
+    if document_cls_idx not in doc_type_cls_group_dict.keys():
+        for doc_type_cls_group in query.select_doc_type_cls_group(session, cls_idx=document_cls_idx):
+            v = doc_type_cls_group_dict.get(doc_type_cls_group.cls_idx, [])
+            v.append(doc_type_cls_group.doc_type_info)
+            doc_type_cls_group_dict.update({doc_type_cls_group.cls_idx:v})
     
     inspect_accuracy_list = list()
-    for inference_id in [ query.select_inference_latest(session, document_id=document_id, page_num=x).inference_id for x in range(1, document_pages + 1) ]:
-        res = query.select_inspect_latest(session, inference_id=inference_id, inspect_status=settings.STATUS_INSPECTED)
+    for inference_info in [ query.select_inference_latest(session, document_id=document_id, page_num=x) for x in range(1, document_pages + 1) ]:
+        # 대분류(document_cls_idx)에 포함되어 있지 않은 소분류(doc_type_idx)면 평균 계산식에서 제외
+        if inference_info.doc_type_idx not in [ x.doc_type_idx for x in doc_type_cls_group_dict.get(document_cls_idx, []) ]:
+            document_pages -= 1
+            continue
+        
+        res = query.select_inspect_latest(session, inference_id=inference_info.inference_id, inspect_status=settings.STATUS_INSPECTED)
         if res is None: continue
         inspect_accuracy_list.append(res.inspect_accuracy)
+    
+    if document_pages == 0: return None
     
     inspect_accuracy_list += [100.0] * ( document_pages - len(inspect_accuracy_list) )
     
