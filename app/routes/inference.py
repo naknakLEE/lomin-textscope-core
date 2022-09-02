@@ -168,14 +168,15 @@ def ocr(
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["texts"] = texts
 
-        doc_type_code = inference_results.get("doc_type")
+        doc_type_code = inference_results.get("doc_type") if inputs.get("route_name") != "cls" else "cls"
         
         # Post processing
         post_processing_type = get_pp_api_name(doc_type_code)
+        
 
         if post_processing_type is not None \
-            and doc_type_code is not None \
-            and inputs.get("route_name", None) != 'cls':
+            and doc_type_code is not None :
+            # and inputs.get("route_name", None) != 'cls':
 
             logger.info(f"{task_id}-pp type:{post_processing_type}")
 
@@ -233,11 +234,12 @@ def ocr(
         return select_doc_type_result
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
-    
+    inference_results.update(doc_type=select_doc_type_result)
+
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
-        document_id=document_id,
+        document_id=document_id, 
         user_email=user_email,
         user_team=user_team,
         inference_result=inference_results,
@@ -248,17 +250,17 @@ def ocr(
     )
     if isinstance(insert_inference_result, JSONResponse):
         return insert_inference_result
-    del insert_inference_result
+    insert_inference_result: schema.InferenceInfo = insert_inference_result
+    inference_results.update(doc_type=insert_inference_result.inference_result.get("doc_type", dict()))
     
     
     response = dict(
         response_log=response_log,
-        inference_results=inference_results
-    )
-    response.update(
+        inference_results=inference_results,
         resource_id=dict(
             # log_id=task_id
         )
     )
+
     
     return JSONResponse(content=jsonable_encoder(response))
