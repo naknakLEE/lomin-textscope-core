@@ -8,7 +8,7 @@ import copy
 
 
 settings = get_settings()
-doc_type_cls_group_dict: Dict[int, List[schema.DocTypeInfo]] = dict()
+doc_type_cls_group_dict: Dict[int, List[int]] = dict()
 
 
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
@@ -78,13 +78,13 @@ def get_inspect_accuracy_avg(session: Session, select_document_info: schema.Docu
     if document_cls_idx not in doc_type_cls_group_dict.keys():
         for doc_type_cls_group in query.select_doc_type_cls_group(session, cls_idx=document_cls_idx):
             v = doc_type_cls_group_dict.get(doc_type_cls_group.cls_idx, [])
-            v.append(doc_type_cls_group.doc_type_info)
+            v.append(doc_type_cls_group.doc_type_idx)
             doc_type_cls_group_dict.update({doc_type_cls_group.cls_idx:v})
     
     inspect_accuracy_list = list()
     for inference_info in [ query.select_inference_latest(session, document_id=document_id, page_num=x) for x in range(1, document_pages + 1) ]:
         # 대분류(document_cls_idx)에 포함되어 있지 않은 소분류(doc_type_idx)면 평균 계산식에서 제외
-        if inference_info.doc_type_idx not in [ x.doc_type_idx for x in doc_type_cls_group_dict.get(document_cls_idx, []) ]:
+        if inference_info.doc_type_idx not in doc_type_cls_group_dict.get(document_cls_idx, []):
             document_pages -= 1
             continue
         
