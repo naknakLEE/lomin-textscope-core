@@ -108,11 +108,7 @@ async def post_inspect_info(
     # inference_id에 해당하는 추론에 대한 검수 결과 저장
     inspect_id = get_ts_uuid("inpsect")
     inspect_status = settings.STATUS_INSPECTING
-    inspect_accuracy_avg = None
     if inspect_done is True:
-        # 문서 평균 정확도
-        inspect_accuracy_avg = get_inspect_accuracy_avg(session, select_document_result)
-        
         inspect_status = settings.STATUS_INSPECTED
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
         
@@ -124,15 +120,14 @@ async def post_inspect_info(
         
         # 인식률 확인
         inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
+        
     else:
         inspect_date_end = None
         inspect_accuracy = None
     
-    
-    
-    
     insert_inspect_result = query.insert_inspect(
         session,
+        auto_commit=True,
         inspect_id=inspect_id,
         user_email=user_email,
         user_team=select_user_result.user_team,
@@ -147,7 +142,12 @@ async def post_inspect_info(
         return insert_inspect_result
     del insert_inspect_result
     
-    # 가장 최근 검수 정보 업데이트
+    inspect_accuracy_avg = None
+    if inspect_status == settings.STATUS_INSPECTED:
+        # 문서 평균 정확도
+        inspect_accuracy_avg = get_inspect_accuracy_avg(session, select_document_result)
+    
+    # 가장 최근 검수 정보, 문서 평균 정확도 업데이트
     update_document_result = query.update_document(
         session,
         document_id,
