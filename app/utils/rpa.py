@@ -108,13 +108,16 @@ async def request_get_kv_excel(document_id: str, token: HTTPAuthorizationCredent
     if isinstance(token, HTTPAuthorizationCredentials):
         headers["Authorization"] = " ".join([token.scheme, token.credentials])
     
-    async with AsyncClient() as client:
-        response = await client.get(
-            f'{textscope_plugin_dashboard}/download/documents/excel',
-            params=params,
-            timeout=settings.TIMEOUT_SECOND,
-            headers=headers
-        )
+    try:
+        async with AsyncClient() as client:
+            response = await client.get(
+                f'{textscope_plugin_dashboard}/download/documents/excel',
+                params=params,
+                timeout=settings.TIMEOUT_SECOND,
+                headers=headers
+            )
+    except:
+        raise CoreCustomException("C01.006.5004")
     
     # response_metadata = set_response_metadata(request_datetime)
     logger.info(f"download/documents/excel response status: {response.status_code}")
