@@ -68,14 +68,15 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
 
 
 def get_inspect_accuracy_avg(session: Session, select_document_info: schema.DocumentInfo) -> float:
+    document_id = select_document_info.document_id
     document_pages = select_document_info.document_pages
     
     inspect_accuracy_list = list()
-    for inference_id in [ query.select_inference_latest(session, page_num=x).inference_id for x in range(1, document_pages + 1) ]:
+    for inference_id in [ query.select_inference_latest(session, document_id=document_id, page_num=x).inference_id for x in range(1, document_pages + 1) ]:
         res = query.select_inspect_latest(session, inference_id=inference_id, inspect_status=settings.STATUS_INSPECTED)
         if res is None: continue
         inspect_accuracy_list.append(res.inspect_accuracy)
     
-    inspect_accuracy_list += [100.0] * ( document_pages - len(inspect_accuracy_list))
+    inspect_accuracy_list += [100.0] * ( document_pages - len(inspect_accuracy_list) )
     
     return sum(inspect_accuracy_list) / document_pages
