@@ -5,6 +5,8 @@ from app.database import query, schema
 
 UNRECOGNITION_KV_ITEM = {
     "text":"",
+    "type":"word",
+    "value":False,
     "score":0.0,
     "class": "",
     "box": [0.0, 0.0, 0.0, 0.0],
@@ -26,15 +28,19 @@ def add_unrecognition_kv(session: Session, select_inference_result: schema.Infer
     
     inference_result_kv = dict()
     unrecognition_kv = dict()
-    kv_item = dict()
-    kv_item.update(UNRECOGNITION_KV_ITEM)
-    
     kv_class_codes = select_inference_result.inference_result["kv"].keys()
     for kv_class in select_doc_kv_result:
         if kv_class.kv_class_code in kv_class_codes:
             inference_result_kv[kv_class.kv_class_code] = select_inference_result.inference_result["kv"][kv_class.kv_class_code]
+            inference_result_kv[kv_class.kv_class_code].update({"type":kv_class.kv_class_info.kv_class_type})
+            if kv_class.kv_class_info.kv_class_type == "checkbox":
+                inference_result_kv[kv_class.kv_class_code]["value"] = inference_result_kv[kv_class.kv_class_code]["text"].startswith("☑")
         else:
+            kv_item = dict()
+            kv_item.update(UNRECOGNITION_KV_ITEM)
             kv_item.update({"class":kv_class.kv_class_code})
+            kv_item.update({"type":kv_class.kv_class_info.kv_class_type})
+            
             inference_result_kv[kv_class.kv_class_code] = kv_item.copy()
             unrecognition_kv[kv_class.kv_class_code] = kv_item.copy()
         
