@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Dict
 
 from fastapi import APIRouter, Depends, Body, Request, Security
 from fastapi.encoders import jsonable_encoder
@@ -12,11 +12,12 @@ from app.database.connection import db
 from app.database import query, schema
 from app.common.const import get_settings
 from app.utils.logging import logger
-from app.utils.utils import get_ts_uuid, is_admin
+from app.utils.utils import get_ts_uuid, is_admin, get_company_group_prefix
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
 from app.utils.inspect import get_inspect_accuracy, get_inspect_accuracy_avg
 from app.middlewares.exception_handler import CoreCustomException
+from app.utils.inspect import is_doc_type_in_cls_group
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 
@@ -66,6 +67,12 @@ async def post_inspect_info(
         return user_policy_result
     user_policy_result: dict = user_policy_result
     
+    # 사용자가 사원인지 확인하고 맞으면 company_code를 group_prefix로 가져옴
+    group_prefix = get_company_group_prefix(session, current_user.email)
+    if isinstance(group_prefix, JSONResponse):
+        return group_prefix
+    group_prefix: str = group_prefix
+    
     user_team_list: List[str] = list()
     user_team_list.extend(user_policy_result.get("R_INSPECT_TEAM", []))
     user_team_list = list(set(user_team_list))
@@ -75,6 +82,23 @@ async def post_inspect_info(
     if isinstance(select_document_result, JSONResponse):
         return select_document_result
     select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 사용자 정책(조회 가능 문서 종류(대분류)) 확인
+    cls_code_list: List[str] = list()
+    cls_code_list.extend(user_policy_result.get("R_DOC_TYPE_CLASSIFICATION", []))
+    cls_code_list = list(set( [ group_prefix + x for x in cls_code_list ] ))
+    
+    cls_type_idx_list_result = query.get_user_classification_type(session, cls_code_list=cls_code_list)
+    if isinstance(cls_type_idx_list_result, JSONResponse):
+        return cls_type_idx_list_result
+    
+    cls_type_idx_result_list: Dict[int, dict] = { x.get("index") : x for x in cls_type_idx_list_result }
+    
+    # 사용자 정책(조회 가능 문서 종류(소분류)) 확인
+    doc_type_idx_code: Dict[int, dict] = dict()
+    for cls_type_info in cls_type_idx_result_list.values():
+        for doc_type_info in cls_type_info.get("docx_type", []):
+            doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
     
     # 문서 상태가 RUNNING_INFERENCE면 에러 응답 반환
     if select_document_result.inspect_id == "RUNNING_INFERENCE":
@@ -118,8 +142,13 @@ async def post_inspect_info(
             except Exception as ex:
                 logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
         
-        # 인식률 확인
-        inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
+        # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)일때 "기타서류"
+        if is_doc_type_in_cls_group(select_document_result.cls_idx, select_inference_result.doc_type_idx) is False \
+            or select_inference_result.doc_type_idx not in doc_type_idx_code.keys():
+            inspect_accuracy = None
+        else:
+            # 인식률 확인
+            inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
         
     else:
         inspect_date_end = None

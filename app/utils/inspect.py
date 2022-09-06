@@ -11,13 +11,11 @@ settings = get_settings()
 doc_type_cls_group_dict: Dict[int, List[int]] = dict()
 
 
+def is_doc_type_in_cls_group(cls_idx: int, doc_type_idx: int) -> bool:
+    return doc_type_idx in doc_type_cls_group_dict.get(cls_idx, [])
+
+
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
-    doc_type_code = select_inference_result.inference_result.get("doc_type")
-    if doc_type_code in ["GOCR", "NONE", None]: # GOCR
-        return None
-    
-    
-    # 인식 되지 않은 class None값으로 추가
     
     _, unrecognition_kv = add_unrecognition_kv(session, copy.deepcopy(select_inference_result))
     inference_kv = select_inference_result.inference_result.get("kv")
@@ -50,7 +48,8 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
         if inspect_kv[k]["text"] != unrecognition_kv[k]["text"] or \
             inspect_kv[k]["box"] != unrecognition_kv[k]["box"] or \
             inspect_kv[k]["merged_count"] != unrecognition_kv[k]["merged_count"] or \
-            inspect_kv[k]["class"] != unrecognition_kv[k]["class"]:
+            inspect_kv[k]["class"] != unrecognition_kv[k]["class"] or \
+            inspect_kv[k]["value"] != unrecognition_kv[k]["value"]:
             modify_count_unrecognition += 1
     
     # inference 결과(미검출 항목 제외) 수정 개수 확인
@@ -59,7 +58,8 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
         if inspect_kv[k]["text"] != inference_kv[k]["text"] or \
             inspect_kv[k]["box"] != inference_kv[k]["box"] or \
             inspect_kv[k]["merged_count"] != inference_kv[k]["merged_count"] or \
-            inspect_kv[k]["class"] != inference_kv[k]["class"]:
+            inspect_kv[k]["class"] != inference_kv[k]["class"] or \
+            inspect_kv[k]["value"] != inference_kv[k]["value"]:
             modify_count_inference += 1
     
     inference_kv_count = len(inference_kv)
