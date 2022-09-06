@@ -84,7 +84,8 @@ def get_inspect_accuracy_avg(session: Session, select_document_info: schema.Docu
     inspect_accuracy_list = list()
     for inference_info in [ query.select_inference_latest(session, document_id=document_id, page_num=x) for x in range(1, document_pages + 1) ]:
         # 대분류(document_cls_idx)에 포함되어 있지 않은 소분류(doc_type_idx)면 평균 계산식에서 제외
-        if inference_info.doc_type_idx not in doc_type_cls_group_dict.get(document_cls_idx, []):
+        if is_doc_type_in_cls_group(document_cls_idx, inference_info.doc_type_idx) is False \
+            or inference_info.doc_type_idx in [0, 31]:
             document_pages -= 1
             continue
         

@@ -142,9 +142,10 @@ async def post_inspect_info(
             except Exception as ex:
                 logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
         
-        # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)일때 "기타서류"
+        # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)이거나, 일반서류일때 인식률 None
         if is_doc_type_in_cls_group(select_document_result.cls_idx, select_inference_result.doc_type_idx) is False \
-            or select_inference_result.doc_type_idx not in doc_type_idx_code.keys():
+            or select_inference_result.doc_type_idx not in doc_type_idx_code.keys() \
+            or select_inference_result.doc_type_idx in [0, 31]:
             inspect_accuracy = None
         else:
             # 인식률 확인
