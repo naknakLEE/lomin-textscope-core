@@ -49,7 +49,7 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
             inspect_kv[k]["box"] != unrecognition_kv[k]["box"] or \
             inspect_kv[k]["merged_count"] != unrecognition_kv[k]["merged_count"] or \
             inspect_kv[k]["class"] != unrecognition_kv[k]["class"] or \
-            inspect_kv[k]["value"] != unrecognition_kv[k]["value"]:
+            inspect_kv[k].get("value", "") != unrecognition_kv[k].get("value", ""):
             modify_count_unrecognition += 1
     
     # inference 결과(미검출 항목 제외) 수정 개수 확인
@@ -59,7 +59,7 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
             inspect_kv[k]["box"] != inference_kv[k]["box"] or \
             inspect_kv[k]["merged_count"] != inference_kv[k]["merged_count"] or \
             inspect_kv[k]["class"] != inference_kv[k]["class"] or \
-            inspect_kv[k]["value"] != inference_kv[k]["value"]:
+            inspect_kv[k].get("value", "") != inference_kv[k].get("value", ""):
             modify_count_inference += 1
     
     inference_kv_count = len(inference_kv)
@@ -94,6 +94,7 @@ def get_inspect_accuracy_avg(session: Session, select_document_info: schema.Docu
         inspect_accuracy_list.append(res.inspect_accuracy)
     
     if document_pages == 0: return None
+    if inspect_accuracy_list.count(None) != 0: return None
     
     inspect_accuracy_list += [100.0] * ( document_pages - len(inspect_accuracy_list) )
     
