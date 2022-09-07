@@ -96,13 +96,13 @@ def app_generator() -> FastAPI:
             sort_by="cumulative",
         )
 
-    app.add_exception_handler(RuntimeError, validation_exception_handler)
-    app.add_exception_handler(ResourceDataError, resource_exception_handler)
-    app.add_exception_handler(CoreCustomException, core_exception_handler)
+    # app.add_exception_handler(RuntimeError, validation_exception_handler)
+    # app.add_exception_handler(ResourceDataError, resource_exception_handler)
+    # app.add_exception_handler(CoreCustomException, core_exception_handler)
 
-    app.add_middleware(TimeoutMiddleware)
+    # app.add_middleware(TimeoutMiddleware)
     app.add_middleware(LoggingMiddleware)
-    app.add_middleware(PrometheusMiddleware)
+    # app.add_middleware(PrometheusMiddleware)
 
     app.add_route("/metrics", metrics_route)
 

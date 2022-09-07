@@ -452,6 +452,7 @@ class KvClassInfo(Base, BaseMixin):
     kv_class_name_kr = Column(String, comment='항목 서식 한글 명')
     kv_class_name_en = Column(String, comment='항목 서식 영문 명')
     kv_class_use = Column(String, comment='항목 사용 여부')
+    kv_class_type = Column(String, comment='항목 타입 (word, checkbox)')
     is_used = Column(Boolean, comment='사용 여부')
 
 

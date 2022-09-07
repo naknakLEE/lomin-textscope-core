@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from fastapi import Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from starlette.types import Scope, Message
 from datetime import datetime
 from jose import jwt
 from app.errors.exceptions import APIException
@@ -20,6 +21,19 @@ from app.schemas import error_models as ErrorResponse
 settings = get_settings()
 
 
+class RequestWithBody(Request):
+    def __init__(self, scope: Scope, body: bytes) -> None:
+        super().__init__(scope, self._receive)
+        self._body = body
+        self._body_returned = False
+
+    async def _receive(self) -> Message:
+        if self._body_returned:
+            return {"type": "http.disconnect"}
+        else:
+            self._body_returned = True
+            return {"type": "http.request", "body": self._body, "more_body": False}
+
 class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
@@ -31,6 +45,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
+            json_body = {}
+            if request.headers.get("content-type") == "application/json":
+                json_body = await request.json()
+            body = await request.body()
+            form = await request.form()
+            logger.info(f"{request.method} {request.url.path} Request Info \n\
+            Request header{request.headers} ")
+            request = RequestWithBody(request.scope, body)
             if settings.USE_TEXTSCOPE_DATABASE:
                 request.state.db = next(db.session())
             headers = request.headers
@@ -49,6 +71,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     algorithms=[settings.ALGORITHM],
                 )
                 request.state.email = payload.get("sub")
+            logger.info("finsh middleware.. start request")
             response = await call_next(request)
             api_logger(request=request, response=response)
         except jwt.ExpiredSignatureError as e:

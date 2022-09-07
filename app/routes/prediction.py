@@ -377,7 +377,7 @@ def get_document_info_inference_pdf(
     images: List[Image.Image] = list()
     for page_num in range(1, select_document_result.document_pages + 1):
         # document_id로 특정 페이지의 가장 최근 inference info 조회
-        select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page+1)
+        select_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
         if isinstance(select_inference_result, JSONResponse):
             return select_inference_result
         select_inference_result: schema.InferenceInfo = select_inference_result
@@ -423,7 +423,7 @@ def get_document_info_inference_pdf(
         document_extension = get_stored_file_extension(select_document_result.document_path)
         document_path = Path(str(page_num) + document_extension)
         document_bytes = get_image_bytes(document_id, document_path)
-        images.append(read_image_from_bytes(document_bytes, document_path.name, angle, page+1))
+        images.append(read_image_from_bytes(document_bytes, document_path.name, angle, page_num))
     
     content: bytes = pdfparser.export_pdf(wordss, images)
     

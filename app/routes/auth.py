@@ -89,15 +89,19 @@ async def login_for_access_token(
     -  expires: token 만료 시간 설정
 
     """
+    logger.info(f"start user check, login email: {form_data.email}")
     user = authenticate_user(form_data.email, form_data.password, session)
+    logger.info("done user check")
     if user is None:
         raise CoreCustomException(2401)
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    logger.info("create access token")
     access_token = create_access_token(
         data={"sub": form_data.email, "scopes": form_data.scopes},
         expires_delta=access_token_expires,
     )
+    logger.info(f"done access token len: {access_token}")
     
     
     return JSONResponse(
