@@ -65,6 +65,9 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
     inference_kv_count = len(inference_kv)
     divide_parent = inference_kv_count + modify_count_unrecognition
     divide_child = divide_parent - (modify_count_unrecognition + modify_count_inference)
+    
+    if divide_parent == 0: return 100.0
+    
     inspect_accuracy = (divide_child / divide_parent) * 100
     
     return inspect_accuracy
