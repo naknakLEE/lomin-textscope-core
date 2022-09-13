@@ -1,4 +1,4 @@
 defaults:
-  - route: kdt2204
-  - document: kdt2204
-  - database: kdt2204
+  - route: fsa2204
+  - document: fsa2204
+  - database: default
