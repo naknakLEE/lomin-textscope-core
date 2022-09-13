@@ -17,7 +17,7 @@ def is_doc_type_in_cls_group(cls_idx: int, doc_type_idx: int) -> bool:
 
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
     
-    _, unrecognition_kv = add_unrecognition_kv(session, copy.deepcopy(select_inference_result))
+    _, unrecognition_kv = add_unrecognition_kv(session, select_inference_result)
     inference_kv = select_inference_result.inference_result.get("kv")
     
     inspect_kv = inspect_result.get("kv")
