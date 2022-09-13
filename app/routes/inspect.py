@@ -3,6 +3,7 @@ from typing import List, Dict
 
 from fastapi import APIRouter, Depends, Body, Request, Security
 from fastapi.encoders import jsonable_encoder
+from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -36,6 +37,7 @@ router = APIRouter()
 async def post_inspect_info(
     request: Request,
     params: dict = Body(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     token: HTTPAuthorizationCredentials = Security(security),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session: Session = Depends(db.session)
@@ -138,10 +140,14 @@ async def post_inspect_info(
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
         
         if hydra_cfg.common.rpa.use: # rpa 시작
-            try:
-                await send_rpa_only_cls_FN(session, user_email, document_id, token)
-            except Exception as ex:
-                logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
+            background_tasks.add_task(
+                send_rpa_only_cls_FN,
+                session=session,
+                user_email=user_email,
+                document_id=document_id,
+                token=token
+            )
+            # logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
         
         # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)이거나, 일반서류일때 인식률 None
         if select_inference_result.doc_type_idx not in cls_type_doc_type_list.get(select_document_result.cls_idx, []) \
@@ -196,4 +202,4 @@ async def post_inspect_info(
         )
     )
     
-    return JSONResponse(status_code=201, content=jsonable_encoder(response))
+    return JSONResponse(status_code=201, content=jsonable_encoder(response), background=background_tasks)

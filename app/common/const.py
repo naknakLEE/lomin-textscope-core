@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
     PLUGIN_DASHBOARD_IP_ADDR: str
+    WRAPPER_IP_ADDR: str
 
     # DOCKER SERVER PORT
     SERVING_IP_PORT: int
@@ -42,6 +43,7 @@ class Settings(BaseSettings):
     ROTATE_SERVICE_PORT: int = 5000
     MINIO_IP_PORT: int
     PLUGIN_DASHBOARD_IP_PORT: int
+    WRAPPER_IP_PORT: int
 
     # POSTGRESQL CONFIG
     POSTGRES_USER: str

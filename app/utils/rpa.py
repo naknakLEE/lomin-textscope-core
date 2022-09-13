@@ -19,8 +19,7 @@ from app.middlewares.exception_handler import CoreCustomException
 
 
 settings = get_settings()
-textscope_plugin_dashboard = f"http://{settings.PLUGIN_DASHBOARD_IP_ADDR}:{settings.PLUGIN_DASHBOARD_IP_PORT}"
-
+wrapper_server_url = f"http://{settings.WRAPPER_IP_ADDR}:{settings.WRAPPER_IP_PORT}"
 
 
 async def save_bytes_to_nas(file_list:List, save_file_path: str = None):
@@ -105,13 +104,14 @@ async def request_get_kv_excel(document_id: str, token: HTTPAuthorizationCredent
     )
     
     headers = dict()
+    headers["x-request-id"] = "rpa-get-kv-excel"
     if isinstance(token, HTTPAuthorizationCredentials):
         headers["Authorization"] = " ".join([token.scheme, token.credentials])
     
     try:
         async with AsyncClient() as client:
             response = await client.get(
-                f'{textscope_plugin_dashboard}/download/documents/excel',
+                f'{wrapper_server_url}/prediction/docx/excel',
                 params=params,
                 timeout=settings.TIMEOUT_SECOND,
                 headers=headers
@@ -120,11 +120,11 @@ async def request_get_kv_excel(document_id: str, token: HTTPAuthorizationCredent
         raise CoreCustomException("C01.006.5004")
     
     # response_metadata = set_response_metadata(request_datetime)
-    logger.info(f"download/documents/excel response status: {response.status_code}")
+    logger.info(f"/prediction/docx/excel response status: {response.status_code}")
     status_code = response.status_code
     if status_code != 200:
         response_data = response.json()
-        logger.warning(f"download/documents/excel error {response_data}")
+        logger.warning(f"/prediction/docx/excel error {response_data}")
         raise CoreCustomException("C01.006.5003")
         
         
@@ -133,7 +133,7 @@ async def request_get_kv_excel(document_id: str, token: HTTPAuthorizationCredent
         headers = {'Content-Disposition': f'attachment; filename="{excel_file_name}.xlsx"'}
         
     excel_file_name = f"{excel_file_name}.xlsx"
-    logger.info(f"download/documents/excel sucess {excel_file_name}")
+    logger.info(f"/prediction/docx/excel success {excel_file_name}")
     
     return response.content, excel_file_name
 
@@ -142,12 +142,15 @@ async def send_rpa_only_cls_FN(session: Session, user_email: str, document_id: s
     
     select_document_result = query.select_document(session, document_id=document_id)
     if isinstance(select_document_result, JSONResponse):
-        raise CoreCustomException(2101)
+        cce = CoreCustomException(2101)
+        logger.error(f"RPA 전송 실패 : error code: {cce.error.error_code} msg : {cce.error.error_message}")
+        raise cce
     select_document_result: schema.DocumentInfo = select_document_result
     
-    
     if select_document_result.cls_idx != CLS_FN_IDX: # 해외 투자신고서 이외
-        raise CoreCustomException("C01.002.4003")
+        cce = CoreCustomException("C01.002.4003")
+        logger.error(f"RPA 전송 실패 : error code: {cce.error.error_code} msg : {cce.error.error_message}")
+        raise cce
     
     kv_excel_bytes, kv_excel_filename = await request_get_kv_excel(document_id, token)
     rpa_template = query.select_rpa_form_info_get_all_latest(session)
