@@ -139,7 +139,8 @@ async def post_inspect_info(
         inspect_status = settings.STATUS_INSPECTED
         inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
         
-        if hydra_cfg.common.rpa.use: # rpa 시작
+        # 검수 완료 요청이 문서의 마지막 페이지일 경우에 rpa 시작
+        if hydra_cfg.common.rpa.use and select_document_result.document_pages == page_num:
             background_tasks.add_task(
                 send_rpa_only_cls_FN,
                 session=session,
@@ -147,7 +148,6 @@ async def post_inspect_info(
                 document_id=document_id,
                 token=token
             )
-            # logger.error(f"RPA 전송 실패 : error code: {ex.error.error_code} msg : {ex.error.error_message}")
         
         # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)이거나, 일반서류일때 인식률 None
         if select_inference_result.doc_type_idx not in cls_type_doc_type_list.get(select_document_result.cls_idx, []) \
