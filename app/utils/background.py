@@ -95,17 +95,20 @@ def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs:
 
 
 def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    session = next(db.session())
+    
     document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
+    
+    select_document_info_result: schema.DocumentInfo = query.select_document(session, document_id=document_id)
+    
+    document_pages = select_document_info_result.document_pages
+    document_path = select_document_info_result.document_path
     
     document_extension = get_stored_file_extension(document_path)
     
     gocr_params = dict()
     gocr_params.update(DEFAULT_PARAMS)
     gocr_params.update(DEFAULT_GOCR_PARAMS)
-    
-    session = next(db.session())
     
     update_document_info_doc_type_idxs(session, document_id, [])
     
@@ -131,15 +134,20 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
     query.update_document(session, document_id, inspect_id=inspect_id)
+    
+    session.close()
 
 def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    session = next(db.session())
+    
     document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
+    
+    select_document_info_result: schema.DocumentInfo = query.select_document(session, document_id=document_id)
+    
+    document_pages = select_document_info_result.document_pages
+    document_path = select_document_info_result.document_path
     
     document_extension = get_stored_file_extension(document_path)
-    
-    session = next(db.session())
     
     cls_params = dict()
     cls_params.update(DEFAULT_PARAMS)
@@ -171,17 +179,22 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
     query.update_document(session, document_id, inspect_id=inspect_id)
+    
+    session.close()
 
 def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    session = next(db.session())
+    
     document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
+    
+    select_document_info_result: schema.DocumentInfo = query.select_document(session, document_id=document_id)
+    
+    document_pages = select_document_info_result.document_pages
+    document_path = select_document_info_result.document_path
     
     document_extension = get_stored_file_extension(document_path)
     
     doc_type_info: schema.DocTypeInfo = kwargs.get("doc_type_info")
-    
-    session = next(db.session())
     
     kv_params = dict()
     kv_params.update(DEFAULT_PARAMS)
@@ -213,17 +226,22 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
     
     update_document_info_doc_type_idxs(session, document_id, [doc_type_info.doc_type_idx])
     query.update_document(session, document_id, inspect_id=inspect_id)
+    
+    session.close()
 
 def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    session = next(db.session())
+    
     document_id = kwargs.get("document_id")
-    document_pages = kwargs.get("document_pages", 1)
-    document_path = kwargs.get("save_path")
+    
+    select_document_info_result: schema.DocumentInfo = query.select_document(session, document_id=document_id)
+    
+    document_pages = select_document_info_result.document_pages
+    document_path = select_document_info_result.document_path
     
     document_extension = get_stored_file_extension(document_path)
     
     cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
-    
-    session = next(db.session())
     
     cls_params = dict()
     cls_params.update(DEFAULT_PARAMS)
@@ -280,6 +298,8 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     
     update_document_info_doc_type_idxs(session, document_id, doc_type_list)
     query.update_document(session, document_id, inspect_id=inspect_id)
+    
+    session.close()
 
 
 def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_type_list: List[str]) -> None:
@@ -311,3 +331,5 @@ def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_t
         doc_type_idx=doc_type_idxs,
         doc_type_code=doc_type_list
     )
+    
+    session.close()

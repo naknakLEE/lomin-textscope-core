@@ -256,55 +256,27 @@ async def post_upload_document(
         drm = DRM()
         document_data = await drm.drm_decryption(base64_data=document_data, file_name=document_name, user_email=user_email)
     
-    # 문서 저장(minio or local pc)
-    logger.info(f"try saving document file_name: {document_name}")
-    
-    try:
-        save_success, save_path, pages = save_upload_document(document_id, document_name, document_data)
-    except CoreCustomException as cce:
-        raise cce
-    
-    if save_success is False:
-        logger.info(f"saving document was failed file_name: {document_name}")
-        raise CoreCustomException(4102, "문서")
-    
-    logger.info(f"saving document was succeed file_name: {document_name}")
     dao_document_params = {
         "document_id": document_id,
         "user_email": user_email,
         "user_team": user_team,
-        "document_path": save_path,
+        "document_path": document_name,
         "document_description": document_description,
-        "document_pages": pages,
         "cls_type_idx": cls_type_idx,
-        # "doc_type_idx": doc_type_idx,
         "document_type": document_type
     }
     insert_document_result = query.insert_document(session, **dao_document_params)
     if isinstance(insert_document_result, JSONResponse):
         return insert_document_result
     
-    response_datetime = datetime.now()
-    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
-    response_log.update(dict(
-        request_datetime=request_datetime,
-        response_datetime=response_datetime,
-        elapsed=elapsed,
-    ))
-    
-    response.update(
-        request_datetime=request_datetime,
-        response_datetime=response_datetime,
-        elapsed=elapsed,
-        response_log=response_log,
+    background_tasks.add_task(
+        bg_document_save_upload,
+        document_name=document_name,
+        document_id=document_id,
+        document_data=document_data
     )
-    response.get("resource_id").update(document_id=document_id)
-    
     
     if hydra_cfg.document.background_ocr:
-        # task_id = get_ts_uuid("task")
-        # response.get("resource_id").update(task_id=task_id)
-        
         # cls_type_idx(cls_idx)로 model_info 조회
         cls_model_info = None
         select_cls_group_model_result = query.select_cls_group_model(session, cls_idx=cls_type_idx)
@@ -332,14 +304,54 @@ async def post_upload_document(
             bg_ocr_wrapper,
             request,
             current_user,
-            save_path=save_path,
             document_id=document_id,
-            document_pages=pages,
             cls_model_info=cls_model_info,
             doc_type_info=doc_type_info
         )
     
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+    ))
+    
+    response.update(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+    )
+    response.get("resource_id").update(document_id=document_id)
+    
+    
     return JSONResponse(status_code=200, content=jsonable_encoder(response), background=background_tasks)
+
+
+def bg_document_save_upload(document_name: str, document_id: str, document_data: str):
+    session = next(db.session())
+    
+    # 문서 저장(minio or local pc)
+    logger.info(f"try saving document file_name: {document_name}")
+    
+    try:
+        save_success, save_path, pages = save_upload_document(document_id, document_name, document_data)
+    except CoreCustomException as cce:
+        query.update_document(session, document_id, inspect_id="UPLOAD_ERROR", is_used=False)
+        raise cce
+    
+    if save_success is False:
+        logger.info(f"saving document was failed file_name: {document_name}")
+        query.update_document(session, document_id, inspect_id="SAVE_ERROR", is_used=False)
+        raise CoreCustomException(4102, "문서")
+    
+    logger.info(f"saving document was succeed file_name: {document_name}")
+    
+    query.update_document(session, document_id, document_path=save_path, document_pages=pages)
+    
+    session.close()
 
 
 @router.post("/image/crop")

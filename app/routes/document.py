@@ -224,6 +224,8 @@ def get_document_preview(
     
     if page_max == 0:
         page_max = select_document_result.document_pages
+    if select_document_result.document_pages == 0:
+        page_max = 0
     
     preview_list: List[dict] = list()
     doc_type_code_cnt: Dict[str, int] = dict()

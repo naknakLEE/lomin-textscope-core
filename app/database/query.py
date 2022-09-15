@@ -263,6 +263,8 @@ def insert_document(
     document_type: str = "TRAINING",
     document_pages: int = 0,
     cls_type_idx: int = 0,
+    doc_type_idx: List[int] = [0],
+    doc_type_code: List[str] = ["GOCR"],
     is_used: bool = True,
     auto_commit: bool = True
 ) -> Optional[schema.DocumentInfo]:
@@ -277,6 +279,8 @@ def insert_document(
             document_type=document_type,
             document_pages=document_pages,
             cls_idx=cls_type_idx,
+            doc_type_idx=doc_type_idx,
+            doc_type_code=doc_type_code,
             is_used=is_used,
             auto_commit=auto_commit,
         )
