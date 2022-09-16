@@ -220,6 +220,11 @@ def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
+            if "tables" not in inference_results:
+                inference_results["tables"] = post_processing_results["tables"]
+                logger.info(
+                    f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("tables", {}))}'
+                )
         
     
     response_log.update(inference_results.get("response_log", {}))

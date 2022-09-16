@@ -202,7 +202,7 @@ def single(
     # TODO 추후 doc_type : route_name 매핑 정보 추가
     print(type(inputs["doc_type"]))
     # 고객사 doc_type -> 로민 doc_type
-    lomin_doc_type = get_lomin_doc_type(inputs["doc_type"])
+    lomin_doc_type = inputs["doc_type"]
     if lomin_doc_type != None and lomin_doc_type != "None":
         route_name = get_route_name(lomin_doc_type)
     # if inputs["doc_type"] == "FN-CB":
@@ -447,8 +447,3 @@ KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE = {
     "KBL1_IC" : "KYOBO1-IC",      # 청구서
     "KBL1_CO" : "MD-COT",        # 통원확인서
 }
-
-def get_lomin_doc_type(doc_type: str):
-    if doc_type in KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE:
-        return KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE[doc_type]
-    return doc_type   
