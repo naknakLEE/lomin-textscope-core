@@ -275,8 +275,28 @@ def get_document_preview(
             thumbnail = image_to_base64(image),
         ))
     
+    if len(preview_list) == 0:
+        preview_list.append(dict(
+            page=0,
+            
+            page_doc_type=0,
+            page_doc_type_total=0,
+            
+            doc_type_idx=0,
+            doc_type_code="",
+            doc_type_name="",
+            
+            scale = 0.1,
+            width= 0,
+            height = 0,
+            thumbnail = settings.BLANK_IMAGE,
+        ))
+    
     
     response = dict(
+        document_info=dict(
+            document_pages=select_document_result.document_pages
+        ),
         preview=preview_list
     )
     
