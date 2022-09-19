@@ -154,7 +154,7 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1, separate:
     return pil_images_
 
 
-# @lru_cache(maxsize=15)
+@lru_cache(maxsize=15)
 def read_image_from_bytes(
     image_bytes: str, image_filename: str, angle: Optional[float], page: int, /, separate: bool = False
 ) -> Union[List[Image.Image], Image.Image]:

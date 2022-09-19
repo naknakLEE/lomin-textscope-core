@@ -31,8 +31,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
-            if settings.USE_TEXTSCOPE_DATABASE:
-                request.state.db = next(db.session())
+            # if settings.USE_TEXTSCOPE_DATABASE:
+            #     request.state.db = next(db.session())
             headers = request.headers
             ip = (
                 headers["x-forwarded-for"]
@@ -69,8 +69,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response = JSONResponse(status_code=error.status_code, content=error_dict)
             api_logger(request=request, error=error)
         finally:
-            if settings.USE_TEXTSCOPE_DATABASE:
-                request.state.db.close()
+            # if settings.USE_TEXTSCOPE_DATABASE:
+            #     request.state.db.close()
             response_datetime = datetime.now()
             elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
             logger.info(f"Response time: {response_datetime}")
