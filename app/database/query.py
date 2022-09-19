@@ -429,7 +429,7 @@ def select_document_inspect_all(
         
         # 문서의 첫번째 이미지 문서 종류(소분류) 필터링
         if len(doc_type_idx_list) > 0:
-            query = query.filter(dao_document.doc_type_idx[0].in_(doc_type_idx_list))
+            query = query.filter(dao_document.doc_type_cls_match[0].in_(doc_type_idx_list))
         
         # InsepctInfo 필터링
         inspect_filters = dict(

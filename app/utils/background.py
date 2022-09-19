@@ -110,7 +110,7 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
     gocr_params.update(DEFAULT_PARAMS)
     gocr_params.update(DEFAULT_GOCR_PARAMS)
     
-    update_document_info_doc_type_idxs(session, document_id, [])
+    update_document_info_doc_type_idxs(session, select_document_info_result, [])
     
     doc_type_list: List[str] = list()
     inspect_id = NOT_INSPECTED
@@ -132,7 +132,7 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
             logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
-    update_document_info_doc_type_idxs(session, document_id, doc_type_list)
+    update_document_info_doc_type_idxs(session, select_document_info_result, doc_type_list)
     query.update_document(session, document_id, inspect_id=inspect_id)
     
     session.close()
@@ -153,7 +153,7 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
     cls_params.update(DEFAULT_PARAMS)
     cls_params.update(DEFAULT_CLS_PARAMS)
     
-    update_document_info_doc_type_idxs(session, document_id, [])
+    update_document_info_doc_type_idxs(session, select_document_info_result, [])
     
     doc_type_list: List[str] = list()
     inspect_id = NOT_INSPECTED
@@ -177,7 +177,7 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
-    update_document_info_doc_type_idxs(session, document_id, doc_type_list)
+    update_document_info_doc_type_idxs(session, select_document_info_result, doc_type_list)
     query.update_document(session, document_id, inspect_id=inspect_id)
     
     session.close()
@@ -203,7 +203,7 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
         kv_params.update(DEFAULT_KV_PARAMS)
         kv_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_info.doc_type_code)
     
-    update_document_info_doc_type_idxs(session, document_id, [])
+    update_document_info_doc_type_idxs(session, select_document_info_result, [])
     
     inspect_id = NOT_INSPECTED
     for page in range(1, document_pages + 1):
@@ -224,7 +224,7 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
             logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
-    update_document_info_doc_type_idxs(session, document_id, [doc_type_info.doc_type_idx])
+    update_document_info_doc_type_idxs(session, select_document_info_result, [doc_type_info.doc_type_idx])
     query.update_document(session, document_id, inspect_id=inspect_id)
     
     session.close()
@@ -252,7 +252,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
     if cls_model_info is not None:
         cls_params.update(DEFAULT_CLS_PARAMS)
     
-    update_document_info_doc_type_idxs(session, document_id, [])
+    update_document_info_doc_type_idxs(session, select_document_info_result, [])
     
     doc_type_list: List[str] = list()
     inspect_id = NOT_INSPECTED
@@ -296,40 +296,45 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             logger.error(f"[INFERENCE_ERROR] {ex}")
             inspect_id = INFERENCE_ERROR
     
-    update_document_info_doc_type_idxs(session, document_id, doc_type_list)
+    update_document_info_doc_type_idxs(session, select_document_info_result, doc_type_list)
     query.update_document(session, document_id, inspect_id=inspect_id)
     
     session.close()
 
 
-def update_document_info_doc_type_idxs(session: Session, document_id: str, doc_type_list: List[str]) -> None:
-    doc_type_idx_code: Dict[str, int] = dict()
+def update_document_info_doc_type_idxs(session: Session, document_info: schema.DocumentInfo, doc_type_list: List[str]) -> None:
+    doc_type_cls_group_result: List[schema.DocTypeClsGroup] = query.select_doc_type_cls_group_all(session)
+    
+    cls_type_doc_type_dict: Dict[int, List[schema.DocTypeInfo]] = dict()
+    for doc_type_cls_group in doc_type_cls_group_result:
+        l = cls_type_doc_type_dict.get(doc_type_cls_group.cls_idx, [])
+        l.append(doc_type_cls_group.doc_type_idx)
+        cls_type_doc_type_dict.update({doc_type_cls_group.cls_idx:l})
+    
+    doc_type_idx_code = { x.doc_type_info.doc_type_code:x.doc_type_idx for x in doc_type_cls_group_result }
     
     if len(doc_type_list) == 0: doc_type_list.append("NONE")
     doc_type_list = [ x if x != "NONE" else "GOCR" for x in doc_type_list ]
-    
-    select_doc_type_info_all_result = query.select_doc_type_all(session, doc_type_code=list(set(doc_type_list)))
-    if isinstance(select_doc_type_info_all_result, JSONResponse):
-        return
-    
-    select_doc_type_info_all_result: List[schema.DocTypeInfo] = select_doc_type_info_all_result
-    
-    for doc_type_info in select_doc_type_info_all_result:
-        doc_type_idx_code.update({doc_type_info.doc_type_code:doc_type_info.doc_type_idx})
     
     doc_type_idxs: List[int] = list()
     for doc_type_code in doc_type_list:
         doc_type_idxs.append(doc_type_idx_code.get(doc_type_code))
     
+    doc_type_cls_match: List[int] = list()
+    for doc_type_idx in doc_type_idxs:
+        if doc_type_idx in cls_type_doc_type_dict.get(document_info.cls_idx, []):
+            doc_type_cls_match.append(doc_type_idx)
+        else:
+            doc_type_cls_match.append(31)
+    
     query.update_document(
         session,
-        document_id,
+        document_info.document_id,
         doc_type_idxs=dict(
             doc_type_idxs=doc_type_idxs,
             doc_type_codes=doc_type_list,
         ),
         doc_type_idx=doc_type_idxs,
-        doc_type_code=doc_type_list
+        doc_type_code=doc_type_list,
+        doc_type_cls_match=doc_type_cls_match
     )
-    
-    session.close()

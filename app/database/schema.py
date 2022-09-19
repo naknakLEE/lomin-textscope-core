@@ -614,7 +614,7 @@ class DocumentInfo(Base, BaseMixin):
     doc_type_idxs = Column(MutableDict.as_mutable(JSON), comment='문서에 포함된 문서 소분류 인덱스 리스트')
     doc_type_idx = Column(ARRAY(Integer, zero_indexes=True), comment="")
     doc_type_code = Column(ARRAY(String, zero_indexes=True), comment="")
-    doc_type_cls_match = Column(ARRAY(Boolean, zero_indexes=True), comment="")
+    doc_type_cls_match = Column(ARRAY(Integer, zero_indexes=True), comment="")
     document_accuracy = Column(Float, comment="")
     inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
