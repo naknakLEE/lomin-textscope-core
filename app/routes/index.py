@@ -1,4 +1,6 @@
 import os
+import time
+import random
 import requests  # type: ignore
 
 from datetime import datetime
@@ -330,7 +332,23 @@ async def post_upload_document(
     return JSONResponse(status_code=200, content=jsonable_encoder(response), background=background_tasks)
 
 
+MAX_BG_UPLOAD_TASK_COUNT = hydra_cfg.get("background_upload_task_limit", 2)
+CURRENT_BG_UPLOAD_TASK_COUNT = 0
+
+
 def bg_document_save_upload(document_name: str, document_id: str, document_data: str):
+    time.sleep(random.random() * 2)
+    
+    global CURRENT_BG_UPLOAD_TASK_COUNT
+    
+    bg_tries = 0
+    while CURRENT_BG_UPLOAD_TASK_COUNT > MAX_BG_UPLOAD_TASK_COUNT:
+        if bg_tries > 60: CURRENT_BG_UPLOAD_TASK_COUNT -= 1
+        time.sleep(10)
+        bg_tries += 1
+    
+    CURRENT_BG_UPLOAD_TASK_COUNT += 1
+    
     session = next(db.session())
     
     # 문서 저장(minio or local pc)
@@ -352,6 +370,8 @@ def bg_document_save_upload(document_name: str, document_id: str, document_data:
     query.update_document(session, document_id, document_path=save_path, document_pages=pages)
     
     session.close()
+    
+    CURRENT_BG_UPLOAD_TASK_COUNT -= 1
 
 
 @router.post("/image/crop")

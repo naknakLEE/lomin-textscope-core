@@ -1,4 +1,6 @@
 import json
+import time
+import random
 from typing import Dict, List
 
 from fastapi import Request
@@ -72,8 +74,23 @@ DEFAULT_KV_PARAMS = {
 NOT_INSPECTED = "NOT_INSPECTED"
 INFERENCE_ERROR = "INFERENCE_ERROR"
 
+MAX_BG_OCR_TASK_COUNT = hydra_cfg.get("background_ocr_task_limit", 2)
+CURRENT_BG_OCR_TASK_COUNT = 0
+
 
 def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:
+    time.sleep(random.random() * 2)
+    
+    global CURRENT_BG_OCR_TASK_COUNT
+    
+    bg_tries = 0
+    while CURRENT_BG_OCR_TASK_COUNT > MAX_BG_OCR_TASK_COUNT:
+        if bg_tries > 60: CURRENT_BG_OCR_TASK_COUNT -= 1
+        time.sleep(10)
+        bg_tries += 1
+    
+    CURRENT_BG_OCR_TASK_COUNT += 1
+    
     # cls_model_info에 따라 어떤 cls모델을 사용할지는 추 후 논의
     cls_model_info: schema.ModelInfo = kwargs.get("cls_model_info")
     
@@ -92,6 +109,8 @@ def bg_ocr_wrapper(request: Request, current_user: UserInfoInModel, /, **kwargs:
         bg_ocr = bg_clskv
     
     bg_ocr(request, current_user, **kwargs)
+    
+    CURRENT_BG_OCR_TASK_COUNT -= 1
 
 
 def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -> None:

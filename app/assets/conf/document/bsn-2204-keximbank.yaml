@@ -1,4 +1,6 @@
 background_ocr: True
+background_ocr_task_limit: 5
+background_upload_task_limit: 5
 doc_type:
   - FN-OIP
   - FN-BP
