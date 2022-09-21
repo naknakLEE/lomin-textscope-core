@@ -424,26 +424,18 @@ def heungkuk_life(
 def get_route_name(doc_type: str):
     if doc_type == "FN-CB":
         return "bill_enterprise"
-    elif doc_type in ["MD-PRS", "MD-MED", "KBL1_PRS", "KBL1_MED"]:
+    elif doc_type in get_model_doc_type_list("el"):
         return "el"
-    elif doc_type in ["MD-CS", "MD-CAD", "MD-MC", "MD-COT","KBL1_CS", "KBL1_CAD", "KBL1_MC", "KBL1_COT"]:
+    elif doc_type in get_model_doc_type_list("kv"):
         return "kv"
     return doc_type
 
-KBL1_DOC_TYPE_2_LOMIN_DOC_TYPE = {
-    "KBL1_CFR" : "GV-CFR",        # 가족관계증명서
-    "KBL1_BC" : "GV-BC",          # 기본증명서
-    "KBL1_DN" : "MD-DN",          # 소견서
-    "KBL1_CS" : "MD-CS",          # 수술확인서
-    "KBL1_CIUA" : "KYOBO1-L1_CIUA",  # 신용정보동의서
-    "KBL1_CAD" : "MD-CAD",        # 입퇴원확인서
-    "KBL1_ARR": "GV-ARR",        # 주민등록등본
-    "KBL1_MC" : "MD-MC",          # 진단서
-    "KBL1_CP" : "MD-CPE",        # 약제비납입확인서
-    "KBL1_MED" : "MD-MED",        # 진료비세부내역서
-    "KBL1_MB" : "MD-MB",          # 진료비영수증
-    "KBL1_CMT" : "MD-CMT",        # 진료확인서
-    "KBL1_PRS" : "MD-PRS",        # 처방전
-    "KBL1_IC" : "KYOBO1-IC",      # 청구서
-    "KBL1_CO" : "MD-COT",        # 통원확인서
+MODEL_DOC_TYPE_LIST = {
+    "el" : ["MD-PRS", "MD-MED", "KBL-10", "KBL1-12"],
+    "kv" : ["MD-CS", "MD-CAD", "MD-MC", "MD-COT", "KBL1-09", "KBL1-08", "KBL1-04", "KBL1-06"]
 }
+
+# 모델에 해당하는 doc_type_list를 반환합니다. 
+def get_model_doc_type_list(model: str):
+    return MODEL_DOC_TYPE_LIST[model]
+

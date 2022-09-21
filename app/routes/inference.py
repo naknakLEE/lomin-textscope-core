@@ -220,9 +220,9 @@ def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-            if "tables" not in inference_results:
+            if inputs.get("route_name", None) != 'cls' and "tables" not in inference_results and "tables" in post_processing_results:
                 inference_results["tables"] = post_processing_results["tables"]
-                logger.info(
+                logger.info(                            
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("tables", {}))}'
                 )
         
