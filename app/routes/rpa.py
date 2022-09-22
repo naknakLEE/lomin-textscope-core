@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from fastapi import Depends, APIRouter, HTTPException, Body, Security
+from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 
+from app import hydra_cfg
 from app.utils.rpa import send_rpa_only_cls_FN
 from app.utils.auth import get_current_active_user
 from app.database.connection import db
@@ -116,6 +118,7 @@ def post_rpa_template(
 async def post_rpa(
     params: dict = Body(...),
     session: Session = Depends(db.session),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user: models.UserInfo = Depends(get_current_active_user),
     token: HTTPAuthorizationCredentials = Security(security),
 ) -> Any:
@@ -143,13 +146,22 @@ async def post_rpa(
     if not is_admin(user_policy_result):
         raise CoreCustomException(2509)
     
+    status = "fail, rpa.use = False"
     
-    await send_rpa_only_cls_FN(session, current_user.email, document_id, token)
+    if hydra_cfg.common.rpa.use:
+        background_tasks.add_task(
+            send_rpa_only_cls_FN,
+            session=session,
+            user_email=current_user.email,
+            document_id=document_id,
+            token=token
+        )
+        
+        status = "success"
+    
     
     response = dict(
-        status="success"
+        status=status
     )
     
-    return JSONResponse(status_code=200, content=jsonable_encoder(response))
-    
-    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response), background=background_tasks)
