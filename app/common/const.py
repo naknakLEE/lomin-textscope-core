@@ -1,4 +1,5 @@
 import json
+import os
 
 from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
@@ -6,6 +7,7 @@ from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
 from os import path
 from pathlib import Path
+from app import CURRENT_WORKING_DIR
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
@@ -13,7 +15,7 @@ base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
     encoding = settings.__config__.env_file_encoding
     customer_config = json.loads(
-        Path(f"/workspace/assets/textscope.json").read_text(encoding)
+        Path(CURRENT_WORKING_DIR.parent,f"assets/textscope.json").read_text(encoding)
     )
     config = customer_config
     return config
@@ -279,7 +281,8 @@ class Settings(BaseSettings):
     KV_CATEGORY_MAPPING: Dict = {}
 
     class Config:
-        env_file = "/workspace/.env"
+        
+        env_file = Path(CURRENT_WORKING_DIR.parent, ".env")
         env_file_encoding = "utf-8"
 
         @classmethod

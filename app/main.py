@@ -1,7 +1,11 @@
 import os
+import sys
 import uvicorn
 
+from pathlib import Path
 from minio import Minio
+# possible app import 
+sys.path.append(str(Path(os.getcwd()).parent))
 from app.common.const import get_settings
 from app.utils.create_app import app_generator
 
