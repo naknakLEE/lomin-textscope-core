@@ -184,3 +184,5 @@ app/lovit/
 # bentoml_package/
 # bentoml_textscope/
 # assets/heungkuklife.json
+
+*_bak
