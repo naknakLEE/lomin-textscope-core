@@ -422,17 +422,29 @@ def heungkuk_life(
     return (kv_result_status_code, ocr_response, response_log)
 
 def get_route_name(doc_type: str):
+    '''
+    doc_type에 따라 inference 서버의 어떤 api를 call할지 return 합니다. 
+    '''
     if doc_type == "FN-CB":
         return "bill_enterprise"
-    elif doc_type in get_model_doc_type_list("el"):
-        return "el"
-    elif doc_type in get_model_doc_type_list("kv"):
-        return "kv"
-    return doc_type
+    for model in MODEL_DOC_TYPE_LIST.keys():
+        if doc_type in get_model_doc_type_list(model):
+            return model
+    return None    
+
+    # elif doc_type in get_model_doc_type_list("el"):
+    #     return "el"
+    # elif doc_type in get_model_doc_type_list("kv"):
+    #     return "kv"
+    # elif doc_type in get_model_doc_type_list("ocr_for_pp"):
+    #     return "ocr_for_pp"
+    # return doc_type
 
 MODEL_DOC_TYPE_LIST = {
-    "el" : ["MD-PRS", "MD-MED", "KBL-10", "KBL1-12"],
-    "kv" : ["MD-CS", "MD-CAD", "MD-MC", "MD-COT", "KBL1-09", "KBL1-08", "KBL1-04", "KBL1-06"]
+    "el" : ["MD-PRS", "MD-MED", "MD-MB", "KBL-10", "KBL1-11", "KBL1-12"],
+    "kv" : [    "MD-CS", "MD-DN", "MD-CMT", "MD-CAD", "MD-MC", "MD-COT", 
+                "KBL1-04", "KBL1-05", "KBL1-06", "KBL1-07", "KBL1-08", "KBL1-09"],
+    "ocr_for_pp" : ["GV-CFR","GV-BC", "KBL1-01", "KBL1-02"]
 }
 
 # 모델에 해당하는 doc_type_list를 반환합니다. 

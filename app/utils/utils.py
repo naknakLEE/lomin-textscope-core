@@ -104,6 +104,10 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     # 교보_kv
     elif doc_type in pp_mapping_table.get("kbl1_kv", []):
         return "kbl1_kv"
+    elif doc_type in pp_mapping_table.get("kbl1_basic_cert", []):
+        return "kbl1_basic_cert" 
+    elif doc_type in pp_mapping_table.get("kbl1_family_cert", []):
+        return "kbl1_family_cert" 
     elif doc_type in pp_mapping_table.get("commercial_bill", []):
         return "commercial_bill"
     elif doc_type in pp_mapping_table.get("heungkuk", []):
