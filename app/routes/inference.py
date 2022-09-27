@@ -390,6 +390,17 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
     doc_type_codes_list.pop(page_num - 1)
     doc_type_codes_list.insert(page_num - 1, doc_type_code)
     
+    select_doc_type_cls_group_result = query.select_doc_type_cls_group(session, cls_idx=select_document_result.cls_idx)
+    select_doc_type_cls_group_result: List[schema.DocTypeClsGroup]
+    cls_type_doc_type = [ x.doc_type_idx for x in select_doc_type_cls_group_result ]
+    
+    doc_type_cls_match: List[int] = list()
+    for doc_type_idx in doc_type_idx_list:
+        if doc_type_idx in cls_type_doc_type:
+            doc_type_cls_match.append(doc_type_idx)
+        else:
+            doc_type_cls_match.append(31)
+    
     query.update_document(
         session,
         document_id,
@@ -398,7 +409,8 @@ def ocr_kv(inputs: dict, current_user: UserInfoInModel, session: Session) -> Uni
             doc_type_codes=doc_type_codes_list
         ),
         doc_type_idx=doc_type_idx_list,
-        doc_type_code=doc_type_codes_list
+        doc_type_code=doc_type_codes_list,
+        doc_type_cls_match=doc_type_cls_match
     )
     
     inputs.update(
