@@ -212,19 +212,19 @@ def ocr(
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["kv"] = post_processing_results["result"]
-            logger.info(
-                f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
-            )
+            # logger.info(
+            #     f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
+            # )
             if "texts" not in inference_results:
                 inference_results["texts"] = post_processing_results["texts"]
-                logger.info(
-                    f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
-                )
+                # logger.info(
+                #     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
+                # )
             if inputs.get("route_name", None) != 'cls' and "tables" not in inference_results and "tables" in post_processing_results:
                 inference_results["tables"] = post_processing_results["tables"]
-                logger.info(                            
-                    f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("tables", {}))}'
-                )
+                # logger.info(                            
+                #     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("tables", {}))}'
+                # )
         
     
     response_log.update(inference_results.get("response_log", {}))
