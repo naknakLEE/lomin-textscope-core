@@ -62,6 +62,9 @@ COPY ./.env.prod /workspace/.env
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
     rm -rf /usr/bin/gcc
+    
+USER root
+RUN echo "export DEPLOY_DATE=$(date +'%Y-%m-%d')" >> /etc/bash.bashrc
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope

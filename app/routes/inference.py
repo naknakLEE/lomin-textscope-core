@@ -180,6 +180,8 @@ async def ocr(
             if(post_processing_type == 'idcard_pp'):
                 pp_inputs['rotation_matrix'] = inference_results.get("rotation_matrix")
                 pp_inputs['pad_tuple'] = inference_results.get("pad_tuple")
+                pp_inputs['pad_width'] = inference_results.get("pad_width")
+                pp_inputs['pad_height'] = inference_results.get("pad_height")
             status_code, post_processing_results, response_log = await pp.post_processing(
                 client=client,
                 task_id=task_id,
@@ -190,7 +192,8 @@ async def ocr(
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-            inference_results["kv"] = post_processing_results["result"]
+            # pp결과의 kv가 없을경우 빈 dict반환
+            inference_results["kv"] = post_processing_results["result"] if post_processing_results["result"] is not None else []
             logger.info(
                 f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
             )
@@ -206,16 +209,5 @@ async def ocr(
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
-    
-    # TODO: 각 모델마다 결과 저장하도록 구성
-    if settings.DEVELOP:
-        background_tasks.add_task(
-            func=query.insert_inference_result,
-            session=session,
-            task_pkey=task_pkey,
-            image_pkey=inputs.get("image_pkey"),
-            inference_type=inputs.get("inference_type"),
-            response_log=response_log,
-            inference_results=inference_results,
-        )
+
     return JSONResponse(content=jsonable_encoder(response))
