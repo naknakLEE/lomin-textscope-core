@@ -507,6 +507,17 @@ class LogInfo(Base, BaseMixin):
     log_content = Column(JSON, comment='로그 내용')
     is_used = Column(Boolean, comment='사용 여부')
 
+class LogAPI(Base, BaseMixin):
+    __tablename__ = 'log_api'
+    __table_args__ = {'comment': 'textscope 서비스 api 로그 정보'}
+
+    api_id = Column(String, primary_key=True, comment='api 로그 아이디')
+    api_end_point = Column(String, nullable=False, comment='api 엔드포인트')
+    api_method = Column(String, nullable=False, comment='api Method')
+    api_status_code = Column(String, nullable=False, comment='api http 응답코드')
+    api_is_success = Column(Boolean, nullable=False, comment='api 응답 성공여부')
+    api_response_time = Column(String, nullable=False, comment='api 응답시간')
+    api_response_datetime = Column(DateTime, default=func.now(), comment="api 로그 생성시간")
 
 class CompanyInfo(Base, BaseMixin):
     __tablename__ = 'company_info'
@@ -726,6 +737,7 @@ table_class_mapping = dict({
     "user_group": UserGroup,
     "inspect_info": InspectInfo,
     "visualize_info": VisualizeInfo,
+    "log_api" : LogAPI,
 })
 
 # plugin 계정에 특정 테이블 권한 주기
@@ -748,7 +760,8 @@ grant_table_list = [
     "doc_type_model",
     "cls_info",
     "cls_model",
-    "class_info"
+    "class_info",
+    "log_api"
 ]
 
 def create_db_table() -> None:
