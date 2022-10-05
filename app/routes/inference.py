@@ -151,7 +151,7 @@ def ocr(
         inference_result = inference_results
         if "kv_result" in inference_results:
             inference_result = inference_results.get("kv_result", {})
-        logger.debug(f"{task_id}-inference results:\n{inference_results}")
+        # logger.debug(f"{task_id}-inference results:\n{inference_results}")
         
         
         # convert preds to texts
@@ -199,6 +199,7 @@ def ocr(
                 image_height=inference_results.get("image_height"),
                 image_width=inference_results.get("image_width"),
                 relations=inference_results.get("relations"),
+                cls_score=inference_result.get("cls_score"),
                 task_id=task_id,
             )
             status_code, post_processing_results, response_log = pp.post_processing(
