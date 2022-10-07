@@ -130,6 +130,9 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     # 주민등록등본 전용 PP
     elif doc_type == "GV-ARR":
         return "rrtable"
+    # 보험금 청구서, 신용정보 동의서
+    elif doc_type == "KBL1-IC" or doc_type == "KBL1-PIC":
+        return None
 
     return None
 
