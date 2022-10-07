@@ -210,6 +210,16 @@ def single(
     # # 처방전
     # if inputs["doc_type"] == "MD-PRS":
     #     route_name = "el"
+    
+    if route_name == "tocr":
+        inputs["template_json"] = settings.KBL1_IC_TEMPLATE_JSON
+        
+        inputs["template_image_id"] = "template"
+        inputs["template_image_path"] = "test.png"
+        inputs["template_image_bytes"] = settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
+        
+        inputs["test_image_id"] = inputs.get("document_id")
+        inputs["test_image_path"] = inputs.get("document_path")
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
@@ -217,6 +227,10 @@ def single(
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
     )
+    
+    ocr_response_json = ocr_response.json()
+    if route_name == "tocr":
+        ocr_response_json["kv"] = ocr_response_json.pop("result")
     
     inference_end_time = datetime.now()
     response_log.update(
@@ -226,7 +240,7 @@ def single(
     logger.info(
         f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
-    return (ocr_response.status_code, ocr_response.json(), response_log)
+    return (ocr_response.status_code, ocr_response_json, response_log)
 
 
 # TODO: multiple 함수 사용하도록 수정
@@ -444,7 +458,8 @@ MODEL_DOC_TYPE_LIST = {
     "el" : ["MD-PRS", "MD-MED", "MD-MB", "MD-CPE", "KBL-10", "KBL1-11", "KBL1-12", "KBL1-13"],
     "kv" : [    "MD-CS", "MD-DN", "MD-CMT", "MD-CAD", "MD-MC", "MD-COT", 
                 "KBL1-04", "KBL1-05", "KBL1-06", "KBL1-07", "KBL1-08", "KBL1-09"],
-    "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
+    "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"],
+    "tocr": ["KBL1-IC", "KBL1-PIC"]
 }
 
 # 모델에 해당하는 doc_type_list를 반환합니다. 

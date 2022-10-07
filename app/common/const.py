@@ -152,6 +152,13 @@ class Settings(BaseSettings):
         "C_GRANT_USER",
         "D_REVOKE_USER"
     ]
+    
+    # TEMPLATE CONFIG
+    KBL1_IC_TEMPLATE_IMAGE_BASE64: str = ""
+    KBL1_IC_TEMPLATE_JSON: Dict = {}
+    KBL1_PIC_TEMPLATE_IMAGE_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_JSON: Dict = {}
+    
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}
