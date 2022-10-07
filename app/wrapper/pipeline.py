@@ -228,6 +228,10 @@ def single(
         headers={"User-Agent": "textscope core"},
     )
     
+    ocr_response_json = ocr_response.json()
+    if route_name == "tocr":
+        ocr_response_json["kv"] = ocr_response_json.pop("result")
+    
     inference_end_time = datetime.now()
     response_log.update(
         inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
@@ -236,7 +240,7 @@ def single(
     logger.info(
         f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
-    return (ocr_response.status_code, ocr_response.json(), response_log)
+    return (ocr_response.status_code, ocr_response_json, response_log)
 
 
 # TODO: multiple 함수 사용하도록 수정
