@@ -140,7 +140,7 @@ class Settings(BaseSettings):
     # DATABASE INIT INSERT DATA
     INIT_DATA_XLSX_FILE_LIST: list = [
         {
-            "name": "textscope",
+            "name": "kdt2204",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
     ]
@@ -243,7 +243,7 @@ class Settings(BaseSettings):
     KEY_LENGTH_TABLE: Dict = {}
     DATABASE_INITIAL_DATA: Dict = {}
     KV_CATEGORY_MAPPING: Dict = {}
-
+    KDT_CUSTOM_MAPPING: Dict = {}
     class Config:
         env_file = "/workspace/.env"
         env_file_encoding = "utf-8"

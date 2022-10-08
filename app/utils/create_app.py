@@ -27,7 +27,6 @@ from app.middlewares.exception_handler import (
     resource_exception_handler,
 )
 
-
 settings = get_settings()
 
 

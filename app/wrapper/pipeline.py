@@ -87,16 +87,9 @@ inference_pipeline_list = {
 model_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 route_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 
-# kdt용 doc_type_mapping_table
-doc_type_mapping_table = {
-    "KDT1_CBR": "GV-CBR-A",
-    "KDT1_CIPA": "KDT1-CIUA",
-    "KDT1_CTF": "KDT1-CERT",
-    "KDT1_UR": "KDT1-URF"
-}
-
 inference_pipeline: Dict[str, Dict] = inference_pipeline_list.get(settings.CUSTOMER)  # type: ignore
 
+kdt_reverse_mapping = settings.KDT_CUSTOM_MAPPING.get("REVERSE_DOC_TYPE")
 
 # TODO: raise not e~xist method name in pipeline
 def get_model_info(
@@ -195,29 +188,21 @@ def single(
 ) -> Tuple[int, Dict, Dict]:
     """doc type hint를 적용하고 inference 요청"""
     # Apply doc type hint
-    hint = inputs.get("hint", {})
-    if hint is not None and hint.get("doc_type") is not None:
-        doc_type_hint = hint.get("doc_type", {})
-        doc_type_hint = DocTypeHint(**doc_type_hint)
-        cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
-        response_log.update(apply_cls_hint_result=cls_hint_result)
-        inputs["doc_type"] = cls_hint_result.get("doc_type")
+    hint = inputs.get("hint")
+    if hint and hint.get("doc_type"):
+        doc_type_hint = DocTypeHint(**hint.get("doc_type"))
+        if doc_type_hint.use:
+            cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint, cls_result=inputs.get('cls_result', {}))
+            response_log.update(apply_cls_hint_result=cls_hint_result)
+            inputs["doc_type"] = cls_hint_result.get("doc_type")
 
     inference_start_time = datetime.now()
     response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
     
-    # TODO 추후 doc_type : route_name 매핑 정보 추가
-    if inputs["doc_type"] == "FN-CB":
-        route_name = "bill_enterprise"
-    # 처방전
-    if inputs["doc_type"] == "MD-PRS":
-        route_name = "el"
-    # 한국평가데이터: KDT1이 입력받은 doc_type에 있을경우 doc_type 변환(textscope 형태로) 후 kv로 보내기
-    # -> inference_server에 kv 부분이 doc_type을 textscope 형태로 사용중
-    if 'KDT1' in inputs["doc_type"]:
-        inputs["doc_type"] = doc_type_mapping_table.get(inputs["doc_type"])
-        route_name = "kv"                
-
+    reverse_mapping_doc_type = kdt_reverse_mapping.get(inputs.get("doc_type"), "")
+    if reverse_mapping_doc_type:
+        inputs["doc_type"] = reverse_mapping_doc_type
+        route_name = "kv"
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,

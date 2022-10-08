@@ -214,7 +214,7 @@ def insert_inference(
     auto_commit: bool = True
 ) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
     
-    del inference_result["response_log"]
+    if(inference_result.get("response_log")): del inference_result["response_log"]
     try:
         result = schema.InferenceInfo.create(
             session=session,

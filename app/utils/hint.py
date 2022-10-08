@@ -27,11 +27,11 @@ def apply_cls_hint(
         return result
     logger.debug("Start apply cls hint")
     hint_doc_type = doc_type_hint.doc_type
-    use = doc_type_hint.use
+    # use = doc_type_hint.use
     trust = doc_type_hint.trust
-    if not use:
-        logger.info("hint use is False")
-    elif not cls_result and not trust:
+    # if not use:
+    #     logger.info("hint use is False")
+    if not cls_result and not trust:
         logger.info("classification result is not exist and hint trust is False")
     elif trust:  # trust=True, cls_result is exist | trust=True, cls_result is not exist
         result["confidence"] = 1.0

@@ -168,11 +168,15 @@ def ocr(
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["texts"] = texts
 
-        doc_type_code = inference_results.get("doc_type")
+        doc_type_code = inference_results.get("doc_type", inputs.get('doc_type'))
         
         # Post processing
         # 한국평가데이터 cls일경우 kdt1_cls로 넘기기
-        post_processing_type = 'kdt1_cls' if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
+        is_call_function = inputs.get('is_call_function', False)
+        if(is_call_function):
+            post_processing_type = None if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
+        else:
+            post_processing_type = 'kdt1_cls' if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
 
         if post_processing_type is not None \
             and doc_type_code is not None:        
@@ -213,9 +217,10 @@ def ocr(
             if inputs.get("route_name") == 'cls':
                    inference_results["doc_type"] = post_processing_results.get('result')['doc_type']
             else:
-                inference_results["kv"] = post_processing_results["result"]
+                inference_results["kv"] = post_processing_results.get("result") if post_processing_results.get("result") else {}
                 # TODO 이거 맞나... 너무 지저분한디.. 더 좋은방법 공유 해보기
-                inference_result["doc_type"] = inputs["hint"]['doc_type']['doc_type']
+                # inference_result["doc_type"] = inputs["hint"]['doc_type']['doc_type']
+                
                 logger.info(
                     f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
                 )
@@ -229,8 +234,10 @@ def ocr(
     response_log.update(inference_results.get("response_log", {}))
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
 
+    # KDT1-EST(기업개요표 방어코드)
     inference_id = get_ts_uuid("inference")
-    doc_type_code = inference_results.get("doc_type")
+    doc_type_code = inference_results.get("doc_type", doc_type_code)
+    # if(doc_type_code == 'KDT1-EST'): inference_results["kv"] = {}
     
     # doc_type_code로 doc_type_index 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
@@ -267,4 +274,6 @@ def ocr(
         )
     )
     
+    if(is_call_function): return response
+
     return JSONResponse(content=jsonable_encoder(response))

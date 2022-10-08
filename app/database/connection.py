@@ -24,7 +24,7 @@ class SQLAlchemy:
             self.init_app(app=app, **kwargs)
 
     def init_app(self, app: FastAPI, **kwargs: Dict) -> None:
-        database_url = kwargs.get("DB_URL")
+        database_url = kwargs.get("DB_URL") 
         if not database_exists(database_url):
             create_database(database_url)
         pool_recycle = kwargs.get("DB_POOL_RECYCLE", 900)
