@@ -367,7 +367,7 @@ def get_doc_type_kv_list(
 
 
 @router.get("/filter/user/inspecter")
-def get_filter_user(
+def get_filter_user_inspecter(
     user_team:    str,
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session:      Session         = Depends(db.session)
@@ -433,7 +433,7 @@ def get_filter_user(
 
 
 @router.get("/filter/user/uploader")
-def get_filter_user(
+def get_filter_user_uploader(
     user_team:    str,
     current_user: UserInfoInModel = Depends(get_current_active_user),
     session:      Session         = Depends(db.session)
