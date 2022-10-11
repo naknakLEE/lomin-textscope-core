@@ -97,8 +97,8 @@ def get_user_info_by_user_email(
             user_ofps_cd  = str(company_user_info.emp_ofps_cd),
             user_ofps_nm  = str(company_user_info.emp_ofps_nm),
             authority     = str(authority),
-            authority_time_start = str(authority_time.get("start_time")),
-            authority_time_end   = str(authority_time.get("end_time"))
+            authority_time_start = str(authority_time.get("start_time"))[:10],
+            authority_time_end   = str(authority_time.get("end_time"))[:10]
         )
     )
     
