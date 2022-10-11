@@ -3,9 +3,9 @@
     "version": "2.2.11",
     "width": 4500,
     "height": 4500,
-    "scrollTop": -1219.1666182213403,
-    "scrollLeft": -467.49998142322414,
-    "zoomLevel": 0.9,
+    "scrollTop": -1120.833288795422,
+    "scrollLeft": -1074.9999572833442,
+    "zoomLevel": 0.7,
     "show": {
       "tableComment": true,
       "columnComment": true,
@@ -478,7 +478,7 @@
           "active": false,
           "left": 379.7135,
           "top": 2263.682,
-          "zIndex": 28,
+          "zIndex": 27,
           "widthName": 62.6962890625,
           "widthComment": 120,
           "color": "#FF6900"
@@ -917,7 +917,7 @@
           },
           {
             "name": "doc_type_idxs",
-            "comment": "문서에 포함된 문서 소분류 인덱스 리스트",
+            "comment": "문서에 포함된 문서 종류 정보",
             "dataType": "json",
             "default": "",
             "option": {
@@ -937,6 +937,98 @@
               "widthDefault": 60
             },
             "id": "233d3270-af8e-4fd0-8eae-42f22cd72529"
+          },
+          {
+            "name": "doc_type_idx",
+            "comment": "문서에 포함된 문서 종류(소분류) 인덱스 리스트",
+            "dataType": "int[]",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 78.60986328125,
+              "widthComment": 120,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "cf9583ff-acb4-49a2-a0b4-a42076fa8606"
+          },
+          {
+            "name": "doc_type_code",
+            "comment": "문서에 포함된 문서 종류(소분류) 항목코드 리스트",
+            "dataType": "varchar[]",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 90.181640625,
+              "widthComment": 120,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "c8590a2b-bff0-4b3e-bee7-d3268ffa7189"
+          },
+          {
+            "name": "document_accuracy",
+            "comment": "문서 인식정확도",
+            "dataType": "float",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 118.33984375,
+              "widthComment": 89.33186340332031,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "efe5766d-ab55-4678-b944-6869dbfaac12"
+          },
+          {
+            "name": "doc_type_cls_match",
+            "comment": "문서 종류(대분류)에 포함되지 않은 종류(소분류)이면 기타서류(31)로 변경되어 저장된 정보",
+            "dataType": "int[]",
+            "default": "",
+            "option": {
+              "autoIncrement": false,
+              "primaryKey": false,
+              "unique": false,
+              "notNull": false
+            },
+            "ui": {
+              "active": false,
+              "pk": false,
+              "fk": false,
+              "pfk": false,
+              "widthName": 120.5107421875,
+              "widthComment": 120,
+              "widthDataType": 60,
+              "widthDefault": 60
+            },
+            "id": "605ab668-a4b5-4a12-8cfc-408b42d62678"
           },
           {
             "name": "inspect_id",
@@ -989,7 +1081,7 @@
           "active": false,
           "left": 1631.5302,
           "top": 1203.0193,
-          "zIndex": 33,
+          "zIndex": 71,
           "widthName": 87.28076171875,
           "widthComment": 120,
           "color": "#FF6900"
@@ -1552,7 +1644,7 @@
           "active": false,
           "left": 1628.6086,
           "top": 1608.103,
-          "zIndex": 32,
+          "zIndex": 31,
           "widthName": 71.3798828125,
           "widthComment": 120,
           "color": "#FF6900"
@@ -1822,7 +1914,7 @@
           "active": false,
           "left": 2909.7851,
           "top": 2593.5604,
-          "zIndex": 27,
+          "zIndex": 26,
           "widthName": 65.59716796875,
           "widthComment": 120,
           "color": "#FF6900"
@@ -2620,7 +2712,7 @@
           "active": false,
           "left": 986.6037,
           "top": 2954.857,
-          "zIndex": 29,
+          "zIndex": 28,
           "widthName": 60,
           "widthComment": 120,
           "color": "#FF6900"
@@ -4241,7 +4333,7 @@
           "active": false,
           "left": 1637.5097,
           "top": 2593.3329,
-          "zIndex": 46,
+          "zIndex": 33,
           "widthName": 111.83984375,
           "widthComment": 120,
           "color": "#FF6900"
@@ -4620,7 +4712,7 @@
           "active": false,
           "left": 374.167,
           "top": 2623.3335,
-          "zIndex": 31,
+          "zIndex": 30,
           "widthName": 82.208984375,
           "widthComment": 82.82879638671875,
           "color": "#FF6900"
@@ -4844,7 +4936,7 @@
           "active": false,
           "left": 382.4994,
           "top": 2950.8333,
-          "zIndex": 30,
+          "zIndex": 29,
           "widthName": 67.7744140625,
           "widthComment": 118.56179809570312,
           "color": "#FF6900"
@@ -4936,7 +5028,7 @@
             "609d73b8-22a7-4b6d-b00a-926b0e11db57"
           ],
           "x": 2164.63811015625,
-          "y": 1360.5193,
+          "y": 1401.5193,
           "direction": "right"
         },
         "end": {
@@ -5023,7 +5115,7 @@
             "8a944ee5-7809-4b2b-8255-013d262b6a27"
           ],
           "x": 1631.5302,
-          "y": 1360.5193,
+          "y": 1401.5193,
           "direction": "left"
         },
         "constraintName": "fk_sso_user_info_to_document",
