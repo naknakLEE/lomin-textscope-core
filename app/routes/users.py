@@ -293,6 +293,7 @@ def get_company_users_authority(
     search_text:  str,
     rows_limit:   int,
     rows_offset:  int,
+    filter_authority: str = "관리자일반없음",
     session:      Session         = Depends(db.session),
     current_user: UserInfoInModel = Depends(get_current_active_user),
 ) -> JSONResponse:
@@ -315,36 +316,48 @@ def get_company_users_authority(
         raise CoreCustomException(2509)
     
     # current_user와 같은 company에 속한 company_user 정보를 조회
-    select_company_user_query = query.select_company_user_info_query(session, search_text, company_code=request_user_info.company_code)
+    total_count, select_company_user_query = query.select_company_user_info_query(session, search_text, company_code=request_user_info.company_code)
     select_company_user_query: List[schema.CompanyUserInfo] = select_company_user_query
     
-    filtered_count = len(select_company_user_query)
-    
-    rows_limit = rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW 
-    
+    filtered_count = 0
     response_rows: List[list] = list()
-    for company_user_info in select_company_user_query[rows_offset:rows_offset+rows_limit]:
+    for company_user_info in select_company_user_query:
     # user_email이 가지고 있는 모든 정책(권한) 정보 조회
         target_user_policy_result = query.get_user_group_policy(session, user_email=company_user_info.emp_usr_emad)
         if isinstance(target_user_policy_result, JSONResponse):
             return target_user_policy_result
         target_user_policy_result: dict = target_user_policy_result
         
-        response_rows.append([
-            str(company_user_info.emp_eno),
-            str(company_user_info.emp_usr_nm),
-            str(company_user_info.emp_ofps_nm),
-            str(query.get_user_authority(target_user_policy_result)),
-            str(company_user_info.emp_usr_emad),
-            str(company_user_info.emp_inbk_tno),
-            str(company_user_info.emp_org_path),
-            str(company_user_info.emp_fst_rgst_dttm)[:10],
-        ])
+        # 권한 확인 및 개인 권한 적용 기간 조회
+        authority = query.get_user_authority(target_user_policy_result)
+        authority_time = query.get_user_policy_time(session, company_user_info.emp_usr_emad, authority)
+        
+        if authority in filter_authority:
+            filtered_count += 1
+            
+            if rows_offset > 0: 
+                rows_offset -= 1
+                continue
+            
+            if len(response_rows) < rows_limit:
+                response_rows.append([
+                    str(company_user_info.emp_eno),
+                    str(company_user_info.emp_usr_nm),
+                    str(company_user_info.emp_ofps_nm),
+                    str(authority),
+                    str(company_user_info.emp_usr_emad),
+                    str(company_user_info.emp_inbk_tno),
+                    str(company_user_info.emp_org_path),
+                    str(company_user_info.emp_fst_rgst_dttm)[:10],
+                    str(authority_time.get("start_time"))[:10],
+                    str(authority_time.get("end_time"))[:10],
+                ])
     
     
     response = dict(
+        total_count=total_count,
         filtered_count=filtered_count,
-        columns=["행번", "이름", "직위", "권한", "이메일", "내선번호", "부서", "사원 등록일"],
+        columns=["행번", "이름", "직위", "권한", "이메일", "내선번호", "부서", "사원 등록일", "권한 적용 시작 시각", "권한 적용 종료 시각"],
         rows=response_rows
     )
     

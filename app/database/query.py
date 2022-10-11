@@ -669,10 +669,15 @@ def select_company_user_info_all(session: Session, **kwargs: Dict) -> Union[sche
     return result
 
 
-def select_company_user_info_query(session: Session, search_text: str, **kwargs: Dict) -> Union[schema.CompanyUserInfo, JSONResponse]:
+def select_company_user_info_query(session: Session, search_text: str, **kwargs: Dict) -> Union[Tuple[int, List[schema.CompanyUserInfo]], JSONResponse]:
     dao = schema.CompanyUserInfo
+    total_count = 0
     try:
         query = dao.get_all_query(session, **kwargs)
+        query = query.filter(dao.emp_fst_rgst_dttm != None)
+        
+        total_count = query.count()
+        
         result = query.filter(
             or_(
                 dao.emp_eno.contains(search_text),
@@ -683,7 +688,6 @@ def select_company_user_info_query(session: Session, search_text: str, **kwargs:
                 # dao.emp_org_path.contains(search_text)
             )
         ) \
-        .filter(dao.emp_fst_rgst_dttm != None) \
         .order_by(dao.emp_eno.asc()) \
         .all()
     except Exception:
@@ -691,7 +695,7 @@ def select_company_user_info_query(session: Session, search_text: str, **kwargs:
         status_code, error = ErrorResponse.ErrorCode.get(4101)
         error.error_message = error.error_message.format("모든 사원 정보")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
-    return result
+    return total_count, result
 
 # 미사용 -> 수출입은행 관련 함수 플러그인으로 분리 예정
 def select_org(session: Session, **kwargs: Dict) -> schema.KeiOrgInfo:
