@@ -315,6 +315,10 @@ def get_company_users_authority(
     if is_admin(user_policy_result) is False:
         raise CoreCustomException(2509)
     
+    # 검색어 수 제한
+    search_text = search_text[:50]
+    filter_authority = filter_authority[:10]
+    
     # current_user와 같은 company에 속한 company_user 정보를 조회
     total_count, select_company_user_query = query.select_company_user_info_query(session, search_text, company_code=request_user_info.company_code)
     select_company_user_query: List[schema.CompanyUserInfo] = select_company_user_query
