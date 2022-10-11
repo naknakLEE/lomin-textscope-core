@@ -200,11 +200,16 @@ def single(
     response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
     
     # TODO 추후 doc_type : route_name 매핑 정보 추가
-    if inputs["doc_type"] == "FN-CB":
-        route_name = "bill_enterprise"
-    # 처방전
-    if inputs["doc_type"] == "MD-PRS":
-        route_name = "el"
+    print(type(inputs["doc_type"]))
+    # 고객사 doc_type -> 로민 doc_type
+    lomin_doc_type = inputs["doc_type"]
+    if lomin_doc_type != None and lomin_doc_type != "None":
+        route_name = get_route_name(lomin_doc_type)
+    # if inputs["doc_type"] == "FN-CB":
+    #     route_name = "bill_enterprise"
+    # # 처방전
+    # if inputs["doc_type"] == "MD-PRS":
+    #     route_name = "el"
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
@@ -415,3 +420,34 @@ def heungkuk_life(
     logger.debug(f"{task_id}-output:\n{pretty_dict(ocr_response)}")
     kv_result_status_code: int = kv_result.get("status_code", 400)
     return (kv_result_status_code, ocr_response, response_log)
+
+def get_route_name(doc_type: str):
+    '''
+    doc_type에 따라 inference 서버의 어떤 api를 call할지 return 합니다. 
+    '''
+    if doc_type == "FN-CB":
+        return "bill_enterprise"
+    for model in MODEL_DOC_TYPE_LIST.keys():
+        if doc_type in get_model_doc_type_list(model):
+            return model
+    return None    
+
+    # elif doc_type in get_model_doc_type_list("el"):
+    #     return "el"
+    # elif doc_type in get_model_doc_type_list("kv"):
+    #     return "kv"
+    # elif doc_type in get_model_doc_type_list("ocr_for_pp"):
+    #     return "ocr_for_pp"
+    # return doc_type
+
+MODEL_DOC_TYPE_LIST = {
+    "el" : ["MD-PRS", "MD-MED", "MD-MB", "MD-CPE", "KBL-10", "KBL1-11", "KBL1-12", "KBL1-13"],
+    "kv" : [    "MD-CS", "MD-DN", "MD-CMT", "MD-CAD", "MD-MC", "MD-COT", 
+                "KBL1-04", "KBL1-05", "KBL1-06", "KBL1-07", "KBL1-08", "KBL1-09"],
+    "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
+}
+
+# 모델에 해당하는 doc_type_list를 반환합니다. 
+def get_model_doc_type_list(model: str):
+    return MODEL_DOC_TYPE_LIST[model]
+

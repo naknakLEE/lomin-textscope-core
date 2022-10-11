@@ -223,6 +223,43 @@
     "N": "0"
   },
   "PP_MAPPING_TABLE": {
+    "kbl1_el" : [
+      "MD-PRS",
+      "MD-MED",
+      "MD-MB", 
+      "MD-CPE",
+      "KBL1-10", 
+      "KBL1-11",
+      "KBL1-12",
+      "KBL1-13"
+
+    ],
+    "kbl1_basic_cert" : [
+      "GV-BC",
+      "KBL1-01"
+    ],
+    "kbl1_rrtable" : [
+      "GV-ARR",
+      "KBL1-03"
+    ],
+    "kbl1_family_cert" : [
+      "GV-CFR",
+      "KBL1-02"
+    ],
+    "kbl1_kv" : [
+      "MD-MC",
+      "MD-DN",
+      "MD-COT",
+      "MD-CMT",
+      "MD-CAD",
+      "MD-CS",
+      "KBL1_04",
+      "KBL1_05",
+      "KBL1_06",
+      "KBL1_07",
+      "KBL1_08",
+      "KBL1_09"
+    ],
     "entity_linking":[
       "MD-PRS"
     ],    
