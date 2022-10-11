@@ -1,6 +1,9 @@
 import json
 
 from httpx import Client
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
 
 from typing import Dict, Tuple, List, Optional
 from operator import attrgetter
@@ -12,6 +15,7 @@ from app.wrapper import pp
 from app.common import settings
 from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
+from app.schemas import error_models as ErrorResponse
 
 from app.utils.utils import (
     pretty_dict,
@@ -218,6 +222,7 @@ def single(
         headers={"User-Agent": "textscope core"},
     )
     
+    
     inference_end_time = datetime.now()
     response_log.update(
         inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
@@ -226,6 +231,13 @@ def single(
     logger.info(
         f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
+    status_code = ocr_response.status_code
+    if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
+        status_code, error = ErrorResponse.ErrorCode.get(3501)
+        return status_code, JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})), response_log
+    
+    
+    
     return (ocr_response.status_code, ocr_response.json(), response_log)
 
 

@@ -143,9 +143,8 @@ def ocr(
                 response_log=response_log,
                 route_name=inputs.get("route_name", "ocr"),
             )
-        if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
-            status_code, error = ErrorResponse.ErrorCode.get(3501)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        if isinstance(inference_results, JSONResponse):
+            return inference_results
         
         # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
         inference_result = inference_results
