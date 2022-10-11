@@ -682,7 +682,7 @@ def select_company_user_info_query(session: Session, search_text: str, **kwargs:
             or_(
                 dao.emp_eno.contains(search_text),
                 dao.emp_usr_nm.contains(search_text),
-                dao.emp_usr_emad.contains(search_text),
+                # dao.emp_usr_emad.contains(search_text),
                 
                 # dao.emp_usr_mpno.contains(search_text),
                 # dao.emp_org_path.contains(search_text)
