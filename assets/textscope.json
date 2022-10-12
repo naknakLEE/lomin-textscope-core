@@ -265,7 +265,7 @@
     "bankbook": ["A2", "AC", "Z1", "RF", "Z1", "통장사본", "bankbook", "FN-BB"],
     "busan_bank": ["법인등기부등본"],
     "business_registration": ["사업자등록증", "GV-CBR"],
-    "bsn_kdt": ["GV-CBR-A", "GV-CBR-B", "KDT1-CIUA", "KDT1-CERT", "KDT1-URF", "CP-CCC", "GV-FSC", "GV-FSVI", "GP-FNS"]
+    "bsn_kdt": ["GV-CBR-A", "GV-CBR-B", "KDT1-CIUA", "KDT1-CERT", "KDT1-URF", "CP-CCC", "GV-FSC", "GV-FSVI", "CP-FNS"]
   },
   "KDT_CUSTOM_MAPPING": {
       "DOC_TYPE": {
