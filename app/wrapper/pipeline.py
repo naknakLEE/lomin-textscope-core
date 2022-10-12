@@ -212,14 +212,24 @@ def single(
     #     route_name = "el"
     
     if route_name == "tocr":
-        inputs["template_json"] = settings.KBL1_IC_TEMPLATE_JSON
-        
-        inputs["template_image_id"] = "template"
-        inputs["template_image_path"] = "test.png"
-        inputs["template_image_bytes"] = settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
-        
-        inputs["test_image_id"] = inputs.get("document_id")
-        inputs["test_image_path"] = inputs.get("document_path")
+        if lomin_doc_type == "KBL1-IC":
+            inputs["template_json"] = settings.KBL1_IC_TEMPLATE_JSON
+            
+            inputs["template_image_id"] = "template"
+            inputs["template_image_path"] = "test.png"
+            inputs["template_image_bytes"] = settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
+            
+            inputs["test_image_id"] = inputs.get("document_id")
+            inputs["test_image_path"] = inputs.get("document_path")
+        elif lomin_doc_type == "KBL1-PIC":
+            inputs["template_json"] = settings.KBL1_PIC_TEMPLATE_JSON
+            
+            inputs["template_image_id"] = "template"
+            inputs["template_image_path"] = "test.png"
+            inputs["template_image_bytes"] = settings.KBL1_PIC_TEMPLATE_IMAGE_BASE64
+            
+            inputs["test_image_id"] = inputs.get("document_id")
+            inputs["test_image_path"] = inputs.get("document_path")
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",

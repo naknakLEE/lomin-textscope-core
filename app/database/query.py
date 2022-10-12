@@ -48,6 +48,20 @@ def select_cls_model_all(session: Session, **kwargs: Dict) -> Union[List[schema.
     return result
 
 
+def select_doc_type_code(session: Session, **kwargs: Dict) -> Union[str, JSONResponse]:
+    try:
+        result = schema.DocumentInfo.get(session, **kwargs)
+        result : schema.DocumentInfo = result
+        if result.doc_type_codes is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2107)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("doc_type select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("문서 종류")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result.doc_type_codes[0]
+
 def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInfo, JSONResponse]:
     try:
         result = schema.DocTypeInfo.get(session, **kwargs)
@@ -265,6 +279,29 @@ def insert_inspect(session: Session, **kwargs: Dict) -> Union[Optional[schema.In
         status_code, error = ErrorResponse.ErrorCode.get(4102)
         error.error_message = error.error_message.format("추론")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
+def select_document_doc_type(session: Session, document_id: str):
+    dao_inference = schema.InferenceInfo
+    dao_doc_type_info = schema.DocTypeInfo
+
+    try:
+        # get inference doc_type 
+        subquery = session \
+            .query(dao_inference) \
+            .filter(dao_inference.document_id == document_id)\
+            .subquery()
+        result = session \
+            .query(dao_doc_type_info) \
+            .filter(dao_doc_type_info.doc_type_idx.in_(subquery))
+
+    except:
+        logger.error(f"select doc_type error")
+        session.rollback()
+        status_code, error = ErrorResponse.ErrorCode.get(4102)
+        error.error_message = error.error_message.format("등록되지 않은 doc_type")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+
     return result
 
 
@@ -752,3 +789,4 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
         ))
     
     return doc_type_list
+

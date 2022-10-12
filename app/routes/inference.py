@@ -141,7 +141,7 @@ def ocr(
                 client=client,
                 inputs=inputs,
                 response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
+                route_name=inputs.get("route_name", "ocr_for_pp"),
             )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
@@ -240,7 +240,29 @@ def ocr(
         return select_doc_type_result
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
-    inference_results.update(doc_type=select_doc_type_result)
+    inference_results.update(doc_type=dict(
+        doc_type_idx=select_doc_type_result.doc_type_idx,
+        doc_type_code=select_doc_type_result.doc_type_code,
+        doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+        doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+        doc_type_name_en=select_doc_type_result.doc_type_name_en,
+        doc_type_structed=select_doc_type_result.doc_type_structed
+    ))
+
+    # document.doc_type update - cls 일 경우만 분기
+    if post_processing_type == "kbl1_cls":
+        doc_type_idxs = []
+        doc_type_codes = []
+        doc_type_idxs.append(doc_type_idx)
+        doc_type_codes.append(inference_result["kv"]["doc_type"])
+        
+        query.update_document(
+            session, 
+            document_id=document_id, 
+            doc_type_idx=doc_type_idx,
+            doc_type_idxs=doc_type_idxs,
+            doc_type_codes=doc_type_codes
+        )
 
     insert_inference_result = query.insert_inference(
         session=session,
@@ -257,7 +279,6 @@ def ocr(
     if isinstance(insert_inference_result, JSONResponse):
         return insert_inference_result
     insert_inference_result: schema.InferenceInfo = insert_inference_result
-    inference_results.update(doc_type=insert_inference_result.inference_result.get("doc_type", dict()))
     
     
     response = dict(
@@ -267,6 +288,6 @@ def ocr(
             # log_id=task_id
         )
     )
-
+    result =  JSONResponse(content=jsonable_encoder(response))
     
     return JSONResponse(content=jsonable_encoder(response))
