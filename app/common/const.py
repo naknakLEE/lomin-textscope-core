@@ -51,7 +51,7 @@ class Settings(BaseSettings):
             "passwd": "plugin0001!"
         }
     ]
-
+    POSTGRES_SCHEMA: str
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
@@ -140,7 +140,7 @@ class Settings(BaseSettings):
     # DATABASE INIT INSERT DATA
     INIT_DATA_XLSX_FILE_LIST: list = [
         {
-            "name": "textscope",
+            "name": "textscope_lina",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
     ]
