@@ -22,5 +22,5 @@ def select_document(document_id: str, db: Session = Depends(db.session)) -> Unio
 def insert_inference_result(
     data: Dict = Body(...), db: Session = Depends(db.session)
 ) -> bool:
-    logger.info(data)
+    # logger.info(data)
     return query.insert_inference_result(db, **data)
