@@ -229,6 +229,11 @@ def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
+            if post_processing_results.get('tables'):
+                inference_results["tables"] = post_processing_results.get('tables')
+                logger.info(
+                    f'{task_id}-post-processed tables result:\n{pretty_dict(inference_results.get("tables", {}))}'
+                )                
         
     
     response_log.update(inference_results.get("response_log", {}))

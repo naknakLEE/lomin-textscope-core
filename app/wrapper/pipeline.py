@@ -203,6 +203,8 @@ def single(
     if reverse_mapping_doc_type:
         inputs["doc_type"] = reverse_mapping_doc_type
         route_name = "kv"
+    # 재무제표일경우 인퍼런스서버 ocr_for_pp 엔드포인트로 보내기
+    if inputs.get("doc_type","") == 'CP-FNS': route_name = 'ocr_for_pp'         
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,

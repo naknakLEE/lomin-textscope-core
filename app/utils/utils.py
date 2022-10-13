@@ -92,22 +92,10 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     
     if doc_type in pp_mapping_table.get("general_pp", []):
         return "general_pp"
-    elif doc_type in pp_mapping_table.get("commercial_bill", []):
-        return "commercial_bill"
-    elif doc_type in pp_mapping_table.get("heungkuk", []):
-        return "heungkuk"
-    elif doc_type in pp_mapping_table.get("idcard", []):
-        return "idcard"
-    elif doc_type in pp_mapping_table.get("bankbook", []):
-        return "bankbook"
-    elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
-        return "seal_imp_cert"
-    elif doc_type in pp_mapping_table.get("ccr", []):
-        return "ccr"
-    elif doc_type in pp_mapping_table.get("busan_bank", []):
-        return "busan_bank"
     elif doc_type in pp_mapping_table.get("bsn_kdt", []):        
         return "kdt1_kv"
+    elif doc_type == "CP-FNS":
+        return "kdt1_cp_fns"        
     return None
 
 

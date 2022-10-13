@@ -1,12 +1,12 @@
 [submodule "textscope_wrapper"]
 	path = textscope_wrapper
 	url = git@github.com:Lomin-ai/textscope-wrapper.git
-	branch = feature/add_docx_path
+	branch = release/v0.5.0-kdt2204
 [submodule "inference_server"]
 	path = inference_server
 	url = git@github.com:Lomin-ai/inference_server.git
-	branch = release/kdt2204-v0.2.0
+	branch = develop
 [submodule "pp_server"]
 	path = pp_server
 	url = git@github.com:Lomin-ai/pp_server.git
-	branch = release/kdt2204-v0.2.0
+	branch = feature/kdt1
