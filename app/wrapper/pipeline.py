@@ -215,18 +215,34 @@ def single(
         if lomin_doc_type == "KBL1-IC":
             inputs["template_json"] = settings.KBL1_IC_TEMPLATE_JSON
             
-            inputs["template_image_id"] = "template"
-            inputs["template_image_path"] = "test.png"
-            inputs["template_image_bytes"] = settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
-            
+            inputs["template_images"] = {
+                "0": {
+                    "image_id": "template",
+                    "image_path": "보험금청구서_template_1.png",
+                    "image_bytes": settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
+                }
+            }
             inputs["test_image_id"] = inputs.get("document_id")
             inputs["test_image_path"] = inputs.get("document_path")
         elif lomin_doc_type == "KBL1-PIC":
             inputs["template_json"] = settings.KBL1_PIC_TEMPLATE_JSON
-            
-            inputs["template_image_id"] = "template"
-            inputs["template_image_path"] = "test.png"
-            inputs["template_image_bytes"] = settings.KBL1_PIC_TEMPLATE_IMAGE_BASE64
+            inputs["template_images"] = {
+                "0": {
+                    "image_id": "template_1",
+                    "image_path": "개인정보동의서_템플릿_1.png",
+                    "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64
+                },
+                "1": {
+                    "image_id": "template_2",
+                    "image_path": "개인정보동의서_템플릿_2.png",
+                    "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64
+                },
+                "2": {
+                    "image_id": "template_3",
+                    "image_path": "개인정보동의서_템플릿_3.png",
+                    "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64
+                }
+            }
             
             inputs["test_image_id"] = inputs.get("document_id")
             inputs["test_image_path"] = inputs.get("document_path")
