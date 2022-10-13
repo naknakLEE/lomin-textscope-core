@@ -81,7 +81,7 @@ def is_support_image(document_name: str, document_bytes: bytes) -> bool:
     file_extension = get_file_extension(document_name)
     if file_extension in support_file_extension_list.get("image"):
         try:
-            image: Image.Image = Image.Image.frombytes(document_bytes)
+            image = Image.open(BytesIO(document_bytes))
             if image is None or image.size[0] > MAX_IMAGE_PIXEL_SIZE[0] or image.size[1] > MAX_IMAGE_PIXEL_SIZE[1]:
                 support = False
         except DecompressionBombError:
