@@ -215,7 +215,10 @@ def insert_inference(
 ) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
     
     del inference_result["response_log"]
+    #Remove Personal Information by Policy
+    del inference_result["texts"]
     try:
+        
         result = schema.InferenceInfo.create(
             session=session,
             inference_id=inference_id,
