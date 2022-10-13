@@ -73,8 +73,45 @@ def get_page_count(document_data: str, document_filename: str) -> int:
     
     return total_pages
 
+# A1 (1684, 2384 pts), 300dpi
+MAX_IMAGE_PIXEL_SIZE = (7016, 9933)
+def is_support_image(document_name: str, document_bytes: bytes) -> bool:
+    support = True
+    
+    file_extension = get_file_extension(document_name)
+    if file_extension in support_file_extension_list.get("image"):
+        try:
+            image: Image.Image = Image.Image.frombytes(document_bytes)
+            if image is None or image.size[0] > MAX_IMAGE_PIXEL_SIZE[0] or image.size[1] > MAX_IMAGE_PIXEL_SIZE[1]:
+                support = False
+        except DecompressionBombError:
+            support = False
+        
+    elif file_extension in support_file_extension_list.get("tif"):
+        try:
+            with tifffile.TiffFile(BytesIO(document_bytes)) as tifs:
+                for tif in tifs.pages:
+                    tif: tifffile.TiffPage = tif
+                    if tif.shaped[3] > MAX_IMAGE_PIXEL_SIZE[0] or tif.shaped[4] > MAX_IMAGE_PIXEL_SIZE[1]:
+                        support = False
+        except:
+            support = False
+        
+    elif file_extension in support_file_extension_list.get("pdf"):
+        page_size = pdf2image.pdfinfo_from_bytes(document_bytes).get("Page size", "2000.0 x 3000.0 pts")
+        page_size = page_size.split(" ")
+        if float(page_size[0]) > 1684 or float(page_size[2]) > 2384:
+            support = False
+        
+    else:
+        logger.error(f"{document_name} is not supported!")
+        support = False
+    
+    return support
 
-def is_support_format(document_filename: str) -> bool:
+
+# 파일 확장자 제한
+def is_support_file_format(document_filename: str) -> bool:
     file_extension = get_file_extension(document_filename)
     support = False
     
@@ -83,6 +120,16 @@ def is_support_format(document_filename: str) -> bool:
             support = True
     
     return support
+
+# 파일 용량 제한 ( 300MB )
+def is_support_file_size(document_bytes: bytes) -> bool:
+    return len(document_bytes) < 300 * 1048576
+
+
+def is_support_file(document_filename: str, document_bytes: bytes) -> bool:
+    return True \
+        & is_support_file_format(document_filename) \
+        & is_support_file_size(document_bytes)
 
 
 def save_upload_document(

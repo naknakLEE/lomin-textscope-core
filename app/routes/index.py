@@ -34,7 +34,8 @@ from app.middlewares.exception_handler import CoreCustomException
 from app.utils.drm import load_file2base64, DRM
 from app.utils.document import (
     get_page_count,
-    is_support_format,
+    is_support_file,
+    is_support_image,
     save_upload_document,
 )
 from app.utils.image import (
@@ -188,6 +189,15 @@ async def post_upload_document(
     if document_data is None and document_path is not None:
         document_data = load_file2base64(document_path)
     
+    document_bytes = base64.b64decode(document_data)
+    
+    # 업로드 파일 제한
+    if is_support_file(document_name, document_bytes) is False:
+        raise CoreCustomException("C01.002.2002")
+    
+    # 업로드 이미지 제한
+    if is_support_image(document_name, document_bytes) is False:
+        raise CoreCustomException("C01.003.2001")
     
     logger.info("load document data")
     # 유저 정보 확인
@@ -197,6 +207,7 @@ async def post_upload_document(
     select_user_result: schema.UserInfo = select_user_result
     user_team = select_user_result.user_team
     logger.info("check user info")
+    
     # 사용자의 모든 정책(권한) 확인
     user_policy_result = query.get_user_group_policy(session, user_email=user_email)
     if isinstance(user_policy_result, JSONResponse):
@@ -249,10 +260,6 @@ async def post_upload_document(
         status_code_no_document, _ = ErrorResponse.ErrorCode.get(2101)
         if select_document_result.status_code != status_code_no_document:
             return select_document_result
-    
-    # 업로드된 파일 포맷(확장자) 확인
-    if is_support_format(document_name) is False:
-        raise CoreCustomException(2105)
     
     if hydra_cfg.common.drm.use: # drm 복호화
         drm = DRM()
