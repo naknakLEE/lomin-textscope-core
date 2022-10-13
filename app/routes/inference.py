@@ -141,7 +141,7 @@ def ocr(
                 client=client,
                 inputs=inputs,
                 response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
+                route_name=inputs.get("route_name", "ocr_for_pp"),
             )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
