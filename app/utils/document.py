@@ -48,7 +48,11 @@ def convert_bytes_header_2_filetype(bytes_file:bytes):
         None: None
     }
     file_byes_header = get_file_bytes_header(bytes_file)
-    return convert_dict[file_byes_header]
+    
+    if file_byes_header in convert_dict.keys():
+        return convert_dict[file_byes_header]
+    else:
+        return None
     
     
 
