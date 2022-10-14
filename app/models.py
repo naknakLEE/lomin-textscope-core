@@ -50,6 +50,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[EmailStr] = None
     scopes: List[str] = []
+    loc: Optional[str] = None
 
 
 class User(BaseModel):
