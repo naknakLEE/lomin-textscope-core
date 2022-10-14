@@ -441,10 +441,10 @@ def get_route_name(doc_type: str):
     # return doc_type
 
 MODEL_DOC_TYPE_LIST = {
-    "el" : ["MD-PRS", "MD-MED", "MD-MB", "MD-CPE", "KBL-10", "KBL1-11", "KBL1-12", "KBL1-13"],
-    "kv" : [    "MD-CS", "MD-DN", "MD-CMT", "MD-CAD", "MD-MC", "MD-COT", 
-                "KBL1-04", "KBL1-05", "KBL1-06", "KBL1-07", "KBL1-08", "KBL1-09"],
-    "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
+    # "el" : ["MD-PRS", "MD-MED", "MD-MB", "MD-CPE", "KBL-10", "KBL1-11", "KBL1-12", "KBL1-13"],
+    "kv" : [    "MD-CS", "MD-CAD", "MD-MC", "MD-DN", "MD-CMT",  "MD-COT", 
+                "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC"],
+    # "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
 }
 
 # 모델에 해당하는 doc_type_list를 반환합니다. 

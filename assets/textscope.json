@@ -246,19 +246,9 @@
       "GV-CFR",
       "KBL1-02"
     ],
-    "kbl1_kv" : [
-      "MD-MC",
-      "MD-DN",
-      "MD-COT",
-      "MD-CMT",
-      "MD-CAD",
-      "MD-CS",
-      "KBL1_04",
-      "KBL1_05",
-      "KBL1_06",
-      "KBL1_07",
-      "KBL1_08",
-      "KBL1_09"
+    "lina1_kv" : [    
+      "MD-CS", "MD-CAD", "MD-MC", "MD-DN", "MD-CMT",  "MD-COT", 
+      "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC"
     ],
     "entity_linking":[
       "MD-PRS"
