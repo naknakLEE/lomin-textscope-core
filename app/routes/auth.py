@@ -1,6 +1,6 @@
 from typing import Dict
 from datetime import timedelta
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, Request
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
@@ -75,6 +75,7 @@ async def post_kei_sso_token(
 
 @router.post("/token", response_model=Token, responses=auth_token_responses)
 async def login_for_access_token(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(db.session),
 ) -> Dict:
@@ -95,7 +96,11 @@ async def login_for_access_token(
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": form_data.email, "scopes": form_data.scopes},
+        data={
+            "sub": form_data.email,
+            "scopes": form_data.scopes,
+            "loc": request.state.ip
+        },
         expires_delta=access_token_expires,
     )
     

@@ -73,15 +73,21 @@ def authenticate_user(
         return user
     return None
 
+
+def __convert_token__(t: str) -> str:
+    return "".join( [ str((10 - int(_))) if _.isdecimal() and _ != "0" else _ for _ in [ _.upper() if _.islower() else _.lower() for _ in t ] ] )
+
+
 def jwt_decode(token: str) -> Union[TokenData, None]:
     payload = jwt.decode(
-        token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        __convert_token__(token), settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
     )
     email: str = payload.get("sub")
     if email is None:
-        return None
+        raise jwt.JWTError
     token_scopes = payload.get("scopes", [])
-    token_data = TokenData(scopes=token_scopes, email=email)
+    loc = payload.get("loc")
+    token_data = TokenData(scopes=token_scopes, email=email, loc=loc)
     return token_data
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -94,7 +100,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
-    return encoded_jwt
+    return __convert_token__(encoded_jwt)
 
 
 # async def get_current_user(token: str = Depends(oauth2_scheme)):

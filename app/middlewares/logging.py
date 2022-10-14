@@ -15,6 +15,7 @@ from app.middlewares.exception_handler import exception_handler
 from app.common.const import get_settings
 from app.utils.utils import cal_time_elapsed_seconds
 from app.schemas import error_models as ErrorResponse
+from app.utils.auth import jwt_decode
 
 
 settings = get_settings()
@@ -41,14 +42,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             )
             ip = ip if ip is not None else "127.0.0.1"
             request.state.ip = ip.split(",")[0] if "," in ip else ip
+            
             if "authorization" in headers.keys():
                 token = headers.get("Authorization")
-                payload = jwt.decode(
-                    token.replace("Bearer ", ""),
-                    settings.SECRET_KEY,
-                    algorithms=[settings.ALGORITHM],
-                )
-                request.state.email = payload.get("sub")
+                token_data = jwt_decode(token.replace("Bearer ", ""))
+                
+                if request.state.ip != token_data.loc:
+                    raise jwt.ExpiredSignatureError
+                
+                request.state.email = token_data.email
             response = await call_next(request)
             api_logger(request=request, response=response)
         except jwt.ExpiredSignatureError as e:
