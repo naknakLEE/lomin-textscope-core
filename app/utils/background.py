@@ -152,7 +152,7 @@ def bg_gocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) 
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, select_document_info_result, doc_type_list)
-    query.update_document(session, document_id, inspect_id=inspect_id)
+    query.update_document(session, document_id, inspect_id=inspect_id, is_used= inspect_id != INFERENCE_ERROR)
     
     session.close()
 
@@ -197,7 +197,7 @@ def bg_cls(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) -
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, select_document_info_result, doc_type_list)
-    query.update_document(session, document_id, inspect_id=inspect_id)
+    query.update_document(session, document_id, inspect_id=inspect_id, is_used= inspect_id != INFERENCE_ERROR)
     
     session.close()
 
@@ -244,7 +244,7 @@ def bg_kv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict) ->
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, select_document_info_result, [doc_type_info.doc_type_idx])
-    query.update_document(session, document_id, inspect_id=inspect_id)
+    query.update_document(session, document_id, inspect_id=inspect_id, is_used= inspect_id != INFERENCE_ERROR)
     
     session.close()
 
@@ -316,7 +316,7 @@ def bg_clskv(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict)
             inspect_id = INFERENCE_ERROR
     
     update_document_info_doc_type_idxs(session, select_document_info_result, doc_type_list)
-    query.update_document(session, document_id, inspect_id=inspect_id)
+    query.update_document(session, document_id, inspect_id=inspect_id, is_used= inspect_id != INFERENCE_ERROR)
     
     session.close()
 
