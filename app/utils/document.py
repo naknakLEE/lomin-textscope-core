@@ -90,15 +90,23 @@ def is_support_image(document_name: str, document_bytes: bytes) -> bool:
     elif file_extension in support_file_extension_list.get("tif"):
         try:
             with tifffile.TiffFile(BytesIO(document_bytes)) as tifs:
+                if len(tifs.pages) > hydra_cfg.document.multi_page_limit:
+                    raise CoreCustomException("C01.002.2003")
+                
                 for tif in tifs.pages:
-                    tif: tifffile.TiffPage = tif
+                    # tif: tifffile.TiffPage = tif
                     if tif.shaped[3] > MAX_IMAGE_PIXEL_SIZE[0] or tif.shaped[4] > MAX_IMAGE_PIXEL_SIZE[1]:
                         support = False
         except:
             support = False
         
     elif file_extension in support_file_extension_list.get("pdf"):
-        page_size = pdf2image.pdfinfo_from_bytes(document_bytes).get("Page size", "2000.0 x 3000.0 pts")
+        pdf_info = pdf2image.pdfinfo_from_bytes(document_bytes)
+        
+        if pdf_info.get("Pages", hydra_cfg.document.multi_page_limit+1) > hydra_cfg.document.multi_page_limit:
+            raise CoreCustomException("C01.002.2003")
+        
+        page_size = pdf_info.get("Page size", "2000.0 x 3000.0 pts")
         page_size = page_size.split(" ")
         if float(page_size[0]) > 1684 or float(page_size[2]) > 2384:
             support = False
