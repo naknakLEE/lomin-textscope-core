@@ -241,7 +241,7 @@ def ocr(
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
     inference_results.update(doc_type=select_doc_type_result)
-
+    
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,

@@ -223,6 +223,10 @@
     "N": "0"
   },
   "PP_MAPPING_TABLE": {
+    "lina1_kv" : [    
+      "MD-CS", "MD-CAD", "MD-MC", "MD-DN", "MD-CMT",  "MD-COT", 
+      "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC"
+    ],
     "kbl1_el" : [
       "MD-PRS",
       "MD-MED",
@@ -245,10 +249,6 @@
     "kbl1_family_cert" : [
       "GV-CFR",
       "KBL1-02"
-    ],
-    "lina1_kv" : [    
-      "MD-CS", "MD-CAD", "MD-MC", "MD-DN", "MD-CMT",  "MD-COT", 
-      "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC"
     ],
     "entity_linking":[
       "MD-PRS"

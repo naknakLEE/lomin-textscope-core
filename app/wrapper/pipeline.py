@@ -199,17 +199,11 @@ def single(
     inference_start_time = datetime.now()
     response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
     
-    # TODO 추후 doc_type : route_name 매핑 정보 추가
-    print(type(inputs["doc_type"]))
     # 고객사 doc_type -> 로민 doc_type
     lomin_doc_type = inputs["doc_type"]
     if lomin_doc_type != None and lomin_doc_type != "None":
         route_name = get_route_name(lomin_doc_type)
-    # if inputs["doc_type"] == "FN-CB":
-    #     route_name = "bill_enterprise"
-    # # 처방전
-    # if inputs["doc_type"] == "MD-PRS":
-    #     route_name = "el"
+
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
@@ -217,7 +211,7 @@ def single(
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
     )
-    
+
     inference_end_time = datetime.now()
     response_log.update(
         inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
@@ -425,8 +419,6 @@ def get_route_name(doc_type: str):
     '''
     doc_type에 따라 inference 서버의 어떤 api를 call할지 return 합니다. 
     '''
-    if doc_type == "FN-CB":
-        return "bill_enterprise"
     for model in MODEL_DOC_TYPE_LIST.keys():
         if doc_type in get_model_doc_type_list(model):
             return model

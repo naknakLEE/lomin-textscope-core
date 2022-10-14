@@ -90,44 +90,12 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     if not isinstance(pp_mapping_table, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
     
-    if doc_type in pp_mapping_table.get("general_pp", []):
-        return "general_pp"
-    # 교보_cls
+    # 라이나_cls
     elif doc_type == "cls":
-        return "lina1_cls" 
-    # 교보_kv
+        return "lina1_cls"
+    # 라이나_kv
     elif doc_type in pp_mapping_table.get("lina1_kv", []):
         return "lina1_kv"    
-    # 교보_kv
-    elif doc_type in pp_mapping_table.get("kbl1_kv", []):
-        return "kbl1_kv"
-    elif doc_type in pp_mapping_table.get("kbl1_basic_cert", []):
-        return "kbl1_basic_cert" 
-    elif doc_type in pp_mapping_table.get("kbl1_family_cert", []):
-        return "kbl1_family_cert" 
-    elif doc_type in pp_mapping_table.get("kbl1_rrtable", []):
-        return "kbl1_rrtable" 
-    elif doc_type in pp_mapping_table.get("commercial_bill", []):
-        return "commercial_bill"
-    elif doc_type in pp_mapping_table.get("heungkuk", []):
-        return "heungkuk"
-    elif doc_type in pp_mapping_table.get("idcard", []):
-        return "idcard"
-    elif doc_type in pp_mapping_table.get("bankbook", []):
-        return "bankbook"
-    elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
-        return "seal_imp_cert"
-    elif doc_type in pp_mapping_table.get("ccr", []):
-        return "ccr"
-    elif doc_type in pp_mapping_table.get("busan_bank", []):
-        return "busan_bank"
-    # 처방전 PP        
-    elif doc_type in pp_mapping_table.get("entity_linking", []):
-        return "general_pp_el"        
-    # 주민등록등본 전용 PP
-    elif doc_type == "GV-ARR":
-        return "rrtable"
-
     return None
 
 

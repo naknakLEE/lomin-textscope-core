@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 import uuid
 
@@ -215,8 +216,10 @@ def insert_inference(
 ) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
     
     del inference_result["response_log"]
+
+    ir=deepcopy(inference_result)
     #Remove Personal Information by Policy
-    del inference_result["texts"]
+    del ir["texts"]
     try:
         
         result = schema.InferenceInfo.create(
@@ -225,7 +228,7 @@ def insert_inference(
             document_id=document_id,
             user_email=user_email,
             user_team=user_team,
-            inference_result=jsonable_encoder(inference_result),
+            inference_result=jsonable_encoder(ir),
             inference_type=inference_type,
             inference_start_time=response_log.get("inference_start_time"),
             inference_end_time=response_log.get("inference_end_time"),
