@@ -1,4 +1,6 @@
+import base64
 import json
+from pathlib import Path
 
 from httpx import Client
 
@@ -8,6 +10,7 @@ from datetime import datetime
 
 from app import wrapper
 from app.models import DocTypeHint
+from app.utils.document import save_upload_document
 from app.wrapper import pp
 from app.common import settings
 from app.utils.hint import apply_cls_hint
@@ -21,75 +24,13 @@ from app.utils.utils import (
 
 model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 # TODO: move to json file
-inference_pipeline_list = {
-    "heungkuk": {
-        "general_detection": {
-            "model_name": "agamotto",
-            "route_name": "agamotto",
-            "module_name": "detection",
-        },
-        "kv_detection": {
-            "model_name": None,
-            "route_name": "duriel",
-            "module_name": "detection",
-        },
-        "classification": {
-            "model_name": "duriel",
-            "route_name": "duriel",
-            "module_name": "classification",
-        },
-        "recognition": {
-            "model_name": "tiamo",
-            "route_name": "tiamo",
-            "module_name": "recognition",
-        },
-        "sequence": {
-            "kv": ["general_detection", "recognition", "classification", "kv_detection"]
-        },
-    },
-    "lomin": {
-        "general_detection": {
-            "model_name": "detection",
-            "route_name": "detection",
-            "module_name": "detection",
-        },
-        "classification": {
-            "model_name": "classification",
-            "route_name": "classification",
-            "module_name": "classification",
-        },
-        "recognition": {
-            "model_name": "recognition",
-            "route_name": "recognition",
-            "module_name": "recognition",
-        },
-        "sequence": {"kv": ["classification", "general_detection", "recognition"]},
-    },
-    "kbcard": {
-        "general_detection": {
-            "model_name": "general",
-            "route_name": "detection",
-            "module_name": "detection",
-        },
-        "classification": {
-            "model_name": "longinus",
-            "route_name": "classification",
-            "module_name": "classification",
-        },
-        "recognition": {
-            "model_name": "tiamo",
-            "route_name": "recognition",
-            "module_name": "recognition",
-        },
-        "sequence": {"kv": ["classification", "general_detection", "recognition"]},
-    },
-}
+inference_pipeline_list = {}
 model_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 route_mapping_table = {"보험금청구서": "agammoto", "처방전": "duriel"}
 
 inference_pipeline: Dict[str, Dict] = inference_pipeline_list.get(settings.CUSTOMER)  # type: ignore
 
-kdt_reverse_mapping = settings.KDT_CUSTOM_MAPPING.get("REVERSE_DOC_TYPE")
+kdt_custom_mapping: Dict = settings.KDT_CUSTOM_MAPPING 
 
 # TODO: raise not e~xist method name in pipeline
 def get_model_info(
@@ -198,15 +139,43 @@ def single(
 
     inference_start_time = datetime.now()
     response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+
+    doc_type = inputs.get('doc_type', '')
     
-    reverse_mapping_doc_type = kdt_reverse_mapping.get(inputs.get("doc_type"), "")
-    if reverse_mapping_doc_type:
-        inputs["doc_type"] = reverse_mapping_doc_type
-        route_name = "kv"
-    # 재무제표일경우 인퍼런스서버 ocr_for_pp 엔드포인트로 보내기
-    if inputs.get("doc_type","") == 'CP-FNS': route_name = 'ocr_for_pp'         
+    # input custom doc type convert lomin doc type
+    reverse_doc_type: Dict = kdt_custom_mapping.get('REVERSE_DOC_TYPE')
+    if reverse_doc_type.get(doc_type): 
+        doc_type = reverse_doc_type.get(doc_type)
+        inputs.update(doc_type=doc_type)
+
+    # inferecne_server endpoint set
+    custom_inference_endpoint: Dict = kdt_custom_mapping.get('KDT_ENDPOINT').get('SERVING')
+    convert_route_name = custom_inference_endpoint.get(doc_type) if custom_inference_endpoint.get(doc_type) else route_name
+    
+    # endpoint가 tocr일경우 tocr에 맞는 input 만들기
+    if convert_route_name == 'tocr':
+        tocr_inputs: Dict = kdt_custom_mapping.get('KDT_TOCR').get(doc_type, "")
+        
+        # 1. template 이미지 setting
+        template_images: Dict = tocr_inputs.get("template_images")
+        for v in template_images.values():
+            if v.get('is_apply'): continue
+            image_name = v.get('image_path')
+            file_path = Path(f"/workspace/app/assets/template_image/{image_name}")
+            with file_path.open('rb') as file:
+                image_data = file.read()
+                image_data = base64.b64encode(image_data)
+                success = save_upload_document(v.get('image_id'),image_name, image_data)
+                if success: v.update(is_apply=True)                        
+        # 2. test 이미지 setting                 
+        tocr_inputs.update(test_image_id=inputs.get('image_id', ''))
+        tocr_inputs.update(test_image_path=inputs.get('image_path', ''))
+
+        # 3. inputs.update(tocr_inputs)             
+        inputs = tocr_inputs 
+
     ocr_response = client.post(
-        f"{model_server_url}/{route_name}",
+        f"{model_server_url}/{convert_route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},

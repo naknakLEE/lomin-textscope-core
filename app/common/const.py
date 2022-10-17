@@ -16,6 +16,12 @@ def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
         Path(f"/workspace/assets/textscope.json").read_text(encoding)
     )
     config = customer_config
+
+    # KDT 전용 config_json 등록
+    kdt_config = json.loads(
+        Path(f"/workspace/assets/kdt.json").read_text(encoding)
+    )
+    config.update(kdt_config)
     return config
 
 

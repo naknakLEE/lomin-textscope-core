@@ -26,6 +26,7 @@ from app.utils.logging import logger
 settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
 document_type_set = settings.DOCUMENT_TYPE_SET
+kdt_pp_custom_mapping: Dict = settings.KDT_CUSTOM_MAPPING.get('KDT_ENDPOINT').get('PP')
 
 
 # @FIXME: 이름과 기능이 맞지 않음
@@ -87,15 +88,12 @@ def set_json_response(
 
 
 def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optional[str]:
-    if not isinstance(pp_mapping_table, dict):
+    if not isinstance(kdt_pp_custom_mapping, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
     
-    if doc_type in pp_mapping_table.get("general_pp", []):
-        return "general_pp"
-    elif doc_type in pp_mapping_table.get("bsn_kdt", []):        
-        return "kdt1_kv"
-    elif doc_type == "CP-FNS":
-        return "kdt1_cp_fns"        
+    for k, v in kdt_pp_custom_mapping.items():
+        if doc_type in v: return k    
+
     return None
 
 
