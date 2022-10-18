@@ -178,14 +178,16 @@ def insert_document(
         logger.error(f"document duplicate error")
         traceback.print_exc()
         status_code, error = ErrorResponse.ErrorCode.get(2102)
+        error.error_message = error.error_message.format("문서")
+        session.rollback()
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception as e: 
         # 컬럼값 중복체크
         logger.error(f"document insert error")
         traceback.print_exc()
         status_code, error = ErrorResponse.ErrorCode.get(4102)
-    finally:
-        session.rollback()
         error.error_message = error.error_message.format("문서")
+        session.rollback()
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
@@ -238,6 +240,7 @@ def insert_inference(
 ) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
     
     del inference_result["response_log"]
+    
     try:
         result = schema.InferenceInfo.create(
             session=session,
