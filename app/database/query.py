@@ -1,11 +1,14 @@
 import json
+import traceback
 import uuid
+
 
 from pathlib import Path
 from datetime import datetime
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
@@ -171,10 +174,17 @@ def insert_document(
             doc_type_idx=doc_type_idx,
             auto_commit=auto_commit,
         )
-    except Exception:
+    except IntegrityError as e:
+        logger.error(f"document duplicate error")
+        traceback.print_exc()
+        status_code, error = ErrorResponse.ErrorCode.get(2102)
+    except Exception as e: 
+        # 컬럼값 중복체크
         logger.error(f"document insert error")
-        session.rollback()
+        traceback.print_exc()
         status_code, error = ErrorResponse.ErrorCode.get(4102)
+    finally:
+        session.rollback()
         error.error_message = error.error_message.format("문서")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
