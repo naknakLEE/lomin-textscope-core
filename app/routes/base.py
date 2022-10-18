@@ -11,6 +11,7 @@ from app.utils.auth import create_access_token
 from app.utils.logging import logger
 
 from app.utils.document import (
+    delete_document,
     get_page_count,
     is_support_format,
     save_upload_document,
@@ -144,6 +145,57 @@ async def post_upload_document(
         elapsed=elapsed,
         response_log=response_log,
         document_id = document_id,
+    )
+
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+@router.post("/docx/delete")
+async def post_delete_document(
+    inputs: Dict = Body(...),
+) -> JSONResponse:
+    """
+    ### [Base]전용 문서 삭제
+    미니오에 저장된 document를 삭제합니다.
+    """
+    # 시작 시간 측정
+    request_datetime = datetime.now()
+
+    document_id:str = inputs.get("document_id")
+    document_name:str = inputs.get("document_name")
+
+    response: dict = dict(resource_id=dict())
+    response_log: dict = dict()
+    request_datetime = datetime.now()
+    
+    # 문서 저장(minio or local pc)
+    delete_success = delete_document(document_id, document_name)
+
+    # 문서 저장에 실패하였을 경우 "문서 정보를 저장하는 중 에러가 발생했습니다" Error return
+    if not delete_success:
+        status_code, error = ErrorResponse.ErrorCode.get(4103)
+        error.error_message = error.error_message.format("문서")
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+
+    # 종료 시간 측정 
+    response_datetime = datetime.now()
+    # 걸린 시간 측정 (종료시간 - 시작시간)
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    
+    # response log 생성(시작시간, 종료시간, 걸린시간)
+    response_log.update(
+        dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        )
+    )
+    
+    # response 객체 생성
+    response.update(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
     )
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))

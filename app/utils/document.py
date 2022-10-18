@@ -133,6 +133,20 @@ def save_upload_document(
     
     return success, save_path
 
+def delete_document(
+    document_id: str,
+    document_name: str
+) -> Tuple[bool, Path]:
+    
+    success = False
+    if settings.USE_MINIO:
+        success = minio_client.remove(
+            bucket_name=settings.MINIO_IMAGE_BUCKET,
+            image_name=document_id + '/' + document_name,
+        )
+        
+    return success
+
 
 def document_path_verify(document_path: str):
     if not os.path.isfile(document_path):
