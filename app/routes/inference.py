@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 import uuid
 
 from httpx import Client
@@ -26,6 +27,7 @@ from app.schemas.json_schema import inference_responses
 from app.models import UserInfo as UserInfoInModel
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
+from app.utils.inference import get_removed_text_inference_result
 from app.wrapper import pp, pipeline, settings
 from app.database import query, schema
 from app.database.connection import db
@@ -263,14 +265,15 @@ def ocr(
             doc_type_idxs=doc_type_idxs,
             doc_type_codes=doc_type_codes
         )
-
+    # 추론 결과에서 개인정보 삭제
+    db_inference_results = get_removed_text_inference_result(deepcopy(inference_result), post_processing_type)
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
         document_id=document_id, 
         user_email=user_email,
         user_team=user_team,
-        inference_result=inference_results,
+        inference_result=db_inference_results,
         inference_type=inputs.get("inference_type"),
         page_num=inference_results.get("page", target_page),
         doc_type_idx=doc_type_idx,
