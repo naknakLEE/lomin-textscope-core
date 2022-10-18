@@ -54,12 +54,12 @@ def select_doc_type_code(session: Session, **kwargs: Dict) -> Union[str, JSONRes
         result : schema.DocumentInfo = result
         if result.doc_type_codes is None:
             status_code, error = ErrorResponse.ErrorCode.get(2107)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("doc_type select error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
         error.error_message = error.error_message.format("문서 종류")
-        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result.doc_type_codes[0]
 
 def select_doc_type(session: Session, **kwargs: Dict) -> Union[schema.DocTypeInfo, JSONResponse]:
@@ -202,7 +202,6 @@ def select_inference_latest(session: Session, **kwargs: Dict) -> schema.Inferenc
     try:
         query = dao.get_all_query(session, **kwargs)
         result = query.order_by(dao.inference_end_time.desc()).first()
-        
         if result is None:
             status_code, error = ErrorResponse.ErrorCode.get(2507)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
