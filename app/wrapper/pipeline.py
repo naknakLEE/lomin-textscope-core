@@ -7,6 +7,7 @@ from operator import attrgetter
 from datetime import datetime
 
 from app import wrapper
+from app.errors.exceptions import StatusCode
 from app.models import DocTypeHint
 from app.wrapper import pp
 from app.common import settings
@@ -204,7 +205,11 @@ def single(
     if lomin_doc_type != None and lomin_doc_type != "None":
         route_name = get_route_name(lomin_doc_type)
 
-
+    if(route_name == None):
+        emsg = f"The document type '{lomin_doc_type}' is not supported in KV API."
+        logger.error(emsg)
+        return (StatusCode.HTTP_400, None, {"error":emsg})        
+        
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
@@ -435,7 +440,9 @@ def get_route_name(doc_type: str):
 MODEL_DOC_TYPE_LIST = {
     # "el" : ["MD-PRS", "MD-MED", "MD-MB", "MD-CPE", "KBL-10", "KBL1-11", "KBL1-12", "KBL1-13"],
     "kv" : [    "MD-CS", "MD-CAD", "MD-MC", "MD-DN", "MD-CMT",  "MD-COT", 
-                "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC"],
+                "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC",
+                "LINA1-09","LINA1-11","LINA1-13","LINA1-16","LINA1-18","LINA1-22","LINA1-27","LINA1-29"
+                ],
     # "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
 }
 
