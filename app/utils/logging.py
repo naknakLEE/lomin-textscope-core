@@ -39,6 +39,6 @@ class StdOutErr(object):
 
 def catch_console_all_log():
     sys.stdout = StdOutErr(logger.info)
-    sys.stderr = StdOutErr(logger.error)
+    sys.stderr = StdOutErr(logger.warning)
 
 catch_console_all_log()
