@@ -1,0 +1,275 @@
+version: "2.3"
+
+services:
+  minio:
+    container_name: textscope-minio
+    image: quay.io/minio/minio:RELEASE.2022-02-24T22-12-01Z
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - 9000:${MINIO_IP_PORT}
+      - 9001:9001
+    networks:
+      - our_net
+    volumes:
+      - minio_data:/data
+    command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
+
+  pg_1:
+    container_name: textscope-pg-1
+    image: docker.io/bitnami/postgresql-repmgr:14
+    ports:
+      - 5432
+    volumes:
+      - postgresql_1_data:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
+      - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD} # 개별 접속 정보 패스워드
+      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      - REPMGR_PASSWORD=repmgrpassword # textscope-pg-0의 REPMGR_PASSWORD 과 동일한 값으로 설정
+      - REPMGR_PRIMARY_HOST=textscope-pg-0
+      - REPMGR_PARTNER_NODES=textscope-pg-0,textscope-pg-1
+      - REPMGR_NODE_NAME=textscope-pg-1
+      - REPMGR_NODE_NETWORK_NAME=textscope-pg-1
+    networks:
+      - our_net
+    extra_hosts:
+      - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
+
+  pgpool:
+    container_name: textscope-postgresql
+    image: docker.io/bitnami/pgpool:4
+    ports:
+      - 55432:5432
+    environment:
+      - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
+      - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
+      - PGPOOL_SR_CHECK_PASSWORD=${POSTGRES_PASSWORD} # 디비 살아있는지 체크 할 대상 디비 계정 정보 패스워드
+      - PGPOOL_SR_CHECK_DATABASE=${POSTGRES_DATABASE}  # 디비 살아있는지 체크 할 대상 디비 디비 정보
+      - PGPOOL_HEALTH_CHECK_PERIOD=1 # 불분명
+      - PGPOOL_HEALTH_CHECK_TIMEOUT=1 # healthcheck 실패 시, 디비 교체 시도 전 체크 타임아웃
+      - PGPOOL_HEALTH_CHECK_MAX_RETRIES=1 # healthcheck 실패 시, 디비 교체 시도 전 최대 체크 횟수, 넘어가면 디비 교체
+      - PGPOOL_HEALTH_CHECK_RETRY_DELAY=0 # healthcheck 실패 시, 디비 교체 시도 전 체크 간격
+      - PGPOOL_ENABLE_LDAP=no
+      - PGPOOL_POSTGRES_USERNAME=${POSTGRES_USER} # pgpool로 접속할 계정 정보 아이디 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
+      - PGPOOL_POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # pgpool로 접속할 계정 정보 패스워드 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
+      - PGPOOL_ADMIN_USERNAME=${POSTGRES_USER}
+      - PGPOOL_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
+      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_AUTO_FAILBACK=yes
+      - PGPOOL_BACKEND_APPLICATION_NAMES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
+    networks:
+      - our_net
+    extra_hosts:
+      - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
+  
+  elasticsearch:
+    container_name: textscope-elasticsearch
+    image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
+    build:
+      context: elasticsearch
+      dockerfile: Dockerfile.elasticsearch
+    restart: on-failure
+    volumes:
+      - esdata:/usr/share/elasticsearch/data:rw
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - cluster.name=ts-cluster
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    networks:
+      - our_net
+
+  kibana:
+    container_name: textscope-kibana
+    image: docker.elastic.co/kibana/kibana:7.16.2
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - our_net
+
+  pgadmin:
+    container_name: textscope-pgadmin
+    image: dpage/pgadmin4 #TODO make Dockerfile
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      TZ: Asia/Seoul
+    depends_on:
+      - pgpool
+    ports:
+      - "5050:80"
+    networks:
+      - our_net
+
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    container_name: textscope-serving
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    runtime: nvidia
+    networks:
+      - our_net
+
+  web:
+    container_name: textscope-web
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    depends_on:
+      - pgpool
+      - minio
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - our_net
+
+  pp:
+    container_name: textscope-pp
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - our_net
+
+  wrapper:
+    container_name: textscope-wrapper
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    depends_on:
+      - pgpool
+      - minio
+    networks:
+      - our_net
+
+  nginx:
+    container_name: textscope-nginx
+    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx
+      args:
+        CONF_NAME: nginx
+        MAINTAINER: ${MAINTAINER}
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      - wrapper
+    networks:
+      - our_net
+
+  nginx-exporter:
+    container_name: textscope-nginx_exporter
+    image: nginx/nginx-prometheus-exporter:0.9.0
+    command:
+      - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
+    networks:
+      - our_net
+
+  gpu_telemetry:
+    container_name: textscope-gpu_telemetry
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.0.13-2.1.2-ubuntu18.04
+    runtime: nvidia
+    networks:
+      - our_net
+
+  hardware_telemetry:
+    container_name: textscope-hardware_telemetry
+    image: prom/node-exporter:v1.2.2
+    networks:
+      - our_net
+    entrypoint: /bin/node_exporter
+
+  prometheus:
+    container_name: textscope-prometheus
+    image: prom/prometheus:v2.30.0
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./.env:/etc/prometheus/.env
+      - prometheus_data:/prometheus
+    entrypoint: /bin/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.listen-address=0.0.0.0:9090
+      - --storage.tsdb.retention=90d
+    networks:
+      - our_net
+
+  grafana:
+    container_name: textscope-grafana
+    image: docker.lomin.ai/ts-grafana:${TEXTSCOPE_VERSION}
+    build:
+      context: ./
+      dockerfile: grafana/Dockerfile
+    environment:
+      - PROMETHEUS_IP_ADDR=${PROMETHEUS_IP_ADDR}
+      - PROMETHEUS_IP_PORT=${PROMETHEUS_IP_PORT}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./ldap/grafana.ini:/etc/grafana/grafana.ini
+      - ./ldap/ldap.toml:/etc/grafana/ldap.toml
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+    restart: always
+    networks:
+      - our_net
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  esdata:
+    driver: local
+  minio_data:
+    driver: local
+  postgresql_0_data:
+    driver: local
+
+networks:
+  our_net:
+    name: our_net
+    ipam:
+      config:
+        - subnet: 10.254.0.0/16
