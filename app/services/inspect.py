@@ -27,11 +27,8 @@ def get_flatten_table_content(tables: list):
     '''
     tables를 받아 하위의 contents를 1차원 배열로 return 합니다.
     '''
-    result = []
-    for table in tables:
-        arr = (np.array(table["body"]["content"])).flatten()
-        result.append(arr)
-    return np.array(result).flatten().tolist()
+    arr = (np.array(tables["body"]["content"])).flatten()
+    return arr.tolist()
 
 def get_inspect_accuracy(kv_list: list, el_list: list, kv_changed: list, el_changed: list):
     '''
@@ -41,3 +38,13 @@ def get_inspect_accuracy(kv_list: list, el_list: list, kv_changed: list, el_chan
     '''
     
     return round((100 - ((len(kv_changed) + len(el_changed)) / (len(kv_list) + len(el_list)) * 100)), 2)
+
+def get_removed_changes_keyvalue(keyvalue: list):
+    result = []
+
+    for kv in keyvalue:
+        kv['prediction'] = ""
+        kv['corrected'] = ''
+        result.append(kv)
+        
+    return result 

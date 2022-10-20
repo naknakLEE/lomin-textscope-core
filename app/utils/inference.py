@@ -15,7 +15,7 @@ def get_removed_text_inference_result(inference_result : dict, post_processing_t
         inference_result.update(kv = remove_kv_value(inference_result["kv"]))
 
     # table 내 content 삭제
-    if 'tables' in inference_result.keys():
+    if 'tables' in inference_result.keys() and len(inference_result['tables']) > 0:
         inference_result.update(tables = remove_table_value(inference_result['tables'][0]))
     # if inference_result 
     return inference_result
