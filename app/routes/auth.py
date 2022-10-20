@@ -31,6 +31,7 @@ router = APIRouter()
 
 @router.post("/kei/sso/token", response_model=Token, responses=auth_token_responses)
 async def post_kei_sso_token(
+    request: Request,
     params: dict = Body(...),
     session: Session = Depends(db.session),
 ) -> Dict:
@@ -59,7 +60,11 @@ async def post_kei_sso_token(
     user_email = user.usr_emad
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user_email, "scopes": []},
+        data={
+            "sub": user_email,
+            "scopes": [],
+            "loc": request.state.ip
+        },
         expires_delta=access_token_expires,
     )
     
