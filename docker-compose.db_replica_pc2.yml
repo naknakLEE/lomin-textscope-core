@@ -23,6 +23,7 @@ services:
       - 5432
     volumes:
       - postgresql_1_data:/bitnami/postgresql
+    restart: unless-stopped
     environment:
       - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
       - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
@@ -44,6 +45,7 @@ services:
     image: docker.io/bitnami/pgpool:4
     ports:
       - 55432:5432
+    restart: unless-stopped
     environment:
       - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
       - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
@@ -264,7 +266,7 @@ volumes:
     driver: local
   minio_data:
     driver: local
-  postgresql_0_data:
+  postgresql_1_data:
     driver: local
 
 networks:
