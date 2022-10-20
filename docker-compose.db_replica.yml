@@ -66,7 +66,7 @@ services:
     container_name: textscope-postgresql
     image: docker.io/bitnami/pgpool:4
     ports:
-      - 5432:5432
+      - 55432:5432
     environment:
       - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
       - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디

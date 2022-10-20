@@ -95,9 +95,6 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     # 교보_cls
     elif doc_type == "cls":
         return "kbl1_cls" 
-    # 교보_kv
-    elif doc_type in pp_mapping_table.get("kbl1_kv", []):
-        return "kbl1_kv"    
     # 교보_el
     elif doc_type in pp_mapping_table.get("kbl1_el", []):
         return "kbl1_el" 

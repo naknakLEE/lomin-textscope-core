@@ -78,7 +78,7 @@ async def post_upload_document(
     user_email:str    = current_user.email
     document_name:str = inputs.get("document_name")
     document_data:str = inputs.get("document_data")
-
+    
     response: dict = dict(resource_id=dict())
     response_log: dict = dict()
     request_datetime = datetime.now()
@@ -98,7 +98,8 @@ async def post_upload_document(
     user_team = select_user_result.user_team        
 
     # 고유한 document_id 생성 -> DB적재용이 아닌 path를 만들기 위함!
-    document_id = get_ts_uuid("document")
+    # 고객사에서 document_id를 지정해서 보내줄 경우 해당 아이디가 DB에 들어가도록 처리
+    document_id = inputs.get("document_id") if inputs.get("document_id") != "" else get_ts_uuid("document")
 
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
