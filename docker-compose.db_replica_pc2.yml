@@ -15,29 +15,6 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
-  
-  pg_0:
-    container_name: textscope-pg-0
-    image: docker.io/bitnami/postgresql-repmgr:14
-    ports:
-      - 5432
-    volumes:
-      - postgresql_0_data:/bitnami/postgresql
-    environment:
-      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
-      - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
-      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD} # 개별 접속 정보 패스워드
-      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
-      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
-      - REPMGR_PASSWORD=repmgrpassword # textscope-pg-1의 REPMGR_PASSWORD 과 동일한 값으로 설정
-      - REPMGR_PRIMARY_HOST=textscope-pg-0
-      - REPMGR_PARTNER_NODES=textscope-pg-1,textscope-pg-0
-      - REPMGR_NODE_NAME=textscope-pg-0
-      - REPMGR_NODE_NETWORK_NAME=textscope-pg-0
-    networks:
-      - our_net
-    # extra_hosts:
-    #   - "textscope-pg-1:10.1.1.0" # "타겟컨테이너명:운영서버2-IP"
 
   pg_1:
     container_name: textscope-pg-1
@@ -59,14 +36,14 @@ services:
       - REPMGR_NODE_NETWORK_NAME=textscope-pg-1
     networks:
       - our_net
-    # extra_hosts:
-    #   - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
+    extra_hosts:
+      - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
 
   pgpool:
     container_name: textscope-postgresql
     image: docker.io/bitnami/pgpool:4
     ports:
-      - 5432:5432
+      - 55432:5432
     environment:
       - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
       - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
@@ -86,9 +63,8 @@ services:
       - PGPOOL_BACKEND_APPLICATION_NAMES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
     networks:
       - our_net
-    # extra_hosts:
-    #   - "textscope-pg-1:10.1.1.0" # "타겟컨테이너명:운영서버2-IP"
-    #   - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
+    extra_hosts:
+      - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
   
   elasticsearch:
     container_name: textscope-elasticsearch
@@ -289,8 +265,6 @@ volumes:
   minio_data:
     driver: local
   postgresql_0_data:
-    driver: local
-  postgresql_1_data:
     driver: local
 
 networks:
