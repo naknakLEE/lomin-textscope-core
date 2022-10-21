@@ -20,7 +20,7 @@ services:
     container_name: textscope-pg-0
     image: docker.io/bitnami/postgresql-repmgr:14
     ports:
-      - 5432
+      - 5432:5432
     volumes:
       - postgresql_0_data:/bitnami/postgresql
     restart: unless-stopped
