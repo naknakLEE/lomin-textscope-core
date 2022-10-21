@@ -61,16 +61,16 @@
       "KDT1-01-33": "KDT1-EST-RC",
       "KDT1-01-34": "KDT1-EST-RA",
       "KDT1-01-35": "KDT1-EST-REBDY1",
-      "KDT1-01-36": "KDT1-EST-REBDY1",
+      "KDT1-01-36": "KDT1-EST-REBDM1",
       "KDT1-01-37": "KDT1-EST-REBS1",
       "KDT1-01-38": "KDT1-EST-REBD1",
       "KDT1-01-39": "KDT1-EST-REBDY2",
-      "KDT1-01-40": "KDT1-EST-REBDY2",
+      "KDT1-01-40": "KDT1-EST-REBDM2",
       "KDT1-01-41": "KDT1-EST-REBS2",
       "KDT1-01-42": "KDT1-EST-REBGS",
       "KDT1-01-43": "KDT1-EST-REBD2",
-      "KDT1-01-44": "KDT1-EST-RCP",
-      "KDT1-01-45": "KDT1-EST-RCP",
+      "KDT1-01-44": "KDT1-EST-RCPY",
+      "KDT1-01-45": "KDT1-EST-RCPM",
       "KDT1-01-46": "KDT1-EST-RCEP",
       "KDT1-01-47": "KDT1-EST-RCCB",
       "KDT1-01-48": "KDT1-EST-RCAT",
@@ -967,18 +967,18 @@
                   "name": "rect",
                   "x": 467,
                   "y": 1705,
-                  "width": 393,
+                  "width": 196,
                   "height": 76
                 },
                 "region_attributes": {
                   "label": "word",
                   "class": "KDT1-EST-REBDY1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -1026,19 +1026,19 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 467,
-                  "y": 1784,
-                  "width": 391,
+                  "y": 1785,
+                  "width": 198,
                   "height": 76
                 },
                 "region_attributes": {
                   "label": "word",
                   "class": "KDT1-EST-REBDY2",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -1105,20 +1105,20 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 464,
-                  "y": 1935,
-                  "width": 618,
-                  "height": 253
+                  "x": 467,
+                  "y": 1931,
+                  "width": 154,
+                  "height": 85
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCP",
+                  "class": "KDT1-EST-RCPY_1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -1126,13 +1126,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1085,
-                  "y": 1935,
-                  "width": 442,
-                  "height": 253
+                  "y": 1934,
+                  "width": 441,
+                  "height": 86
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCEP",
+                  "class": "KDT1-EST-RCEP_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1146,13 +1146,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1532,
-                  "y": 1933,
+                  "y": 1932,
                   "width": 288,
-                  "height": 251
+                  "height": 87
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCCB",
+                  "class": "KDT1-EST-RCCB_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1166,13 +1166,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1827,
-                  "y": 1935,
-                  "width": 244,
-                  "height": 251
+                  "y": 1934,
+                  "width": 245,
+                  "height": 86
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCAT",
+                  "class": "KDT1-EST-RCAT_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1185,14 +1185,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 2073,
-                  "y": 1935,
-                  "width": 238,
-                  "height": 253
+                  "x": 2072,
+                  "y": 1934,
+                  "width": 237,
+                  "height": 86
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCFD",
+                  "class": "KDT1-EST-RCFD_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1206,13 +1206,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 185,
-                  "y": 2536,
+                  "y": 2537,
                   "width": 264,
-                  "height": 471
+                  "height": 93
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MP",
+                  "class": "KDT1-EST-MP_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1226,13 +1226,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 451,
-                  "y": 2536,
-                  "width": 242,
-                  "height": 469
+                  "y": 2537,
+                  "width": 241,
+                  "height": 95
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MN",
+                  "class": "KDT1-EST-MN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1248,11 +1248,11 @@
                   "x": 698,
                   "y": 2535,
                   "width": 340,
-                  "height": 476
+                  "height": 97
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MAT",
+                  "class": "KDT1-EST-MAT_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1265,14 +1265,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 1037,
-                  "y": 2538,
+                  "x": 1036,
+                  "y": 2539,
                   "width": 365,
-                  "height": 469
+                  "height": 95
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MC",
+                  "class": "KDT1-EST-MC_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1286,13 +1286,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1404,
-                  "y": 2538,
-                  "width": 471,
-                  "height": 471
+                  "y": 2539,
+                  "width": 470,
+                  "height": 93
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MFD",
+                  "class": "KDT1-EST-MFD_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1305,14 +1305,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 1875,
-                  "y": 2540,
+                  "x": 1876,
+                  "y": 2541,
                   "width": 154,
-                  "height": 469
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MFTS",
+                  "class": "KDT1-EST-MFTS_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1325,21 +1325,1001 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 2027,
-                  "y": 2538,
+                  "x": 2028,
+                  "y": 2539,
                   "width": 284,
-                  "height": 471
+                  "height": 93
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MBH",
+                  "class": "KDT1-EST-MBH_1",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  }
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 465,
+                  "y": 2021,
+                  "width": 154,
+                  "height": 79
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 465,
+                  "y": 2106,
+                  "width": 154,
+                  "height": 75
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1087,
+                  "y": 2020,
+                  "width": 443,
+                  "height": 82
+                },
+                "region_attributes": {
+                  "label": "word",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
                     "english_lowercase": true,
                     "digit": true,
                     "special_character": true
-                  }
+                  },
+                  "class": "KDT1-EST-RCEP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1085,
+                  "y": 2103,
+                  "width": 443,
+                  "height": 82
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCEP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1532,
+                  "y": 2020,
+                  "width": 292,
+                  "height": 82
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCCB_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1530,
+                  "y": 2103,
+                  "width": 295,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCCB_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1825,
+                  "y": 2022,
+                  "width": 245,
+                  "height": 78
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCAT_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1825,
+                  "y": 2101,
+                  "width": 245,
+                  "height": 84
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCAT_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2074,
+                  "y": 2022,
+                  "width": 235,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCFD_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2074,
+                  "y": 2103,
+                  "width": 239,
+                  "height": 82
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCFD_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 2630,
+                  "width": 262,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 2727,
+                  "width": 262,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 2819,
+                  "width": 260,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 2914,
+                  "width": 262,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 449,
+                  "y": 2632,
+                  "width": 247,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 451,
+                  "y": 2723,
+                  "width": 243,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 455,
+                  "y": 2823,
+                  "width": 241,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 453,
+                  "y": 2914,
+                  "width": 247,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 696,
+                  "y": 2632,
+                  "width": 340,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 696,
+                  "y": 2725,
+                  "width": 340,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 698,
+                  "y": 2821,
+                  "width": 336,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 700,
+                  "y": 2914,
+                  "width": 334,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1038,
+                  "y": 2636,
+                  "width": 365,
+                  "height": 87
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MC_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1036,
+                  "y": 2721,
+                  "width": 367,
+                  "height": 99
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MC_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1036,
+                  "y": 2821,
+                  "width": 367,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MC_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1036,
+                  "y": 2914,
+                  "width": 365,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MC_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1404,
+                  "y": 2632,
+                  "width": 470,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFD_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1405,
+                  "y": 2723,
+                  "width": 468,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFD_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1404,
+                  "y": 2819,
+                  "width": 470,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFD_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1404,
+                  "y": 2914,
+                  "width": 472,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFD_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1876,
+                  "y": 2634,
+                  "width": 152,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFTS_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1874,
+                  "y": 2725,
+                  "width": 154,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFTS_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1874,
+                  "y": 2821,
+                  "width": 152,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFTS_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1876,
+                  "y": 2916,
+                  "width": 152,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFTS_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2031,
+                  "y": 2634,
+                  "width": 280,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MBH_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2029,
+                  "y": 2723,
+                  "width": 282,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MBH_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2029,
+                  "y": 2819,
+                  "width": 282,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MBH_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2026,
+                  "y": 2914,
+                  "width": 284,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MBH_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 663,
+                  "y": 1703,
+                  "width": 198,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-REBDM1"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 663,
+                  "y": 1783,
+                  "width": 202,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-REBDM2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 617,
+                  "y": 1933,
+                  "width": 123,
+                  "height": 85
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_1"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 796,
+                  "y": 1940,
+                  "width": 167,
+                  "height": 77
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 958,
+                  "y": 1938,
+                  "width": 125,
+                  "height": 79
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 617,
+                  "y": 2021,
+                  "width": 123,
+                  "height": 81
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 794,
+                  "y": 2019,
+                  "width": 169,
+                  "height": 88
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 956,
+                  "y": 2019,
+                  "width": 129,
+                  "height": 88
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 615,
+                  "y": 2102,
+                  "width": 125,
+                  "height": 81
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 796,
+                  "y": 2111,
+                  "width": 169,
+                  "height": 75
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 960,
+                  "y": 2111,
+                  "width": 125,
+                  "height": 73
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_6"
                 }
               }
             ],
@@ -1353,14 +2333,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 189,
-                  "y": 370,
+                  "x": 190,
+                  "y": 371,
                   "width": 471,
-                  "height": 372
+                  "height": 92
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SN",
+                  "class": "KDT1-EST-SN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1374,13 +2354,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 663,
-                  "y": 370,
+                  "y": 371,
                   "width": 546,
-                  "height": 370
+                  "height": 92
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SMS",
+                  "class": "KDT1-EST-SMS_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1434,13 +2414,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1283,
-                  "y": 359,
-                  "width": 753,
-                  "height": 473
+                  "y": 358,
+                  "width": 752,
+                  "height": 90
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MFN",
+                  "class": "KDT1-EST-MFN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1454,33 +2434,33 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 2040,
-                  "y": 359,
-                  "width": 271,
-                  "height": 471
+                  "y": 358,
+                  "width": 269,
+                  "height": 90
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MFMI",
+                  "class": "KDT1-EST-MFMI_1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 187,
-                  "y": 1195,
-                  "width": 632,
-                  "height": 379
+                  "x": 188,
+                  "y": 1196,
+                  "width": 631,
+                  "height": 94
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSN",
+                  "class": "KDT1-EST-SSN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1494,13 +2474,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 821,
-                  "y": 1193,
-                  "width": 528,
-                  "height": 381
+                  "y": 1194,
+                  "width": 527,
+                  "height": 94
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSBN",
+                  "class": "KDT1-EST-SSBN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1514,13 +2494,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1354,
-                  "y": 1195,
+                  "y": 1196,
                   "width": 533,
-                  "height": 379
+                  "height": 94
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSTA",
+                  "class": "KDT1-EST-SSTA_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -1534,20 +2514,540 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1886,
-                  "y": 1193,
-                  "width": 418,
-                  "height": 383
+                  "y": 1194,
+                  "width": 419,
+                  "height": 92
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSTP",
+                  "class": "KDT1-EST-SSTP_1",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  }
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 188,
+                  "y": 467,
+                  "width": 471,
+                  "height": 88
+                },
+                "region_attributes": {
+                  "label": "word",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
                     "english_lowercase": true,
                     "digit": true,
                     "special_character": true
-                  }
+                  },
+                  "class": "KDT1-EST-SN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 188,
+                  "y": 554,
+                  "width": 471,
+                  "height": 96
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 654,
+                  "width": 475,
+                  "height": 85
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 663,
+                  "y": 465,
+                  "width": 548,
+                  "height": 90
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 663,
+                  "y": 554,
+                  "width": 546,
+                  "height": 94
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 663,
+                  "y": 650,
+                  "width": 546,
+                  "height": 92
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1279,
+                  "y": 452,
+                  "width": 756,
+                  "height": 92
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1279,
+                  "y": 546,
+                  "width": 756,
+                  "height": 98
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1279,
+                  "y": 644,
+                  "width": 760,
+                  "height": 92
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1279,
+                  "y": 735,
+                  "width": 758,
+                  "height": 94
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MFN_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2038,
+                  "y": 450,
+                  "width": 269,
+                  "height": 94
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MFMI_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2038,
+                  "y": 546,
+                  "width": 269,
+                  "height": 98
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MFMI_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2038,
+                  "y": 644,
+                  "width": 269,
+                  "height": 92
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MFMI_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2038,
+                  "y": 733,
+                  "width": 269,
+                  "height": 98
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-MFMI_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 1290,
+                  "width": 633,
+                  "height": 92
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 1383,
+                  "width": 633,
+                  "height": 94
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 185,
+                  "y": 1479,
+                  "width": 635,
+                  "height": 96
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 821,
+                  "y": 1290,
+                  "width": 527,
+                  "height": 90
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSBN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 821,
+                  "y": 1381,
+                  "width": 527,
+                  "height": 94
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSBN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 823,
+                  "y": 1475,
+                  "width": 525,
+                  "height": 98
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSBN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1350,
+                  "y": 1290,
+                  "width": 531,
+                  "height": 90
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTA_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1350,
+                  "y": 1381,
+                  "width": 535,
+                  "height": 96
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTA_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1350,
+                  "y": 1477,
+                  "width": 533,
+                  "height": 98
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTA_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1886,
+                  "y": 1286,
+                  "width": 419,
+                  "height": 96
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-SSTP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1883,
+                  "y": 1381,
+                  "width": 421,
+                  "height": 100
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-SSTP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1886,
+                  "y": 1477,
+                  "width": 419,
+                  "height": 98
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-SSTP_4"
                 }
               }
             ],
@@ -2310,19 +3810,19 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 463,
-                  "y": 1867,
-                  "width": 435,
-                  "height": 75
+                  "y": 1866,
+                  "width": 237,
+                  "height": 76
                 },
                 "region_attributes": {
                   "label": "word",
                   "class": "KDT1-EST-REBDY1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -2331,18 +3831,18 @@
                   "name": "rect",
                   "x": 465,
                   "y": 1944,
-                  "width": 432,
+                  "width": 233,
                   "height": 82
                 },
                 "region_attributes": {
                   "label": "word",
                   "class": "KDT1-EST-REBDY2",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -2450,19 +3950,19 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 465,
-                  "y": 2108,
-                  "width": 619,
-                  "height": 252
+                  "y": 2106,
+                  "width": 169,
+                  "height": 81
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCP",
+                  "class": "KDT1-EST-RCPY_1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -2470,13 +3970,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1087,
-                  "y": 2110,
+                  "y": 2109,
                   "width": 437,
-                  "height": 248
+                  "height": 82
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCEP",
+                  "class": "KDT1-EST-RCEP_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2490,13 +3990,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1526,
-                  "y": 2108,
-                  "width": 294,
-                  "height": 252
+                  "y": 2107,
+                  "width": 299,
+                  "height": 84
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCCB",
+                  "class": "KDT1-EST-RCCB_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2510,13 +4010,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1825,
-                  "y": 2106,
+                  "y": 2105,
                   "width": 241,
-                  "height": 252
+                  "height": 86
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCAT",
+                  "class": "KDT1-EST-RCAT_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2529,14 +4029,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 2071,
-                  "y": 2106,
-                  "width": 238,
-                  "height": 250
+                  "x": 2070,
+                  "y": 2105,
+                  "width": 237,
+                  "height": 86
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-RCFD",
+                  "class": "KDT1-EST-RCFD_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2550,13 +4050,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 189,
-                  "y": 2709,
-                  "width": 273,
-                  "height": 652
+                  "y": 2710,
+                  "width": 272,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MP",
+                  "class": "KDT1-EST-MP_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2570,13 +4070,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 465,
-                  "y": 2709,
+                  "y": 2710,
                   "width": 383,
-                  "height": 657
+                  "height": 89
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MN",
+                  "class": "KDT1-EST-MN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2590,13 +4090,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 851,
-                  "y": 2709,
-                  "width": 304,
-                  "height": 657
+                  "y": 2710,
+                  "width": 303,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-MAT",
+                  "class": "KDT1-EST-MAT_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2609,14 +4109,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 1220,
-                  "y": 2709,
-                  "width": 411,
-                  "height": 559
+                  "x": 1221,
+                  "y": 2710,
+                  "width": 410,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SN",
+                  "class": "KDT1-EST-SN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2629,14 +4129,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 1634,
+                  "x": 1635,
                   "y": 2706,
-                  "width": 318,
-                  "height": 566
+                  "width": 319,
+                  "height": 93
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SRM",
+                  "class": "KDT1-EST-SRM_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2651,12 +4151,12 @@
                   "name": "rect",
                   "x": 1956,
                   "y": 2704,
-                  "width": 355,
-                  "height": 566
+                  "width": 356,
+                  "height": 95
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SMS",
+                  "class": "KDT1-EST-SMS_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2689,7 +4189,7 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 1956,
+                  "x": 1960,
                   "y": 3274,
                   "width": 358,
                   "height": 91
@@ -2704,6 +4204,1086 @@
                     "digit": true,
                     "special_character": true
                   }
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 463,
+                  "y": 2192,
+                  "width": 169,
+                  "height": 81
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 463,
+                  "y": 2271,
+                  "width": 171,
+                  "height": 85
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1087,
+                  "y": 2193,
+                  "width": 437,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCEP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1085,
+                  "y": 2271,
+                  "width": 439,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCEP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1528,
+                  "y": 2193,
+                  "width": 294,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCCB_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1524,
+                  "y": 2271,
+                  "width": 299,
+                  "height": 87
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCCB_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1823,
+                  "y": 2191,
+                  "width": 245,
+                  "height": 82
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCAT_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1823,
+                  "y": 2272,
+                  "width": 245,
+                  "height": 84
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCAT_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2068,
+                  "y": 2193,
+                  "width": 241,
+                  "height": 78
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCFD_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 2070,
+                  "y": 2272,
+                  "width": 237,
+                  "height": 86
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-RCFD_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 2803,
+                  "width": 276,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 2893,
+                  "width": 276,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 2990,
+                  "width": 276,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 3085,
+                  "width": 278,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 3180,
+                  "width": 276,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 187,
+                  "y": 3274,
+                  "width": 278,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MP_7"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 463,
+                  "y": 2801,
+                  "width": 385,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 465,
+                  "y": 2895,
+                  "width": 385,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 463,
+                  "y": 2988,
+                  "width": 387,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 465,
+                  "y": 3085,
+                  "width": 385,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 467,
+                  "y": 3178,
+                  "width": 379,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 465,
+                  "y": 3270,
+                  "width": 387,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MN_7"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 849,
+                  "y": 2801,
+                  "width": 307,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 851,
+                  "y": 2893,
+                  "width": 305,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 851,
+                  "y": 2990,
+                  "width": 307,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 851,
+                  "y": 3083,
+                  "width": 307,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 848,
+                  "y": 3178,
+                  "width": 309,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 851,
+                  "y": 3270,
+                  "width": 307,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-MAT_7"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1219,
+                  "y": 2801,
+                  "width": 414,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1217,
+                  "y": 2893,
+                  "width": 416,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1219,
+                  "y": 2984,
+                  "width": 418,
+                  "height": 97
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1219,
+                  "y": 3083,
+                  "width": 414,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1221,
+                  "y": 3182,
+                  "width": 412,
+                  "height": 87
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SN_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1637,
+                  "y": 2801,
+                  "width": 319,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SRM_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1637,
+                  "y": 2895,
+                  "width": 319,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SRM_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1635,
+                  "y": 2986,
+                  "width": 319,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SRM_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1635,
+                  "y": 3083,
+                  "width": 317,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SRM_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1635,
+                  "y": 3180,
+                  "width": 317,
+                  "height": 87
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SRM_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1954,
+                  "y": 2799,
+                  "width": 360,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1954,
+                  "y": 2891,
+                  "width": 362,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1956,
+                  "y": 2986,
+                  "width": 358,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1958,
+                  "y": 3083,
+                  "width": 356,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1956,
+                  "y": 3178,
+                  "width": 358,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SMS_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 702,
+                  "y": 1864,
+                  "width": 196,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-REBDM1"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 700,
+                  "y": 1944,
+                  "width": 198,
+                  "height": 80
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-REBDM2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 631,
+                  "y": 2106,
+                  "width": 125,
+                  "height": 79
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_1"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 629,
+                  "y": 2190,
+                  "width": 129,
+                  "height": 75
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 631,
+                  "y": 2269,
+                  "width": 127,
+                  "height": 85
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_5"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 819,
+                  "y": 2113,
+                  "width": 144,
+                  "height": 75
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 819,
+                  "y": 2192,
+                  "width": 144,
+                  "height": 75
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 817,
+                  "y": 2269,
+                  "width": 146,
+                  "height": 81
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPY_6"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 960,
+                  "y": 2111,
+                  "width": 127,
+                  "height": 77
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 960,
+                  "y": 2190,
+                  "width": 127,
+                  "height": 77
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 963,
+                  "y": 2269,
+                  "width": 123,
+                  "height": 83
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-RCPM_6"
                 }
               }
             ],
@@ -2720,11 +5300,11 @@
                   "x": 260,
                   "y": 538,
                   "width": 533,
-                  "height": 367
+                  "height": 89
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSN",
+                  "class": "KDT1-EST-SSN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2740,11 +5320,11 @@
                   "x": 795,
                   "y": 538,
                   "width": 395,
-                  "height": 367
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSBN",
+                  "class": "KDT1-EST-SSBN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2759,12 +5339,12 @@
                   "name": "rect",
                   "x": 1196,
                   "y": 538,
-                  "width": 407,
-                  "height": 369
+                  "width": 406,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSTA",
+                  "class": "KDT1-EST-SSTA_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2777,20 +5357,20 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 1605,
+                  "x": 1606,
                   "y": 538,
-                  "width": 250,
-                  "height": 367
+                  "width": 251,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSTP",
+                  "class": "KDT1-EST-SSTP_1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -2798,13 +5378,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1853,
-                  "y": 536,
+                  "y": 537,
                   "width": 455,
-                  "height": 372
+                  "height": 93
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-SSTI",
+                  "class": "KDT1-EST-SSTI_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2817,14 +5397,14 @@
               {
                 "shape_attributes": {
                   "name": "rect",
-                  "x": 252,
-                  "y": 1286,
-                  "width": 541,
-                  "height": 369
+                  "x": 253,
+                  "y": 1287,
+                  "width": 540,
+                  "height": 89
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-PSN",
+                  "class": "KDT1-EST-PSN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2838,13 +5418,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 795,
-                  "y": 1286,
-                  "width": 403,
-                  "height": 367
+                  "y": 1287,
+                  "width": 402,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-PSBN",
+                  "class": "KDT1-EST-PSBN_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2858,13 +5438,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1203,
-                  "y": 1286,
+                  "y": 1287,
                   "width": 410,
-                  "height": 364
+                  "height": 89
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-PSTA",
+                  "class": "KDT1-EST-PSTA_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -2878,19 +5458,19 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1615,
-                  "y": 1286,
+                  "y": 1287,
                   "width": 231,
-                  "height": 367
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-PSTP",
+                  "class": "KDT1-EST-PSTP_1",
                   "bool": {
-                    "korean": true,
-                    "english_uppercase": true,
-                    "english_lowercase": true,
                     "digit": true,
-                    "special_character": true
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
                   }
                 }
               },
@@ -2898,13 +5478,13 @@
                 "shape_attributes": {
                   "name": "rect",
                   "x": 1851,
-                  "y": 1284,
-                  "width": 450,
-                  "height": 369
+                  "y": 1285,
+                  "width": 449,
+                  "height": 91
                 },
                 "region_attributes": {
                   "label": "word",
-                  "class": "KDT1-EST-PSTI",
+                  "class": "KDT1-EST-PSTI_1",
                   "bool": {
                     "korean": true,
                     "english_uppercase": true,
@@ -3032,6 +5612,606 @@
                     "english_lowercase": false,
                     "special_character": false
                   }
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 257,
+                  "y": 630,
+                  "width": 538,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 257,
+                  "y": 721,
+                  "width": 537,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 257,
+                  "y": 816,
+                  "width": 538,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 795,
+                  "y": 628,
+                  "width": 397,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSBN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 799,
+                  "y": 721,
+                  "width": 395,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSBN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 797,
+                  "y": 815,
+                  "width": 397,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSBN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1192,
+                  "y": 630,
+                  "width": 414,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTA_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1194,
+                  "y": 723,
+                  "width": 408,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTA_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1194,
+                  "y": 816,
+                  "width": 410,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTA_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1606,
+                  "y": 628,
+                  "width": 249,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-SSTP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1604,
+                  "y": 721,
+                  "width": 249,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-SSTP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1606,
+                  "y": 815,
+                  "width": 247,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-SSTP_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1856,
+                  "y": 632,
+                  "width": 449,
+                  "height": 87
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTI_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1855,
+                  "y": 719,
+                  "width": 453,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTI_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1853,
+                  "y": 815,
+                  "width": 455,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-SSTI_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 251,
+                  "y": 1376,
+                  "width": 544,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 253,
+                  "y": 1470,
+                  "width": 540,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 255,
+                  "y": 1565,
+                  "width": 538,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 797,
+                  "y": 1380,
+                  "width": 406,
+                  "height": 87
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSBN_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 795,
+                  "y": 1470,
+                  "width": 408,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSBN_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 795,
+                  "y": 1563,
+                  "width": 408,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSBN_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1203,
+                  "y": 1376,
+                  "width": 412,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSTA_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1205,
+                  "y": 1468,
+                  "width": 410,
+                  "height": 95
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSTA_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1203,
+                  "y": 1563,
+                  "width": 408,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSTA_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1615,
+                  "y": 1376,
+                  "width": 235,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-PSTP_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1613,
+                  "y": 1468,
+                  "width": 237,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-PSTP_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1615,
+                  "y": 1563,
+                  "width": 233,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "digit": true,
+                    "korean": false,
+                    "english_uppercase": false,
+                    "english_lowercase": false,
+                    "special_character": false
+                  },
+                  "class": "KDT1-EST-PSTP_4"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1851,
+                  "y": 1376,
+                  "width": 451,
+                  "height": 89
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSTI_2"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1853,
+                  "y": 1468,
+                  "width": 451,
+                  "height": 93
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSTI_3"
+                }
+              },
+              {
+                "shape_attributes": {
+                  "name": "rect",
+                  "x": 1851,
+                  "y": 1563,
+                  "width": 455,
+                  "height": 91
+                },
+                "region_attributes": {
+                  "label": "word",
+                  "bool": {
+                    "korean": true,
+                    "english_uppercase": true,
+                    "english_lowercase": true,
+                    "digit": true,
+                    "special_character": true
+                  },
+                  "class": "KDT1-EST-PSTI_4"
                 }
               }
             ],

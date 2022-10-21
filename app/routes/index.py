@@ -137,7 +137,7 @@ def get_image(
     document = models.Image(
         filename=document_path.name,
         description=select_document_result.document_description,
-        image_type=select_document_result.document_type,
+        image_type="inference",
         upload_datetime=select_document_result.document_upload_time,
         width=document_width,
         height=document_height,
