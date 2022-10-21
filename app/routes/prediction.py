@@ -140,7 +140,7 @@ def get_all_prediction(session: Session = Depends(db.session)) -> JSONResponse:
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
 
 
-@router.get("/cls-kv")
+@router.get("/cls_kv")
 def get_cls_kv_prediction(
     task_id: str, visualize: bool, session: Session = Depends(db.session)
 ) -> JSONResponse:
