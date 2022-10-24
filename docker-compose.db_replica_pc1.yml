@@ -20,9 +20,10 @@ services:
     container_name: textscope-pg-0
     image: docker.io/bitnami/postgresql-repmgr:14
     ports:
-      - 5432
+      - 5432:5432
     volumes:
       - postgresql_0_data:/bitnami/postgresql
+    restart: unless-stopped
     environment:
       - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
       - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
@@ -37,13 +38,14 @@ services:
     networks:
       - our_net
     extra_hosts:
-      - "textscope-pg-1:10.1.1.1" # "타겟컨테이너명:운영서버2-IP"
+      - "textscope-pg-1:10.1.1.2" # "타겟컨테이너명:운영서버2-IP"
 
   pgpool:
     container_name: textscope-postgresql
     image: docker.io/bitnami/pgpool:4
     ports:
       - 55432:5432
+    restart: unless-stopped
     environment:
       - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
       - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
@@ -58,13 +60,13 @@ services:
       - PGPOOL_POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # pgpool로 접속할 계정 정보 패스워드 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
       - PGPOOL_ADMIN_USERNAME=${POSTGRES_USER}
       - PGPOOL_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
-      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_ENABLE_LOAD_BALANCING=no
       - PGPOOL_AUTO_FAILBACK=yes
       - PGPOOL_BACKEND_APPLICATION_NAMES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
     networks:
       - our_net
     extra_hosts:
-      - "textscope-pg-1:10.1.1.1" # "타겟컨테이너명:운영서버2-IP"
+      - "textscope-pg-1:10.1.1.2" # "타겟컨테이너명:운영서버2-IP"
   
   elasticsearch:
     container_name: textscope-elasticsearch
