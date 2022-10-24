@@ -97,7 +97,7 @@ def kbl_post_inspect_info(
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
 
     # doc_type 검수 비교
-    if changes_doctype != "":
+    if changes_doctype["prediction"] != "" and changes_doctype["corrected"] != "":
         try:
             doc_type = copy.deepcopy(query.select_doc_type_code(session, document_id=document_id))
         except:
@@ -116,7 +116,7 @@ def kbl_post_inspect_info(
                 doc_type_idxs=doc_type_idxs, 
                 doc_type_codes=doc_type_codes)
     
-    if changes_keyvalue != "":
+    if len(changes_keyvalue) > 0:
         # inference 데이터 불러오기
         latest_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
         if isinstance(latest_inference_result, JSONResponse):
