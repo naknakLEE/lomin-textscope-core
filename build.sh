@@ -38,6 +38,7 @@ docker exec -it textscope-pp bash -c "sh /workspace/assets/build_script/pp.sh"
 # copy wrapper
 app_name="${CUSTOMER}_wrapper"
 cp -r ./${app_name} ${build_folder_name}/${created_folder_name}/assets/
+cp -r ./${app_name}/wrapper ${build_folder_name}/${created_folder_name}/wrapper
 
 # copy config
 config_file_list="${CONFIG_FILE_LIST}"
@@ -52,6 +53,8 @@ do
     mkdir -p ${build_folder_name}/${created_folder_name}/assets/${file}
 done
 
+# copy build_so file
+cp -r ./assets/build_so/* ${build_folder_name}/${created_folder_name}
 
 ####################################################################vv
 # model을 build폴더로 저장하는 로직
