@@ -10,6 +10,9 @@ import copy
 settings = get_settings()
 doc_type_cls_group_dict: Dict[int, List[int]] = dict()
 
+DELETE_KEY_SUFFIX_ON_INSPECT_ACCURACY = tuple(["_KEY", "NONE"])
+TITLE_KEY_PREFIX = "TITLE"
+
 
 def is_doc_type_in_cls_group(cls_idx: int, doc_type_idx: int) -> bool:
     return doc_type_idx in doc_type_cls_group_dict.get(cls_idx, [])
@@ -17,30 +20,30 @@ def is_doc_type_in_cls_group(cls_idx: int, doc_type_idx: int) -> bool:
 
 def get_inspect_accuracy(session: Session, select_inference_result: schema.InferenceInfo, inspect_result: dict):
     
-    _, unrecognition_kv = add_unrecognition_kv(session, select_inference_result)
-    inference_kv = select_inference_result.inference_result.get("kv")
-    
-    inspect_kv = inspect_result.get("kv")
-    
+    inspect_kv = copy.deepcopy(inspect_result.get("kv"))
+    inference_kv_: Dict[str, dict] = copy.deepcopy(select_inference_result.inference_result.get("kv"))
+    select_inference_result, unrecognition_kv = add_unrecognition_kv(session, select_inference_result)
     
     # _KEY, NONE 인식률에서 제거
-    inspect_kv = copy.deepcopy(inspect_kv)
     for key in list(inspect_kv.keys()):
-        if "_KEY" in key or "NONE" in key:
+        if key.endswith(DELETE_KEY_SUFFIX_ON_INSPECT_ACCURACY) \
+            or key.startswith(TITLE_KEY_PREFIX):
             del inspect_kv[key]
-
-    # _KEY, NONE 인식률에서 제거   
-    inference_kv = copy.deepcopy(inference_kv)
-    for key in list(inference_kv.keys()):
-        if "_KEY" in key or "NONE" in key:
-            del inference_kv[key]
     
     # _KEY, NONE 인식률에서 제거
-    unrecognition_kv = copy.deepcopy(unrecognition_kv)
-    for key in list(unrecognition_kv.keys()):
-        if "_KEY" in key or "NONE" in key:
-            del unrecognition_kv[key]
+    inference_kv = copy.deepcopy(inference_kv_)
+    total_inference_kv = select_inference_result.inference_result.get("kv", {})
+    for k, v in inference_kv_.items():
+        if k.endswith(DELETE_KEY_SUFFIX_ON_INSPECT_ACCURACY) \
+            or k.startswith(TITLE_KEY_PREFIX) \
+            or total_inference_kv.get(k) is None:
+            del inference_kv[k]
     
+    # _KEY, NONE 인식률에서 제거
+    for key in list(unrecognition_kv.keys()):
+        if key.endswith(DELETE_KEY_SUFFIX_ON_INSPECT_ACCURACY) \
+            or key.startswith(TITLE_KEY_PREFIX):
+            del unrecognition_kv[key]
     
     # 미검출 항목 수정 개수 확인
     modify_count_unrecognition = 0
@@ -64,11 +67,11 @@ def get_inspect_accuracy(session: Session, select_inference_result: schema.Infer
     
     inference_kv_count = len(inference_kv)
     divide_parent = inference_kv_count + modify_count_unrecognition
-    divide_child = divide_parent - (modify_count_unrecognition + modify_count_inference)
+    divide_child = modify_count_unrecognition + modify_count_inference
     
     if divide_parent == 0: return 100.0
     
-    inspect_accuracy = (divide_child / divide_parent) * 100
+    inspect_accuracy = 100 - ((divide_child / divide_parent) * 100)
     
     return inspect_accuracy
 
