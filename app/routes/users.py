@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Optional, List, Dict
+from typing import Any, Optional, List, Dict, Union
 from fastapi import Depends, APIRouter, Body
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
@@ -323,18 +323,14 @@ def get_company_users_authority(
     total_count, select_company_user_query = query.select_company_user_info_query(session, search_text, company_code=request_user_info.company_code)
     select_company_user_query: List[schema.CompanyUserInfo] = select_company_user_query
     
+    company_user_info_dict: Dict[str, schema.CompanyUserInfo] = { x.emp_usr_emad : x for x in select_company_user_query }
+    
     filtered_count = 0
     response_rows: List[list] = list()
-    for company_user_info in select_company_user_query:
-    # user_email이 가지고 있는 모든 정책(권한) 정보 조회
-        target_user_policy_result = query.get_user_group_policy(session, user_email=company_user_info.emp_usr_emad)
-        if isinstance(target_user_policy_result, JSONResponse):
-            return target_user_policy_result
-        target_user_policy_result: dict = target_user_policy_result
-        
-        # 권한 확인 및 개인 권한 적용 기간 조회
-        authority = query.get_user_authority(target_user_policy_result)
-        authority_time = query.get_user_policy_time(session, company_user_info.emp_usr_emad, authority)
+    company_user_info_list: Dict[str, Dict[str, Union[bool, list]]] = query.get_user_group_policy_all(session, user_email_list=company_user_info_dict.keys())
+    for company_user_email, company_user_policy in company_user_info_list.items():
+        # 권한 확인
+        authority = query.get_user_authority(company_user_policy)
         
         if authority in filter_authority:
             filtered_count += 1
@@ -344,6 +340,11 @@ def get_company_users_authority(
                 continue
             
             if len(response_rows) < rows_limit:
+                company_user_info = company_user_info_dict.get(company_user_email)
+                
+                # 개인 권한 적용 기간 조회
+                authority_time = query.get_user_policy_time(session, company_user_email, authority)
+                
                 response_rows.append([
                     str(company_user_info.emp_eno),
                     str(company_user_info.emp_usr_nm),

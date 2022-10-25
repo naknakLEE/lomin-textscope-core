@@ -904,6 +904,68 @@ def delete_user_group_policy(
     return query
 
 
+# 순수 가지고 있는 정책(권한) 정보
+# TODO 아래 get_user_group_policy의 성능상 문제로 추후 합칠 예정
+def get_user_group_policy_all(
+    session: Session,
+    group_level: Optional[List[int]] = [],
+    user_email_list: List[str] = ["do@not.use"]
+) -> Union[Dict[str, Dict[str, Union[bool, list]]], JSONResponse]:
+    try:
+        now_datetime = datetime.now()
+        
+        all_user_group_result: List[Tuple[schema.UserGroup, schema.GroupInfo, schema.GroupPolicy]] = list()
+        query = session.query(schema.UserGroup, schema.GroupInfo, schema.GroupPolicy)
+        query = query.filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
+        query = query.filter(schema.UserGroup.group_code == schema.GroupInfo.group_code, schema.UserGroup.group_code == schema.GroupPolicy.group_code)
+        query = query.filter(schema.UserGroup.user_email.in_(user_email_list))
+        
+        # group_level.desc() -> 낮은 그룹 레벨 먼저 적용
+        if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
+        
+        all_user_group_result = query.order_by(schema.GroupInfo.group_level.desc()) \
+            .all()
+            
+        # 없으면 에러 응답
+        if len(all_user_group_result) == 0:
+            raise CoreCustomException(2509)
+        
+        all_user_group_policy: Dict[str, Dict[str, Union[bool, list]]] = dict()
+        for user_group_policy in all_user_group_result:
+            user_group, group_info, group_policy = user_group_policy
+            
+            policy_code: str = group_policy.policy_code
+            policy_content: dict = group_policy.policy_content
+            
+            # 접근 가능한 상대 팀 관련 정책
+            if policy_code.endswith("_TEAM"):
+                policy_content = policy_content.get("user_team", [])
+                
+            # 사용 가능한 문서 종류(대분류) 관련 정책
+            elif policy_code == "R_DOC_TYPE_CLASSIFICATION":
+                policy_content = policy_content.get("cls_code", [])
+                
+            # 사용 가능한 문서 종류(중분류) 관련 정책
+            elif policy_code == "R_DOC_TYPE_SUB_CATEGORY":
+                policy_content = policy_content.get("doc_type", [])
+                
+            # 가능 여부 관련 정책
+            else:
+                policy_content = policy_content.get("allow", False)
+            
+            user_policy = all_user_group_policy.get(user_group.user_email, {})
+            user_policy.update({policy_code:policy_content})
+            all_user_group_policy.update({user_group.user_email:user_policy})
+        
+        result = all_user_group_policy
+        
+    except CoreCustomException as cce:
+        raise cce
+    except Exception:
+        raise CoreCustomException(4101, "모든 유저 그룹 정책")
+    
+    return result
+
 
 # 순수 가지고 있는 정책(권한) 정보
 # TODO 수출입은행 후 불가 정책(권한) 정보 적용 로직 추가 예정
