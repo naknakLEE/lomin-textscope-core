@@ -1,3 +1,4 @@
+from copy import copy, deepcopy
 import uuid
 
 from httpx import Client
@@ -26,6 +27,7 @@ from app.schemas.json_schema import inference_responses
 from app.models import UserInfo as UserInfoInModel
 from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
+from app.utils.inference import get_removed_text_inference_result
 from app.wrapper import pp, pipeline, settings
 from app.database import query, schema
 from app.database.connection import db
@@ -245,15 +247,40 @@ def ocr(
         return select_doc_type_result
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     doc_type_idx = select_doc_type_result.doc_type_idx
-    inference_results.update(doc_type=select_doc_type_result)
-    
+
+    # inference_results.update(doc_type=select_doc_type_result)
+    inference_results.update(doc_type=dict(
+        doc_type_idx=select_doc_type_result.doc_type_idx,
+        doc_type_code=select_doc_type_result.doc_type_code,
+        doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+        doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+        doc_type_name_en=select_doc_type_result.doc_type_name_en,
+        doc_type_structed=select_doc_type_result.doc_type_structed
+    ))
+
+    # document.doc_type update - cls 일 경우만 분기
+    if post_processing_type == "lina1_cls":
+        doc_type_idxs = []
+        doc_type_codes = []
+        doc_type_idxs.append(doc_type_idx)
+        doc_type_codes.append(inference_result["kv"]["doc_type"])
+        
+        query.update_document(
+            session, 
+            document_id=document_id, 
+            doc_type_idx=doc_type_idx,
+            doc_type_idxs=doc_type_idxs,
+            doc_type_codes=doc_type_codes
+        )
+    # 추론 결과에서 개인정보 삭제
+    db_inference_results = get_removed_text_inference_result(deepcopy(inference_result), post_processing_type)
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
         document_id=document_id, 
         user_email=user_email,
         user_team=user_team,
-        inference_result=inference_results,
+        inference_result=db_inference_results,
         inference_type=inputs.get("inference_type"),
         page_num=inference_results.get("page", target_page),
         doc_type_idx=doc_type_idx,
@@ -262,7 +289,6 @@ def ocr(
     if isinstance(insert_inference_result, JSONResponse):
         return insert_inference_result
     insert_inference_result: schema.InferenceInfo = insert_inference_result
-    inference_results.update(doc_type=insert_inference_result.inference_result.get("doc_type", dict()))
     
     
     response = dict(
@@ -272,6 +298,6 @@ def ocr(
             # log_id=task_id
         )
     )
-
+    result =  JSONResponse(content=jsonable_encoder(response))
     
     return JSONResponse(content=jsonable_encoder(response))

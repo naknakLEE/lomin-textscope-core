@@ -187,9 +187,6 @@ def single(
     response_log: Dict,
     route_name: str = "ocr",
 ) -> Tuple[int, Dict, Dict]:
-    """doc type hint를 적용하고 inference 요청"""
-    if(route_name == "cls_kv"):
-        return _single_for_cls_kv(client, inputs, response_log, route_name)
     
     # Apply doc type hint
     hint = inputs.get("hint", {})
@@ -221,6 +218,10 @@ def single(
         headers={"User-Agent": "textscope core"},
     )
 
+    ocr_response_json = ocr_response.json()
+    if route_name == "tocr":
+        ocr_response_json["kv"] = ocr_response_json.pop("result")
+    
     inference_end_time = datetime.now()
     response_log.update(
         inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
@@ -229,100 +230,7 @@ def single(
     logger.info(
         f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
-    return (ocr_response.status_code, ocr_response.json(), response_log)
-
-def _single_for_cls_kv(
-    client: Client,
-    inputs: Dict,
-    response_log: Dict,
-    route_name: str = "ocr",
-) -> Tuple[int, Dict, Dict]:
-    """doc type hint를 적용하고 inference 요청"""
-    
-    # case1. cls-kv
-    if inputs.get("hint") is None or dict(inputs["hint"]).get("doc_type") is None:
-        emsg = f"Invalid parameters."
-        logger.error(emsg)
-        return (422, None, {"error":emsg})
-
-    hint_dt_info = dict(inputs["hint"]["doc_type"])
-
-    if hint_dt_info.get("doc_type") is None or hint_dt_info.get("use") is None or hint_dt_info.get("trust") is None:
-        emsg = f"Invalid parameters."
-        logger.error(emsg)
-        return (422, None, {"error":emsg})
-
-    if hint_dt_info["use"] is False or hint_dt_info["trust"] is False:               
-        # do cls
-        inference_start_time = datetime.now()
-        response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
-
-        # 고객사 doc_type -> 로민 doc_type
-        lomin_doc_type = inputs["doc_type"]
-            
-        ocr_response = client.post(
-            f"{model_server_url}/cls",
-            json=inputs,
-            timeout=settings.TIMEOUT_SECOND,
-            headers={"User-Agent": "textscope core"},
-        )
-        inference_end_time = datetime.now()
-        response_log.update(
-            inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-            inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
-        )
-        logger.info(
-            f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
-        )
-        cls_result = ocr_response.json()
-        logger.info(cls_result)
-
-        inputs["doc_type"]=dict(cls_result).get("doc_type")
-        
-    else: 
-        hint = inputs.get("hint", {})
-        if hint is not None and hint.get("doc_type") is not None:
-            doc_type_hint = hint.get("doc_type", {})
-            doc_type_hint = DocTypeHint(**doc_type_hint)
-            cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
-            response_log.update(apply_cls_hint_result=cls_hint_result)
-            inputs["doc_type"] = cls_hint_result.get("doc_type")
-
-        
-    
-    #### do KV
-    # Apply doc type hint
-
-    inference_start_time = datetime.now()
-    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
-
-    # 고객사 doc_type -> 로민 doc_type
-    lomin_doc_type = inputs["doc_type"]
-    if lomin_doc_type != None and lomin_doc_type != "None":
-        route_name = get_route_name(lomin_doc_type)
-
-        # doc_type이 있다 -> KV 요청일 것.
-        if(route_name == None):
-            emsg = f"The document type '{lomin_doc_type}' is not supported in KV API."
-            logger.error(emsg)
-            return (StatusCode.HTTP_400, None, {"error":emsg})        
-        
-    ocr_response = client.post(
-        f"{model_server_url}/{route_name}",
-        json=inputs,
-        timeout=settings.TIMEOUT_SECOND,
-        headers={"User-Agent": "textscope core"},
-    )
-
-    inference_end_time = datetime.now()
-    response_log.update(
-        inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
-        inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
-    )
-    logger.info(
-        f"Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
-    )
-    return (ocr_response.status_code, ocr_response.json(), response_log)
+    return (ocr_response.status_code, ocr_response_json, response_log)
 
 
 
@@ -541,6 +449,7 @@ MODEL_DOC_TYPE_LIST = {
                 "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC",
                 "LINA1-09","LINA1-11","LINA1-13","LINA1-16","LINA1-18","LINA1-22","LINA1-27","LINA1-29"
                 ],
+    "tocr" : []
     # "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
 }
 

@@ -16,6 +16,7 @@ from app.database.connection import db
 from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
 
+from app.utils.auth import get_current_active_user as get_current_active_user_token_validation
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
@@ -65,7 +66,7 @@ async def login_for_access_token(
 
 @router.get("/token/validation")
 async def token_validation(
-    current_user: UserInfoInModel = Depends(get_current_active_user),
+    current_user: UserInfoInModel = Depends(get_current_active_user_token_validation),
     session: Session = Depends(db.session)
 ) -> JSONResponse:
     
