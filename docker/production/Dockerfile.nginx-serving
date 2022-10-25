@@ -1,0 +1,3 @@
+FROM nginx:1.23
+
+COPY ./proxy/multiple_gpu_load_balancing.conf /etc/nginx/nginx.conf
