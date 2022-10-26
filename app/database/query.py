@@ -244,8 +244,11 @@ def insert_inference(
 
     ir=deepcopy(inference_result)
     #Remove Personal Information by Policy
-    del ir["texts"]
-    del ir["kv"]
+    if ir.get("texts") is not None: 
+        del ir["texts"]
+    if ir.get("kv") is not None: 
+        del ir["kv"]
+    
     try:
         
         result = schema.InferenceInfo.create(
