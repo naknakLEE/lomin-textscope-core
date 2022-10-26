@@ -75,8 +75,8 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
       - COLUMNS=${COLUMNS:-200}
-    ports:
-      - 8080:${PP_IP_PORT}
+    # ports:
+    #   - 8080:${PP_IP_PORT}
     volumes:
       - ./:/workspace
     tty: true

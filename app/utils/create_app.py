@@ -42,24 +42,11 @@ def app_generator() -> FastAPI:
             create_db_users()
             insert_initial_data()
 
-    if settings.PROFILING_TOOL == "pyinstrument":
-        from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
+    from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 
-        app.add_middleware(
-            PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
-        )
-    elif settings.PROFILING_TOOL == "cProfile":
-        from fastapi_cprofile.profiler import CProfileMiddleware
-
-        app.add_middleware(
-            CProfileMiddleware,
-            enable=True,
-            server_app=app,
-            print_each_request=True,
-            filename="/tmp/output.pstats",
-            strip_dirs=False,
-            sort_by="cumulative",
-        )
+    app.add_middleware(
+        PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
+    )
 
     app.add_exception_handler(RuntimeError, validation_exception_handler)
     app.add_exception_handler(ResourceDataError, resource_exception_handler)
@@ -93,5 +80,6 @@ def app_generator() -> FastAPI:
 
     # Base Function Route 등록
     app.include_router(base.router, tags=["Base Function"], prefix="/base", include_in_schema=True)
+    
     
     return app
