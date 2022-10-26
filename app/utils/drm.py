@@ -105,4 +105,5 @@ class DRM:
         employee_number = await self._get_employee_number(user_email)
         base64_data = await self.file_nas_share(base64_data, file_name, decryption_url, employee_number)
         return base64_data
-    
+
+drm = DRM()

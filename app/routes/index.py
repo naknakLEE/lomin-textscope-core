@@ -31,7 +31,7 @@ from app.utils.utils import is_admin, get_company_group_prefix
 from app.schemas import error_models as ErrorResponse
 from app.schemas import HTTPBearerFake
 from app.middlewares.exception_handler import CoreCustomException
-from app.utils.drm import load_file2base64, DRM
+from app.utils.drm import load_file2base64, drm
 from app.utils.document import (
     get_page_count,
     is_support_file,
@@ -189,6 +189,9 @@ async def post_upload_document(
     if document_data is None and document_path is not None:
         document_data = load_file2base64(document_path)
     
+    if hydra_cfg.common.drm.use: # drm 복호화
+        document_data = await drm.drm_decryption(base64_data=document_data, file_name=document_name, user_email=user_email)
+    
     document_bytes = base64.b64decode(document_data)
     
     # 업로드 파일 제한
@@ -260,10 +263,6 @@ async def post_upload_document(
         status_code_no_document, _ = ErrorResponse.ErrorCode.get(2101)
         if select_document_result.status_code != status_code_no_document:
             return select_document_result
-    
-    if hydra_cfg.common.drm.use: # drm 복호화
-        drm = DRM()
-        document_data = await drm.drm_decryption(base64_data=document_data, file_name=document_name, user_email=user_email)
     
     dao_document_params = {
         "document_id": document_id,
