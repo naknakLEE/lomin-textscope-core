@@ -45,14 +45,24 @@ def convert_bytes_header_2_filetype(bytes_file:bytes):
         b'II': '.tif',
         b'MM': '.tif',
         b'EP': '.tif',
-        None: None
+        b'\xff\xd8' : '.jpeg',
+        b'\x89PNG\r\n\x1a\n' : ".png"
     }
-    file_byes_header = get_file_bytes_header(bytes_file)
+    # file_byes_header = get_file_bytes_header(bytes_file)
     
-    if file_byes_header in convert_dict.keys():
-        return convert_dict[file_byes_header]
-    else:
-        return None
+
+    file_bytes_header = bytes_file[:20]
+    file_type = None
+    for k, v in convert_dict.items():
+        if file_bytes_header.startswith(k): file_type = v
+            
+
+    # if file_byes_header in convert_dict.keys():
+    #     return convert_dict[file_byes_header]
+    # else:
+    #     return None
+    
+    return file_type
     
     
 
@@ -64,11 +74,12 @@ def get_file_extension(document_filename: str = "x.xxx") -> str:
 def get_page_count(document_data: str, document_filename: str) -> int:
     document_bytes = base64.b64decode(document_data)
     file_type = get_file_extension(document_filename)
-    
-    file_type_header = convert_bytes_header_2_filetype(BytesIO(document_bytes))
+
+    file_type_header = convert_bytes_header_2_filetype(document_bytes)
     if file_type_header:
+        document_filename = document_filename.replace(file_type, file_type_header)
         file_type = file_type_header
-    
+
     total_pages = 1
     
     if file_type in support_file_extension_list.get("image"):
@@ -91,7 +102,7 @@ def get_page_count(document_data: str, document_filename: str) -> int:
         logger.error(f"{document_filename} is not supported!")
         total_pages = 0
     
-    return total_pages
+    return total_pages, document_filename
 
 
 def is_support_format(document_filename: str) -> bool:

@@ -244,6 +244,8 @@ async def post_upload_document(
         status_code, error = ErrorResponse.ErrorCode.get(2105)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
+    document_pages, document_name = get_page_count(document_data, document_name)
+    
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
     if save_success:
@@ -255,7 +257,6 @@ async def post_upload_document(
         doc_type_code = select_doc_type_result.doc_type_code
         
         logger.info(f"success save document document_id : {document_id}")
-        document_pages = get_page_count(document_data, document_name)
         dao_document_params = {
             "document_id": document_id,
             "user_email": user_email,
