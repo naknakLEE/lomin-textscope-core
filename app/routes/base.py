@@ -78,6 +78,7 @@ async def post_upload_document(
     user_email:str    = current_user.email
     document_name:str = inputs.get("document_name")
     document_data:str = inputs.get("document_data")
+    retry:bool = inputs.get("retry")
     
     response: dict = dict(resource_id=dict())
     response_log: dict = dict()
@@ -98,8 +99,11 @@ async def post_upload_document(
     user_team = select_user_result.user_team        
 
     # 고유한 document_id 생성 -> DB적재용이 아닌 path를 만들기 위함!
-    # 고객사에서 document_id를 지정해서 보내줄 경우 해당 아이디가 DB에 들어가도록 처리
+    # 고객사에서 document_id를 지정해서 보내줄 경우 해당 아이디가 minio, DB에 들어가도록 처리
     document_id = inputs.get("document_id") if inputs.get("document_id") != "" else get_ts_uuid("document")
+
+    # 문서 저장에 성공했을시, document 테이블에 insert        
+    document_pages, document_name = get_page_count(document_data, document_name)
 
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
@@ -110,21 +114,28 @@ async def post_upload_document(
         error.error_message = error.error_message.format("문서")
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
 
-    # 문서 저장에 성공했을시, document 테이블에 insert        
-    document_pages = get_page_count(document_data, document_name)
     logger.info(f"success save document document_id : {document_id}")
     # 기존 document insert에서 document_description, doc_type_idx, document_type 제외
     dao_document_params = {
-        "document_id": document_id,
         "user_email": user_email,
         "user_team": user_team,
         "document_path": save_path,
         "document_pages": document_pages,
     }
-    insert_document_result = query.insert_document(session, **dao_document_params)
+    if not retry:
+        dao_document_params["document_id"] = document_id
+    
+    # 고객사에서 동일 document_id로 문서 업로드 재시도 케이스 - update 처리 
+    insert_document_result = \
+        query.update_document(session, document_id, **dao_document_params) \
+        if retry \
+        else query.insert_document(session, **dao_document_params)
     if isinstance(insert_document_result, JSONResponse):
-        return insert_document_result            
-
+        dao_document_params["document_id"] = document_id
+        insert_document_result = query.insert_document(session, **dao_document_params)
+    if isinstance(insert_document_result, JSONResponse):
+        return insert_document_result
+        
     # 종료 시간 측정 
     response_datetime = datetime.now()
     # 걸린 시간 측정 (종료시간 - 시작시간)
