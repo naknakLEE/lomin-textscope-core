@@ -1,5 +1,5 @@
 defaults:
   - route: default
-  - document: default
-  - database: default
+  - document: bsn-2204-keximbank
+  - database: kei2205
   - common: default
