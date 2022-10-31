@@ -61,7 +61,9 @@ services:
       - ./:/workspace
     tty: true
     working_dir: /workspace/app
-    entrypoint: python3 main.py
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+
 
   pp:
     image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -75,14 +77,16 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
       - COLUMNS=${COLUMNS:-200}
-    ports:
-      - 8080:${PP_IP_PORT}
+    # ports:
+    #   - 8080:${PP_IP_PORT}
     volumes:
       - ./:/workspace
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp
-    entrypoint: python3 main.py
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -108,7 +112,9 @@ services:
       - LC_ALL=C.UTF-8
       - CUSTOMER=${CUSTOMER}
     working_dir: /workspace/textscope_wrapper/wrapper
-    entrypoint: python3 main.py
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+
 
   nginx:
     ports:
