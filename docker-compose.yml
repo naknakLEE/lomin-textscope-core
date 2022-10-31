@@ -26,39 +26,39 @@ services:
       - 55432:${POSTGRES_IP_PORT}
     networks:
       - our_net
-  elasticsearch:
-    container_name: textscope-elasticsearch
-    image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
-    build:
-      context: elasticsearch
-      dockerfile: Dockerfile.elasticsearch
-    restart: on-failure
-    volumes:
-      - esdata:/usr/share/elasticsearch/data:rw
-    ports:
-      - 9200:9200
-      - 9300:9300
-    environment:
-      - cluster.name=ts-cluster
-      - discovery.type=single-node
-      - http.host=0.0.0.0
-      - transport.host=127.0.0.1
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - xpack.security.enabled=false
-    networks:
-      - our_net
+  # elasticsearch:
+  #   container_name: textscope-elasticsearch
+  #   image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
+  #   build:
+  #     context: elasticsearch
+  #     dockerfile: Dockerfile.elasticsearch
+  #   restart: on-failure
+  #   volumes:
+  #     - esdata:/usr/share/elasticsearch/data:rw
+  #   ports:
+  #     - 9200:9200
+  #     - 9300:9300
+  #   environment:
+  #     - cluster.name=ts-cluster
+  #     - discovery.type=single-node
+  #     - http.host=0.0.0.0
+  #     - transport.host=127.0.0.1
+  #     - ES_JAVA_OPTS=-Xms512m -Xmx512m
+  #     - xpack.security.enabled=false
+  #   networks:
+  #     - our_net
 
-  kibana:
-    container_name: textscope-kibana
-    image: docker.elastic.co/kibana/kibana:7.16.2
-    ports:
-      - 5601:5601
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - our_net
+  # kibana:
+  #   container_name: textscope-kibana
+  #   image: docker.elastic.co/kibana/kibana:7.16.2
+  #   ports:
+  #     - 5601:5601
+  #   environment:
+  #     ELASTICSEARCH_URL: http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - our_net
 
   pgadmin:
     container_name: textscope-pgadmin
@@ -222,8 +222,8 @@ volumes:
     driver: local
   grafana_data:
     driver: local
-  esdata:
-    driver: local
+  # esdata:
+  #   driver: local
   minio_data:
     driver: local
 

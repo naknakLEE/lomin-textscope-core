@@ -7,7 +7,7 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, base
+from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, base, front
 from app.routes import document, model, inspect
 from app.database.connection import db
 from app.common.config import config
@@ -93,5 +93,7 @@ def app_generator() -> FastAPI:
 
     # Base Function Route 등록
     app.include_router(base.router, tags=["Base Function"], prefix="/base", include_in_schema=True)
+
+    app.include_router(front.router, tags=["Front Function"], prefix="", include_in_schema=True)
     
     return app

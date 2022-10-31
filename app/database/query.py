@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
+from sqlalchemy import Date
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
@@ -752,3 +753,206 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
         ))
     
     return doc_type_list
+
+def select_inference_all(
+    session: Session,
+    **kwargs,
+) -> Tuple[int, list]:
+    """
+        [Front]전용 업무 목록 조회
+    """
+    dao_inference = schema.InferenceInfo
+    dao_document = schema.DocumentInfo
+
+    query = session.query(dao_inference, dao_document) \
+        .filter(dao_inference.document_id == dao_document.document_id)
+    
+    query_param: Dict = dict(kwargs)
+
+    # 1. docx_name filtering
+    docx_name = query_param.get('document_name')
+    if docx_name:
+        query = query.filter(dao_document.document_path.contains(docx_name))
+    # 2. 요청일자 filtering
+    date_start = query_param.get('date_start')                      
+    date_end   = query_param.get('date_end')
+    query = query.filter(dao_inference.inference_start_time.between(date_start, date_end))
+
+    result_list: list = list()
+
+    # 3. totalcount 
+    total_count = query.count()
+    if not total_count: return total_count, result_list
+
+    # 4. order by
+    query = query.order_by(dao_inference.inference_start_time.desc())
+
+    # 5. offset 설정
+    rows_limit  = query_param.get('rows_limit')
+    rows_offset = query_param.get('rows_offset')
+    query = query.offset(rows_offset) \
+        .limit(rows_limit if rows_limit < settings.LIMIT_SELECT_ROW + 1 else settings.LIMIT_SELECT_ROW)
+    
+    rows: List[Tuple[dao_inference, dao_document]] = query.all()
+
+    result_info = ['inference_id', 'document_id', 'inference_start_time']
+    for row in rows:
+        table_mapping: Dict = dict()
+        
+        inference_info: schema.InferenceInfo = row[0]
+        document_info : schema.DocumentInfo  = row[1]
+
+        for key in result_info:
+            v = getattr(inference_info, key)
+            table_mapping.update({
+                key: str(v)
+            })
+        docx_path: str = document_info.document_path
+        table_mapping.update(document_name=docx_path.split('/')[1])
+        result_list.append(table_mapping)
+
+    return total_count, result_list
+
+select_before_after_inference_id = \
+    """
+    select a.before_id, a.after_id
+    from (
+    select 
+        inference_id,
+        LAG(inference_id) over (order by inference_start_time) as before_id,
+        LEAD(inference_id) over (order by inference_start_time) as after_id
+        from inference_info
+        order by inference_start_time
+    ) as a
+    where a.inference_id = :inference_id    
+    """
+def select_inference_info(
+    session: Session,
+    inference_id: str
+) -> Tuple[dict, dict, dict]:
+    """
+        [Front]전용 업무 상세 정보 조회
+    """
+    dao_inference = schema.InferenceInfo
+    dao_document = schema.DocumentInfo
+
+    query = session.query(dao_inference, dao_document) \
+        .filter(dao_inference.document_id == dao_document.document_id) \
+        .filter(dao_inference.inference_id == inference_id)
+
+    result = query.one_or_none()
+
+    document_response = dict()
+    inference_response = dict()
+
+    if(not result): return document_response, inference_response
+
+    dao_inference_result: schema.InferenceInfo = result[0]
+
+    dao_document_result: schema.DocumentInfo = result[1]
+    document_info = ['document_id', 'document_path']
+    for key in document_info:
+        v = getattr(dao_document_result, key)
+        document_response.update({
+            key: v
+        })    
+    inference_response = vars(dao_inference_result)        
+    # inference_result = dao_inference_result.inference_result
+    # inference_start_time = dao_inference_result.inference_start_time
+
+    # inference_response.update({
+    #     inference_result: inference_result,
+    #     inference_start_time: inference_start_time
+    # })
+
+    result_proxy = session.execute(
+        select_before_after_inference_id,
+        dict(
+            inference_id=inference_id
+        )
+    ).fetchall()
+    
+    result = result_proxy[0].values()
+    inference_id_dict = dict({
+        'prev': result[0],
+        'next': result[1],
+    })
+
+    return document_response, inference_response, inference_id_dict
+
+sql_select_api_log_all = \
+    """
+    select to_char(api_response_datetime,'YYYY-MM-DD') as date,
+        avg(cast(api_response_time as real)) as avg_speed_value,
+        count(case when api_is_success is true then 1 end) as success_count,
+        count(case when api_is_success is false then 1 end) as fail_count,
+        count(*) as total_count
+    from log_api
+    where api_response_datetime between :date_start and :date_end
+    group by to_char(api_response_datetime,'YYYY-MM-DD');    
+    """
+
+def select_api_log_all(
+    session: Session,
+    **kwargs
+) -> Tuple[dict, dict]:          
+    """
+        [Front]전용 대시보드 정보 조회
+    """
+    query_param: Dict = dict(kwargs)
+
+    result = session.execute(
+        sql_select_api_log_all,
+        query_param
+    )    
+    
+    processing_mapping_keys = ['success_count', 'fail_count']
+    speed_mapping_keys = ['avg_speed_value']
+
+    processing_list = list()
+    speed_list = list()
+
+    processing_total_dict = {
+        'total_success_count': 0,
+        'total_fail_count': 0
+    }
+    min_speed_value = 9999
+    max_speed_value = 0
+    for rowproxy in result:
+        processing_dict = dict()
+        speed_dict = dict()        
+        for column, value in rowproxy.items():
+            if(column == 'date'):
+                processing_dict.update({
+                    column: value
+                })                
+                speed_dict.update({
+                    column: value
+                })                
+            elif(column in processing_mapping_keys):
+                processing_dict.update({
+                    column: value
+                })
+                processing_total_dict.update({
+                    f'total_{column}': processing_total_dict.get(f'total_{column}') + value
+                })
+            elif(column in speed_mapping_keys):
+                speed_dict.update({
+                    column: value
+                })
+                if min_speed_value > value: min_speed_value = value
+                if max_speed_value < value: max_speed_value = value               
+        processing_list.append(processing_dict)                                
+        speed_list.append(speed_dict)
+
+    speed_total_dict = {
+        'min_speed_value': min_speed_value,
+        'max_speed_value': max_speed_value,
+        'avg_speed_value': (min_speed_value + max_speed_value) / 2,
+        'daily_response_speed_list': speed_list
+    }        
+    processing_total_dict.update({
+        'total_call_count': sum(processing_total_dict.values()),
+        'daily_processing_status_list': processing_list 
+    })
+    return speed_total_dict, processing_total_dict

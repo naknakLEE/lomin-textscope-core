@@ -20,6 +20,7 @@ args = {
     "host": "0.0.0.0",
     "port": settings.WEB_IP_PORT,
     "workers": settings.TEXTSCOPE_CORE_WORKERS,
+    "timeout_keep_alive": 1200
 }
 if settings.DEVELOP:
     args["reload"] = True

@@ -21,10 +21,10 @@ def post_processing(
             "%Y-%m-%d %H:%M:%S"
         )
     )
-    inputs["img_size"] = (
-        inputs["image_height"],
-        inputs["image_width"],
-    )
+    # inputs["img_size"] = (
+    #     inputs["image_height"],
+    #     inputs["image_width"],
+    # )
     pp_response = client.post(
         f"{pp_server_url}/post_processing/{post_processing_type}",
         json=inputs,

@@ -19,6 +19,12 @@ from app.utils.minio import MinioService
 settings = get_settings()
 minio_client = MinioService()
 
+jpegopt={
+    "quality": 100,
+    "progressive": False,
+    "optimize": False
+}
+
 
 def read_tiff_one_page_from_bytes(image_bytes, page=1):
     try:
@@ -66,12 +72,19 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
             
     elif file_extension == ".pdf":
         pages = pdf2image.convert_from_bytes(
-            image_bytes, fmt="jpeg", first_page=page, last_page=page
+            image_bytes, fmt="png", first_page=page, last_page=page, dpi=300
         )
         if len(pages) == 0:
             pages = pdf2image.convert_from_bytes(
-                image_bytes, fmt="jpeg", first_page=1, last_page=1
-            )
+                image_bytes, fmt="png", first_page=1, last_page=1, dpi=300
+            )        
+        # pages = pdf2image.convert_from_bytes(
+        #     image_bytes, fmt="png", first_page=page, last_page=page, jpegopt=jpegopt
+        # )
+        # if len(pages) == 0:
+        #     pages = pdf2image.convert_from_bytes(
+        #         image_bytes, fmt="png", first_page=1, last_page=1, jpegopt=jpegopt
+        #     )
         pil_image = pages[0]
         
     else:

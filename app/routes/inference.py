@@ -168,62 +168,89 @@ def ocr(
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["texts"] = texts
 
+        # TODO: pp에서 tsbl_sort를 못할경우 얘를 쓰자
+        # tsbl_sort_result = sort_text_tblr(inference_result)
         doc_type_code = inference_results.get("doc_type")
         
         # Post processing
-        # 한국평가데이터 cls일경우 kdt1_cls로 넘기기
-        post_processing_type = 'kdt1_cls' if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
-
-        if post_processing_type is not None \
-            and doc_type_code is not None:        
-
-            logger.info(f"{task_id}-pp type:{post_processing_type}")
-
-            text_list = inference_result.get("texts", [])
-            box_list = inference_result.get("boxes", [])
-            score_list = inference_result.get("scores", [])
-            class_list = inference_result.get("classes", [])
-            
-            score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
-            class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
-
+        # 미래과학아카데미는 ocr일경우 줄글 pp로 이동
+        if inputs.get("route_name", "ocr") == 'ocr':
             pp_inputs = dict(
-                texts=text_list,
-                boxes=box_list,
-                scores=score_list,
-                classes=class_list,
-                rec_preds=inference_result.get("rec_preds"),
-                id_type=inference_results.get("id_type"),
-                doc_type=inference_results.get("doc_type"),
-                image_height=inference_results.get("image_height"),
-                image_width=inference_results.get("image_width"),
-                relations=inference_results.get("relations"),
-                task_id=task_id,
-            )
+                inference_result=inference_result
+            )            
             status_code, post_processing_results, response_log = pp.post_processing(
                 client=client,
                 task_id=task_id,
                 response_log=response_log,
                 inputs=pp_inputs,
-                post_processing_type=post_processing_type,
-            )
+                post_processing_type="line_word",
+            )            
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-            if inputs.get("route_name") == 'cls':
-                   inference_results["doc_type"] = post_processing_results.get('result')['doc_type']
-            else:
-                inference_results["kv"] = post_processing_results["result"]
-                # TODO 이거 맞나... 너무 지저분한디.. 더 좋은방법 공유 해보기
-                inference_result["doc_type"] = inputs["hint"]['doc_type']['doc_type']
-                logger.info(
-                    f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
-                )
-            if "texts" not in inference_results:
-                inference_results["texts"] = post_processing_results["texts"]
-                logger.info(
-                    f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
-                )
+            
+            line_texts = post_processing_results.get('line_word').get('texts')
+
+            inference_results.update({
+                "text_merged": line_texts.join(" ")
+            })                
+
+            # inference_results.update({
+            #     "context": post_processing_results["context_list"]
+            # })
+            # inference_results["texts"] = post_processing_results["texts"]                            
+        # post_processing_type = 'kdt1_cls' if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
+
+        # if post_processing_type is not None \
+        #     and doc_type_code is not None:        
+
+        #     logger.info(f"{task_id}-pp type:{post_processing_type}")
+
+        #     text_list = inference_result.get("texts", [])
+        #     box_list = inference_result.get("boxes", [])
+        #     score_list = inference_result.get("scores", [])
+        #     class_list = inference_result.get("classes", [])
+            
+        #     score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
+        #     class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
+
+        #     pp_inputs = dict(
+        #         texts=text_list,
+        #         boxes=box_list,
+        #         scores=score_list,
+        #         classes=class_list,
+        #         rec_preds=inference_result.get("rec_preds"),
+        #         id_type=inference_results.get("id_type"),
+        #         doc_type=inference_results.get("doc_type"),
+        #         image_height=inference_results.get("image_height"),
+        #         image_width=inference_results.get("image_width"),
+        #         relations=inference_results.get("relations"),
+        #         task_id=task_id,
+        #     )
+        #     status_code, post_processing_results, response_log = pp.post_processing(
+        #         client=client,
+        #         task_id=task_id,
+        #         response_log=response_log,
+        #         inputs=pp_inputs,
+        #         post_processing_type=post_processing_type,
+        #     )
+        #     if status_code < 200 or status_code >= 400:
+        #         status_code, error = ErrorResponse.ErrorCode.get(3502)
+        #         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        #     if inputs.get("route_name") == 'cls':
+        #         inference_results["doc_type"] = post_processing_results.get('result')['doc_type']
+        #     else:
+        #         inference_results["kv"] = post_processing_results["result"]
+        #         # TODO 이거 맞나... 너무 지저분한디.. 더 좋은방법 공유 해보기
+        #         inference_result["doc_type"] = inputs["hint"]['doc_type']['doc_type']
+        #         logger.info(
+        #             f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
+        #         )
+        #     if "texts" not in inference_results:
+        #         inference_results["texts"] = post_processing_results["texts"]
+        #         logger.info(
+        #             f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
+        #         )
         
     
     response_log.update(inference_results.get("response_log", {}))
@@ -268,3 +295,32 @@ def ocr(
     )
     
     return JSONResponse(content=jsonable_encoder(response))
+
+
+# @TODO utils로 이동
+def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
+    t_list = inference_result.get("texts", [])
+    b_list = inference_result.get("boxes", [])
+    s_list = inference_result.get("scores", [])
+    c_list = inference_result.get("classes", [])
+    
+    s_list = s_list if len(s_list) > 0 else [ 0.0 for i in range(len(t_list)) ]
+    c_list = c_list if len(c_list) > 0 else [ "" for i in range(len(t_list)) ]
+    
+    tbsc_list = [ (t, b, s, c) for t, b, s, c in zip(t_list, b_list, s_list, c_list) ]
+    
+    tbsc_list.sort(key= lambda x : (x[1][1], x[1][0]))
+    
+    t_list_, b_list_, s_list_, c_list_ = (list(), list(), list(), list())
+    for tbsc in tbsc_list:
+        t_list_.append(tbsc[0])
+        b_list_.append(tbsc[1])
+        s_list_.append(tbsc[2])
+        c_list_.append(tbsc[3])
+    
+    return dict(
+        texts=t_list_,
+        boxes=b_list_,
+        scores=s_list_,
+        classes=c_list_
+    )

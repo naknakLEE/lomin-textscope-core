@@ -697,6 +697,17 @@ class VisualizeInfo(Base, BaseMixin):
 
     inference = relationship('InferenceInfo')
 
+class LogAPI(Base, BaseMixin):
+    __tablename__ = 'log_api'
+    __table_args__ = {'comment': 'textscope 서비스 api 로그 정보'}
+    api_id = Column(Integer, primary_key=True, comment='api 로그 아이디', index=True, autoincrement=True)
+    api_domain = Column(String, nullable=False, comment='api 도메인', default="wrapper")
+    api_end_point = Column(String, nullable=False, comment='api 엔드포인트')
+    api_method = Column(String, nullable=False, comment='api Method')
+    api_status_code = Column(String, nullable=False, comment='api http 응답코드')
+    api_is_success = Column(Boolean, nullable=False, comment='api 응답 성공여부')
+    api_response_time = Column(String, nullable=False, comment='api 응답시간')
+    api_response_datetime = Column(DateTime, default=func.now(), comment="api 로그 생성시간")     
 
 # 테이블 추가 시, 테이블 명:클래스 명 추가
 table_class_mapping = dict({
@@ -726,6 +737,7 @@ table_class_mapping = dict({
     "user_group": UserGroup,
     "inspect_info": InspectInfo,
     "visualize_info": VisualizeInfo,
+    "log_api": LogAPI
 })
 
 # plugin 계정에 특정 테이블 권한 주기
