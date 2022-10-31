@@ -1,37 +1,30 @@
-from copy import deepcopy
 import json
-from pathlib import Path
-
-from requests import Session
-from app.database import query, schema
-from app.utils.image import get_image_bytes
-from app.utils.inference import get_removed_text_inference_result
-
-from httpx import Client
-
-from typing import Dict, Tuple, List, Optional
-from operator import attrgetter
+from copy import deepcopy
 from datetime import datetime
+from operator import attrgetter
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
 from fastapi.responses import JSONResponse
+from httpx import Client
+from requests import Session
 
 from app import wrapper
-from app.models import DocTypeHint
-from app.wrapper import pp
 from app.common import settings
+from app.database import query, schema
+from app.models import DocTypeHint
 from app.utils.hint import apply_cls_hint
+from app.utils.image import get_image_bytes
+from app.utils.inference import get_removed_text_inference_result
 from app.utils.logging import logger
-
-from app.utils.utils import (
-    get_pp_api_name,
-    get_ts_uuid,
-    pretty_dict,
-    substitute_spchar_to_alpha,
-    set_ocr_response,
-)
+from app.utils.utils import (get_pp_api_name, get_ts_uuid, pretty_dict,
+                             set_ocr_response, substitute_spchar_to_alpha)
+from app.wrapper import pp
 
 model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 gocr_route = "gocr"
 cls_route = "cls"
+
 # TODO: move to json file
 inference_pipeline_list = {
     "heungkuk": {

@@ -20,7 +20,7 @@ services:
     container_name: textscope-pg-0
     image: docker.io/bitnami/postgresql-repmgr:14
     ports:
-      - 5432:5432
+      - 5432
     volumes:
       - postgresql_0_data:/bitnami/postgresql
     environment:
@@ -138,18 +138,61 @@ services:
     networks:
       - our_net
 
-  serving:
+  serving_0:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
-    container_name: textscope-serving
+    container_name: textscope-serving_0
     environment:
       - CUSTOMER=${CUSTOMER}
       - TZ=Asia/Seoul
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     cap_add:
       - SYS_PTRACE
     runtime: nvidia
+    networks:
+      - our_net
+
+  serving_1:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    container_name: textscope-serving_1
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    runtime: nvidia
+    networks:
+      - our_net
+
+  nginx_serving:
+    image: docker.lomin.ai/ts-nginx-serving:${TEXTSCOPE_NGINX_VERSION}
+    container_name: textscope-nginx-serving
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx-serving
+    ports:
+      - 50033:5000
+    depends_on:
+      - serving_0
+      - serving_1
     networks:
       - our_net
 

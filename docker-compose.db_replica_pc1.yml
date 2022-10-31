@@ -38,7 +38,7 @@ services:
     networks:
       - our_net
     extra_hosts:
-      - "textscope-pg-1:10.1.1.2" # "타겟컨테이너명:운영서버2-IP"
+      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
 
   pgpool:
     container_name: textscope-postgresql
@@ -52,8 +52,8 @@ services:
       - PGPOOL_SR_CHECK_PASSWORD=${POSTGRES_PASSWORD} # 디비 살아있는지 체크 할 대상 디비 계정 정보 패스워드
       - PGPOOL_SR_CHECK_DATABASE=${POSTGRES_DATABASE}  # 디비 살아있는지 체크 할 대상 디비 디비 정보
       - PGPOOL_HEALTH_CHECK_PERIOD=1 # 불분명
-      - PGPOOL_HEALTH_CHECK_TIMEOUT=1 # healthcheck 실패 시, 디비 교체 시도 전 체크 타임아웃
-      - PGPOOL_HEALTH_CHECK_MAX_RETRIES=1 # healthcheck 실패 시, 디비 교체 시도 전 최대 체크 횟수, 넘어가면 디비 교체
+      - PGPOOL_HEALTH_CHECK_TIMEOUT=5 # healthcheck 실패 시, 디비 교체 시도 전 체크 타임아웃
+      - PGPOOL_HEALTH_CHECK_MAX_RETRIES=10 # healthcheck 실패 시, 디비 교체 시도 전 최대 체크 횟수, 넘어가면 디비 교체
       - PGPOOL_HEALTH_CHECK_RETRY_DELAY=0 # healthcheck 실패 시, 디비 교체 시도 전 체크 간격
       - PGPOOL_ENABLE_LDAP=no
       - PGPOOL_POSTGRES_USERNAME=${POSTGRES_USER} # pgpool로 접속할 계정 정보 아이디 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
@@ -66,7 +66,7 @@ services:
     networks:
       - our_net
     extra_hosts:
-      - "textscope-pg-1:10.1.1.2" # "타겟컨테이너명:운영서버2-IP"
+      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
   
   elasticsearch:
     container_name: textscope-elasticsearch
@@ -102,19 +102,19 @@ services:
     networks:
       - our_net
 
-  pgadmin:
-    container_name: textscope-pgadmin
-    image: dpage/pgadmin4 #TODO make Dockerfile
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
-      TZ: Asia/Seoul
-    depends_on:
-      - pgpool
-    ports:
-      - "5050:80"
-    networks:
-      - our_net
+  # pgadmin:
+  #   container_name: textscope-pgadmin
+  #   image: dpage/pgadmin4 #TODO make Dockerfile
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+  #     TZ: Asia/Seoul
+  #   depends_on:
+  #     - pgpool
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - our_net
 
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}

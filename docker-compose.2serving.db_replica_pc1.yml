@@ -21,8 +21,9 @@ services:
     image: docker.io/bitnami/postgresql-repmgr:14
     ports:
       - 5432:5432
-    volumes:
-      - postgresql_0_data:/bitnami/postgresql
+    # volumes:
+    #   - postgresql_0_data:/bitnami/postgresql
+    restart: unless-stopped
     environment:
       - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
       - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
@@ -36,37 +37,15 @@ services:
       - REPMGR_NODE_NETWORK_NAME=textscope-pg-0
     networks:
       - our_net
-    # extra_hosts:
-    #   - "textscope-pg-1:10.1.1.0" # "타겟컨테이너명:운영서버2-IP"
-
-  pg_1:
-    container_name: textscope-pg-1
-    image: docker.io/bitnami/postgresql-repmgr:14
-    ports:
-      - 5432
-    volumes:
-      - postgresql_1_data:/bitnami/postgresql
-    environment:
-      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
-      - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
-      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD} # 개별 접속 정보 패스워드
-      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
-      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
-      - REPMGR_PASSWORD=repmgrpassword # textscope-pg-0의 REPMGR_PASSWORD 과 동일한 값으로 설정
-      - REPMGR_PRIMARY_HOST=textscope-pg-0
-      - REPMGR_PARTNER_NODES=textscope-pg-0,textscope-pg-1
-      - REPMGR_NODE_NAME=textscope-pg-1
-      - REPMGR_NODE_NETWORK_NAME=textscope-pg-1
-    networks:
-      - our_net
-    # extra_hosts:
-    #   - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
+    extra_hosts:
+      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
 
   pgpool:
     container_name: textscope-postgresql
     image: docker.io/bitnami/pgpool:4
     ports:
       - 55432:5432
+    restart: unless-stopped
     environment:
       - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
       - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
@@ -81,14 +60,13 @@ services:
       - PGPOOL_POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # pgpool로 접속할 계정 정보 패스워드 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
       - PGPOOL_ADMIN_USERNAME=${POSTGRES_USER}
       - PGPOOL_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
-      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_ENABLE_LOAD_BALANCING=no
       - PGPOOL_AUTO_FAILBACK=yes
       - PGPOOL_BACKEND_APPLICATION_NAMES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
     networks:
       - our_net
-    # extra_hosts:
-    #   - "textscope-pg-1:10.1.1.0" # "타겟컨테이너명:운영서버2-IP"
-    #   - "textscope-pg-0:10.1.1.1" # "타겟컨테이너명:운영서버1-IP"
+    extra_hosts:
+      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
   
   elasticsearch:
     container_name: textscope-elasticsearch
@@ -138,18 +116,61 @@ services:
     networks:
       - our_net
 
-  serving:
+  serving_0:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
-    container_name: textscope-serving
+    container_name: textscope-serving_0
     environment:
       - CUSTOMER=${CUSTOMER}
       - TZ=Asia/Seoul
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     cap_add:
       - SYS_PTRACE
     runtime: nvidia
+    networks:
+      - our_net
+
+  serving_1:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    container_name: textscope-serving_1
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    runtime: nvidia
+    networks:
+      - our_net
+
+  nginx_serving:
+    image: docker.lomin.ai/ts-nginx-serving:${TEXTSCOPE_NGINX_VERSION}
+    container_name: textscope-nginx-serving
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx-serving
+    ports:
+      - 50033:5000
+    depends_on:
+      - serving_0
+      - serving_1
     networks:
       - our_net
 
@@ -289,8 +310,6 @@ volumes:
   minio_data:
     driver: local
   postgresql_0_data:
-    driver: local
-  postgresql_1_data:
     driver: local
 
 networks:

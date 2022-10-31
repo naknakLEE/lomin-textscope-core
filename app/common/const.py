@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     POSTGRES_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
+    NGINX_SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
