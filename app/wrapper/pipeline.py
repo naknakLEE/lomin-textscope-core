@@ -240,8 +240,6 @@ def single(
     return (ocr_response.status_code, ocr_response_json, response_log)
 
 
-<<<<<<< HEAD
-=======
 def gocr(
     client: Client,
     inputs: Dict,
@@ -557,7 +555,6 @@ def kv(
     return (status_code, inputs, response_log)
 
 
->>>>>>> f1df445c1ba8634dca7037c604ff6044a7940e55
 
 # TODO: multiple 함수 사용하도록 수정
 def heungkuk_life(
