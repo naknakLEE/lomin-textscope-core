@@ -169,7 +169,7 @@ def ocr(
                 client=client,
                 inputs=inputs,
                 response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
+                route_name=inputs.get("route_name", "gocr"),
             )
         elif settings.USE_OCR_PIPELINE == 'single':
             status_code, inference_results, response_log = pipeline.gocr(
@@ -199,7 +199,16 @@ def ocr(
     
     # cls 수행
     logger.info(f"x-request-id : {x_request_id} / CORE - cls START")
-    if inputs["wrapper_route"] != "gocr":
+    if inputs["hint"]["doc_type"]["use"] and inputs["hint"]["doc_type"]["trust"]:
+        doc_type_code = inputs["hint"]["doc_type"]["doc_type"]
+        select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+        if isinstance(select_doc_type_result, JSONResponse):
+            logger.error(f"x-request-id : {x_request_id} / CORE - doc type error")
+            return select_doc_type_result
+        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+        inference_results["doc_type"] = deepcopy(select_doc_type_result)
+        
+    elif inputs["wrapper_route"] != "gocr":
         del inference_results["doc_type"]
         cls_inputs = inference_results
         with Client() as client:
@@ -246,10 +255,15 @@ def ocr(
             inference_results["document_id"] = document_id
             inference_results["document_path"] = document_path
 
+            if inputs.get("kv"):
+                input_hint = inputs['kv']["hint"]
+            else: 
+                input_hint = inputs["hint"]
+                
             status_code, inference_results, response_log = pipeline.kv(
                 client=client,
                 inputs=inference_results,
-                hint=inputs['kv']["hint"], 
+                hint=input_hint, 
                 response_log=response_log,
                 task_id=task_id,
                 route_name=inputs.get("route_name", "cls"),
