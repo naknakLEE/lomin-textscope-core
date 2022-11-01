@@ -11,7 +11,7 @@ def get_removed_text_inference_result(inference_result : dict, post_processing_t
     inference_result.update(texts=[])
     
     # kv 내 value 삭제
-    if 'kv' in inference_result.keys() or post_processing_type is not None:
+    if 'kv' in inference_result.keys() or post_processing_type in ["kv"]:
         inference_result.update(kv = remove_kv_value(inference_result["kv"]))
 
     # table 내 content 삭제
