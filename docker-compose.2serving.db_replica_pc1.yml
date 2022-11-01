@@ -15,19 +15,59 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
-  postgresql:
-    container_name: textscope-postgresql
-    image: postgres:14
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DATABASE}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  
+  pg_0:
+    container_name: textscope-pg-0
+    image: docker.io/bitnami/postgresql-repmgr:14
     ports:
-      - 55432:${POSTGRES_IP_PORT}
+      - 5432:5432
+    # volumes:
+    #   - postgresql_0_data:/bitnami/postgresql
+    restart: unless-stopped
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
+      - POSTGRESQL_USERNAME=${POSTGRES_USER} # 개별 접속 정보 아이디
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD} # 개별 접속 정보 패스워드
+      - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      - REPMGR_PASSWORD=repmgrpassword # textscope-pg-1의 REPMGR_PASSWORD 과 동일한 값으로 설정
+      - REPMGR_PRIMARY_HOST=textscope-pg-0
+      - REPMGR_PARTNER_NODES=textscope-pg-1,textscope-pg-0
+      - REPMGR_NODE_NAME=textscope-pg-0
+      - REPMGR_NODE_NETWORK_NAME=textscope-pg-0
     networks:
       - our_net
+    extra_hosts:
+      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
+
+  pgpool:
+    container_name: textscope-postgresql
+    image: docker.io/bitnami/pgpool:4
+    ports:
+      - 55432:5432
+    restart: unless-stopped
+    environment:
+      - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
+      - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
+      - PGPOOL_SR_CHECK_PASSWORD=${POSTGRES_PASSWORD} # 디비 살아있는지 체크 할 대상 디비 계정 정보 패스워드
+      - PGPOOL_SR_CHECK_DATABASE=${POSTGRES_DATABASE}  # 디비 살아있는지 체크 할 대상 디비 디비 정보
+      - PGPOOL_HEALTH_CHECK_PERIOD=1 # 불분명
+      - PGPOOL_HEALTH_CHECK_TIMEOUT=1 # healthcheck 실패 시, 디비 교체 시도 전 체크 타임아웃
+      - PGPOOL_HEALTH_CHECK_MAX_RETRIES=1 # healthcheck 실패 시, 디비 교체 시도 전 최대 체크 횟수, 넘어가면 디비 교체
+      - PGPOOL_HEALTH_CHECK_RETRY_DELAY=0 # healthcheck 실패 시, 디비 교체 시도 전 체크 간격
+      - PGPOOL_ENABLE_LDAP=no
+      - PGPOOL_POSTGRES_USERNAME=${POSTGRES_USER} # pgpool로 접속할 계정 정보 아이디 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
+      - PGPOOL_POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # pgpool로 접속할 계정 정보 패스워드 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
+      - PGPOOL_ADMIN_USERNAME=${POSTGRES_USER}
+      - PGPOOL_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
+      - PGPOOL_ENABLE_LOAD_BALANCING=no
+      - PGPOOL_AUTO_FAILBACK=yes
+      - PGPOOL_BACKEND_APPLICATION_NAMES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
+    networks:
+      - our_net
+    extra_hosts:
+      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
+  
   elasticsearch:
     container_name: textscope-elasticsearch
     image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
@@ -70,24 +110,67 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
       TZ: Asia/Seoul
     depends_on:
-      - postgresql
+      - pgpool
     ports:
       - "5050:80"
     networks:
       - our_net
 
-  serving:
+  serving_0:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
-    container_name: textscope-serving
+    container_name: textscope-serving_0
     environment:
       - CUSTOMER=${CUSTOMER}
       - TZ=Asia/Seoul
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     cap_add:
       - SYS_PTRACE
     runtime: nvidia
+    networks:
+      - our_net
+
+  serving_1:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    container_name: textscope-serving_1
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    runtime: nvidia
+    networks:
+      - our_net
+
+  nginx_serving:
+    image: docker.lomin.ai/ts-nginx-serving:${TEXTSCOPE_NGINX_VERSION}
+    container_name: textscope-nginx-serving
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx-serving
+    ports:
+      - 50033:5000
+    depends_on:
+      - serving_0
+      - serving_1
     networks:
       - our_net
 
@@ -101,7 +184,7 @@ services:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     depends_on:
-      - postgresql
+      - pgpool
       - minio
     cap_add:
       - SYS_PTRACE
@@ -132,7 +215,7 @@ services:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
     depends_on:
-      - postgresql
+      - pgpool
       - minio
     networks:
       - our_net
@@ -220,13 +303,13 @@ services:
 volumes:
   prometheus_data:
     driver: local
-  postgres_data:
-    driver: local
   grafana_data:
     driver: local
   esdata:
     driver: local
   minio_data:
+    driver: local
+  postgresql_0_data:
     driver: local
 
 networks:

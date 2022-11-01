@@ -9,7 +9,7 @@ import openpyxl
 
 from fastapi.encoders import jsonable_encoder
 from typing import Any, Dict, List, Optional, TypeVar
-from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func
+from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func, ARRAY
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -507,6 +507,17 @@ class LogInfo(Base, BaseMixin):
     log_content = Column(JSON, comment='로그 내용')
     is_used = Column(Boolean, comment='사용 여부')
 
+class LogAPI(Base, BaseMixin):
+    __tablename__ = 'log_api'
+    __table_args__ = {'comment': 'textscope 서비스 api 로그 정보'}
+    api_id = Column(Integer, primary_key=True, comment='api 로그 아이디', index=True)
+    api_domain = Column(String, nullable=False, comment='api 도메인', default="wrapper")
+    api_end_point = Column(String, nullable=False, comment='api 엔드포인트')
+    api_method = Column(String, nullable=False, comment='api Method')
+    api_status_code = Column(String, nullable=False, comment='api http 응답코드')
+    api_is_success = Column(Boolean, nullable=False, comment='api 응답 성공여부')
+    api_response_time = Column(String, nullable=False, comment='api 응답시간')
+    api_response_datetime = Column(DateTime, default=func.now(), comment="api 로그 생성시간")
 
 class CompanyInfo(Base, BaseMixin):
     __tablename__ = 'company_info'
@@ -559,7 +570,13 @@ class DocumentInfo(Base, BaseMixin):
     document_path = Column(String, comment='문서 저장 경로')
     document_description = Column(String, comment='문서 설명')
     document_pages = Column(Integer, comment='문서 총 페이지 수')
-    doc_type_idx = Column(Integer, comment='문서 종류 유니크 인덱스')
+    # cls_idx = Column(Integer, comment='문서 대분류 그룹 인덱스')
+    doc_type_idx = Column(Integer, comment='최초 문서 타입 인덱스 - 불변')
+    # doc_type_idxs = Column(MutableDict.as_mutable(JSON), comment='문서에 포함된 문서 소분류 인덱스 리스트')
+    doc_type_idxs = Column(ARRAY(Integer, zero_indexes=True), comment="현재 문서 타입 인덱스 array - 가변")
+    doc_type_codes = Column(ARRAY(String, zero_indexes=True), comment="현재 문서 타입 코드 array - 가변")
+    # doc_type_cls_match = Column(ARRAY(Integer, zero_indexes=True), comment="")
+    document_accuracy = Column(Float, comment="문서 인식 정확도")
     inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 
@@ -726,6 +743,7 @@ table_class_mapping = dict({
     "user_group": UserGroup,
     "inspect_info": InspectInfo,
     "visualize_info": VisualizeInfo,
+    "log_api" : LogAPI,
 })
 
 # plugin 계정에 특정 테이블 권한 주기
@@ -748,7 +766,8 @@ grant_table_list = [
     "doc_type_model",
     "cls_info",
     "cls_model",
-    "class_info"
+    "class_info",
+    "log_api"
 ]
 
 def create_db_table() -> None:

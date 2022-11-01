@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     POSTGRES_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
+    NGINX_SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
@@ -152,6 +153,15 @@ class Settings(BaseSettings):
         "C_GRANT_USER",
         "D_REVOKE_USER"
     ]
+    
+    # TEMPLATE CONFIG
+    KBL1_IC_TEMPLATE_IMAGE_BASE64: str = ""
+    KBL1_IC_TEMPLATE_JSON: Dict = {}
+    KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_JSON: Dict = {}
+    
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}

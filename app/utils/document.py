@@ -7,7 +7,7 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from functools import lru_cache
-from typing import Tuple
+from typing import Optional, Tuple
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from typing import Dict
@@ -28,30 +28,73 @@ support_file_extension_list = {
     "pdf": [".pdf"]
 }
 
+def get_file_bytes_header(bytes_file: bytes) -> Optional[bytes]:
+    with tifffile.FileHandle(bytes_file) as fh:
+        try:
+            fh.seek(0)
+            header = fh.read(4)
+            file_bytes_header = header[:2] # b'MB' b'II' ..
+        except:
+            logger.warning("byes header extraction failed")
+            file_bytes_header = None
+    return file_bytes_header
+
+def convert_bytes_header_2_filetype(bytes_file:bytes):
+    convert_dict = {
+        b'BM': '.bmp',
+        b'II': '.tif',
+        b'MM': '.tif',
+        b'EP': '.tif',
+        b'\xff\xd8' : '.jpeg',
+        b'\x89PNG\r\n\x1a\n' : ".png"
+    }
+    # file_byes_header = get_file_bytes_header(bytes_file)
+    
+
+    file_bytes_header = bytes_file[:20]
+    file_type = None
+    for k, v in convert_dict.items():
+        if file_bytes_header.startswith(k): file_type = v
+            
+
+    # if file_byes_header in convert_dict.keys():
+    #     return convert_dict[file_byes_header]
+    # else:
+    #     return None
+    
+    return file_type
+    
+    
+
 
 def get_file_extension(document_filename: str = "x.xxx") -> str:
+    
     return Path(document_filename).suffix.lower()
 
-
-@lru_cache(maxsize=15)
 def get_page_count(document_data: str, document_filename: str) -> int:
     document_bytes = base64.b64decode(document_data)
-    file_extension = get_file_extension(document_filename)
+    file_type = get_file_extension(document_filename)
+
+    file_type_header = convert_bytes_header_2_filetype(document_bytes)
+    if file_type_header:
+        document_filename = document_filename.replace(file_type, file_type_header)
+        file_type = file_type_header
+
     total_pages = 1
     
-    if file_extension in support_file_extension_list.get("image"):
+    if file_type in support_file_extension_list.get("image"):
         total_pages = 1
         
-    elif file_extension in support_file_extension_list.get("tif"):
+    elif file_type in support_file_extension_list.get("tif"):
         try:
             with tifffile.TiffFile(BytesIO(document_bytes)) as tif:
                 total_pages = len(tif.pages)
         except:
-            logger.exception("read pillow")
+            logger.exception("read tiff")
             logger.error(f"Cannot load {document_filename}")
             total_pages = 0
             
-    elif file_extension in support_file_extension_list.get("pdf"):
+    elif file_type in support_file_extension_list.get("pdf"):
         pages = pdf2image.convert_from_bytes(document_bytes)
         total_pages = len(pages)
         
@@ -59,7 +102,7 @@ def get_page_count(document_data: str, document_filename: str) -> int:
         logger.error(f"{document_filename} is not supported!")
         total_pages = 0
     
-    return total_pages
+    return total_pages, document_filename
 
 
 def is_support_format(document_filename: str) -> bool:
@@ -100,6 +143,20 @@ def save_upload_document(
         success = True
     
     return success, save_path
+
+def delete_document(
+    document_id: str,
+    document_name: str
+) -> Tuple[bool, Path]:
+    
+    success = False
+    if settings.USE_MINIO:
+        success = minio_client.remove(
+            bucket_name=settings.MINIO_IMAGE_BUCKET,
+            image_name=document_id + '/' + document_name,
+        )
+        
+    return success
 
 
 def document_path_verify(document_path: str):

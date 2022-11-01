@@ -11,6 +11,7 @@ from app.utils.auth import create_access_token
 from app.utils.logging import logger
 
 from app.utils.document import (
+    delete_document,
     get_page_count,
     is_support_format,
     save_upload_document,
@@ -77,7 +78,8 @@ async def post_upload_document(
     user_email:str    = current_user.email
     document_name:str = inputs.get("document_name")
     document_data:str = inputs.get("document_data")
-
+    retry:bool = inputs.get("retry")
+    
     response: dict = dict(resource_id=dict())
     response_log: dict = dict()
     request_datetime = datetime.now()
@@ -97,7 +99,11 @@ async def post_upload_document(
     user_team = select_user_result.user_team        
 
     # 고유한 document_id 생성 -> DB적재용이 아닌 path를 만들기 위함!
-    document_id = get_ts_uuid("document")
+    # 고객사에서 document_id를 지정해서 보내줄 경우 해당 아이디가 minio, DB에 들어가도록 처리
+    document_id = inputs.get("document_id") if inputs.get("document_id") != "" else get_ts_uuid("document")
+
+    # 문서 저장에 성공했을시, document 테이블에 insert        
+    document_pages, document_name = get_page_count(document_data, document_name)
 
     # 문서 저장(minio or local pc)
     save_success, save_path = save_upload_document(document_id, document_name, document_data)
@@ -108,21 +114,28 @@ async def post_upload_document(
         error.error_message = error.error_message.format("문서")
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
 
-    # 문서 저장에 성공했을시, document 테이블에 insert        
-    document_pages = get_page_count(document_data, document_name)
     logger.info(f"success save document document_id : {document_id}")
     # 기존 document insert에서 document_description, doc_type_idx, document_type 제외
     dao_document_params = {
-        "document_id": document_id,
         "user_email": user_email,
         "user_team": user_team,
         "document_path": save_path,
         "document_pages": document_pages,
     }
-    insert_document_result = query.insert_document(session, **dao_document_params)
+    if not retry:
+        dao_document_params["document_id"] = document_id
+    
+    # 고객사에서 동일 document_id로 문서 업로드 재시도 케이스 - update 처리 
+    insert_document_result = \
+        query.update_document(session, document_id, **dao_document_params) \
+        if retry \
+        else query.insert_document(session, **dao_document_params)
     if isinstance(insert_document_result, JSONResponse):
-        return insert_document_result            
-
+        dao_document_params["document_id"] = document_id
+        insert_document_result = query.insert_document(session, **dao_document_params)
+    if isinstance(insert_document_result, JSONResponse):
+        return insert_document_result
+        
     # 종료 시간 측정 
     response_datetime = datetime.now()
     # 걸린 시간 측정 (종료시간 - 시작시간)
@@ -144,6 +157,57 @@ async def post_upload_document(
         elapsed=elapsed,
         response_log=response_log,
         document_id = document_id,
+    )
+
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+@router.post("/docx/delete")
+async def post_delete_document(
+    inputs: Dict = Body(...),
+) -> JSONResponse:
+    """
+    ### [Base]전용 문서 삭제
+    미니오에 저장된 document를 삭제합니다.
+    """
+    # 시작 시간 측정
+    request_datetime = datetime.now()
+
+    document_id:str = inputs.get("document_id")
+    document_name:str = inputs.get("document_name")
+
+    response: dict = dict(resource_id=dict())
+    response_log: dict = dict()
+    request_datetime = datetime.now()
+    
+    # 문서 저장(minio or local pc)
+    delete_success = delete_document(document_id, document_name)
+
+    # 문서 저장에 실패하였을 경우 "문서 정보를 저장하는 중 에러가 발생했습니다" Error return
+    if not delete_success:
+        status_code, error = ErrorResponse.ErrorCode.get(4103)
+        error.error_message = error.error_message.format("문서")
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+
+    # 종료 시간 측정 
+    response_datetime = datetime.now()
+    # 걸린 시간 측정 (종료시간 - 시작시간)
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    
+    # response log 생성(시작시간, 종료시간, 걸린시간)
+    response_log.update(
+        dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        )
+    )
+    
+    # response 객체 생성
+    response.update(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
     )
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
