@@ -406,12 +406,12 @@ def kv(
         if route_name != 'ocr_for_pp':
             """doc type hint를 적용하고 inference 요청"""
             # Apply doc type hint
-            # if hint is not None and hint.get("doc_type") is not None and hint.get("doc_type")["use"]:
-            #     doc_type_hint = hint.get("doc_type", {})
-            #     doc_type_hint = DocTypeHint(**doc_type_hint)
-            #     cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
-            #     response_log.update(apply_cls_hint_result=cls_hint_result)
-            #     inputs["doc_type"] = cls_hint_result.get("doc_type")
+            if route_name == "kv" and hint is not None and hint.get("doc_type") is not None and hint.get("doc_type")["use"]:
+                doc_type_hint = hint.get("doc_type", {})
+                doc_type_hint = DocTypeHint(**doc_type_hint)
+                cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
+                response_log.update(apply_cls_hint_result=cls_hint_result)
+                inputs["doc_type"] = cls_hint_result.get("doc_type")
             
             if route_name == "tocr":
                 inputs["image_id"] = inputs.get("document_id")
@@ -779,3 +779,176 @@ MODEL_DOC_TYPE_LIST = {
 def get_model_doc_type_list(model: str):
     return MODEL_DOC_TYPE_LIST[model]
 
+def kv_alone(
+    client: Client,
+    inputs: Dict,
+    hint : Dict,
+    response_log: Dict,
+    task_id: str,
+    route_name: str,
+) -> Tuple[int, Dict, Dict]:
+    """kv 요청에 대해 inference와 pp를 수행한 결과를 return 합니다."""
+
+
+    inference_start_time = datetime.now()
+    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+
+    # origin_doc_type = deepcopy(inputs["doc_type"])
+    lomin_doc_type = hint["doc_type"]["doc_type"]
+    if lomin_doc_type != None and lomin_doc_type != "None":
+        route_name = get_route_name(lomin_doc_type)
+        inputs["doc_type"] = lomin_doc_type
+        
+    # TODO: inference 여부 체크
+    if lomin_doc_type not in ONLY_PP_TYPE:
+        # get kv route
+        if route_name != 'ocr_for_pp':
+            """doc type hint를 적용하고 inference 요청"""
+            # Apply doc type hint
+            if route_name == "kv" and hint is not None and hint.get("doc_type") is not None and hint.get("doc_type")["use"]:
+                doc_type_hint = hint.get("doc_type", {})
+                doc_type_hint = DocTypeHint(**doc_type_hint)
+                cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
+                response_log.update(apply_cls_hint_result=cls_hint_result)
+                inputs["doc_type"] = cls_hint_result.get("doc_type")
+            
+            if route_name == "tocr":
+                inputs["image_id"] = inputs.get("document_id")
+                inputs["image_path"] = inputs.get("document_path")
+                inputs["pp_end_point"] = 'kbl1_tocr'
+                inputs['template'] = {}
+
+                if lomin_doc_type == "KBL1-IC":
+                    inputs['template']["template_json"] = settings.KBL1_IC_TEMPLATE_JSON
+                    
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template",
+                            "image_path": "보험금청구서_template_1.png",
+                            "image_bytes": settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
+                        }
+                    }
+                elif lomin_doc_type == "KBL1-PIC":
+                    inputs['template']["template_json"] = settings.KBL1_PIC_TEMPLATE_JSON
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template_1",
+                            "image_path": "개인정보동의서_템플릿_1.png",
+                            "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64
+                        },
+                        "1": {
+                            "image_id": "template_2",
+                            "image_path": "개인정보동의서_템플릿_2.png",
+                            "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64
+                        },
+                        "2": {
+                            "image_id": "template_3",
+                            "image_path": "개인정보동의서_템플릿_3.png",
+                            "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64
+                        }
+                    }
+
+
+            # kv inference 요청
+            kv_inference_response = client.post(
+                f"{model_server_url}/{route_name}",
+                json=inputs,
+                timeout=settings.TIMEOUT_SECOND,
+                headers={"User-Agent": "textscope core"},
+            )
+            inference_end_time = datetime.now()
+
+            logger.info(
+                f"Kv Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
+            )
+
+            # kv inference server error check
+            if kv_inference_response.status_code != 200 or type(kv_inference_response.json()) == str:
+                logger.error(f"Kv Inference error: {kv_inference_response}")
+                status_code = 3501
+                return (status_code, kv_inference_response, response_log)
+            
+            inputs = kv_inference_response.json()
+            
+            if route_name == "tocr":
+                inputs["kv"] = inputs.pop("result")
+            
+            response_log.update(
+                inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+                inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
+            )
+            
+            # TODO : tocr 케이스는 pp 없이 return
+            if route_name == "tocr":
+                return (kv_inference_response.status_code, inputs, response_log)
+
+        # TODO : pp input 데이터 가공
+    
+        # - convert preds to texts
+        if (
+            inputs.get("convert_preds_to_texts") is not None
+            and "texts" not in inputs
+        ):
+            status_code, texts = pp.convert_preds_to_texts(
+                client=client,
+                rec_preds=inputs.get("rec_preds", []),
+            )
+            # pp 가공 에러케이스
+            if status_code < 200 or status_code >= 400:
+                status_code = 3503
+                logger.error(f"pp.convert_preds_to_texts / error: {status_code}")
+                return (status_code, inputs, response_log)
+            inputs["texts"] = texts
+
+    # get pp route
+    post_processing_type = get_pp_api_name(lomin_doc_type)
+
+    if post_processing_type is not None:
+        logger.info(f"{task_id}-pp type:{post_processing_type}")
+
+        text_list = inputs.get("texts", [])
+        box_list = inputs.get("boxes", [])
+        score_list = inputs.get("scores", [])
+        class_list = inputs.get("classes", [])
+        
+        score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
+        class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
+
+        pp_inputs = dict(
+            texts=text_list,
+            boxes=box_list,
+            scores=score_list,
+            classes=class_list,
+            rec_preds=inputs.get("rec_preds"),
+            id_type=inputs.get("id_type"),
+            doc_type=inputs.get("doc_type"),
+            image_height=inputs.get("image_height"),
+            image_width=inputs.get("image_width"),
+            relations=inputs.get("relations"),
+            cls_score=inputs.get("cls_score"),
+            task_id=task_id,
+        )
+        status_code, post_processing_results, response_log = pp.post_processing(
+            client=client,
+            task_id=task_id,
+            response_log=response_log,
+            inputs=pp_inputs,
+            post_processing_type=post_processing_type,
+        )
+        if status_code < 200 or status_code >= 400:
+            status_code = 3502
+            logger.error(f"pp server error / error: {status_code}")
+            return (status_code, inputs, response_log)
+        # logger.info(
+        #     f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
+        # )
+        if "texts" not in inputs:
+            inputs["texts"] = post_processing_results["texts"]
+        if inputs.get("route_name", None) != 'cls' and "tables" not in inputs and "tables" in post_processing_results:
+            inputs["tables"] = post_processing_results["tables"]
+        if inputs.get("route_name", None) != 'cls' and "result" not in inputs and "result" in post_processing_results:
+            inputs["kv"] = post_processing_results.pop("result")
+
+        inputs["doc_type"] = lomin_doc_type
+
+    return (status_code, inputs, response_log)

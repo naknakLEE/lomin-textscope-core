@@ -191,6 +191,10 @@ def ocr(
 
     inference_id = get_ts_uuid("inference")
     doc_type_code = "None"
+
+    if inputs.get("hint") is not None and dict(inputs["hint"]).get("doc_type") is not None:
+        doc_type_code = dict(inputs["hint"]["doc_type"]).get("doc_type")
+
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
     if isinstance(select_doc_type_result, JSONResponse):
         return select_doc_type_result
@@ -220,6 +224,7 @@ def ocr(
     
         inference_id = get_ts_uuid("inference")
         doc_type_code = inference_results.get("doc_type")
+                
         select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
         if isinstance(select_doc_type_result, JSONResponse):
             logger.error(f"x-request-id : {x_request_id} / CORE - doc type error")
@@ -259,7 +264,7 @@ def ocr(
             logger.info(f"x-request-id : {x_request_id} / CORE - ocr END")
             return JSONResponse(content=jsonable_encoder(response))
 
-    # kv case
+    # run kv in cls_kv case
     if inference_results.get("doc_type").doc_type_code in KV_DOC_TYPE:
         logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
         with Client() as client:
@@ -307,6 +312,61 @@ def ocr(
         insert_inference_result: schema.InferenceInfo = insert_inference_result
         inference_results["process_type"] = "kv"
         logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
+
+    # run native kv
+    elif inputs.get("hint") is not None and dict(inputs["hint"]).get("doc_type") is not None:
+        doc_hints = dict(inputs["hint"]["doc_type"])
+        if doc_hints.get("use") == True or doc_hints.get("trust") == True:
+            doc_type = doc_hints.get("doc_type")
+
+            logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
+            with Client() as client:
+                inference_results["document_id"] = document_id
+                inference_results["document_path"] = document_path
+
+                status_code, inference_results, response_log = pipeline.kv_alone(
+                client=client,
+                inputs=inference_results,
+                hint= inputs["hint"], 
+                response_log=response_log,
+                task_id=task_id,
+                route_name="kv",
+                )
+            if status_code != 200:
+                status_code, error = ErrorResponse.ErrorCode.get(status_code)
+                logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
+        
+            inference_results.update(doc_type=dict(
+                doc_type_idx=select_doc_type_result.doc_type_idx,
+                doc_type_code=select_doc_type_result.doc_type_code,
+                doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+                doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+                doc_type_name_en=select_doc_type_result.doc_type_name_en,
+                doc_type_structed=select_doc_type_result.doc_type_structed
+            ))
+            # 추론 결과에서 개인정보 삭제
+            db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), "kv")
+            insert_inference_result = query.insert_inference(
+                session=session,
+                inference_id=inference_id,
+                document_id=document_id, 
+                user_email=user_email,
+                user_team=user_team,
+                inference_result=db_inference_results,
+                inference_type=inputs.get("inference_type"),
+                page_num=inference_results.get("page", target_page),
+                doc_type_idx=doc_type_idx,
+                response_log=response_log
+            )
+            if isinstance(insert_inference_result, JSONResponse):
+                logger.error(f"x-request-id : {x_request_id} / CORE - insert inference result error")
+                return insert_inference_result
+            insert_inference_result: schema.InferenceInfo = insert_inference_result
+            inference_results["process_type"] = "kv"
+            logger.info(f"x-request-id : {x_request_id} / CORE - kv END") 
+
+    
     
     response = dict(
         response_log=response_log,
