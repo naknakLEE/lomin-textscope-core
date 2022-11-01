@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import nullslast, or_
+from sqlalchemy import nullslast, or_, func
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
@@ -919,20 +919,28 @@ def get_user_group_policy_all(
         query = query.filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
         query = query.filter(schema.UserGroup.group_code == schema.GroupInfo.group_code, schema.UserGroup.group_code == schema.GroupPolicy.group_code)
         query = query.filter(schema.UserGroup.user_email.in_(user_email_list))
-        
-        # group_level.desc() -> 낮은 그룹 레벨 먼저 적용
         if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
+        # group_level.desc() -> 낮은 그룹 레벨 먼저 적용
+        all_user_group_result = query.order_by(schema.GroupInfo.group_level.desc()).all()
         
-        all_user_group_result = query.order_by(schema.GroupInfo.group_level.desc()) \
-            .all()
-            
+        # user_email이 포함된 group중 가장 level이 높은 그룹의 level을 가져옴
+        all_highest_lvl_group: Dict[str, int] = dict()
+        query = session.query(schema.UserGroup.user_email, func.min(schema.GroupInfo.group_level))
+        query = query.filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
+        query = query.filter(schema.UserGroup.group_code == schema.GroupInfo.group_code, schema.UserGroup.group_code == schema.GroupPolicy.group_code)
+        query = query.filter(schema.UserGroup.user_email.in_(user_email_list))
+        if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
+        all_highest_lvl_group = { _[0]:_[1] for _ in query.group_by(schema.UserGroup.user_email).all() }
+        
         # 없으면 에러 응답
-        if len(all_user_group_result) == 0:
-            raise CoreCustomException(2509)
+        # if len(all_user_group_result) == 0:
+        #     raise CoreCustomException(2509)
         
         all_user_group_policy: Dict[str, Dict[str, Union[bool, list]]] = dict()
         for user_group_policy in all_user_group_result:
             user_group, group_info, group_policy = user_group_policy
+            
+            if group_info.group_level != all_highest_lvl_group.get(user_group.user_email): continue
             
             policy_code: str = group_policy.policy_code
             policy_content: dict = group_policy.policy_content
@@ -990,12 +998,18 @@ def get_user_group_policy(
         query = query.filter(schema.GroupInfo.group_code.in_(group_list))
         query = query.filter(schema.GroupInfo.group_code == schema.GroupPolicy.group_code)
         query = query.filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
-        
         if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
-        
         # group_level.desc() -> 낮은 그룹 레벨 먼저 적용
-        user_group_policy_result = query.order_by(schema.GroupInfo.group_level.desc()) \
-            .all()
+        user_group_policy_result = query.order_by(schema.GroupInfo.group_level.desc()).all()
+        
+        # user_email이 포함된 group중 가장 level이 높은 그룹의 level을 가져옴
+        all_highest_lvl_group: Dict[str, int] = dict()
+        query = session.query(schema.UserGroup.user_email, func.min(schema.GroupInfo.group_level))
+        query = query.filter(schema.GroupPolicy.start_time < now_datetime, now_datetime < schema.GroupPolicy.end_time)
+        query = query.filter(schema.UserGroup.group_code == schema.GroupInfo.group_code, schema.UserGroup.group_code == schema.GroupPolicy.group_code)
+        query = query.filter(schema.UserGroup.user_email == user_email)
+        if len(group_level) > 0: query = query.filter(schema.GroupInfo.group_level.in_(group_level))
+        all_highest_lvl_group = { _[0]:_[1] for _ in query.group_by(schema.UserGroup.user_email).all() }
         
         # 없으면 에러 응답
         if len(user_group_policy_result) == 0:
@@ -1004,8 +1018,9 @@ def get_user_group_policy(
         
         user_group_policy: Dict[str, dict] = dict()
         for policy_result in user_group_policy_result:
+            group_info, group_policy = policy_result
             
-            group_policy: schema.GroupPolicy = policy_result[1]
+            if group_info.group_level != all_highest_lvl_group.get(user_email): continue
             
             policy_code: str = group_policy.policy_code
             policy_content: dict = group_policy.policy_content
