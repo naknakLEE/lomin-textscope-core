@@ -255,7 +255,7 @@ def gocr(
     # inputs["image_bytes"] = get_image_bytes(inputs['document_id'], Path(inputs['document_path']))
     
     ocr_response = client.post(
-        f"{model_server_url}/{gocr_route}",
+        f"{model_server_url}/{route_name}",
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},

@@ -149,7 +149,10 @@ def ocr(
                     }
                 )
             )
-
+    ''' 
+        1. inference(gocr) -> 2. inference(cls) -> 
+            3. pp(lina1_cls) -> 4. inference(kv) -> 5. pp(lina1_kv)
+    '''
     # gocr 수행
     logger.info(f"x-request-id : {x_request_id} / CORE - start gocr")
     with Client() as client:
@@ -176,7 +179,7 @@ def ocr(
                 client=client,
                 inputs=inputs,
                 response_log=response_log,
-                route_name=inputs.get("route_name", "gocr"),
+                # route_name="gocr",
             )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
@@ -199,7 +202,7 @@ def ocr(
     
     # cls 수행
     logger.info(f"x-request-id : {x_request_id} / CORE - cls START")
-    if inputs["wrapper_route"] != "gocr":
+    if inputs.get("route_name", "gocr") in "cls_kv":
         del inference_results["doc_type"]
         cls_inputs = inference_results
         with Client() as client:
@@ -208,7 +211,7 @@ def ocr(
                 inputs=cls_inputs,
                 response_log=response_log,
                 task_id=task_id,
-                route_name=inputs.get("route_name", "cls"),
+                route_name="cls"  # inputs.get("route_name", "cls"),
             )
         if status_code != 200:
             status_code, error = ErrorResponse.ErrorCode.get(status_code)
@@ -239,6 +242,23 @@ def ocr(
         )
         inference_results["process_type"] = "cls"
 
+    if(inputs.get("route_name")=="cls"):
+        if status_code != 200:
+            status_code, error = ErrorResponse.ErrorCode.get(status_code)
+            logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
+        else: 
+            response = dict(
+                    response_log=response_log,
+                    inference_results=inference_results,
+                    resource_id=dict(
+                        # log_id=task_id
+                    )
+                )
+            logger.info(f"x-request-id : {x_request_id} / CORE - cls END")
+            logger.info(f"x-request-id : {x_request_id} / CORE - ocr END")
+            return JSONResponse(content=jsonable_encoder(response))
+
     # kv case
     if inference_results.get("doc_type").doc_type_code in KV_DOC_TYPE:
         logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
@@ -249,10 +269,10 @@ def ocr(
             status_code, inference_results, response_log = pipeline.kv(
                 client=client,
                 inputs=inference_results,
-                hint=inputs['kv']["hint"], 
+                hint= None, #inputs['kv']["hint"], 
                 response_log=response_log,
                 task_id=task_id,
-                route_name=inputs.get("route_name", "cls"),
+                route_name="kv",
             )
         if status_code != 200:
             status_code, error = ErrorResponse.ErrorCode.get(status_code)
@@ -268,7 +288,7 @@ def ocr(
             doc_type_structed=select_doc_type_result.doc_type_structed
         ))
         # 추론 결과에서 개인정보 삭제
-        db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), inputs["wrapper_route"])
+        db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), "kv")
         insert_inference_result = query.insert_inference(
             session=session,
             inference_id=inference_id,
