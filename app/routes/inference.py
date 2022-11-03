@@ -43,23 +43,18 @@ else:
 router = APIRouter()
 
 KV_DOC_TYPE = [
-
-"GV-BC",
-"GV-CFR",
-"GV-ARR",    
+#LINA v0.3.5
+"MD-CS",
+"MD-CAD",
 "MD-MC",
 "MD-DN",
 "MD-COT",
 "MD-CMT",
-"MD-CAD",
-"MD-CS",
-"MD-PRS",
-"MD-MB",
-"MD-MED",
-"MD-CPE",
-"KBL1-IC",
-"KBL1-PIC",
-
+"LINA1-PIC",
+"LINA1-IC",
+"LINA1-CDT-A",
+"LINA1-CDT-B",
+"LINA1-AFC",
 ]
 
 ONLY_PP_TYPE= [
