@@ -100,7 +100,7 @@ async def post_upload_document(
 
     # 고유한 document_id 생성 -> DB적재용이 아닌 path를 만들기 위함!
     # 고객사에서 document_id를 지정해서 보내줄 경우 해당 아이디가 minio, DB에 들어가도록 처리
-    document_id = inputs.get("document_id") if inputs.get("document_id") != "" else get_ts_uuid("document")
+    document_id = get_ts_uuid("document") if inputs.get("document_id") == None else inputs.get("document_id")
 
     # 문서 저장에 성공했을시, document 테이블에 insert        
     document_pages, document_name = get_page_count(document_data, document_name)
