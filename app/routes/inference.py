@@ -1,5 +1,4 @@
-import uuid
-
+from PIL import Image
 from httpx import Client
 
 from typing import Dict
@@ -11,12 +10,12 @@ from sqlalchemy.orm import Session
 from app import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
-from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
+from app.utils.utils import get_ts_uuid,pretty_dict
 from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
-from typing import Dict
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request
+from typing import Dict, List
+from fastapi import APIRouter, Body, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -24,20 +23,25 @@ from sqlalchemy.orm import Session
 
 from app.schemas.json_schema import inference_responses
 from app.models import UserInfo as UserInfoInModel
-from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
 from app.utils.logging import logger
 from app.wrapper import pp, pipeline, settings
 from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
-from app.errors import exceptions as ex
+from app.utils.ocr_to_pdf import Word, PdfParser
 if hydra_cfg.route.use_token:
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
+from app.utils.image import (
+    read_image_from_bytes,
+    get_image_bytes
+)
+
 
 router = APIRouter()
+pdfparser = PdfParser()
 
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
@@ -120,7 +124,7 @@ def ocr(
     with Client() as client:
         # Inference
         if settings.USE_OCR_PIPELINE == 'multiple':
-            # TODO: sequence_type을 wrapper에서 받도록 수정
+            # TODO: sequence_type을 wrapper에서 받도ㄱ록 수정
             # TODO: python 3.6 버전에서 async profiling 사용에 제한이 있어 sync로 변경했는데 추후 async 사용해 micro bacing 사용하기 위해서는 다시 변경 필요
             status_code, inference_results, response_log = pipeline.multiple(
                 client=client,
@@ -146,11 +150,7 @@ def ocr(
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-        
-        # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
-        inference_result = inference_results
-        if "kv_result" in inference_results:
-            inference_result = inference_results.get("kv_result", {})
+
         logger.debug(f"{task_id}-inference results:\n{inference_results}")
         
         
@@ -166,161 +166,92 @@ def ocr(
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3503)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-            inference_results["texts"] = texts
+            inference_results["texts"] = texts             
 
-        # TODO: pp에서 tsbl_sort를 못할경우 얘를 쓰자
-        # tsbl_sort_result = sort_text_tblr(inference_result)
         doc_type_code = inference_results.get("doc_type")
+        inference_results.update(doc_type=doc_type_code)
+
+        pdf_file_name = inputs.get('pdf_file_name')
         
         # Post processing
-        # 미래과학아카데미는 ocr일경우 줄글 pp로 이동
+        # PDF 요청일 경우 line_word && GOCR 요청일경우 general_pp로 post processing
         if inputs.get("route_name", "ocr") == 'ocr':
-            pp_inputs = dict(
-                inference_result=inference_result
-            )            
             status_code, post_processing_results, response_log = pp.post_processing(
                 client=client,
                 task_id=task_id,
                 response_log=response_log,
-                inputs=pp_inputs,
-                post_processing_type="line_word",
+                inputs=inference_results,
+                post_processing_type="line_word" if pdf_file_name else "general_pp",
             )            
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             
-            line_texts = post_processing_results.get('line_word').get('texts')
-
-            inference_results.update({
-                "text_merged": line_texts.join(" ")
-            })                
-
-            # inference_results.update({
-            #     "context": post_processing_results["context_list"]
-            # })
-            # inference_results["texts"] = post_processing_results["texts"]                            
-        # post_processing_type = 'kdt1_cls' if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
-
-        # if post_processing_type is not None \
-        #     and doc_type_code is not None:        
-
-        #     logger.info(f"{task_id}-pp type:{post_processing_type}")
-
-        #     text_list = inference_result.get("texts", [])
-        #     box_list = inference_result.get("boxes", [])
-        #     score_list = inference_result.get("scores", [])
-        #     class_list = inference_result.get("classes", [])
-            
-        #     score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
-        #     class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
-
-        #     pp_inputs = dict(
-        #         texts=text_list,
-        #         boxes=box_list,
-        #         scores=score_list,
-        #         classes=class_list,
-        #         rec_preds=inference_result.get("rec_preds"),
-        #         id_type=inference_results.get("id_type"),
-        #         doc_type=inference_results.get("doc_type"),
-        #         image_height=inference_results.get("image_height"),
-        #         image_width=inference_results.get("image_width"),
-        #         relations=inference_results.get("relations"),
-        #         task_id=task_id,
-        #     )
-        #     status_code, post_processing_results, response_log = pp.post_processing(
-        #         client=client,
-        #         task_id=task_id,
-        #         response_log=response_log,
-        #         inputs=pp_inputs,
-        #         post_processing_type=post_processing_type,
-        #     )
-        #     if status_code < 200 or status_code >= 400:
-        #         status_code, error = ErrorResponse.ErrorCode.get(3502)
-        #         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-        #     if inputs.get("route_name") == 'cls':
-        #         inference_results["doc_type"] = post_processing_results.get('result')['doc_type']
-        #     else:
-        #         inference_results["kv"] = post_processing_results["result"]
-        #         # TODO 이거 맞나... 너무 지저분한디.. 더 좋은방법 공유 해보기
-        #         inference_result["doc_type"] = inputs["hint"]['doc_type']['doc_type']
-        #         logger.info(
-        #             f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
-        #         )
-        #     if "texts" not in inference_results:
-        #         inference_results["texts"] = post_processing_results["texts"]
-        #         logger.info(
-        #             f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
-        #         )
-        
+            inference_results.update(post_processing_results.get('result'))                   
     
     response_log.update(inference_results.get("response_log", {}))
     logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
-
-    inference_id = get_ts_uuid("inference")
-    doc_type_code = inference_results.get("doc_type")
+        
     
-    # doc_type_code로 doc_type_index 조회
-    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
-    if isinstance(select_doc_type_result, JSONResponse):
-        return select_doc_type_result
-    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
-    doc_type_idx = select_doc_type_result.doc_type_idx
+    if(pdf_file_name): 
+        wordss: list[List[Word]] = list()
+        images: List[Image.Image] = list()
 
-    inference_results.update(doc_type=select_doc_type_result)
+        angle = inference_results.get("angle", 0)
 
-    insert_inference_result = query.insert_inference(
-        session=session,
-        inference_id=inference_id,
-        document_id=document_id, 
-        user_email=user_email,
-        user_team=user_team,
-        inference_result=inference_results,
-        inference_type=inputs.get("inference_type"),
-        page_num=inference_results.get("page", target_page),
-        doc_type_idx=doc_type_idx,
-        response_log=response_log
-    )
-    if isinstance(insert_inference_result, JSONResponse):
-        return insert_inference_result
-    insert_inference_result: schema.InferenceInfo = insert_inference_result
-    inference_results.update(doc_type=insert_inference_result.inference_result.get("doc_type", dict()))
-    
-    
-    response = dict(
-        response_log=response_log,
-        inference_results=inference_results,
-        resource_id=dict(
-            # log_id=task_id
+        words: List[Word] = list()
+        gocr = inference_results.copy()
+            
+        for text, box in zip (gocr.get("texts", []), gocr.get("boxes", [])):
+            words.append(Word(text=text, bbox=box))
+        
+        wordss.append(words)
+        
+        # 문서의 page_num 페이지의 썸네일 base64로 encoding
+        document_path_copy = Path(document_path)
+        document_bytes = get_image_bytes(document_id, document_path_copy)
+        images.append(read_image_from_bytes(document_bytes, document_path_copy.name, angle, 0))
+        
+        content: bytes = pdfparser.export_pdf(wordss, images)
+
+        return Response(
+            content=content,
+            headers={'Content-Disposition': f'attachment; filename="{pdf_file_name}.pdf"'},
+            media_type="application/pdf"
         )
-    )
-    
+    else:
+        inference_id = get_ts_uuid("inference")
+        doc_type_code = inference_results.get("doc_type")
+        
+        # doc_type_code로 doc_type_index 조회
+        select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+        if isinstance(select_doc_type_result, JSONResponse):
+            return select_doc_type_result
+        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+        doc_type_idx = select_doc_type_result.doc_type_idx
+
+        inference_results.update(doc_type=select_doc_type_result)
+
+        insert_inference_result = query.insert_inference(
+            session=session,
+            inference_id=inference_id,
+            document_id=document_id, 
+            user_email=user_email,
+            user_team=user_team,
+            inference_result=inference_results,
+            inference_type=inputs.get("inference_type"),
+            page_num=inference_results.get("page", target_page),
+            doc_type_idx=doc_type_idx,
+            response_log=response_log
+        )
+        if isinstance(insert_inference_result, JSONResponse):
+            return insert_inference_result
+        insert_inference_result: schema.InferenceInfo = insert_inference_result
+        inference_results.update(doc_type=insert_inference_result.inference_result.get("doc_type", dict()))                        
+            
+    response = dict(
+            response_log=response_log,
+            inference_results=inference_results,
+            resource_id=dict()
+        )    
     return JSONResponse(content=jsonable_encoder(response))
-
-
-# @TODO utils로 이동
-def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
-    t_list = inference_result.get("texts", [])
-    b_list = inference_result.get("boxes", [])
-    s_list = inference_result.get("scores", [])
-    c_list = inference_result.get("classes", [])
-    
-    s_list = s_list if len(s_list) > 0 else [ 0.0 for i in range(len(t_list)) ]
-    c_list = c_list if len(c_list) > 0 else [ "" for i in range(len(t_list)) ]
-    
-    tbsc_list = [ (t, b, s, c) for t, b, s, c in zip(t_list, b_list, s_list, c_list) ]
-    
-    tbsc_list.sort(key= lambda x : (x[1][1], x[1][0]))
-    
-    t_list_, b_list_, s_list_, c_list_ = (list(), list(), list(), list())
-    for tbsc in tbsc_list:
-        t_list_.append(tbsc[0])
-        b_list_.append(tbsc[1])
-        s_list_.append(tbsc[2])
-        c_list_.append(tbsc[3])
-    
-    return dict(
-        texts=t_list_,
-        boxes=b_list_,
-        scores=s_list_,
-        classes=c_list_
-    )

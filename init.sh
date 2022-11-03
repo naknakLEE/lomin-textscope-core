@@ -15,7 +15,7 @@ create_log_folder() {
 git submodule update --init --recursive
 
 # Download models
-python3 inference_server/assets/cloud_storage/boto3_download_data.py
+sh inference_server/assets/cloud_storage/models_upload.sh
 
 # Download core assets
 python3 assets/cloud_storage/boto3_download_data.py --download_object_name thales

@@ -144,7 +144,7 @@ class Settings(BaseSettings):
     # DATABASE INIT INSERT DATA
     INIT_DATA_XLSX_FILE_LIST: list = [
         {
-            "name": "fsa2204",
+            "name": "nak2210",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
     ]

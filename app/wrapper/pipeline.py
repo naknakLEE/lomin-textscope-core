@@ -204,19 +204,7 @@ def single(
         inputs["doc_type"] = cls_hint_result.get("doc_type")
 
     inference_start_time = datetime.now()
-    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
-    
-    # TODO 추후 doc_type : route_name 매핑 정보 추가
-    if inputs["doc_type"] == "FN-CB":
-        route_name = "bill_enterprise"
-    # 처방전
-    if inputs["doc_type"] == "MD-PRS":
-        route_name = "el"
-    # 한국평가데이터: KDT1이 입력받은 doc_type에 있을경우 doc_type 변환(textscope 형태로) 후 kv로 보내기
-    # -> inference_server에 kv 부분이 doc_type을 textscope 형태로 사용중
-    if 'KDT1' in inputs["doc_type"]:
-        inputs["doc_type"] = doc_type_mapping_table.get(inputs["doc_type"])
-        route_name = "kv"                
+    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])  
 
     ocr_response = client.post(
         f"{model_server_url}/{route_name}",
