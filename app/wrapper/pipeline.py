@@ -306,6 +306,42 @@ def gocr(
     )
     return (ocr_response.status_code, ocr_response_json, response_log)
 
+def tensorrt(
+    client: Client,
+    inputs: Dict,
+    response_log: Dict,
+    task_id: str,
+    route_name: str = gocr_route,
+) -> Tuple[int, Dict, Dict]:
+    """
+        tensorrt 요청, 현재 rotate, detection, recognition가 통합되어있는 하나의 API로 요청을 날립니다.
+        TODO로 나중에 rotate, detection, recognition이 분리 되면 이 부분도 분리 필요
+    """
+    
+    inference_start_time = datetime.now()
+    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+
+    # inputs["image_bytes"] = f"{get_image_bytes(inputs['image_id'], Path(inputs['image_path']))}"
+    # inputs["image_bytes"] = get_image_bytes(inputs['document_id'], Path(inputs['document_path']))
+    
+    trt_response = client.post(
+        f"{model_server_url}/{route_name}",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    
+    trt_response_json = trt_response.json()
+    inference_end_time = datetime.now()
+    response_log.update(
+        inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+        inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
+    )
+    logger.info(
+        f"Gocr Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
+    )
+    return (trt_response.status_code, trt_response_json, response_log)
+
 def cls(
     client: Client,
     inputs: Dict,
