@@ -16,8 +16,9 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 ENV API_ENV="production"
 ENV DOCKER_ENV="True"
 
-RUN apt-get -qq update && \
-    apt-get -y -qq install locales && \
+RUN apt-get -qq update
+
+RUN apt-get -y -qq install locales && \
     locale-gen ko_KR.UTF-8
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
@@ -27,7 +28,10 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
     libmysqlclient-dev \
     python3-pip \
     python3-venv \
-    tzdata
+    tzdata \
+    g++ \
+    openjdk-8-jdk \
+    python3-dev
 
 # RUN pip3 install --upgrade pip
 
