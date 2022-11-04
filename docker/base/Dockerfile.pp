@@ -21,7 +21,10 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
     tzdata \
     libgl1-mesa-glx libglib2.0-0 \
     libmysqlclient-dev \
-    curl
+    curl \
+    g++ \
+    openjdk-8-jdk \
+    python3-dev
 
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
@@ -53,5 +56,7 @@ RUN groupadd -r lomin -g 1000 && \
 USER textscope
 
 WORKDIR /workspace/pp_server/pp
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 
 ENTRYPOINT ["python3", "main.py"]

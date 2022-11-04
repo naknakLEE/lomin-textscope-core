@@ -103,7 +103,7 @@ def ocr(
         return select_user_result
     select_user_result: schema.UserInfo = select_user_result
     user_team: str = select_user_result.user_team
-     
+    
     select_log_result = query.select_log(session, log_id=task_id) 
     if isinstance(select_log_result, schema.LogInfo):
         logger.error(f"x-request-id : {x_request_id} / CORE - log validation error")
@@ -198,10 +198,10 @@ def ocr(
     inference_results["doc_type"] = select_doc_type_result
     logger.info(f"x-request-id : {x_request_id} / CORE - gocr END")
 
-    
-    # cls 수행
+ 
+    # cls(for cls_kv)
     logger.info(f"x-request-id : {x_request_id} / CORE - cls START")
-    if inputs.get("route_name", "gocr") in "cls_kv":
+    if inputs.get("route_name") in ["cls_kv", "cls"]:
         del inference_results["doc_type"]
         cls_inputs = inference_results
         with Client() as client:
@@ -219,7 +219,7 @@ def ocr(
     
         inference_id = get_ts_uuid("inference")
         doc_type_code = inference_results.get("doc_type")
-                
+        
         select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
         if isinstance(select_doc_type_result, JSONResponse):
             logger.error(f"x-request-id : {x_request_id} / CORE - doc type error")
@@ -242,7 +242,8 @@ def ocr(
         )
         inference_results["process_type"] = "cls"
 
-    if(inputs.get("route_name")=="cls"):
+   # 1. cls(stand-alone)
+    if inputs.get("route_name")=="cls" :
         if status_code != 200:
             status_code, error = ErrorResponse.ErrorCode.get(status_code)
             logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
@@ -259,60 +260,87 @@ def ocr(
             logger.info(f"x-request-id : {x_request_id} / CORE - ocr END")
             return JSONResponse(content=jsonable_encoder(response))
 
-    # run kv in cls_kv case
-    if inference_results.get("doc_type").doc_type_code in KV_DOC_TYPE:
-        logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
-        with Client() as client:
-            inference_results["document_id"] = document_id
-            inference_results["document_path"] = document_path
 
-            status_code, inference_results, response_log = pipeline.kv(
-                client=client,
-                inputs=inference_results,
-                hint= None, #inputs['kv']["hint"], 
-                response_log=response_log,
-                task_id=task_id,
-                route_name="kv",
+    # kv (cls_kv case)
+    if inputs.get("route_name") == "cls_kv":
+        # CLS 결과 문서유형이 KV 모델 대상인 경우, 실행
+        if inference_results.get("doc_type").doc_type_code in KV_DOC_TYPE:
+            logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
+            with Client() as client:
+                inference_results["document_id"] = document_id
+                inference_results["document_path"] = document_path
+
+                status_code, inference_results, response_log = pipeline.kv(
+                    client=client,
+                    inputs=inference_results,
+                    hint= None, #inputs['kv']["hint"], 
+                    response_log=response_log,
+                    task_id=task_id,
+                    route_name="kv",
+                )
+            if status_code != 200:
+                status_code, error = ErrorResponse.ErrorCode.get(status_code)
+                logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
+        
+            inference_results.update(doc_type=dict(
+                doc_type_idx=select_doc_type_result.doc_type_idx,
+                doc_type_code=select_doc_type_result.doc_type_code,
+                doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+                doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+                doc_type_name_en=select_doc_type_result.doc_type_name_en,
+                doc_type_structed=select_doc_type_result.doc_type_structed
+            ))
+            # 추론 결과에서 개인정보 삭제
+            db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), "kv")
+            insert_inference_result = query.insert_inference(
+                session=session,
+                inference_id=inference_id,
+                document_id=document_id, 
+                user_email=user_email,
+                user_team=user_team,
+                inference_result=db_inference_results,
+                inference_type=inputs.get("inference_type"),
+                page_num=inference_results.get("page", target_page),
+                doc_type_idx=doc_type_idx,
+                response_log=response_log
             )
-        if status_code != 200:
-            status_code, error = ErrorResponse.ErrorCode.get(status_code)
-            logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
-    
-        inference_results.update(doc_type=dict(
-            doc_type_idx=select_doc_type_result.doc_type_idx,
-            doc_type_code=select_doc_type_result.doc_type_code,
-            doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
-            doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
-            doc_type_name_en=select_doc_type_result.doc_type_name_en,
-            doc_type_structed=select_doc_type_result.doc_type_structed
-        ))
-        # 추론 결과에서 개인정보 삭제
-        db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), "kv")
-        insert_inference_result = query.insert_inference(
-            session=session,
-            inference_id=inference_id,
-            document_id=document_id, 
-            user_email=user_email,
-            user_team=user_team,
-            inference_result=db_inference_results,
-            inference_type=inputs.get("inference_type"),
-            page_num=inference_results.get("page", target_page),
-            doc_type_idx=doc_type_idx,
-            response_log=response_log
-        )
-        if isinstance(insert_inference_result, JSONResponse):
-            logger.error(f"x-request-id : {x_request_id} / CORE - insert inference result error")
-            return insert_inference_result
-        insert_inference_result: schema.InferenceInfo = insert_inference_result
-        inference_results["process_type"] = "kv"
-        logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
+            if isinstance(insert_inference_result, JSONResponse):
+                logger.error(f"x-request-id : {x_request_id} / CORE - insert inference result error")
+                return insert_inference_result
+            insert_inference_result: schema.InferenceInfo = insert_inference_result
+            inference_results["process_type"] = "kv"
+            logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
+        
+        # CLS 결과 문서유형이 KV 모델 대상이 아닌 경우, CLS결과만 return
+        else:
+            inference_results["texts"] = []
+            response = dict(
+                    response_log=response_log,
+                    inference_results=inference_results,
+                    resource_id=dict(
+                        # log_id=task_id
+                    )
+                )
+            logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
+            logger.info(f"x-request-id : {x_request_id} / CORE - ocr END")
+            return JSONResponse(content=jsonable_encoder(response))
 
-    # run native kv
-    elif inputs.get("hint") is not None and dict(inputs["hint"]).get("doc_type") is not None:
-        doc_hints = dict(inputs["hint"]["doc_type"])
-        if doc_hints.get("use") == True or doc_hints.get("trust") == True:
+    # run kv (stand-alone)
+    elif inputs.get("route_name") == "kv":
+        # get doc_type from hint. 
+        if inputs.get("hint") is not None and dict(inputs["hint"]).get("doc_type") is not None:
+            doc_hints = dict(inputs["hint"]["doc_type"])
+            # use, trust arguments are ignored in kv-standalone.
+            ## if doc_hints.get("use") == True or doc_hints.get("trust") == True:
             doc_type = doc_hints.get("doc_type")
+
+            # KV 분석 대상 문서유형인지 체크
+            if doc_type_code not in KV_DOC_TYPE:
+                status_code, error = ErrorResponse.ErrorCode.get(2107)
+                logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
+
 
             logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
             with Client() as client:
@@ -360,6 +388,12 @@ def ocr(
             insert_inference_result: schema.InferenceInfo = insert_inference_result
             inference_results["process_type"] = "kv"
             logger.info(f"x-request-id : {x_request_id} / CORE - kv END") 
+
+        # no hint, no execution.
+        else:
+            status_code, error = ErrorResponse.ErrorCode.get(2107)
+            logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
 
     
     
