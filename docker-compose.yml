@@ -140,16 +140,10 @@ services:
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.nginx
-      args:
-        CONF_NAME: nginx
-        MAINTAINER: ${MAINTAINER}
+      dockerfile: docker/base/Dockerfile.nginx
     volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
-    depends_on:
-      - wrapper
     networks:
       - our_net
 

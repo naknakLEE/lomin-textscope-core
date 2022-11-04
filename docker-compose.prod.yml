@@ -81,6 +81,10 @@ services:
     working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
     entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
 
+  nginx:
+    ports:
+      - 8050:80
+
   grafana:
     ports:
       - 8053:3000
