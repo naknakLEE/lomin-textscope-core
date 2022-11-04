@@ -121,13 +121,13 @@ services:
       - 8050:80
       - 443:443
 
-  nginx-exporter:
-    ports:
-      - 9113:9113
+  # nginx-exporter:
+  #   ports:
+  #     - 9113:9113
 
-  gpu_telemetry:
-    ports:
-      - 9400:9400
+  # gpu_telemetry:
+  #   ports:
+  #     - 9400:9400
 
   # hardware_telemetry:
   #   ports:
