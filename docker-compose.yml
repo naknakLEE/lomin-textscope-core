@@ -15,6 +15,7 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
+  
   # postgresql:
   #   container_name: textscope-postgresql
   #   image: postgres:14
@@ -74,20 +75,20 @@ services:
     networks:
       - our_net
 
-  # serving:
-  #   image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
-  #   container_name: textscope-serving
-  #   environment:
-  #     - CUSTOMER=${CUSTOMER}
-  #     - TZ=Asia/Seoul
-  #   volumes:
-  #     - ${MOUNT_LOG_PATH}:/workspace/logs
-  #   restart: unless-stopped
-  #   cap_add:
-  #     - SYS_PTRACE
-  #   runtime: nvidia
-  #   networks:
-  #     - our_net
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    container_name: textscope-serving
+    environment:
+      - CUSTOMER=${CUSTOMER}
+      - TZ=Asia/Seoul
+    volumes:
+      - ${MOUNT_LOG_PATH}:/workspace/logs
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    runtime: nvidia
+    networks:
+      - our_net
 
   web:
     container_name: textscope-web
