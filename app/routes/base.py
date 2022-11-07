@@ -85,7 +85,7 @@ async def post_upload_document(
     request_datetime = datetime.now()
     
     # 업로드된 파일 포맷(확장자) 확인
-    is_support = is_support_format(document_name)
+    is_support = is_support_format(document_name, document_data)
     # 지원하지 않은 포맷(확장자)일시 "지원하지 않는 파일 형식입니다" Error return
     if is_support is False:
         status_code, error = ErrorResponse.ErrorCode.get(2105)

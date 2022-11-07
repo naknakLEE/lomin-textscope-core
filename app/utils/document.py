@@ -3,6 +3,8 @@ import tifffile
 import pdf2image
 import base64
 
+from io import BytesIO
+from PIL import Image
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
@@ -67,13 +69,25 @@ def convert_bytes_header_2_filetype(bytes_file:bytes):
     
 
 
-def get_file_extension(document_filename: str = "x.xxx") -> str:
+def get_file_extension(document_filename: str = "x.xxx", file_data: str = None) -> str:
     
-    return Path(document_filename).suffix.lower()
+    # 1차 확인 확장자
+    file_extension = Path(document_filename).suffix.lower()
+    
+    if not file_extension: # 2차 확인 파일 메타데이터 Image type
+        try:
+            document_bytes = base64.b64decode(file_data)
+            img = Image.open(BytesIO(document_bytes))
+            file_extension = img.format.lower()
+            file_extension = f".{file_extension}"
+        except:
+            file_extension = ''
+            
+    return file_extension
 
 def get_page_count(document_data: str, document_filename: str) -> int:
     document_bytes = base64.b64decode(document_data)
-    file_type = get_file_extension(document_filename)
+    file_type = get_file_extension(document_filename, document_data)
 
     file_type_header = convert_bytes_header_2_filetype(document_bytes)
     if file_type_header:
@@ -105,8 +119,8 @@ def get_page_count(document_data: str, document_filename: str) -> int:
     return total_pages, document_filename
 
 
-def is_support_format(document_filename: str) -> bool:
-    file_extension = get_file_extension(document_filename)
+def is_support_format(document_filename: str, file_data:str = None) -> bool:
+    file_extension = get_file_extension(document_filename, file_data)
     support = False
     
     for support_list in support_file_extension_list.values():
