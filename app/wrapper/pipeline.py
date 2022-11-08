@@ -768,10 +768,10 @@ def get_route_name(doc_type: str):
 MODEL_DOC_TYPE_LIST = {
     # "el" : ["MD-PRS", "MD-MED", "MD-MB", "MD-CPE", "KBL-10", "KBL1-11", "KBL1-12", "KBL1-13"],
     "kv" : [    "MD-CS", "MD-CAD", "MD-MC", "MD-DN", "MD-CMT",  "MD-COT", 
-                "LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-AFC",
-                "LINA1-09","LINA1-11","LINA1-13","LINA1-16","LINA1-18","LINA1-22","LINA1-27","LINA1-29"
+                "LINA1-AFC",
+                "LINA1-09","LINA1-11","LINA1-13","LINA1-16","LINA1-29"
                 ],
-    "tocr" : []
+    "tocr" : ["LINA1-PIC", "LINA1-IC", "LINA1-CDT-A", "LINA1-CDT-B", "LINA1-18","LINA1-22","LINA1-27"]
     # "ocr_for_pp" : ["GV-CFR","GV-BC", "GV-ARR", "KBL1-01", "KBL1-02", "KBL1-03"]
 }
 
