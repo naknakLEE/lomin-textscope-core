@@ -97,12 +97,13 @@ def kbl_post_inspect_info(
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
 
     # doc_type 검수 비교
-    if changes_doctype["prediction"] != "" and changes_doctype["corrected"] != "":
-        try:
-            doc_type = copy.deepcopy(query.select_doc_type_code(session, document_id=document_id))
-        except:
-            status_code, error = ErrorResponse.ErrorCode.get(2524)
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    if len(changes_doctype) > 0:
+        if changes_doctype["prediction"] != "" and changes_doctype["corrected"] != "":
+            try:
+                doc_type = copy.deepcopy(query.select_doc_type_code(session, document_id=document_id))
+            except:
+                status_code, error = ErrorResponse.ErrorCode.get(2524)
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
         if doc_type != changes_doctype['corrected']:
             doc_type_idxs = []
             doc_type_codes = []
@@ -121,8 +122,13 @@ def kbl_post_inspect_info(
         latest_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
         if isinstance(latest_inference_result, JSONResponse):
             return latest_inference_result
-        # inference 전체 kv 개수        kv_count = latest_inference_result.inference_result
-        inference_kv = latest_inference_result.inference_result['kv']
+        # inference 전체 kv 중 score가 0이 아닌 실제 인식된 kv 
+        inspected_kv = list(filter(lambda x: latest_inference_result.inference_result['kv'][x].get("score") > 0, latest_inference_result.inference_result['kv']))
+        # 수정 - (인식된 kv 개수 + 미인식 kv 중 수정된 개수) = kv개수 
+        uninspected_kv = list(filter(lambda x: x.get("key") not in inspected_kv, changes_keyvalue))
+        total_kv = inspected_kv + uninspected_kv
+
+        
 
         # inference 전체 table cell 개수
         inference_tables = []
@@ -131,7 +137,7 @@ def kbl_post_inspect_info(
         
         # 검수 정확도 측정 - kv개수 + table 개수
         inspect_accuracy = get_inspect_accuracy(
-                kv_list=inference_kv,
+                kv_list=total_kv,
                 el_list=inference_tables,
                 kv_changed=changes_keyvalue,
                 el_changed=[]
