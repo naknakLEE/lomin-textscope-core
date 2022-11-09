@@ -202,7 +202,7 @@ async def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-        if(post_processing_type != 'idcard_pp'):
+        if(len(inference_results.get("texts", [])) > 0 and post_processing_type != 'idcard_pp'):
             inference_results = get_unmodified_bbox(inference_results)
     
     response_log.update(inference_results.get("response_log", {}))
