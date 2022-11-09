@@ -39,6 +39,7 @@ else:
 
 router = APIRouter()
 
+kdt_doc_type_mapping: Dict = settings.KDT_CUSTOM_MAPPING.get('DOC_TYPE')
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
 @router.post("/ocr", status_code=200, responses=inference_responses)
@@ -117,32 +118,14 @@ def ocr(
                 )
             )
     
-    with Client() as client:
-        # Inference
-        if settings.USE_OCR_PIPELINE == 'multiple':
-            # TODO: sequence_type을 wrapper에서 받도록 수정
-            # TODO: python 3.6 버전에서 async profiling 사용에 제한이 있어 sync로 변경했는데 추후 async 사용해 micro bacing 사용하기 위해서는 다시 변경 필요
-            status_code, inference_results, response_log = pipeline.multiple(
-                client=client,
-                inputs=inputs,
-                sequence_type="kv",
-                response_log=response_log,
+    with Client() as client:        
+        status_code, inference_results, response_log = pipeline.single(
+            client=client,
+            inputs=inputs,
+            response_log=response_log,
+            route_name=inputs.get("route_name", "ocr"),
             )
-            response_log = dict()
-        elif settings.USE_OCR_PIPELINE == 'duriel':
-            status_code, inference_results, response_log = pipeline.heungkuk_life(
-                client=client,
-                inputs=inputs,
-                response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
-            )
-        elif settings.USE_OCR_PIPELINE == 'single':
-            status_code, inference_results, response_log = pipeline.single(
-                client=client,
-                inputs=inputs,
-                response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
-            )
+
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
@@ -221,7 +204,7 @@ def ocr(
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             if inputs.get("route_name") == 'cls':
-                   inference_results["doc_type"] = post_processing_results.get('result')['doc_type']
+                inference_results["doc_type"] = post_processing_results.get('result')['doc_type']
             else:
                 inference_results["kv"] = post_processing_results.get("result") if post_processing_results.get("result") else {}
                 

@@ -21,8 +21,8 @@
       "KDT1-05": "KDT1-CERT",
       "KDT1-06": "CP-CCC",
       "KDT1-07": "KDT1-URF",
-      "KDT1-08": "GV-FSVI",
-      "KDT1-09": "GV-FSC"
+      "KDT1-08": "GV-FSC",
+      "KDT1-09": "GV-FSVI"
     },
     "KDT1-01": {
       "KDT1-01-00": "TITLE",
@@ -142,7 +142,11 @@
       "KDT1-01-114": "KDT1-EST-CWBPY",
       "KDT1-01-115": "KDT1-EST-CWBCY",
       "KDT1-01-116": "KDT1-EST-CWBCR",
-      "KDT1-01-117": "KDT1-EST-CWBCB"
+      "KDT1-01-117": "KDT1-EST-CWBCB",
+      "KDT1-01-118": "KDT1-EST-RCPYS",
+      "KDT1-01-119": "KDT1-EST-RCPYE",
+      "KDT1-01-120": "KDT1-EST-RCPMS",
+      "KDT1-01-121": "KDT1-EST-RCPME"      
     },
     "KDT1-02": {
       "KDT1-02-00": "TITLE",
@@ -312,10 +316,11 @@
     "KDT_ENDPOINT": {
       "SERVING": {
         "KDT1-EST": "tocr",
-        "CP-FNS": "ocr_for_pp"
+        "CP-FNS": "el"
       },
       "PP": {
         "kdt1_kv": [
+          "GV-CBR",
           "GV-CBR-A",
           "GV-CBR-B",
           "KDT1-CIUA",
@@ -325,7 +330,7 @@
           "GV-FSC",
           "GV-FSVI"
         ],
-        "kdt1_cp_fns": [
+        "kdt1_el": [
           "CP-FNS"
         ]
       }
@@ -354,9 +359,6 @@
             "image_path": "기업개요표_page=000002.png"
           }
         },
-        "test_image_id": "",
-        "test_image_path": "",
-        "test_image_angle": 0,
         "template_json": {
           "\uae30\uc220\uae30\uc5c5\uac1c\uc694\ud45c_page=000001.png335903": {
             "filename": "\uae30\uc220\uae30\uc5c5\uac1c\uc694\ud45c_page=000001.png",

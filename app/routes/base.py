@@ -207,25 +207,26 @@ async def post_upload_document_cls_kv(
 
     # 2. cls진행
     # doc_type을 미리 사전지식으로 parameter에서 알려주고 use 및 trust가 true일경우 이 작업 생략 
-    inputs['is_call_function'] = True    
-    if(
-        inputs['hint']['doc_type']['doc_type'] 
-        and inputs['hint']['doc_type']['use'] 
-        and inputs['hint']['doc_type']['trust']):
-        pass
-    else:
-        inputs['route_name'] = 'cls'
-        cls_response = ocr(request=request, inputs=inputs, current_user=current_user, session=session)
-        if(type(cls_response) is JSONResponse): return cls_response 
-        cls_result = cls_response.get("inference_results", {})
-        doc_type = cls_result.get("doc_type","")
-        inputs['doc_type'] = doc_type.get('doc_type_code')
-        inputs['cls_result'] = {
-            'score': cls_result.get('cls_score'),
-            'doc_type': doc_type.get('doc_type_code')
-        }
+    # inputs['is_call_function'] = True    
+    # if(
+    #     inputs['hint']['doc_type']['doc_type'] 
+    #     and inputs['hint']['doc_type']['use'] 
+    #     and inputs['hint']['doc_type']['trust']):
+    #     pass
+    # else:
+    #     inputs['route_name'] = 'cls'
+    #     cls_response = ocr(request=request, inputs=inputs, current_user=current_user, session=session)
+    #     if(type(cls_response) is JSONResponse): return cls_response 
+    #     cls_result = cls_response.get("inference_results", {})
+    #     doc_type = cls_result.get("doc_type","")
+    #     inputs['doc_type'] = doc_type.get('doc_type_code')
+    #     inputs['cls_result'] = {
+    #         'score': cls_result.get('cls_score'),
+    #         'doc_type': doc_type.get('doc_type_code')
+    #     }
 
     # 3. kv진행
+    inputs['is_call_function'] = True
     inputs['route_name'] = 'kv' 
     kv_response = ocr(request=request, inputs=inputs, current_user=current_user, session=session)
     if(type(kv_response) is JSONResponse): return kv_response
