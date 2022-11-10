@@ -14,6 +14,7 @@ from app import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
+from app.utils.inference import judge_use_hint
 from app.utils.logging import logger
 from app.database.connection import db
 from app.utils.pdf2txt import get_pdf_text_info
@@ -86,8 +87,8 @@ def ocr(
     document_id = inputs.get("document_id")
     document_path = inputs.get("document_path")
     target_page = inputs.get("page", 1)
-    
-    
+    flag_use_hint = judge_use_hint(inputs)
+
     # parameter mapping:
     # web -> inference
     #   docx -> image
@@ -187,8 +188,11 @@ def ocr(
     inference_id = get_ts_uuid("inference")
     doc_type_code = "None"
 
-    if inputs.get("hint") is not None and dict(inputs["hint"]).get("doc_type") is not None:
+    if True == flag_use_hint and "kv"==inputs.get("route_name"):
         doc_type_code = dict(inputs["hint"]["doc_type"]).get("doc_type")
+    elif True == flag_use_hint and "cls_kv"==inputs.get("route_name"):
+        doc_type_code = inputs["kv"]["hint"]["doc_type"].get("doc_type")
+
 
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
     if isinstance(select_doc_type_result, JSONResponse):
@@ -201,7 +205,8 @@ def ocr(
  
     # cls(for cls_kv)
     logger.info(f"x-request-id : {x_request_id} / CORE - cls START")
-    if inputs.get("route_name") in ["cls_kv", "cls"]:
+    if inputs.get("route_name") in ["cls_kv", "cls"] and flag_use_hint == False:
+        
         del inference_results["doc_type"]
         cls_inputs = inference_results
         with Client() as client:
@@ -269,11 +274,11 @@ def ocr(
             with Client() as client:
                 inference_results["document_id"] = document_id
                 inference_results["document_path"] = document_path
-
+                hint = inputs['kv']['hint'] if True == flag_use_hint else None
                 status_code, inference_results, response_log = pipeline.kv(
                     client=client,
                     inputs=inference_results,
-                    hint= None, #inputs['kv']["hint"], 
+                    hint= hint,
                     response_log=response_log,
                     task_id=task_id,
                     route_name="kv",

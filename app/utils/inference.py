@@ -40,4 +40,17 @@ def remove_table_value(table: dict):
     except:
         return table
     return table
+
+def judge_use_hint(inputs: dict):
+    route = inputs.get("route_name")
     
+    if route == None: 
+        return False
+    elif route == "cls_kv" and inputs.get("kv") is not None:
+        hint= inputs["kv"].get("hint") 
+        return hint is not None and hint.get("doc_type") is not None and hint.get("doc_type")["use"] == True and hint.get("doc_type")["trust"] == True
+    elif route == "kv" and inputs.get("hint") is not None:
+        hint= inputs.get("hint") 
+        return hint.get("doc_type") is not None and hint.get("doc_type")["use"] == True and hint.get("doc_type")["trust"] == True
+    else:
+        return False

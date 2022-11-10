@@ -406,7 +406,7 @@ def kv(
         if route_name != 'ocr_for_pp':
             """doc type hint를 적용하고 inference 요청"""
             # Apply doc type hint
-            if route_name == "kv" and hint is not None and hint.get("doc_type") is not None and hint.get("doc_type")["use"]:
+            if hint is not None and hint.get("doc_type") is not None and hint.get("doc_type")["use"] == True and hint.get("doc_type")["trust"] == True:
                 doc_type_hint = hint.get("doc_type", {})
                 doc_type_hint = DocTypeHint(**doc_type_hint)
                 cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)

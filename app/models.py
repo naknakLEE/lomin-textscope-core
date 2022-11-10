@@ -242,8 +242,8 @@ class DocTypeHint(BaseModel):
 
 
 class KeyValueHint(BaseModel):
-    use: bool = True  # 주어진 사전 지식을 후처리 프로세스에 사용할지 여부
-    trust: bool = True  # 주어진 사전 지식을 100% 신뢰할지 여부
+    use: bool = False  # 주어진 사전 지식을 후처리 프로세스에 사용할지 여부
+    trust: bool = False  # 주어진 사전 지식을 100% 신뢰할지 여부
     key: str = "A01-001"  # 항목 인식에 관한 사전지식 - key 코드
     value: str = "홍길동"  # 항목 인식에 관한 사전지식 - value 값
 
@@ -252,6 +252,32 @@ class Hint(BaseModel):
     doc_type: DocTypeHint
     key_value: KeyValueHint
 
+class ClsHintClsKv(BaseModel):
+    """
+        서식 분류 및 key-value 인식에 사용할 사전 지식
+    """
+    cls_threshold: float = 0.6
+
+class KvHintClsKv(BaseModel):
+    """
+        서식 분류 및 key-value 인식에 사용할 사전 지식
+    """
+    hint: Hint = {
+      "key_value": [
+        {
+          "use": False,
+          "trust": False,
+          "key": "LINA1-09-01",
+          "value": "2022.10.20"
+        }
+      ],
+      "doc_type": {
+        "use": True,
+        "trust": True,
+        "doc_type": "LINA1-09"
+      }
+    }
+    
 
 class ResponseMetadata(BaseModel):
     request_datetime: datetime = datetime.now()
@@ -452,7 +478,10 @@ class ParamPostInferenceClsKv(BaseModel):
     task_id: str = "ea67a273-cb29-4c79-9739-708bf6085720"  # UUID 형식의 학습 task 고유 ID
     image_id: str = "54d5093d-ff09-44a1-9f6d-a272eee15f07"  # 추론 대상 이미지 ID
     rectify: RecificationOption  # 회전 보정을 통한 이미지 전처리 여부 옵션
-    hint: Optional[DocTypeHint]  # 후보정을 통해 인식률을 높일 수 있도록 사전지식 제공
+    cls: Optional[ClsHintClsKv] = ClsHintClsKv() # Cls Threshold 값 주입
+    kv: Optional[KvHintClsKv] = KvHintClsKv() # Cls Threshold 값 주입
+    detection_resize_ratio: float = 1.0 # "파이프라인의 detection 모델 인풋의 resize 조절 값")
+    page: Optional[int] = 1 # "multi page(pdf, tif)일 경우 inference를 진행 할 페이지 지정")
 
 
 class ParamPostInferenceGocr(BaseModel):
