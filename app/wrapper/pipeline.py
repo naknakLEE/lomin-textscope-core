@@ -416,7 +416,7 @@ def kv(
             if route_name == "tocr":
                 inputs["image_id"] = inputs.get("document_id")
                 inputs["image_path"] = inputs.get("document_path")
-                inputs["pp_end_point"] = 'tocr'
+                inputs["pp_end_point"] = 'lina1_tocr'
                 inputs['template'] = {}
 
                 if lomin_doc_type == "KBL1-IC":
@@ -857,7 +857,7 @@ def kv_alone(
             if route_name == "tocr":
                 inputs["image_id"] = inputs.get("document_id")
                 inputs["image_path"] = inputs.get("document_path")
-                inputs["pp_end_point"] = 'kbl1_tocr'
+                inputs["pp_end_point"] = 'lina1_tocr'
                 inputs['template'] = {}
 
                 if lomin_doc_type == "KBL1-IC":
@@ -889,7 +889,50 @@ def kv_alone(
                             "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64
                         }
                     }
-
+                elif lomin_doc_type == "LINA1-PIC":
+                    inputs['template']["template_json"] = settings.LINA1_PIC_TEMPLATE_JSON
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template_1",
+                            "image_path": "A0124_page=000002.png",
+                            "image_bytes": settings.LINA1_PIC_TEMPLATE_IMAGE_P1_BASE64
+                        },
+                        "1": {
+                            "image_id": "template_2",
+                            "image_path": "A0124_page=000003.png",
+                            "image_bytes": settings.LINA1_PIC_TEMPLATE_IMAGE_P2_BASE64
+                        },
+                        "2": {
+                            "image_id": "template_3",
+                            "image_path": "A0124_page=000004.png",
+                            "image_bytes": settings.LINA1_PIC_TEMPLATE_IMAGE_P3_BASE64
+                        }
+                    }
+                elif lomin_doc_type == "LINA1-IC":
+                    inputs['template']["template_json"] = settings.LINA1_IC_TEMPLATE_JSON
+                    
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template",
+                            "image_path": "A0124_page=000001.png",
+                            "image_bytes": settings.LINA1_IC_TEMPLATE_IMAGE_BASE64
+                        }
+                    }
+                elif lomin_doc_type == "LINA1-CDT-A" or lomin_doc_type == "LINA1-CDT-B":
+                    inputs['template']["template_json"] = settings.LINA1_CDT_TEMPLATE_JSON
+                    
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template",
+                            "image_path": "치아치료확인서_page=000002.png",
+                            "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64
+                        },
+                        "1": {
+                            "image_id": "template",
+                            "image_path": "치아치료확인서_page=000003.png",
+                            "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P2_BASE64
+                        }
+                    }
 
             # kv inference 요청
             kv_inference_response = client.post(
