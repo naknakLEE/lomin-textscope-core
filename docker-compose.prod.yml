@@ -76,7 +76,7 @@ services:
         POETRY_VERSION: ${POETRY_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8050:${WRAPPER_IP_PORT}
+      - 8055:${WRAPPER_IP_PORT}
     tty: true
     working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
     entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
@@ -84,3 +84,8 @@ services:
   grafana:
     ports:
       - 8053:3000
+
+  nginx:
+    ports:
+      - 8050:80
+      - 8080:8080

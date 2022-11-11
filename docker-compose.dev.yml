@@ -117,8 +117,12 @@ services:
 
 
   nginx:
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
     ports:
       - 8050:80
+      - 8080:8080
       - 443:443
 
   nginx-exporter:
