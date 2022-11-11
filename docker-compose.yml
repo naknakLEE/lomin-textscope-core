@@ -95,6 +95,8 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
       - TZ=Asia/Seoul
+      - WEB_SERVING_BYPASS=False
+      - WEB_PP_BYPASS=False
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
@@ -126,6 +128,7 @@ services:
     environment:
       - CUSTOMER=${CUSTOMER}
       - TZ=Asia/Seoul
+      - WRAPPER_WEB_BYPASS=False
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
     restart: unless-stopped
