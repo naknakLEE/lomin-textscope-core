@@ -2695,7 +2695,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ISMRY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2709,7 +2713,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ISMRN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2763,7 +2771,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDME",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2777,7 +2789,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDAM",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2791,7 +2807,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDOP",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2805,7 +2825,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDOPR",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2819,7 +2843,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDDG",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2833,7 +2861,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDOS",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2847,7 +2879,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDD",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2861,7 +2897,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CLDETC",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2935,7 +2975,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-CFYN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -2989,7 +3033,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ADDDE",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3003,7 +3051,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ADDDS",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3017,7 +3069,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ADDSC",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3031,7 +3087,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ADDETC",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3045,7 +3105,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ADY",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3059,7 +3123,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-IC-ADN",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3151,7 +3219,11 @@
                     "height": 54
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "label": "check_box",
                     "class": "KBL1-IC-UIY"
                 }
@@ -3165,7 +3237,11 @@
                     "height": 67
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-IC-UIN",
                     "label": "check_box"
                 }
@@ -3179,7 +3255,11 @@
                     "height": 54
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-IC-ALYN",
                     "label": "check_box"
                 }
@@ -3193,7 +3273,11 @@
                     "height": 51
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "label": "check_box",
                     "class": "KBL1-IC-HGEMSG"
                 }
@@ -3207,7 +3291,11 @@
                     "height": 57
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "label": "check_box",
                     "class": "KBL1-IC-HGEEM"
                 }
@@ -3221,7 +3309,11 @@
                     "height": 64
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "label": "check_box",
                     "class": "KBL1-IC-HGEPST"
                 }
@@ -3235,7 +3327,11 @@
                     "height": 68
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "label": "check_box",
                     "class": "KBL1-IC-HGEC"
                 }
@@ -3249,7 +3345,11 @@
                     "height": 57
                 },
                 "region_attributes": {
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "label": "check_box",
                     "class": "KBL1-IC-HGENA"
                 }
@@ -3294,7 +3394,11 @@
                 },
                 "region_attributes": {
                     "label": "check_box",
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-PIC-MCUUIN"
                 }
             },
@@ -3308,7 +3412,11 @@
                 },
                 "region_attributes": {
                     "label": "check_box",
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-PIC-MCUUIY"
                 }
             },
@@ -3322,7 +3430,11 @@
                 },
                 "region_attributes": {
                     "label": "check_box",
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-PIC-MCUSIN"
                 }
             },
@@ -3336,7 +3448,11 @@
                 },
                 "region_attributes": {
                     "label": "check_box",
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-PIC-MCUSIY"
                 }
             },
@@ -3350,7 +3466,11 @@
                 },
                 "region_attributes": {
                     "label": "check_box",
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-PIC-MCUPIN"
                 }
             },
@@ -3364,7 +3484,11 @@
                 },
                 "region_attributes": {
                     "label": "check_box",
-                    "bool": {},
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    },
                     "class": "KBL1-PIC-MCUPIY"
                 }
             }
@@ -3387,7 +3511,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-PDUIN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3401,7 +3529,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-PDUIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3415,7 +3547,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-PDSIN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3429,7 +3565,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-PDSIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3443,7 +3583,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-PDPIN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3457,7 +3601,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-PDPIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             }
         ],
@@ -3479,7 +3627,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-POPIN",
-                    "bool": "korean"
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3493,7 +3645,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-POPIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3507,7 +3663,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-IUIN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3521,7 +3681,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-IUIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3535,7 +3699,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-ISIN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3549,7 +3717,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-ISIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3563,7 +3735,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-IPIN",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
@@ -3577,7 +3753,11 @@
                 "region_attributes": {
                     "label": "check_box",
                     "class": "KBL1-PIC-IPIY",
-                    "bool": {}
+                    "bool": {
+                      "korean": false,
+                      "digit": false,
+                      "special_character": false
+                    }
                 }
             },
             {
