@@ -159,7 +159,7 @@ def save_upload_document(
         try:
             document_pages: List[Image.Image] = read_image_from_bytes(decoded_image_data, documnet_name, 0.0, 1, separate=True)
         except DecompressionBombError:
-            raise CoreCustomException("C01.003.401A")
+            raise CoreCustomException("C01.003.2001")
         
         for page, document_page in enumerate(document_pages):
             document_page.save(buffered, settings.MULTI_PAGE_SEPARATE_EXTENSION[1:])
