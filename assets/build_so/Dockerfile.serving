@@ -4,6 +4,6 @@ FROM docker.lomin.ai/ts-gpu-serving:${VERSION_BEFORE}
 
 COPY ./serving/textscope_model_service/ /root/bentoml/bentos/textscope_model_service/
 
-COPY ./serving/lovit/ /workspace/inference_server/lovit/
-COPY ./serving/e2e_inference/ /workspace/inference_server/e2e_inference/
-COPY ./serving/models  /workspace/inference_server/assets/models/
+COPY ./serving/lovit/* /workspace/inference_server/
+COPY ./serving/e2e_inference/* /workspace/inference_server/
+COPY ./serving/models  /workspace/inference_server/assets/models
