@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION
 
-FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
+FROM nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
 
 ARG BUILD_FOLDER_PATH
 ARG APP_NAME
@@ -40,6 +40,7 @@ RUN rm /usr/local/lib/python3.6/dist-packages/bentoml/frameworks/pytorch.py && \
 COPY ./.env /workspace/
 COPY ./${APP_NAME}/assets/textscope_${CUSTOMER}.json /workspace/${APP_NAME}/assets/
 COPY ./${APP_NAME}/assets/bentoml_configuration.yml /workspace/${APP_NAME}/assets/
+COPY ./${APP_NAME}/assets/document_classification/ /workspace/${APP_NAME}/assets/document_classification/
 COPY ./${APP_NAME}/assets/gulim.ttc /workspace/${APP_NAME}/assets/
 COPY ./${APP_NAME}/assets/modified_bentoml_file/pip_pkg.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/
 COPY ./${APP_NAME}/assets/modified_bentoml_file/${CUSTOMER}_loader.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/bentoml/saved_bundle/loader.py

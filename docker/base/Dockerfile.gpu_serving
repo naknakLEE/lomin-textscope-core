@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION=18.04
 
-FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
+FROM nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
 
 ARG PYTHON_VERSION=3.6
 ARG APP_NAME=inference_server
@@ -27,6 +27,8 @@ RUN pip3 install bentoml==0.13.1
 RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN pip3 install numpy pandas opencv-python
+
+RUN pip3 install shapely --no-binary shapely
 
 COPY ./lovit /workspace/lovit
 WORKDIR /workspace/lovit
