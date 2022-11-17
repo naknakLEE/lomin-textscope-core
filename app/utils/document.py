@@ -2,9 +2,9 @@ import os
 import tifffile
 import pdf2image
 import base64
+import shutil
 
-import httpx
-from datetime import datetime
+from httpx import Client
 from PIL import Image
 from PIL.Image import DecompressionBombError
 from io import BytesIO
@@ -12,6 +12,7 @@ from pathlib import Path
 from functools import lru_cache
 from typing import Tuple, List
 from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
 
 from app import hydra_cfg
 from app.utils.logging import logger
@@ -20,6 +21,17 @@ from app.utils.minio import MinioService
 from app.utils.image import read_image_from_bytes
 from app.schemas import error_models as ErrorResponse
 from app.middlewares.exception_handler import CoreCustomException
+from app.wrapper import pipeline, pp
+from app.database import query
+
+from concurrent import futures
+from itertools import repeat
+from app.utils.utils import get_ts_uuid
+from app.utils.ocr_to_pdf import Word, PdfParser
+from app.utils.pdf2txt import get_pdf_text_info
+import copy
+from sqlalchemy.orm import Session
+from app.database.schema import InferenceInfo
 
 
 settings = get_settings()
@@ -30,7 +42,7 @@ support_file_extension_list = {
     "pdf": [".pdf"]
 }
 
-
+multipage_file_format = ['.pdf','.tif','.tiff']
 def get_file_extension(document_filename: str = "x.xxx") -> str:
     return Path(document_filename).suffix.lower()
 
@@ -206,3 +218,357 @@ def get_document_bytes(document_id: str, document_path: Path) -> str:
             document_bytes = f.read()
     
     return document_bytes
+
+def is_support_format(document_filename: str) -> bool:
+    file_extension = get_file_extension(document_filename)
+    support = False
+    
+    for support_list in support_file_extension_list.values():
+        if file_extension in support_list:
+            support = True
+    
+    return support    
+
+def multiple_request_ocr(
+    inputs: dict 
+):
+    """
+        다중 문서 ocr 요청
+    """
+    document_dir_path = inputs.get('document_dir')
+    file_list = os.listdir(document_dir_path)
+    file_list.sort()
+    
+    inference_result_list = list()
+    document_data_list = list()
+
+    document_cnt = 0
+    # [generate_document_list(document_dir_path, file_name, document_data_list, document_cnt) for file_name in file_list]    
+
+    for file_name in file_list: document_cnt = generate_document_list(document_dir_path, file_name, document_data_list, document_cnt)
+    
+    with futures.ThreadPoolExecutor(max_workers=hydra_cfg.document.thread_max_works) as executor:
+        try:
+            future = executor.map(request_ocr,document_data_list,repeat(inputs))
+            inference_result_list = list(future)
+        except Exception as exc:
+            err_code: int = exc.__getattribute__('error_code') if hasattr(exc,'error_code') else 9500
+            status_code, error = ErrorResponse.ErrorCode.get(err_code)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))                                      
+        
+    
+    return inference_result_list
+
+def request_ocr(
+    document_info: dict, inputs: dict
+):
+    """
+        문서 하나당 ocr 요청
+    """
+    document_data:bytes = document_info.get('data')
+    document_cnt: int   = document_info.get('cnt')
+    document_name: str  = document_info.get('name')
+    target_page: int    = 0
+
+    new_inputs = copy.deepcopy(inputs)
+    new_inputs.update(
+        image_bytes=document_data,
+        image_path=document_name,
+        document_cnt=document_cnt,
+        page=target_page,
+        doc_type=None,        
+    )
+    response_log = dict()
+    with Client() as client:
+        # Inference
+        status_code, inference_results, response_log = pipeline.single(
+            client=client,
+            inputs=new_inputs,
+            response_log=response_log,
+            route_name='gocr',
+        )
+        if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
+            exec = Exception()
+            exec.__setattr__('err_code', 3501)
+            raise exec
+
+        # convert preds to texts
+        if (
+            "texts" not in inference_results
+        ):
+            status_code, texts = pp.convert_preds_to_texts(
+                client=client,
+                rec_preds=inference_results.get("rec_preds", []),
+            )
+            if status_code < 200 or status_code >= 400:
+                exec = Exception()
+                exec.__setattr__('err_code', 3503)
+                raise exec
+
+            inference_results["texts"] = texts             
+
+        doc_type_code = inference_results.get("doc_type")
+        inference_results.update(doc_type=doc_type_code)
+
+        # Post processing -> Searchable_pp일경우 line_word
+        status_code, post_processing_results, response_log = pp.post_processing(
+            client=client,
+            task_id="",
+            response_log=response_log,
+            inputs=inference_results,
+            post_processing_type='line_word',
+        )
+        if status_code < 200 or status_code >= 400:
+            exec = Exception()
+            exec.__setattr__('err_code', 3502)
+            raise exec             
+        logger.debug(post_processing_results.get('result'))
+        inference_results.update(
+            post_processing_results.get('result'),
+            base64_encode_file=document_data,
+            cnt = document_cnt
+        )                   
+
+    return inference_results
+
+def generate_document_list(
+    document_dir_path: str, file_name: str, document_data_list: list, document_cnt: int
+):
+    """
+        request로 입력받은 경로를 통해 documnet_list 생성
+    """
+    file_path = os.path.join(document_dir_path, file_name)
+    with Path(file_path).open('rb') as file:
+        document_data = file.read()
+        # 업로드된 파일 포맷(확장자) 확인
+        is_support = is_support_format(file_name)
+
+        # TODO: 지원하지 않는 파일은 따로 txt 파일 생성 필요 할듯?
+        if is_support is False:
+            return False
+            # status_code, error = ErrorResponse.ErrorCode.get(2105)
+            # return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        
+        # 멀티페이지 파일 포맷(pdf, tif, tiff)일 경우 한장씩 분리하기
+        if(Path(file_name).suffix.lower() in multipage_file_format):
+            buffered = BytesIO()
+            try:
+                document_pages: List[Image.Image] = read_image_from_bytes(document_data, file_name, 0.0, 1, separate=True)
+            except DecompressionBombError:
+                raise CoreCustomException("C01.003.2001")
+            
+            for page, document_page in enumerate(document_pages):
+                document_page.save(buffered, settings.MULTI_PAGE_SEPARATE_EXTENSION[1:])
+                document_data_list.append(dict(
+                    cnt=document_cnt,
+                    data=base64.b64encode(buffered.getvalue()),
+                    name=f"{document_cnt}.jpeg"
+                ))
+                document_cnt += 1
+                buffered.seek(0)
+        else:
+            document_data_list.append(dict(
+                cnt=document_cnt,
+                data=base64.b64encode(document_data),
+                name=file_name
+            ))
+            document_cnt +=1
+            
+        return document_cnt
+        
+def generate_searchalbe_pdf(
+    inputs: dict
+):
+    """
+        request param으로 받은 경로에 searchable pdf생성
+    """
+    try:
+        pdf_parser = PdfParser()
+        wordss: list[List[Word]] = list()
+        images: List[Image.Image] = list()
+
+        inference_result_list = inputs.get('inference_result_list')
+        pdf_file_name = inputs.get('pdf_file_name')
+
+        for inference_result in inference_result_list:    
+
+            angle = inference_result.get("angle", 0)
+            words: List[Word] = list()
+            gocr = inference_result.copy()        
+        
+            for text, box in zip (gocr.get("texts", []), gocr.get("boxes", [])):
+                words.append(Word(text=text, bbox=box))
+
+            wordss.append(words)
+
+            document_path_copy = Path(f"{pdf_file_name}.jpg")
+            document_bytes = base64.b64decode(inference_result.get("base64_encode_file"))
+            images.append(read_image_from_bytes(document_bytes, document_path_copy.name, angle, 0))
+        
+        content: bytes = pdf_parser.export_pdf(wordss, images)
+
+
+        pdf_file_save_path = os.path.dirname(pdf_file_name)
+        pdf_file_save_dir = Path(pdf_file_save_path)
+        pdf_file_save_dir.mkdir(parents=True, exist_ok=True)
+        pdf_file_save_name = os.path.basename(pdf_file_name)
+
+        pdf_save_path = pdf_file_save_dir.joinpath(pdf_file_save_name)
+        with pdf_save_path.open("wb") as file:
+            file.write(content)
+
+
+        # pdf생성이 성공하면 이미지 폴더 지우기
+        document_dir: str = inputs.get("document_dir")
+        if os.path.exists(document_dir):
+            shutil.rmtree(document_dir)        
+
+        return True        
+    except Exception as exc:    
+        logger.error(exc.strerror)
+        status_code, error = ErrorResponse.ErrorCode.get("C01.006.5003")
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))    
+
+def document_dir_verify(document_path: str):
+    if not os.path.isdir(document_path):
+        status_code, error = ErrorResponse.ErrorCode.get(2508)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return True        
+
+def save_minio_pdf_conver_img(
+    inputs: dict,
+    session: Session
+) -> Tuple[int, str, str]:
+    """
+        pdf 파일을 img로 쪼개어 Minio or localPc에 저장
+    """
+    pdf_dir = inputs.get('pdf_dir')
+    pdf_list = os.listdir(pdf_dir)
+    
+    pdf_list = list(filter(lambda x: Path(x).suffix.lower() == '.pdf', pdf_list))
+    pdf_file_name = pdf_list[0]
+
+    file_path = os.path.join(pdf_dir, pdf_file_name)
+    document_id = get_ts_uuid("document")
+    pdf_len = 0
+    origin_object_name = ""
+    with Path(file_path).open('rb') as file:
+        pdf_data = file.read()
+        buffered = BytesIO()
+        try:        
+            document_pages: List[Image.Image] = read_image_from_bytes(pdf_data, pdf_file_name, 0.0, 1, separate=True)
+            pdf_len = len(document_pages)
+            if(not pdf_len):
+                status_code, error = ErrorResponse.ErrorCode.get(2103)
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))                         
+            success = False            
+            # 원본 파일 집어 넣기
+            origin_object_name = '/'.join([document_id, pdf_file_name])
+
+            if settings.USE_MINIO:
+                success = minio_client.put(
+                    bucket_name=settings.MINIO_IMAGE_BUCKET,
+                    object_name=origin_object_name,
+                    data=pdf_data,
+                )                    
+            else:
+                root_path = Path(settings.IMG_PATH)
+                base_path = root_path.joinpath(document_id)
+                base_path.mkdir(parents=True, exist_ok=True)                    
+                save_path = base_path.joinpath(origin_object_name)  
+
+                with save_path.open("wb") as file:
+                    file.write(pdf_data)                    
+                success = True
+            if(not success): raise DecompressionBombError            
+
+            for page, document_page in enumerate(document_pages):
+                document_page.save(buffered, settings.MULTI_PAGE_SEPARATE_EXTENSION[1:])
+                object_name = '/'.join([document_id, str(page+1)+settings.MULTI_PAGE_SEPARATE_EXTENSION])
+                data = buffered.getvalue()
+
+                if settings.USE_MINIO:
+                    success &= minio_client.put(
+                        bucket_name=settings.MINIO_IMAGE_BUCKET,
+                        object_name=object_name,
+                        data=data,
+                    )                    
+                else:
+                    root_path = Path(settings.IMG_PATH)
+                    base_path = root_path.joinpath(document_id)
+                    base_path.mkdir(parents=True, exist_ok=True)                    
+                    save_path = base_path.joinpath(object_name)  
+
+                    with save_path.open("wb") as file:
+                        file.write(data)                    
+                    success = True
+
+                if(not success): raise DecompressionBombError
+                buffered.seek(0)            
+        except DecompressionBombError:
+            raise CoreCustomException("C01.003.2001")
+
+    save_path = "minio/" + pdf_file_name
+    dao_document_params = {
+        "document_id": document_id,
+        "user_email": "admin@lomin.ai",
+        "user_team": "0001_admin",
+        "document_path": save_path,
+        "document_pages": pdf_len,
+    }
+    query.insert_document(session, **dao_document_params)                
+
+    return [pdf_len, document_id, origin_object_name]
+
+def get_inference_result_to_pdf(
+    pdf_extract_inputs: dict,
+    session: Session
+):
+    """
+        PDF에서 inference_result 추출
+    """
+    try:
+        document_id = pdf_extract_inputs.get('document_id')
+        origin_object_name = pdf_extract_inputs.get('origin_object_name')
+        pdf_len = pdf_extract_inputs.get('pdf_len')
+
+        get_pdf_text_info_inputs = dict(
+            image_id = document_id,
+            image_path = origin_object_name,
+        )
+
+        inference_results_list = list()
+
+        for i in range(pdf_len):
+            target_page = i+1
+            get_pdf_text_info_inputs.update(
+                page = target_page
+            )
+            parsed_text_info, image_size = get_pdf_text_info(get_pdf_text_info_inputs)
+            if len(parsed_text_info) > 0:
+                inference_id = get_ts_uuid("inference")
+                inference_info = dict(
+                    inference_id=inference_id,
+                    document_id=document_id, 
+                    user_email="admin@lomin.ai",
+                    user_team="0001_admin",
+                    inference_result=parsed_text_info,
+                    inference_type="gocr",
+                    page_num=parsed_text_info.get("page", target_page),
+                    doc_type_idx=0,
+                    response_log=parsed_text_info.get("response_log", {})
+                )           
+                inference_results_list.append(inference_info)
+
+        session.bulk_insert_mappings(InferenceInfo,inference_results_list)
+        session.commit()
+        session.flush()
+
+        # DB 인서트에 성공하면
+        pdf_dir = pdf_extract_inputs.get('pdf_dir')
+        if os.path.exists(pdf_dir):
+            shutil.rmtree(pdf_dir)            
+        return True
+    except Exception as exc:
+        status_code, error = ErrorResponse.ErrorCode.get(3503)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))             

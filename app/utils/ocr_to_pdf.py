@@ -20,50 +20,49 @@ class PdfParser():
     def export_pdf(self, wordss: List[List[Word]], images: List[Union[bytes, Image.Image]], dpi=300) -> bytes:
         pdf = Canvas("ocr.pdf")
         pdf.setCreator("Textscope Studio")
-        
-        dpi_o = 72
+
         for words, image in zip(wordss, images):
             im = image if isinstance(image, Image.Image) else Image.open(io.BytesIO(image))
-            
-            width = im.size[0] * dpi_o / dpi
-            height = im.size[1] * dpi_o / dpi
-            
-            pdf.setPageSize((width, height))
+            im_width = im.size[0]
+            im_height= im.size[1]
+
+            width = 595
+            height = 842
+            dpi_w = width / im_width * dpi
+            dpi_h = height / im_height * dpi
             
             im = ImageReader(im)
-            pdf.drawImage(im, 0, 0, width=width, height=height)
+            pdf.drawImage(im, 0, 0, width=width, height=height)       
             
-            # add text
-            words.sort(key=lambda x: (x.bbox[1], x.bbox[0]))
             for word in words:
-                if len(word.text) == 0 : continue
-                box = word.bbox
-                
-                font_size = (box[3] - box[1]) * dpi_o / dpi
-                
-                text = pdf.beginText()
-                text.setFont('nanumG', font_size)
-                text.setTextRenderMode(3)  # double invisible
-                
-                r_width = box[0] * dpi_o / dpi
-                
-                r_height_offset = 0
-                r_height = height + r_height_offset - box[3] * dpi_o / dpi
-                
-                if r_height > height: r_height = height - 10
-                if r_height < 0: r_height = 10
-                
-                text.setTextOrigin(r_width, r_height)
-                
-                box_width = (box[2] - box[0]) * dpi_o / dpi
-                font_width = pdf.stringWidth(word.text, 'nanumG', font_size)
-                
-                text.setHorizScale(100.0 * box_width / font_width)
-                
-                text.textLine(word.text)
-                
-                pdf.drawText(text)
-            
+                word_text_list = word.text
+                for i, value in enumerate(word_text_list):
+                    if not len(value): continue
+                    box = word.bbox[i]
+                    font_size = (box[3] - box[1]) * dpi_h / dpi
+
+                    text = pdf.beginText()
+                    text.setFont('nanumG', font_size)
+                    text.setTextRenderMode(3)  # double invisible        
+                    r_width = box[0] * dpi_w / dpi
+                    
+                    r_height_offset = 0
+                    r_height = height + r_height_offset - box[3] * dpi_h / dpi
+                    
+                    if r_height > height: r_height = height - 10
+                    if r_height < 0: r_height = 10  
+
+                    text.setTextOrigin(r_width, r_height)
+                    
+                    box_width = (box[2] - box[0]) * dpi_w / dpi
+                    font_width = pdf.stringWidth(value, 'nanumG', font_size)
+                    
+                    text.setHorizScale(100.0 * box_width / font_width)
+                    
+                    text.textLine(value)
+                    
+                    pdf.drawText(text)                                                              
+
             pdf.showPage()
         
         # return pdf.save()
@@ -91,7 +90,7 @@ if __name__ == "__main__":
         [
             Word("하나은행의", [554.5842895507812, 78.95536041259766, 662.9601440429688, 99.55071258544922]),
             Word("자산입니다.", [672.9632568359375, 79.35218048095703, 788.5719604492188, 100.09361267089844])
-        ]
+        ],
     )
     
     image = None

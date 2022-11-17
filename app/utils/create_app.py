@@ -14,8 +14,7 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, test, rpa, drm
-from app.routes import document, model, inspect
+from app.routes import base
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -106,29 +105,30 @@ def app_generator() -> FastAPI:
 
     app.add_route("/metrics", metrics_route)
 
-    app.include_router(index.router, prefix="/v1")
-    app.include_router(status.router, tags=["Status"])
-    app.include_router(ldap.router, tags=["Ldap"], prefix="/v1/ldap")
-    app.include_router(inference.router, tags=["Inference"], prefix="/v1/inference")
-    app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
-    app.include_router(
-        dataset.router, tags=["Training dataset"], prefix="/dataset/training"
-    )
-    app.include_router(
-        prediction.router, tags=["Prediction Result"], prefix="/prediction"
-    )
-    app.include_router(dao.router, tags=["Dao"], prefix="/dao")
-    app.include_router(websocket.router, tags=["WebSocket"], prefix="/ws")
-    app.include_router(model.router, tags=["Model"], prefix="/v1/model")
+    # app.include_router(index.router, prefix="/v1")
+    # app.include_router(status.router, tags=["Status"])
+    # app.include_router(ldap.router, tags=["Ldap"], prefix="/v1/ldap")
+    # app.include_router(inference.router, tags=["Inference"], prefix="/v1/inference")
+    # app.include_router(auth.router, tags=["Authentication"], prefix="/v1/auth")
+    # app.include_router(
+    #     dataset.router, tags=["Training dataset"], prefix="/dataset/training"
+    # )
+    # app.include_router(
+    #     prediction.router, tags=["Prediction Result"], prefix="/prediction"
+    # )
+    # app.include_router(dao.router, tags=["Dao"], prefix="/dao")
+    # app.include_router(websocket.router, tags=["WebSocket"], prefix="/ws")
+    # app.include_router(model.router, tags=["Model"], prefix="/v1/model")
 
     
-    app.include_router(document.router, tags=["Kei Document Info"], prefix="/v1/docx/info", include_in_schema=True)
-    app.include_router(inspect.router, tags=["Kei Inpsect Info"], prefix="/v1/docx/inspect", include_in_schema=True)
+    # app.include_router(document.router, tags=["Kei Document Info"], prefix="/v1/docx/info", include_in_schema=True)
+    # app.include_router(inspect.router, tags=["Kei Inpsect Info"], prefix="/v1/docx/inspect", include_in_schema=True)
     
-    app.include_router(users.router, tags=["Company User Info"], prefix="/v1/user", include_in_schema=True)
+    # app.include_router(users.router, tags=["Company User Info"], prefix="/v1/user", include_in_schema=True)
     
-    app.include_router(test.router, tags=["Kei Connection Test Api"], prefix="/test", include_in_schema=True)
-    app.include_router(rpa.router, tags=["Kei Robotic Process Automation"], prefix="/v1/rpa", include_in_schema=True)
-    app.include_router(drm.router, tags=["Kei DRM"], prefix="/v1/drm", include_in_schema=True)
-    
+    # app.include_router(test.router, tags=["Kei Connection Test Api"], prefix="/test", include_in_schema=True)
+    # app.include_router(rpa.router, tags=["Kei Robotic Process Automation"], prefix="/v1/rpa", include_in_schema=True)
+    # app.include_router(drm.router, tags=["Kei DRM"], prefix="/v1/drm", include_in_schema=True)
+    app.include_router(base.router, tags=["nak2210 API"], prefix="/api/v1", include_in_schema=True)
+
     return app

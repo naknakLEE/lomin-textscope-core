@@ -1,3 +1,3 @@
 background_ocr: False
 multi_page_limit: 100
-
+thread_max_works: 3

@@ -1,5 +1,4 @@
 defaults:
-  - route: default
-  - document: default
-  - database: default
-  - common: default
+  - route: nak2210
+  - document: nak2210
+  - database: nak2210
