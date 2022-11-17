@@ -317,7 +317,15 @@ def tensorrt(
         tensorrt 요청, 현재 rotate, detection, recognition가 통합되어있는 하나의 API로 요청을 날립니다.
         TODO로 나중에 rotate, detection, recognition이 분리 되면 이 부분도 분리 필요
     """
-    
+    origin_doc_type = deepcopy(inputs["doc_type"])
+    # lomin_doc_type = inputs["doc_type"].doc_type_code
+    hint = inputs.get("hint", {})
+    if hint is not None and hint.get("doc_type") is not None:
+        doc_type_hint = hint.get("doc_type", {})
+        doc_type_hint = DocTypeHint(**doc_type_hint)
+        cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint)
+        response_log.update(apply_cls_hint_result=cls_hint_result)
+        inputs["doc_type"] = cls_hint_result.get("doc_type")
     inference_start_time = datetime.now()
     response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
 
@@ -338,8 +346,81 @@ def tensorrt(
         inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
     )
     logger.info(
-        f"Gocr Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
+        f"{route_name} Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
     )
+    # cls inference server error check
+    if trt_response.status_code != 200:
+        status_code = 3501
+        logger.error(f"{route_name} Inference error: {trt_response_json}")
+        logger.error(f"{route_name} Inference error code: {status_code}")
+        trt_response_json = {
+            "texts": [],
+            "scores": [],
+            "boxes": [],
+            "classes": [],
+            "response_log": {},
+            "doc_type": origin_doc_type,
+            "image_height": 0,
+            "image_width": 0,
+            "image_height_origin": 0,
+            "image_width_origin": 0,
+            "request_id": inputs.get("request_id", ""),
+            "angle": 0
+        }
+        return (status_code, trt_response_json, response_log)
+
+    inputs = trt_response.json()
+    # get pp route
+    post_processing_type = get_pp_api_name(origin_doc_type)
+
+    if post_processing_type is not None:
+        logger.info(f"{task_id}-pp type:{post_processing_type}")
+
+        text_list = inputs.get("texts", [])
+        box_list = inputs.get("boxes", [])
+        score_list = inputs.get("scores", [])
+        class_list = inputs.get("classes", [])
+        
+        score_list = score_list if len(score_list) > 0 else [ 0.0 for i in range(len(text_list)) ]
+        class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
+
+        pp_inputs = dict(
+            texts=text_list,
+            boxes=box_list,
+            scores=score_list,
+            classes=class_list,
+            rec_preds=inputs.get("rec_preds"),
+            id_type=inputs.get("id_type"),
+            doc_type=inputs.get("doc_type"),
+            image_height=inputs.get("image_height"),
+            image_width=inputs.get("image_width"),
+            relations=inputs.get("relations"),
+            cls_score=inputs.get("cls_score"),
+            task_id=task_id,
+        )
+        status_code, post_processing_results, response_log = pp.post_processing(
+            client=client,
+            task_id=task_id,
+            response_log=response_log,
+            inputs=pp_inputs,
+            post_processing_type=post_processing_type,
+        )
+        if status_code < 200 or status_code >= 400:
+            status_code = 3502
+            logger.error(f"pp server error / error: {status_code}")
+            return (status_code, inputs, response_log)
+        # logger.info(
+        #     f'{task_id}-post-processed kv result:\n{pretty_dict(inference_results.get("kv", {}))}'
+        # )
+        if "texts" not in inputs:
+            inputs["texts"] = post_processing_results["texts"]
+        if inputs.get("route_name", None) != 'cls' and "tables" not in inputs and "tables" in post_processing_results:
+            inputs["tables"] = post_processing_results["tables"]
+        if inputs.get("route_name", None) != 'cls' and "result" not in inputs and "result" in post_processing_results:
+            inputs["kv"] = post_processing_results.pop("result")
+
+        inputs["doc_type"] = origin_doc_type
+        trt_response_json = inputs
     return (trt_response.status_code, trt_response_json, response_log)
 
 def cls(

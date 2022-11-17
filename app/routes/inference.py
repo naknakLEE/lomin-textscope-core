@@ -108,7 +108,7 @@ def ocr(
         return select_user_result
     select_user_result: schema.UserInfo = select_user_result
     user_team: str = select_user_result.user_team
-     
+    
     select_log_result = query.select_log(session, log_id=task_id) 
     if isinstance(select_log_result, schema.LogInfo):
         logger.error(f"x-request-id : {x_request_id} / CORE - log validation error")
@@ -151,7 +151,26 @@ def ocr(
             )
 
 
-    inference_pipeline = "tensorrt"
+    
+    i_doc_type_use = inputs.get("hint").get("doc_type").get("use")
+    i_doc_type_trust = inputs.get("hint").get("doc_type").get("trust")
+    
+    
+    
+    if i_doc_type_use and i_doc_type_trust:
+        i_doc_type = inputs.get("hint").get("doc_type").get("doc_type")
+    
+    if i_doc_type in ["KECO-LPT"]:
+        inference_pipeline = "tensorrt"
+        inputs["doc_type"] = "KECO-LPT"
+    elif i_doc_type in ["KECO-IB"]:
+        inference_pipeline = "mileage"
+        inputs["doc_type"] = "KECO-IB"
+    else: 
+        inference_pipeline = "kv"
+    
+    
+    
     if inference_pipeline in ["tensorrt"]:
         with Client() as client:
             status_code, inference_results, response_log = pipeline.tensorrt(
@@ -173,6 +192,45 @@ def ocr(
                         "merged_count": 1
                     }
                 }
+            doc_type_code = inputs.get("hint").get("doc_type").get("doc_type")
+            select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+            if isinstance(select_doc_type_result, JSONResponse):
+                logger.error(f"x-request-id : {x_request_id} / CORE - doc type error")
+                return select_doc_type_result
+            select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+            inference_results["doc_type"] = deepcopy(select_doc_type_result)
+            
+            
+            inference_results.update(doc_type=dict(
+                doc_type_idx=select_doc_type_result.doc_type_idx,
+                doc_type_code=select_doc_type_result.doc_type_code,
+                doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+                doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+                doc_type_name_en=select_doc_type_result.doc_type_name_en,
+                doc_type_structed=select_doc_type_result.doc_type_structed
+            ))
+    elif inference_pipeline in ["mileage"]:
+        with Client() as client:
+            status_code, inference_results, response_log = pipeline.tensorrt(
+                client=client,
+                inputs=inputs,
+                response_log=response_log,
+                task_id=task_id,
+                route_name=inputs.get("route_name", "mileage"),
+            )
+            if inference_results.get("kv") == None or len(inference_results.get("kv")) == 0:
+                inference_results["kv"] = dict()
+                if inference_results.get("classes"):
+                    inference_results["kv"] = {
+                        inference_results.get("classes", [[]])[0]: {
+                            "value":inference_results.get("texts", [[]])[0], 
+                            "box":inference_results.get("boxes", [[]])[0],
+                            "score":inference_results.get("scores", [[]])[0], 
+                            "class":inference_results.get("classes", [[]])[0], 
+                            "text":inference_results.get("texts", [[]])[0],
+                            "merged_count": 1
+                        }
+                    }
             doc_type_code = inputs.get("hint").get("doc_type").get("doc_type")
             select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
             if isinstance(select_doc_type_result, JSONResponse):

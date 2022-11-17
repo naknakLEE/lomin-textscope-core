@@ -130,6 +130,12 @@ def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optiona
     # 보험금 청구서, 신용정보 동의서
     elif doc_type == "KBL1-IC" or doc_type == "KBL1-PIC":
         return None
+    # 자동차 번호판
+    elif doc_type == "KECO-LPT" or doc_type == "KECO-01":
+        return None
+    # 자동차 계기판
+    elif doc_type == "KECO-02" or doc_type == "KECO-IB":
+        return "mileage"
 
     return None
 
