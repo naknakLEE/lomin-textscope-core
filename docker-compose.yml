@@ -138,19 +138,19 @@ services:
     networks:
       - our_net
 
-  nginx:
-    container_name: textscope-nginx
-    image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
-    build:
-      context: ./
-      dockerfile: docker/base/Dockerfile.nginx
-    volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
-      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
-      - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
-    restart: unless-stopped
-    networks:
-      - our_net
+  # nginx:
+  #   container_name: textscope-nginx
+  #   image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
+  #   build:
+  #     context: ./
+  #     dockerfile: docker/base/Dockerfile.nginx
+  #   volumes:
+  #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
+  #     - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
+  #   restart: unless-stopped
+  #   networks:
+  #     - our_net
 
   nginx-exporter:
     container_name: textscope-nginx_exporter
