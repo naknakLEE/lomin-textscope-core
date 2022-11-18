@@ -87,8 +87,15 @@ def set_json_response(
 
 
 def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optional[str]:
+
+    POC_DOC_TYPE = ["MD-MB", "MD-MED"]
+
     if not isinstance(pp_mapping_table, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
+
+    # 한화 poc 전용 route
+    if doc_type in POC_DOC_TYPE:
+        return "hwl_el"
     
     if doc_type in pp_mapping_table.get("general_pp", []):
         return "general_pp"

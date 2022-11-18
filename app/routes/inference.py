@@ -68,6 +68,11 @@ ONLY_PP_TYPE= [
 "GV-ARR"
 ]
 
+POC_DOC_TYPE = [
+"MD-MB",
+"MD-MED",
+]
+
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
 @router.post("/ocr", status_code=200, responses=inference_responses)
 def ocr(
@@ -196,97 +201,54 @@ def ocr(
     inference_results["doc_type"] = select_doc_type_result
     logger.info(f"x-request-id : {x_request_id} / CORE - gocr END")
 
-    
-    # cls 수행
-    logger.info(f"x-request-id : {x_request_id} / CORE - cls START")
-    if inputs["wrapper_route"] != "gocr":
-        del inference_results["doc_type"]
-        cls_inputs = inference_results
-        with Client() as client:
-            status_code, inference_results, response_log = pipeline.cls(
-                client=client,
-                inputs=cls_inputs,
-                response_log=response_log,
-                task_id=task_id,
-                route_name=inputs.get("route_name", "cls"),
-            )
-        if status_code != 200:
-            status_code, error = ErrorResponse.ErrorCode.get(status_code)
-            logger.error(f"x-request-id : {x_request_id} / CORE - cls inference error")
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
-    
-        inference_id = get_ts_uuid("inference")
-        doc_type_code = inference_results.get("doc_type")
-        select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
-        if isinstance(select_doc_type_result, JSONResponse):
-            logger.error(f"x-request-id : {x_request_id} / CORE - doc type error")
-            return select_doc_type_result
-        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
-        inference_results["doc_type"] = deepcopy(select_doc_type_result)
-        doc_type_idx = select_doc_type_result.doc_type_idx
-
-        doc_type_idxs = []
-        doc_type_codes = []
-        doc_type_idxs.append(doc_type_idx)
-        doc_type_codes.append(select_doc_type_result.doc_type_code)
-            
-        query.update_document(
-            session, 
-            document_id=inputs["document_id"], 
-            doc_type_idx=doc_type_idx,
-            doc_type_idxs=doc_type_idxs,
-            doc_type_codes=doc_type_codes
-        )
-        inference_results["process_type"] = "cls"
-
     # kv case
-    if inference_results.get("doc_type").doc_type_code in KV_DOC_TYPE:
-        logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
-        with Client() as client:
-            inference_results["document_id"] = document_id
-            inference_results["document_path"] = document_path
+    # if inference_results.get("doc_type").doc_type_code in POC_DOC_TYPE:
+    logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
+    with Client() as client:
+        inference_results["document_id"] = document_id
+        inference_results["document_path"] = document_path
 
-            status_code, inference_results, response_log = pipeline.kv(
-                client=client,
-                inputs=inference_results,
-                hint=inputs['kv']["hint"], 
-                response_log=response_log,
-                task_id=task_id,
-                route_name=inputs.get("route_name", "cls"),
-            )
-        if status_code != 200:
-            status_code, error = ErrorResponse.ErrorCode.get(status_code)
-            logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
-            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
-    
-        inference_results.update(doc_type=dict(
-            doc_type_idx=select_doc_type_result.doc_type_idx,
-            doc_type_code=select_doc_type_result.doc_type_code,
-            doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
-            doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
-            doc_type_name_en=select_doc_type_result.doc_type_name_en,
-            doc_type_structed=select_doc_type_result.doc_type_structed
-        ))
-        # 추론 결과에서 개인정보 삭제
-        db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), inputs["wrapper_route"])
-        insert_inference_result = query.insert_inference(
-            session=session,
-            inference_id=inference_id,
-            document_id=document_id, 
-            user_email=user_email,
-            user_team=user_team,
-            inference_result=db_inference_results,
-            inference_type=inputs.get("inference_type"),
-            page_num=inference_results.get("page", target_page),
-            doc_type_idx=doc_type_idx,
-            response_log=response_log
+        status_code, inference_results, response_log = pipeline.kv(
+            client=client,
+            inputs=inference_results,
+            hint=inputs['kv']["hint"], 
+            response_log=response_log,
+            task_id=task_id,
+            route_name=inputs.get("route_name", "cls"),
         )
-        if isinstance(insert_inference_result, JSONResponse):
-            logger.error(f"x-request-id : {x_request_id} / CORE - insert inference result error")
-            return insert_inference_result
-        insert_inference_result: schema.InferenceInfo = insert_inference_result
-        inference_results["process_type"] = "kv"
-        logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
+    if status_code != 200:
+        status_code, error = ErrorResponse.ErrorCode.get(status_code)
+        logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error})) 
+
+    inference_results.update(doc_type=dict(
+        doc_type_idx=select_doc_type_result.doc_type_idx,
+        doc_type_code=select_doc_type_result.doc_type_code,
+        doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+        doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+        doc_type_name_en=select_doc_type_result.doc_type_name_en,
+        doc_type_structed=select_doc_type_result.doc_type_structed
+    ))
+    # 추론 결과에서 개인정보 삭제
+    db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), inputs["wrapper_route"])
+    insert_inference_result = query.insert_inference(
+        session=session,
+        inference_id=inference_id,
+    document_id=document_id, 
+        user_email=user_email,
+        user_team=user_team,
+        inference_result=db_inference_results,
+        inference_type=inputs.get("inference_type"),
+        page_num=inference_results.get("page", target_page),
+        doc_type_idx=doc_type_idx,
+        response_log=response_log
+    )
+    if isinstance(insert_inference_result, JSONResponse):
+        logger.error(f"x-request-id : {x_request_id} / CORE - insert inference result error")
+        return insert_inference_result
+    insert_inference_result: schema.InferenceInfo = insert_inference_result
+    inference_results["process_type"] = "kv"
+    logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
     
     response = dict(
         response_log=response_log,
