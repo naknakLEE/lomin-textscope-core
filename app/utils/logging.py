@@ -1,147 +1,44 @@
 import os
-import logging
-import logging.config
-import typing as t
-from pathlib import Path
+import sys
 
+from fastapi.logger import logger as logging
+from loguru import logger
 from app.common.const import get_settings
-
 settings = get_settings()
 
+log_dir_path = settings.TEXTSCOPE_LOG_DIR_PATH
+os.makedirs(log_dir_path, exist_ok=True)
+log_path = os.path.join(log_dir_path, "server.log")
 
-def get_debug_mode() -> bool:
-    if os.getenv("API_ENV") != "production":
-        return True
-    return False
+logger.add(
+    log_path,
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    rotation=settings.LOG_ROTATION,
+    retention=settings.LOG_RETENTION,
+    encoding=settings.ENCODING,
+    level=settings.LOG_LEVEL,
+    backtrace=settings.BACKTRACE,
+    diagnose=settings.DIAGNOSE,
+    enqueue=settings.ENQUEUE,
+    colorize=settings.COLORIZE,
+)
 
+# handler = logging.handlers.SysLogHandler(address=("localhost", settings.KAKAO_WRAPPER_IP_PORT))
+# logger.add(handler)
+class StdOutErr(object):
+    def __init__(self,logger_object):
+        self.logger_object = logger_object
 
-def get_logging_config_dict(
-    logging_level: int,
-    base_log_directory: str,
-    console_logging_enabled: bool,
-    file_logging_enabled: bool,
-) -> t.Dict:
-    MEGABYTES = 1024 * 1024
+    def write(self,string):
+        self.logger_object(string)
 
-    handlers = {}
-    textscope_logger_handlers = []
-    prediction_logger_handlers = []
-    feedback_logger_handlers = []
-    if console_logging_enabled:
-        handlers.update(
-            {
-                "console": {
-                    "level": logging_level,
-                    "formatter": "console",
-                    "class": "rich.logging.RichHandler",
-                    "rich_tracebacks": True,
-                    # "tracebacks_show_locals": True,
-                    "show_path": get_debug_mode(),  # show log line # in debug mode
-                }
-            }
-        )
-        textscope_logger_handlers.append("console")
-        prediction_logger_handlers.append("console")
-        feedback_logger_handlers.append("console")
-    if file_logging_enabled:
-        handlers.update(
-            {
-                "local": {
-                    "level": logging_level,
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "filename": os.path.join(base_log_directory, "active.log"),
-                    "maxBytes": 100 * MEGABYTES,
-                    "backupCount": 2,
-                },
-                "prediction": {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "level": "INFO",
-                    "filename": os.path.join(base_log_directory, "prediction.log"),
-                    "maxBytes": 100 * MEGABYTES,
-                    "backupCount": 10,
-                },
-                "feedback": {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "level": "INFO",
-                    "filename": os.path.join(base_log_directory, "feedback.log"),
-                    "maxBytes": 100 * MEGABYTES,
-                    "backupCount": 10,
-                },
-            }
-        )
-        textscope_logger_handlers.append("local")
-        prediction_logger_handlers.append("prediction")
-        feedback_logger_handlers.append("feedback")
+    def flush(self):
+        pass
+    def isatty(self):
+        pass
 
-    return {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "console": {"format": "%(message)s", "datefmt": "[%X]"},
-            "prediction": {
-                "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
-                "format": "%(request_id)s %(request)s %(response)s",
-            },
-            "feedback": {
-                "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
-                "format": "%(request_id)s %(data)s",
-            },
-        },
-        "handlers": handlers,
-        "loggers": {
-            "textscope": {
-                "handlers": textscope_logger_handlers,
-                "level": logging_level,
-                "propagate": False,
-            },
-            "textscope.prediction": {
-                "handlers": prediction_logger_handlers,
-                "level": "INFO",
-                "propagate": False,
-            },
-            "textscope.feedback": {
-                "handlers": feedback_logger_handlers,
-                "level": "INFO",
-                "propagate": False,
-            },
-        },
-    }
+def catch_console_all_log():
+    sys.stdout = StdOutErr(logger.info)
+    sys.stderr = StdOutErr(logger.error)
 
-
-def configure_logging(
-    logging_level: int = logging.DEBUG if get_debug_mode() else logging.INFO,
-    base_log_dir: str = settings.TEXTSCOPE_LOG_DIR_PATH,
-    console_logging_enabled: bool = True,
-    file_logging_enabled: bool = True,
-    advanced_enabled: bool = False,
-    advanced_config: t.Optional[t.Dict[str, t.Any]] = None,
-) -> None:
-    Path(base_log_dir).mkdir(parents=True, exist_ok=True)
-    if advanced_enabled and advanced_config:
-        logging.config.dictConfig(advanced_config)
-        logging.getLogger("textscope").debug(
-            "Configured logging with advanced configuration, config=%s", advanced_config
-        )
-    else:
-        if get_debug_mode():
-            # Override logging level in config when debug mode is on
-            logging_level = logging.getLevelName(logging.DEBUG)
-
-        logging_config = get_logging_config_dict(
-            logging_level, base_log_dir, console_logging_enabled, file_logging_enabled
-        )
-        logging.config.dictConfig(logging_config)
-        logging.getLogger("textscope").debug(
-            "Configured logging with simple configuration, "
-            "level=%s, directory=%s, console_enabled=%s, file_enabled=%s",
-            logging_level,
-            base_log_dir,
-            console_logging_enabled,
-            file_logging_enabled,
-        )
-
-
-configure_logging()
-
-
-logger = logging.getLogger("textscope")
+catch_console_all_log()
