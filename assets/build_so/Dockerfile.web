@@ -1,0 +1,5 @@
+ARG VERSION_BEFORE
+
+FROM docker.lomin.ai/ts-web:${VERSION_BEFORE}
+
+COPY ./web/ /workspace/
