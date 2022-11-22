@@ -38,6 +38,7 @@ docker exec -it textscope-pp bash -c "sh /workspace/assets/build_script/pp.sh"
 # copy wrapper
 app_name="${CUSTOMER}_wrapper"
 cp -r ./${app_name} ${build_folder_name}/${created_folder_name}/assets/
+cp -r ./${app_name}/wrapper ${build_folder_name}/${created_folder_name}/wrapper
 
 # copy config
 config_file_list="${CONFIG_FILE_LIST}"
@@ -52,56 +53,61 @@ do
     mkdir -p ${build_folder_name}/${created_folder_name}/assets/${file}
 done
 
+# copy build_so file
+cp -r ./assets/build_so/* ${build_folder_name}/${created_folder_name}
 
 ####################################################################vv
-# model을 build폴더로 저장하는 로직
+# ./inference_server/assets/models 폴더의 enc 모델 파일을 ./build/textscope/serving/models 폴더로 저장하는 로직
 rm -rf build/textscope/serving/models
 mkdir -p build/textscope/serving/models
-bsn_name_before_split=`cat inference_server/assets/conf/config.yaml | grep model`
-bsn_name=${bsn_name_before_split##*- model:}
-bsn_name=`echo $bsn_name | tr -d ' '`
-echo $bsn_name
 
-model_length=`cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-length resources`
-model_length=$((model_length - 1))
-range=$(seq 0 ${model_length})
-for i in $range # 모델 전체 개수 for 돌면서
+bsn_name=`cat ./inference_server/assets/conf/config.yaml | shyaml get-value defaults.2.model`
+model_config="./inference_server/assets/conf/model/${bsn_name}.yaml"
+model_count=`cat ${model_config} | shyaml get-length resources`
+model_count=$((${model_count} - 1))
+
+for index in `seq 0 ${model_count}`
 do
-    if cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.copy_container; then # copy_container변수명 존재 체크
-        is_copy=`cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.copy_container`
-        if [ "$is_copy" = True ] ; then # copy_container가 true면 build 폴더에 copy
-            # copy model
-            model_path=`cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.model_path`
-            build_model_path=${model_path#assets/}
-            filename=${build_model_path##*/} # split / get last char
-            folder_path=`echo $build_model_path | rev | cut -d '/' -f2- | rev ` # /로 나누고 마지막(파일명) 제외
-            parent_path="$(dirname "$folder_path")"
-            
-            mkdir -p build/textscope/serving/${folder_path}
-            # cp inference_server/${model_path} build/textscope/serving/${build_model_path}
-            cp -r inference_server/assets/${folder_path} build/textscope/serving/${parent_path}
+    model_path="./inference_server/"`cat ${model_config} | shyaml get-value resources.${index}.model_path`
+    model_path_length=`echo ${model_path} | tr -cd '/' | wc -m`
+    model_parent_path=`echo ${model_path} | cut -d '/' -f 1-${model_path_length}`
 
-            # copy meta data
-            if cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.model_metadata; then
-                metedata_path=`cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.model_metadata`
-                build_metadata_path=${metedata_path#assets/}
-                metadata_filename=${build_metadata_path##*/} # split / get last char
-                metadata_folder_path=`echo $build_metadata_path | rev | cut -d '/' -f2- | rev ` # /로 나누고 마지막(파일명) 제외
-                metadata_parent_path="$(dirname "$metadata_folder_path")"
-
-                mkdir -p build/textscope/serving/${metadata_folder_path}
-                # cp inference_server/${metedata_path} build/textscope/serving/${build_metadata_path}
-                cp -r inference_server/assets/${metadata_folder_path} build/textscope/serving/${metadata_parent_path}
-            fi
-        fi
-    else
+    # copy_container가 없거나 False인 경우 모델 복사 안함
+    copy_container=`cat ${model_config} | shyaml get-value resources.${index}.copy_container False`
+    if [ ${copy_container} != True ];
+    then
+        echo "Not Copied: ${model_parent_path}"
         echo "Optional value(copy_container) does not exist. I'll skip that line."
+        continue
     fi
+
+    # 일단 전부(비암호화 모델, 암호화 모델) 복사 ./inference_server/assets/models/ -> ./build/textscope/serving/models/
+    build_model_path="./build/textscope/serving/"`echo ${model_parent_path} | cut -d '/' -f 4-`
+    build_model_path_cp=`echo ${build_model_path} | tr -cd '/' | wc -m`
+    build_model_path_cp=`echo ${build_model_path} | cut -d '/' -f 1-${build_model_path_cp}`
+
+    mkdir -p ${build_model_path}
+    cp -r ${model_parent_path} ${build_model_path_cp}
+    echo "Copied: ${model_parent_path} -> ${build_model_path}"
+
+
+    # ./build/textscope/serving/models/에 있는 비암호화 모델 삭제
+    model_path_length=`echo ${model_path} | tr -cd '/' | wc -m`
+    model_filename=`echo ${model_path} | cut -d '/' -f $((${model_path_length} + 1))`
+
+    rm ${build_model_path}/${model_filename}
 done
+
+# ./inference_server/assets/models/에 있는 암호화된 모델 삭제
+find ./inference_server/assets/models/ -name "enc_*" -delete
 
 # to inference build folder
 mkdir -p build/textscope/serving/models
-cp -r build/textscope/serving/models inference_server/build/textscope/serving/models
+cp -r build/textscope/serving/models inference_server/build/textscope/serving/
+
+# copy ./inference_server/build/textscope/serving -> ./build/textscope/serving
+cp -r ./inference_server/build/textscope/serving ./build/textscope/
+
 ####################################################################vv
 
 docker-compose down
