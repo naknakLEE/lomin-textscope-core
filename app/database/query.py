@@ -208,6 +208,18 @@ def update_document(session: Session, document_id: str, **kwargs: Dict) -> Union
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
 
+def select_inference_allow_none(session: Session, **kwargs: Dict) -> schema.InferenceInfo:
+    dao = schema.InferenceInfo
+    try:
+        query = dao.get_all_query(session, **kwargs)
+        result = query.order_by(dao.inference_end_time.desc()).first()
+    except Exception:
+        logger.exception("inference select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("최근 추론")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
+    return result
+
 
 def select_inference_latest(session: Session, **kwargs: Dict) -> schema.InferenceInfo:
     dao = schema.InferenceInfo

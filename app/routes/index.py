@@ -4,6 +4,7 @@ import requests  # type: ignore
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Union
+from httpx import Client
 from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi import BackgroundTasks
@@ -13,16 +14,20 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer
 )
+
 import base64
 
 from app import hydra_cfg
+from app.services.index import request_rotator
 from app.utils.background import bg_ocr
 from app.database.connection import db
 from app.database import query, schema
 from app.models import UserInfo as UserInfoInModel
+from app.wrapper import pipeline
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
+from app.wrapper.pipeline import rotator
 from app.utils.document import document_path_verify
 from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
 from app.schemas import error_models as ErrorResponse
@@ -101,6 +106,7 @@ def check_status() -> Any:
 def get_image(
     document_id: str,
     page: int = 1,
+    rotate: bool = False,
     session: Session = Depends(db.session)
 ) -> JSONResponse:
     response = dict()
@@ -133,17 +139,24 @@ def get_image(
     if document_bytes is None:
         status_code, error = ErrorResponse.ErrorCode.get(2103)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    if rotate:
+        document_base64 = request_rotator(session, document_id, document_bytes)
+        if isinstance(document_base64, JSONResponse):
+            return document_base64
+    
     
     document = models.Image(
         filename=document_path.name,
-        description=select_document_result.document_description,
-        image_type=select_document_result.document_type,
+        description="",
+        # image_type=select_document_result.document_type,
+        image_type="inference",
         upload_datetime=select_document_result.document_upload_time,
         width=document_width,
         height=document_height,
         format=document_format,
         data=document_base64
     )
+    
     
     response.update(dict(
         request_datetime=request_datetime,

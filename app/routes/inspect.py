@@ -118,7 +118,7 @@ def kbl_post_inspect_info(
     
     if len(changes_keyvalue) > 0:
         # inference 데이터 불러오기
-        latest_inference_result = query.select_inference_latest(session, document_id=document_id, page_num=page_num)
+        latest_inference_result = query.select_inference(session, document_id=document_id, page_num=page_num)
         if isinstance(latest_inference_result, JSONResponse):
             return latest_inference_result
         # inference 전체 kv 개수        kv_count = latest_inference_result.inference_result

@@ -813,3 +813,51 @@ MODEL_DOC_TYPE_LIST = {
 def get_model_doc_type_list(model: str):
     return MODEL_DOC_TYPE_LIST[model]
 
+
+
+
+def rotator(
+    client: Client,
+    inputs: Dict,
+    task_id: str = "",
+    route_name: str = "rotate",
+    response_log: Dict = {},
+) -> Tuple[int, Dict, Dict]:
+    """rotate 요청에 대해 inference와 pp를 수행한 결과를 return 합니다."""
+
+
+    inference_start_time = datetime.now()
+    response_log.update(inference_start_time=inference_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+
+
+    # rotate inference 요청
+    rotate_inference_response = client.post(
+        f"{model_server_url}/{route_name}",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    inference_end_time = datetime.now()
+
+    logger.info(
+        f"rotate Inference time: {str((inference_end_time - inference_end_time).total_seconds())}"
+    )
+
+    # kv inference server error check
+    if rotate_inference_response.status_code != 200 or type(rotate_inference_response.json()) == str:
+        logger.error(f"Kv Inference error: {rotate_inference_response}")
+        status_code = 3501
+        return (status_code, rotate_inference_response, response_log)
+    
+    status_code = rotate_inference_response.status_code
+    inf_response = rotate_inference_response.json()
+    
+    
+    response_log.update(
+        inference_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+        inference_total_time=(inference_end_time - inference_start_time).total_seconds(),
+    )
+
+
+        
+    return (status_code, inf_response, response_log)
