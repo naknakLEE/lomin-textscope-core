@@ -61,8 +61,8 @@ services:
       - ./:/workspace
     tty: true
     working_dir: /workspace/app
-    entrypoint: python3 main.py
-    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
 
 
   pp:
@@ -84,8 +84,8 @@ services:
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp
-    entrypoint: python3 main.py
-    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
 
 
   wrapper:

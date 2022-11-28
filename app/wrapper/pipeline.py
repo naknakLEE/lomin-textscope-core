@@ -478,22 +478,22 @@ def kv(
                         }
                     }
                 elif lomin_doc_type == "LINA1-CDT-A":
-                    inputs['template']["template_json"] = settings.LINA1_CDT_TEMPLATE_JSON
-                    
-                    inputs['template']["template_images"] = {
-                        "0": {
-                            "image_id": "template",
-                            "image_path": "치아치료확인서_page=000002.png",
-                            "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64
-                        }
-                    }
-                elif lomin_doc_type == "LINA1-CDT-B":
-                    inputs['template']["template_json"] = settings.LINA1_CDT_TEMPLATE_JSON
+                    inputs['template']["template_json"] = settings.LINA1_CDT_A_TEMPLATE_JSON
                     
                     inputs['template']["template_images"] = {
                         "0": {
                             "image_id": "template",
                             "image_path": "치아치료확인서_page=000003.png",
+                            "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64
+                        }
+                    }
+                elif lomin_doc_type == "LINA1-CDT-B":
+                    inputs['template']["template_json"] = settings.LINA1_CDT_B_TEMPLATE_JSON
+                    
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template",
+                            "image_path": "치아치료확인서_page=000002.png",
                             "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P2_BASE64
                         }
                     }
@@ -924,18 +924,23 @@ def kv_alone(
                             "image_bytes": settings.LINA1_IC_TEMPLATE_IMAGE_BASE64
                         }
                     }
-                elif lomin_doc_type == "LINA1-CDT-A" or lomin_doc_type == "LINA1-CDT-B":
-                    inputs['template']["template_json"] = settings.LINA1_CDT_TEMPLATE_JSON
+                elif lomin_doc_type == "LINA1-CDT-A":
+                    inputs['template']["template_json"] = settings.LINA1_CDT_A_TEMPLATE_JSON
+                    
+                    inputs['template']["template_images"] = {
+                        "0": {
+                            "image_id": "template",
+                            "image_path": "치아치료확인서_page=000003.png",
+                            "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64
+                        }
+                    }
+                elif lomin_doc_type == "LINA1-CDT-B":
+                    inputs['template']["template_json"] = settings.LINA1_CDT_B_TEMPLATE_JSON
                     
                     inputs['template']["template_images"] = {
                         "0": {
                             "image_id": "template",
                             "image_path": "치아치료확인서_page=000002.png",
-                            "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64
-                        },
-                        "1": {
-                            "image_id": "template",
-                            "image_path": "치아치료확인서_page=000003.png",
                             "image_bytes": settings.LINA1_CDT_TEMPLATE_IMAGE_P2_BASE64
                         }
                     }

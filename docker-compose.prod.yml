@@ -41,6 +41,7 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
+    # entrypoint: bash
     entrypoint: python3 main.py    
     # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
 

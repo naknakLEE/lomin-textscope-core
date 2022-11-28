@@ -171,7 +171,8 @@ class Settings(BaseSettings):
     LINA1_IC_TEMPLATE_JSON: Dict = {}
     LINA1_IC_TEMPLATE_IMAGE_BASE64: str = ""
 
-    LINA1_CDT_TEMPLATE_JSON: Dict = {}
+    LINA1_CDT_A_TEMPLATE_JSON: Dict = {}
+    LINA1_CDT_B_TEMPLATE_JSON: Dict = {}
     LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64: str = ""
     LINA1_CDT_TEMPLATE_IMAGE_P2_BASE64: str = ""
 
