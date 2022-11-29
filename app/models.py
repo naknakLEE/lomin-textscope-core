@@ -441,7 +441,7 @@ class ParamPostTrainCls(BaseModel):
 
 
 class ParamPostImageCrop(BaseModel):
-    image_id: str = "ea67a273-cb29-4c79-9739-708bf6085720" # UUID 형식의 학습 task 고유 ID
+    document_id: str = ""
     rectification: Rectification = Rectification() 
     page: int = 1
     format: str = "jpeg"
