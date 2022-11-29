@@ -58,6 +58,23 @@ KV_DOC_TYPE = [
 "LINA1-AFC",
 ]
 
+ID_CLS_DOC_TYPE = [
+#LINA v1.0.3
+    "ID-RRB",
+    "ID-RRC"
+]
+
+ID_DOC_TYPE = [
+#LINA v1.0.3
+    "ID-DLC",
+    "ID-ARB",
+    "ID-ARC", 
+    "ID-OKC", 
+    "ID-ONC", 
+    "ID-PP", 
+    "ID-PRC"
+]
+
 ONLY_PP_TYPE= [
 "GV-BC",
 "GV-CFR",
@@ -146,6 +163,7 @@ def ocr(
                 )
             )
     ''' 
+        0-1. inference(/detection) -> 0-2. pp(/lina1_id_cls) -> 
         1. inference(gocr) -> 2. inference(cls) -> 
             3. pp(lina1_cls) -> 4. inference(kv) -> 5. pp(lina1_kv)
     '''
@@ -171,6 +189,92 @@ def ocr(
                 route_name=inputs.get("route_name", "ocr"),
             )
         elif settings.USE_OCR_PIPELINE == 'single':
+
+            # 0-1. inference(/detection) -> pp(/lina1_id_cls)
+            status_code, id_cls_result, response_log = pipeline.id_cls(
+                client=client,
+                inputs=inputs,
+                x_request_id=x_request_id,
+                response_log=response_log,
+                task_id=task_id,
+            )
+
+            # status_code != 200 -> return fail message
+            if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
+                status_code, error = ErrorResponse.ErrorCode.get(3501)
+                logger.error(f"x-request-id : {x_request_id} / CORE - inference server error")
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+            # status_code == 200 ->
+            id_doc_type = id_cls_result["result"]["doc_type"]
+            # status_code == 200 -> ID_RRB, ID_RRC -> doc_type 치환 후 kv result 반환
+            select_doc_type_result = query.select_doc_type(session, doc_type_code=id_doc_type)
+            inference_results = {"doc_type":{},"rectification":{}, "key_values":[], "texts":[], "tables":[]}
+            inference_results.update(doc_type=dict(
+                doc_type_idx=select_doc_type_result.doc_type_idx,
+                doc_type_code=select_doc_type_result.doc_type_code,
+                doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+                doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+                doc_type_name_en=select_doc_type_result.doc_type_name_en,
+                doc_type_structed=select_doc_type_result.doc_type_structed
+            ))
+
+            if id_doc_type in ID_CLS_DOC_TYPE :
+                #if RRB -> LINA1-04-01: True
+                #if RRC -> LINA1-04-01: False
+                keyvalue_template={
+                    "id": "kv-000",
+                    "type": "boolean",
+                    "key": "LINA1-04-01",
+                    "confidence": id_cls_result["result"]["cls_score"],
+                    "text_ids": [
+                        "txt-0001"
+                    ],
+                    "value": id_doc_type == "ID-RRB",
+                    "bbox": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                    },
+                    "comparison": True,
+                    "is_hint_used": False,
+                    "is_hint_trusted": False
+                }
+                inference_results.update(key_values=[keyvalue_template])
+                response = dict(
+                    response_log=response_log,
+                    inference_results=inference_results,
+                    resource_id=dict(
+                        # log_id=task_id
+                    )
+                )
+                return JSONResponse(content=jsonable_encoder(response))
+                # status_code == 200 -> ID_* -> doc_type 치환 후 cls result 반환
+            elif id_doc_type in ID_DOC_TYPE :
+                #if ID_* : CLS result = id_cls_result
+                inference_results.update(doc_type=dict(
+                doc_type_idx=select_doc_type_result.doc_type_idx,
+                doc_type_code=id_doc_type,
+                doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+                doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+                doc_type_name_en=select_doc_type_result.doc_type_name_en,
+                doc_type_structed=select_doc_type_result.doc_type_structed
+            ))
+
+                response = dict(
+                    response_log=response_log,
+                    inference_results=inference_results,
+                    resource_id=dict(
+                        # log_id=task_id
+                    )
+                )
+                return JSONResponse(content=jsonable_encoder(response))
+            
+            elif id_doc_type != "ETC" :
+                #if ETC -> pass
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":"Undefined ID document type"}))
+
+
             status_code, inference_results, response_log = pipeline.gocr(
                 client=client,
                 inputs=inputs,

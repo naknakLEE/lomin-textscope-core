@@ -1048,3 +1048,74 @@ def kv_alone(
         inputs["doc_type"] = lomin_doc_type
 
     return (status_code, inputs, response_log)
+
+def id_cls(    
+    client: Client,
+    inputs: Dict,
+    response_log: str,
+    x_request_id: str,
+    task_id: str,
+):
+
+    inference_start_time = datetime.now()
+                
+    route_name = "detection"
+    detection_response = client.post(
+        f"{model_server_url}/{route_name}",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    inference_end_time = datetime.now()
+
+    ############################
+    detection_result = detection_response.json()
+    logger.info(f"Detection Inference time: {str((inference_start_time - inference_end_time).total_seconds())}")
+
+    response_log.update(
+        dict(
+            inference_request_start_time=inference_start_time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            inference_request_end_time=inference_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            inference_request_time=inference_end_time - inference_start_time,
+        )
+    )
+
+    # kv inference server error check
+    if detection_response.status_code != 200 or type(detection_result) == str:
+        logger.error(f"Detection Inference error: {detection_response}")
+        status_code = 3501
+        return (status_code, detection_response, response_log)
+
+    ############################
+
+    route_name = "lina1_id_cls"
+    pp_start_time = datetime.now()
+    post_processing_results = pp.post_processing(
+        client=client,
+        task_id=task_id,
+        response_log=response_log,
+        inputs=detection_result,
+        post_processing_type=route_name,
+    )
+    pp_end_time = datetime.now()
+    status_code = post_processing_results[0]
+
+    response_log.update(
+        dict(
+            inference_request_start_time=pp_start_time.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            inference_request_end_time=pp_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            inference_request_time=pp_end_time - pp_start_time,
+        )
+    )
+
+    if status_code < 200 or status_code >= 400:
+            status_code = 3502
+            logger.error(f"pp server error / error: {status_code}")
+            return (status_code, inputs, response_log)
+
+    return post_processing_results
+    
