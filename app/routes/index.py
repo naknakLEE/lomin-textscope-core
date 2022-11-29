@@ -36,6 +36,7 @@ from app.utils.image import (
     get_crop_image,
     get_image_info_from_bytes,
     get_image_bytes,
+    read_image_from_bytes,
     load_image,
 )
 if hydra_cfg.route.use_token:
@@ -307,8 +308,8 @@ async def post_upload_document(
     return JSONResponse(status_code=200, content=jsonable_encoder(response), background=background_tasks)
 
 
-@router.post("/image/crop")
-def image_crop(
+@router.post("/docx/image/crop")
+def post_document_image_crop(
     params: models.ParamPostImageCrop,
     session: Session = Depends(db.session)
 ) -> JSONResponse:
@@ -316,11 +317,28 @@ def image_crop(
     response_log = dict()
     request_datetime = datetime.now()
     
-    image_id = params.image_id
+    document_id = params.document_id
+    page_num = params.page
+    angle = params.rectification.rotated
     
-    select_image_result = query.select_image(session, image_id=image_id)
-    if isinstance(select_image_result, JSONResponse):
-        return select_image_result
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    # 요청한 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
+    if page_num < 1 or select_document_result.document_pages < page_num:
+        status_code, error = ErrorResponse.ErrorCode.get(2506)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    # 문서의 page_num 페이지의 썸네일 base64로 encoding
+    document_path = Path(select_document_result.document_path)
+    document_bytes = get_image_bytes(document_id, document_path)
+    image = read_image_from_bytes(document_bytes, document_path.name, (-1 * angle), page_num)
+    if image is None:
+        status_code, error = ErrorResponse.ErrorCode.get(2103)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     response_datetime = datetime.now()
     elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
@@ -331,19 +349,6 @@ def image_crop(
             elapsed=elapsed,
         )
     )
-    
-    data = dict(
-        image_id=image_id,
-        image_path=select_image_result.image_path,
-        image_bytes=None,
-        angle=params.rectification.rotated,
-        page=params.page,
-    )
-    
-    image = load_image(data)
-    if image is None:
-        status_code, error = ErrorResponse.ErrorCode.get(2103)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     crop_images = get_crop_image(image, params.format, params.crop)
     if len(crop_images) == 0:
