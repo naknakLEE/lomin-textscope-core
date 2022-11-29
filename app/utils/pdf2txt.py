@@ -42,6 +42,7 @@ class Pdf2Image:
         maxpages: int = 0,
         caching: bool = True,
         debug: int = 0,
+        total_page: int = 0,
     ) -> None:
         PDFDocument.debug = debug
         PDFParser.debug = debug
@@ -53,11 +54,13 @@ class Pdf2Image:
         device = XMLConverter(
             rsrcmgr, outfp, laparams=LAParams(), imagewriter=None, stripcontrol=False
         )
-
+        # total_array:list = list(range(total_page))
+        # total_array.pop(maxpages)
         with open(fname, "rb") as fp:
             interpreter = PDFPageInterpreter(rsrcmgr, device)
             for page in PDFPage.get_pages(
                 fp,
+                # set(total_array),
                 set(),
                 maxpages=maxpages,
                 password=b"",
@@ -183,13 +186,13 @@ def convert_path_to_image(pdf_path: str) -> List:
     pages = pdf2image.convert_from_path(pdf_path=pdf_path)
     return pages
 
-
 def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
     xml_path = PurePath("/tmp", str(uuid.uuid4()) + ".xml").as_posix()
     
     pdf_path = None
     if settings.USE_MINIO:
-        image_minio_path = "/".join([inputs.get("image_id"), Path(inputs.get("image_path", "")).name])
+        # image_minio_path = "/".join([inputs.get("image_id"), Path(inputs.get("image_path", "")).name])
+        image_minio_path = inputs.get("image_path", "")
         image_bytes = minio_client.get(image_minio_path, settings.MINIO_IMAGE_BUCKET)
         pdf_path = save_pdf(image_bytes)
         
@@ -197,7 +200,8 @@ def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
         pdf_path = inputs.get("image_path")
     
     page_num = inputs.get("page", 1) - 1
-    pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=inputs.get("page"))
+    total_page = inputs.get("total_page", 0)
+    pdf2txt.save_xml(fname=pdf_path, xml_path=xml_path, maxpages=page_num, total_page = total_page)
     
     doc = ET.parse(xml_path)
     pages = doc.findall("page")
@@ -208,27 +212,31 @@ def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
     page = pages[page_num]
     textbox = page.findall("textbox")
     
-    parsed_text_info = {}
+    
+    parsed_text_list = list()
     image_size = (0, 0)
     if len(textbox) > 0:
         pages = convert_path_to_image(pdf_path=pdf_path)
-        text_info = pdf2txt(
-            pages=pages, page_num=page_num, pdf_path=pdf_path, xml_path=xml_path
-        )
-        image_size = pages[page_num].size
-        
-        parsed_text_info.update(parse_pdf_text(text_info))
-        parsed_text_info.update(dict({
-            "image_width": image_size[0],
-            "image_height": image_size[1],
-            "image_width_origin": image_size[0],
-            "image_height_origin": image_size[1],
-            "request_id": inputs.get("request_id", ""),
-            "angle": 0,
-            "id_type": "",
-        }))
+        for i in range(len(pages)):
+            parsed_text_info = {}
+            text_info = pdf2txt(
+                pages=pages, page_num=page_num, pdf_path=pdf_path, xml_path=xml_path
+            )
+            image_size = pages[page_num].size
+            
+            parsed_text_info.update(parse_pdf_text(text_info))
+            parsed_text_info.update(dict({
+                "image_width": image_size[0],
+                "image_height": image_size[1],
+                "image_width_origin": image_size[0],
+                "image_height_origin": image_size[1],
+                "request_id": inputs.get("request_id", ""),
+                "angle": 0,
+                "id_type": "",
+            }))
+            parsed_text_list.append(parsed_text_info)
     
-    return parsed_text_info, image_size
+    return parsed_text_info, image_size, parsed_text_list
 
 
 def save_pdf(file_bytes: str) -> str:

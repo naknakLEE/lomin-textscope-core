@@ -7,34 +7,36 @@ from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from app import hydra_cfg
 from app.common.const import get_settings
+from fastapi import BackgroundTasks
 
 from app.utils.document import (
     document_dir_verify,
     multiple_request_ocr,
     generate_searchalbe_pdf,
-    save_minio_pdf_conver_img,
+    save_minio_pdf_convert_img,
     get_inference_result_to_pdf
 )
 from app.utils.minio import MinioService
 from app.utils.utils import cal_time_elapsed_seconds
 from app.database.connection import db 
-if hydra_cfg.route.use_token:
-    from app.utils.auth import get_current_active_user as get_current_active_user
-else:
-    from app.utils.auth import get_current_active_user_fake as get_current_active_user
+from app.utils.auth import get_current_active_user_fake as get_current_active_user
+# if hydra_cfg.route.use_token:
+#     from app.utils.auth import get_current_active_user as get_current_active_user
+# else:
+#     from app.utils.auth import get_current_active_user_fake as get_current_active_user
+
 """
     ### Nank2210 전용 API
 """
 
 settings = get_settings()   # default setting
 router = APIRouter()
-minio_client = MinioService()   # minio service setting
 
 
 @router.post("/inference/ocr")
 async def post_inference_ocr(
     inputs: Dict = Body(...),
-    current_user: UserInfoInModel = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     session: Session = Depends(db.session),    
 ) -> JSONResponse:
     """
@@ -53,18 +55,23 @@ async def post_inference_ocr(
 
     path_verify = document_dir_verify(document_dir)
     if isinstance(path_verify, JSONResponse): return path_verify
-    
-    inference_result_list = multiple_request_ocr(inputs)
-    if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
-    # document_cnt로 sort(순서 보장을 위해)
-    sorted(inference_result_list, key=lambda k: k['cnt'])
 
-    inputs.update(
-        inference_result_list=inference_result_list
+    background_tasks.add_task(
+        multiple_request_ocr,
+        inputs        
     )
     
-    pdf_result = generate_searchalbe_pdf(inputs)
-    if(isinstance(pdf_result, JSONResponse)): return pdf_result
+    # inference_result_list = multiple_request_ocr(inputs)
+    # if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
+    # # document_cnt로 sort(순서 보장을 위해)
+    # sorted(inference_result_list, key=lambda k: k['cnt'])
+
+    # inputs.update(
+    #     inference_result_list=inference_result_list
+    # )
+    
+    # pdf_result = generate_searchalbe_pdf(inputs)
+    # if(isinstance(pdf_result, JSONResponse)): return pdf_result
 
     # 종료 시간 측정 
     response_datetime = datetime.now()
@@ -97,6 +104,7 @@ async def post_inference_ocr(
 async def put_pdf(
     inputs: Dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     session: Session = Depends(db.session),    
 ) -> JSONResponse:
     """
@@ -104,7 +112,6 @@ async def put_pdf(
     pdf_dir 입력받은 Nas경로 폴더 안에 있는 pdf 파일을 가져와 textscope front화면으로 등록 합니다.
     등록 완료시 put_dir 입력받은 폴더를 삭제합니다.
     """
-
     response: dict = dict()
     response_log: dict = dict()
 
@@ -115,20 +122,33 @@ async def put_pdf(
 
     path_verify = document_dir_verify(pdf_dir)
     if isinstance(path_verify, JSONResponse): return path_verify
-    
 
-    pdf_len, document_id, origin_object_name = save_minio_pdf_conver_img(inputs, session)
-    if(isinstance(pdf_len, JSONResponse)): return pdf_len
-
-    pdf_extract_inputs = dict(
-        pdf_len = pdf_len,
-        document_id = document_id,
-        origin_object_name = origin_object_name,
-        pdf_dir = pdf_dir
+    inputs.update(
+        user_email=current_user.email,
+        user_team=current_user.team,   
     )
-    inference_result_list = get_inference_result_to_pdf(pdf_extract_inputs, session)
-    if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
 
+    background_tasks.add_task(
+        get_inference_result_to_pdf,
+        inputs,
+        session        
+    )    
+
+    # current_user_info = dict(
+    #     user_email=current_user.email,
+    #     user_team=current_user.team
+    # )
+    # pdf_len, document_id, origin_object_name = save_minio_pdf_convert_img(inputs, session, current_user_info)
+    # if(isinstance(pdf_len, JSONResponse)): return pdf_len
+
+    # pdf_extract_inputs = dict(
+    #     pdf_len = pdf_len,
+    #     document_id = document_id,
+    #     origin_object_name = origin_object_name,
+    #     pdf_dir = pdf_dir
+    # )
+    # inference_result_list = get_inference_result_to_pdf(pdf_extract_inputs, session)
+    # if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
 
 
     # 종료 시간 측정 

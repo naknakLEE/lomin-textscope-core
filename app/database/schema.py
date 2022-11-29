@@ -616,10 +616,12 @@ class DocumentInfo(Base, BaseMixin):
     doc_type_code = Column(ARRAY(String, zero_indexes=True), comment="문서에 포함된 문서 종류(소분류) 항목코드 리스트")
     doc_type_cls_match = Column(ARRAY(Integer, zero_indexes=True), comment="문서 종류(대분류)에 포함되지 않은 종류(소분류)이면 기타서류(31)로 변경되어 저장된 정보")
     document_accuracy = Column(Float, comment="문서 인식정확도")
-    inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
+    # inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
+    inspect_id = Column(String, default="NOT_INSPECTED", comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 
     user_info = relationship('UserInfo')
+    relationship('InferenceInfo', cascade="all, delete")
 
 
 class CompanyUserInfo(Base, BaseMixin):
@@ -693,20 +695,21 @@ class InferenceInfo(Base, BaseMixin):
     __table_args__ = {'comment': 'textscope 서비스 추론 정보'}
 
     inference_id = Column(String, primary_key=True, comment='추론 아이디')
-    document_id = Column(ForeignKey('document_info.document_id'), nullable=False, comment='문서 아이디')
+    document_id = Column(ForeignKey('document_info.document_id', ondelete="CASCADE"), nullable=False, comment='문서 아이디')
     user_email = Column(String, comment='추론 요청한 유저의 아이디(이메일)')
     user_team = Column(String, nullable=False, comment='추론 요청 당시 요청자의 유저 정보')
     inference_result = Column(JSON, comment='추론 결과')
     inference_type = Column(String, comment='추론 종류(gocr, kv)')
     inference_start_time = Column(DateTime, nullable=False, default=func.now(), comment='추론 시작 시각')
-    inference_end_time = Column(DateTime, comment='추론 완료 시각')
+    inference_end_time = Column(DateTime, default=func.now(), comment='추론 완료 시각')
     page_num = Column(Integer, comment='추론한 페이지 페이지')
     doc_type_idx = Column(Integer, comment='페이지의 문서 종류 유니크 인덱스')
     page_width = Column(Integer, comment='이미지 변환 후 가로 크기')
     page_height = Column(Integer, comment='이미지 변환 후 세로 크기')
     is_used = Column(Boolean, comment='사용 여부')
 
-    document_info = relationship('DocumentInfo')
+    # document_info = relationship('DocumentInfo', cascade="all, delete-orphan")
+    relationship('InspectInfo', cascade="all, delete")
 
 
 class UserAlarm(Base, BaseMixin):
@@ -728,7 +731,7 @@ class InspectInfo(Base, BaseMixin):
     inspect_id = Column(String, primary_key=True, comment='검수 아이디')
     user_email = Column(ForeignKey('user_info.user_email'), comment='검수자 아이디(이메일)')
     user_team = Column(String, comment='user_team')
-    inference_id = Column(ForeignKey('inference_info.inference_id'), comment='추론 아이디')
+    inference_id = Column(ForeignKey('inference_info.inference_id', ondelete="CASCADE"), comment='추론 아이디')
     inspect_start_time = Column(DateTime, default=func.now(), comment='검수 시작 시각')
     inspect_end_time = Column(DateTime, comment='검수 종료 시각')
     inspect_result = Column(JSON, comment='검수 결과')
@@ -737,7 +740,8 @@ class InspectInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
     user_info = relationship('UserInfo')
-    inference = relationship('InferenceInfo')
+    # inference = relationship('InferenceInfo', cascade="all, delete-orphan")
+    # inference = relationship('InferenceInfo')
 
 
 class VisualizeInfo(Base, BaseMixin):
@@ -785,7 +789,17 @@ class LogDbLink(Base, BaseMixin):
     created_owner = Column(String, comment='rpa 양식 수정자(이메일)')
     is_used = Column(Boolean, comment='사용 여부')
 
-
+class LogAPI(Base, BaseMixin):
+    __tablename__ = 'log_api'
+    __table_args__ = {'comment': 'textscope 서비스 api 로그 정보'}
+    api_id = Column(Integer, primary_key=True, comment='api 로그 아이디', index=True, autoincrement=True)
+    api_domain = Column(String, nullable=False, comment='api 도메인', default="core")
+    api_end_point = Column(String, nullable=False, comment='api 엔드포인트')
+    api_method = Column(String, nullable=False, comment='api Method')
+    api_status_code = Column(String, nullable=False, comment='api http 응답코드')
+    api_is_success = Column(Boolean, nullable=False, comment='api 응답 성공여부')
+    api_response_time = Column(String, nullable=False, comment='api 응답시간')
+    api_response_datetime = Column(DateTime, default=func.now(), comment="api 로그 생성시간")  
 
 # 테이블 추가 시, 테이블 명:클래스 명 추가
 table_class_mapping = dict({
@@ -820,6 +834,7 @@ table_class_mapping = dict({
     "visualize_info": VisualizeInfo,
     "rpa_form_info": RpaFormInfo,
     "log_db_link": LogDbLink,
+    "log_api": LogAPI,
 })
 
 # plugin 계정에 특정 테이블 권한 주기
@@ -846,7 +861,7 @@ grant_table_list = [
     "kv_class_info",
     "doc_type_kv_class",
     "log_db_link",
-    
+    "log_api"
 ]
 
 # plugin 계정에 특정 시퀀스 권한 주기
@@ -911,10 +926,10 @@ def insert_initial_data() -> None:
     try:
         session = next(db.session())
         
-        initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
-        if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
-            logger.info(f'Textscope service initial data skipped')
-            return
+        # initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
+        # if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
+        #     logger.info(f'Textscope service initial data skipped')
+        #     return
         
         db_dir="/workspace/app/assets/database/"
         

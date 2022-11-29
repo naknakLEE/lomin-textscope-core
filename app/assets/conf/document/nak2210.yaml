@@ -1,3 +1,9 @@
 background_ocr: False
+background_ocr_task_limit: 5
+background_upload_task_limit: 5
+doc_type:
+  - GOCR
 multi_page_limit: 100
 thread_max_works: 3
+put_directory: /home/lomin/Downloads/CAMS/OCR/RESPDF
+no_update_directory: /home/lomin/Downloads/CAMS/OCR/DELPDF 

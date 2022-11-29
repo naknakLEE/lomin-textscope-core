@@ -16,22 +16,32 @@ from app.common.const import get_settings
 from app.utils.utils import cal_time_elapsed_seconds
 from app.schemas import error_models as ErrorResponse
 from app.utils.auth import jwt_decode
+from app.database.schema import LogAPI
 
 
 settings = get_settings()
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
+
+    INSERT_LOG_INFO_API: list = [
+        "POST_/api/v1/inference/ocr",
+        "PUT_/api/v1/pdf"
+    ]
+
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         request_datetime = datetime.now()
+
+        api_is_success = False
         try:
             request.state.req_time = request_datetime
             logger.info(f"Request time: {request.state.req_time}")
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
+            request.state.db = next(db.session())            
             # if settings.USE_TEXTSCOPE_DATABASE:
             #     request.state.db = next(db.session())
             headers = request.headers
@@ -43,6 +53,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             ip = ip if ip is not None else "127.0.0.1"
             request.state.ip = ip.split(",")[0] if "," in ip else ip
             
+            # 국가기록원 방어코드(2022-11-28 Issue)
+            request.state.ip = '127.0.0.1'
+
             if "authorization" in headers.keys():
                 token = headers.get("Authorization")
                 token_data = jwt_decode(token.replace("Bearer ", ""))
@@ -53,6 +66,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 request.state.email = token_data.email
             response = await call_next(request)
             api_logger(request=request, response=response)
+            api_is_success = True
         except jwt.ExpiredSignatureError as e:
             error = await exception_handler(e)
             error_dict = parse_error_dict(error)
@@ -73,6 +87,21 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         finally:
             # if settings.USE_TEXTSCOPE_DATABASE:
             #     request.state.db.close()
+
+            if(f"{request.method}_{request.url.path}" in self.INSERT_LOG_INFO_API):
+                elapsed_datetime = cal_time_elapsed_seconds(request.state.req_time, datetime.now())
+                api_log_dict = dict({
+                    'api_end_point': request.url.path,
+                    'api_method': request.method,
+                    'api_status_code': response.status_code,
+                    'api_is_success': api_is_success,
+                    'api_response_time': elapsed_datetime  
+                })
+                LogAPI.create(
+                    session=request.state.db,
+                    **api_log_dict
+                )                   
+            request.state.db.close()            
             response_datetime = datetime.now()
             elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
             logger.info(f"Response time: {response_datetime}")

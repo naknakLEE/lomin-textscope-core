@@ -1,1 +1,3 @@
-use_token: False
+use_token: True
+socket_server_ip: 10.1.1.118
+socket_server_port: 9909

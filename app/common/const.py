@@ -147,7 +147,7 @@ class Settings(BaseSettings):
             "password": "cbVTURA=Uhe76vRd*ele"
         },
         {
-            "name": "kei2205",
+            "name": "nak2210",
             "password": "g12?oq4C+APT2I4wRKb!",
             # "ignore": ["VW_IF_EMP", "VW_IF_ORG_CUR", "VW_IF_CD"]
         }
@@ -159,7 +159,7 @@ class Settings(BaseSettings):
         "D_REVOKE_ADMIN",
         "C_GRANT_USER",
         "D_REVOKE_USER",
-        "R_ORG_CHART"
+        # "R_ORG_CHART"
     ]
 
     # KBCARD CONFIG

@@ -8,6 +8,8 @@ from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app import hydra_cfg
+from app.utils.document import generate_searchable_pdf_2, get_stored_file_extension
+from app.utils.image import get_image_bytes, read_image_from_bytes
 from app.utils.rpa import send_rpa_only_cls_FN
 from app.database.connection import db
 from app.database import query, schema
@@ -20,6 +22,7 @@ from app.utils.inspect import get_inspect_accuracy, get_inspect_accuracy_avg
 from app.middlewares.exception_handler import CoreCustomException
 from app.utils.inspect import is_doc_type_in_cls_group
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pathlib import Path
 
 
 if hydra_cfg.route.use_token:
@@ -51,10 +54,10 @@ async def post_inspect_info(
     user_email:         str   = current_user.email
     document_id:        str   = params.get("document_id")
     page_num:           int   = params.get("page_num", 0)
-    inspect_date_start: str   = params.get("inspect_date_start", datetime.now())
-    inspect_date_end:   str   = params.get("inspect_date_end")
+    # inspect_date_start: str   = params.get("inspect_date_start", datetime.now())
+    # inspect_date_end:   str   = params.get("inspect_date_end")
     inspect_result:     dict  = params.get("inspect_result")
-    inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
+    # inspect_accuracy:   float = params.get("inspect_accuracy", 0.0)
     inspect_done:       bool  = params.get("inspect_done", False)
     
     # 사용자 정보 조회
@@ -104,8 +107,8 @@ async def post_inspect_info(
             doc_type_idx_code.update({doc_type_info.get("index"):doc_type_info})
     
     # 문서 상태가 RUNNING_INFERENCE면 에러 응답 반환
-    if select_document_result.inspect_id == "RUNNING_INFERENCE":
-        raise CoreCustomException(2513)
+    # if select_document_result.inspect_id == "RUNNING_INFERENCE":
+    #     raise CoreCustomException(2513)
     
     # 문서에 대한 권한이 없을 경우 에러 응답 반환
     if select_document_result.user_team not in user_team_list:
@@ -113,13 +116,14 @@ async def post_inspect_info(
     
     # 검수 중인데 자신의 검수 중인 문서가 아니거나 관리자가 아닐 경우 에러 응답 반환
     inspect_id = select_document_result.inspect_id
-    select_inspect_result = query.select_inspect_latest(session, inspect_id=inspect_id)
-    if isinstance(select_inspect_result, JSONResponse):
-        return select_inspect_result
-    select_inspect_result: schema.InspectInfo = select_inspect_result
-    if select_inspect_result.inspect_status == settings.STATUS_INSPECTING:
-        if not is_admin(user_policy_result) and select_inspect_result.user_email != user_email:
-            raise CoreCustomException(2511)
+    if inspect_id != 'RUNNING_INFERENCE':
+        select_inspect_result = query.select_inspect_latest(session, inspect_id=inspect_id)
+        if isinstance(select_inspect_result, JSONResponse):
+            return select_inspect_result
+        select_inspect_result: schema.InspectInfo = select_inspect_result
+        if select_inspect_result.inspect_status == settings.STATUS_INSPECTING:
+            if not is_admin(user_policy_result) and select_inspect_result.user_email != user_email:
+                raise CoreCustomException(2511)
     
     # 검수 결과 저장 page_num이 1보다 작거나, 총 페이지 수보다 크면 에러 응답 반환
     if page_num < 1 or select_document_result.document_pages < page_num:
@@ -134,34 +138,12 @@ async def post_inspect_info(
     
     # inference_id에 해당하는 추론에 대한 검수 결과 저장
     inspect_id = get_ts_uuid("inpsect")
+    inspect_end_time = None
     inspect_status = settings.STATUS_INSPECTING
-    if inspect_done is True:
+    if inspect_done is True: 
         inspect_status = settings.STATUS_INSPECTED
-        inspect_date_end = inspect_date_end if inspect_date_end else datetime.now()
-        
-        # 검수 완료 요청이 문서의 마지막 페이지일 경우에 rpa 시작
-        if hydra_cfg.common.rpa.use and select_document_result.document_pages == page_num:
-            background_tasks.add_task(
-                send_rpa_only_cls_FN,
-                session=session,
-                user_email=user_email,
-                document_id=document_id,
-                token=token
-            )
-        
-        # 문서 종류(대분류)와 종류(소분류)가 맞지 않거나, 권한 없는 문서 종류(소분류)이거나, 일반서류일때 인식률 None
-        if select_inference_result.doc_type_idx not in cls_type_doc_type_list.get(select_document_result.cls_idx, []) \
-            or select_inference_result.doc_type_idx not in doc_type_idx_code.keys() \
-            or select_inference_result.doc_type_idx in [0, 31]:
-            inspect_accuracy = None
-        else:
-            # 인식률 확인
-            inspect_accuracy = get_inspect_accuracy(session, select_inference_result, inspect_result)
-        
-    else:
-        inspect_date_end = None
-        inspect_accuracy = None
-    
+        inspect_end_time = datetime.now()
+
     insert_inspect_result = query.insert_inspect(
         session,
         auto_commit=True,
@@ -169,26 +151,64 @@ async def post_inspect_info(
         user_email=user_email,
         user_team=select_user_result.user_team,
         inference_id=inference_id,
-        inspect_start_time=inspect_date_start,
-        inspect_end_time=inspect_date_end,
         inspect_result=inspect_result,
-        inspect_accuracy=inspect_accuracy,
-        inspect_status=inspect_status
+        inspect_status=inspect_status,
+        inspect_end_time=inspect_end_time
     )
+
     if isinstance(insert_inspect_result, JSONResponse):
         return insert_inspect_result
     del insert_inspect_result
-    
-    inspect_accuracy_avg = None
-    if inspect_status == settings.STATUS_INSPECTED:
-        # 문서 평균 정확도
-        inspect_accuracy_avg = get_inspect_accuracy_avg(session, select_document_result)
+
+    if inspect_done is True and select_document_result.document_pages == page_num:
+        background_tasks.add_task(
+            generate_put_pdf,
+            select_document_result,
+            inspect_result,
+            document_id,
+            session                    
+        )
+        # # document_id에 해당하는 이미지 리스트 생성
+        # angle_images = list()
+        # document_extension = get_stored_file_extension(select_document_result.document_path)
+        # angle = inspect_result.get("angle", 0)
+        # for page in range(1, select_document_result.document_pages + 1):
+        #     document_page_path = Path(str(page) + document_extension)
+        #     document_regist_date:str = str(select_document_result.document_path)[:10]
+        #     real_docx_id = "/".join([document_regist_date, document_id])                
+        #     document_bytes = get_image_bytes(real_docx_id, document_page_path)
+        #     angle_image = read_image_from_bytes(document_bytes, document_page_path.name, angle, page)
+        #     if angle_image is None:
+        #         raise CoreCustomException(2103)
+        #     angle_images.append(angle_image)
+        
+        # # document_id에 해당하는 inference_result 리스트 생성
+        # select_document_inference_result_list = query.select_inference_all(session, document_id=document_id)
+        # select_document_inference_result_list: List[schema.InferenceInfo] = select_document_inference_result_list
+        # document_inference_results = list(map(lambda x : x.inference_result, select_document_inference_result_list))
+
+        
+        # for idx, result in enumerate(document_inference_results):
+        #     # inspect가 있는 경우 적용
+        #     latest_inspect_result = query.select_inspect_latest(
+        #             session, inference_id=select_document_inference_result_list[idx].inference_id)
+        #     if latest_inspect_result is not None:
+        #         document_inference_results[idx] = latest_inspect_result.inspect_result
+        #     # image 적용
+        #     # document_inference_results[idx]['base64_encode_file'] = base64_images[idx]
+        
+        # # pdf 생성
+        # pdf_input = {
+        #     'inspect_result_list' : document_inference_results,
+        #     'pdf_file_name' : select_document_result.document_path,
+        #     'pil_image_list' : angle_images
+        # }
+        # generate_searchable_pdf_2(pdf_input)
     
     # 가장 최근 검수 정보, 문서 평균 정확도 업데이트
     update_document_result = query.update_document(
         session,
         document_id,
-        document_accuracy=inspect_accuracy_avg,
         inspect_id=inspect_id
     )
     if isinstance(update_document_result, JSONResponse):
@@ -203,3 +223,49 @@ async def post_inspect_info(
     )
     
     return JSONResponse(status_code=201, content=jsonable_encoder(response), background=background_tasks)
+
+
+def generate_put_pdf(
+    select_document_result:schema.DocumentInfo,
+    inspect_result: dict,
+    document_id: str,
+    session: Session,
+):
+    """
+        수정 pdf 생성하기(background용으로 따로 빼놈)
+    """
+    angle_images = list()
+    document_extension = get_stored_file_extension(select_document_result.document_path)
+    angle = inspect_result.get("angle", 0)
+    for page in range(1, select_document_result.document_pages + 1):
+        document_page_path = Path(str(page) + document_extension)
+        document_regist_date:str = str(select_document_result.document_path)[:10]
+        real_docx_id = "/".join([document_regist_date, document_id])                
+        document_bytes = get_image_bytes(real_docx_id, document_page_path)
+        angle_image = read_image_from_bytes(document_bytes, document_page_path.name, angle, page)
+        if angle_image is None:
+            raise CoreCustomException(2103)
+        angle_images.append(angle_image)
+    
+    # document_id에 해당하는 inference_result 리스트 생성
+    select_document_inference_result_list = query.select_inference_all(session, document_id=document_id)
+    select_document_inference_result_list: List[schema.InferenceInfo] = select_document_inference_result_list
+    document_inference_results = list(map(lambda x : x.inference_result, select_document_inference_result_list))
+
+    
+    for idx, result in enumerate(document_inference_results):
+        # inspect가 있는 경우 적용
+        latest_inspect_result = query.select_inspect_latest(
+                session, inference_id=select_document_inference_result_list[idx].inference_id)
+        if latest_inspect_result is not None:
+            document_inference_results[idx] = latest_inspect_result.inspect_result
+        # image 적용
+        # document_inference_results[idx]['base64_encode_file'] = base64_images[idx]
+    
+    # pdf 생성
+    pdf_input = {
+        'inspect_result_list' : document_inference_results,
+        'pdf_file_name' : select_document_result.document_path,
+        'pil_image_list' : angle_images
+    }
+    generate_searchable_pdf_2(pdf_input)

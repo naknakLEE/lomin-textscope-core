@@ -135,7 +135,9 @@ def get_thumbnail(
     # 문서의 page_num 페이지의 썸네일 base64로 encoding
     document_extension = get_stored_file_extension(select_document_result.document_path)
     document_path = Path(str(page_num) + document_extension)
-    document_bytes = get_image_bytes(document_id, document_path)
+    document_regist_date:str = str(select_document_result.document_path)[:10]
+    real_docx_id = "/".join([document_regist_date, document_id])    
+    document_bytes = get_image_bytes(real_docx_id, document_path)
     image = read_image_from_bytes(document_bytes, document_path.name, angle, page_num)
     if image is None:
         raise CoreCustomException(2103)
@@ -249,7 +251,9 @@ def get_document_preview(
         
         # 문서의 page_num 페이지의 썸네일 base64로 encoding
         document_path = Path(str(page_num) + document_extension)
-        document_bytes = get_image_bytes(document_id, document_path)
+        document_regist_date:str = str(select_document_result.document_path)[:10]
+        real_docx_id = "/".join([document_regist_date, document_id])
+        document_bytes = get_image_bytes(real_docx_id, document_path)
         image = read_image_from_bytes(document_bytes, document_path.name, 0.0, page_num)
         
         if image is None:

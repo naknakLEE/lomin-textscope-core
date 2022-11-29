@@ -18,7 +18,7 @@ from app.utils.logging import logger
 from app.database.connection import Base
 from app.schemas import error_models as ErrorResponse
 from app.middlewares.exception_handler import CoreCustomException
-
+from datetime import datetime, timedelta
 
 settings = get_settings()
 
@@ -309,6 +309,18 @@ def select_inference_latest(session: Session, **kwargs: Dict) -> schema.Inferenc
     try:
         query = dao.get_all_query(session, **kwargs)
         result = query.order_by(dao.inference_end_time.desc()).first()
+        
+        if result is None:
+            raise CoreCustomException(2507)
+    except Exception:
+        raise CoreCustomException(4101, "최근 추론")
+    return result
+
+def select_inference_all(session: Session, **kwargs: Dict) -> Union[List[schema.InferenceInfo], JSONResponse]:
+    dao = schema.InferenceInfo
+    try:
+        query = dao.get_all_query(session, **kwargs)
+        result = query.order_by(dao.inference_end_time.desc()).all()
         
         if result is None:
             raise CoreCustomException(2507)
@@ -1151,3 +1163,145 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
         ))
     
     return doc_type_list
+
+
+
+def select_api_log_all(
+    session: Session,
+    **kwargs
+) -> Tuple[dict, dict]:          
+    """
+        [Front]전용 대시보드 정보 조회
+    """
+    query_param: Dict = dict(kwargs)
+    date_end_after_one_day = datetime.strptime(kwargs.get('date_end'), '%Y.%m.%d') + timedelta(1)
+    date_end_after_one_day = date_end_after_one_day.strftime('%Y.%m.%d')
+
+    query_param.update(
+        date_end=date_end_after_one_day
+    )
+
+    sql_select_api_log_all = \
+        """
+        select to_char(api_response_datetime,'YYYY-MM-DD') as date,
+            avg(cast(api_response_time as real)) as avg_speed_value,
+            count(case when api_is_success is true then 1 end) as success_count,
+            count(case when api_is_success is false then 1 end) as fail_count,
+            count(*) as total_count
+        from log_api
+        where api_response_datetime between :date_start and :date_end
+        group by to_char(api_response_datetime,'YYYY-MM-DD');    
+        """
+
+    result = session.execute(
+        sql_select_api_log_all,
+        query_param
+    )    
+    
+    processing_mapping_keys = ['success_count', 'fail_count']
+    speed_mapping_keys = ['avg_speed_value']
+
+    processing_list = list()
+    speed_list = list()
+
+    processing_total_dict = {
+        'total_success_count': 0,
+        'total_fail_count': 0
+    }
+    min_speed_value = 9999
+    max_speed_value = 0
+    for rowproxy in result:
+        processing_dict = dict()
+        speed_dict = dict()        
+        for column, value in rowproxy.items():
+            if(column == 'date'):
+                processing_dict.update({
+                    column: value
+                })                
+                speed_dict.update({
+                    column: value
+                })                
+            elif(column in processing_mapping_keys):
+                processing_dict.update({
+                    column: value
+                })
+                processing_total_dict.update({
+                    f'total_{column}': processing_total_dict.get(f'total_{column}') + value
+                })
+            elif(column in speed_mapping_keys):
+                speed_dict.update({
+                    column: value
+                })
+                if min_speed_value > value: min_speed_value = value
+                if max_speed_value < value: max_speed_value = value               
+        processing_list.append(processing_dict)                                
+        speed_list.append(speed_dict)
+
+    if min_speed_value == 9999: min_speed_value = 0 
+
+    speed_total_dict = {
+        'min_speed_value': min_speed_value if min_speed_value != 9999 else 0,
+        'max_speed_value': max_speed_value,
+        'avg_speed_value': (min_speed_value + max_speed_value) / 2,
+        'daily_response_speed_list': speed_list
+    }        
+    processing_total_dict.update({
+        'total_call_count': sum(processing_total_dict.values()),
+        'daily_processing_status_list': processing_list 
+    })
+    return speed_total_dict, processing_total_dict
+
+def delete_nak_data(
+    session: Session,
+    date_time_str: str,
+):
+    """
+        document_info table delete
+    """
+    result = False 
+    try:
+        convert_date_time = datetime.strptime(date_time_str, '%Y-%m-%d')
+        document_info = schema.DocumentInfo
+        # 0. 검수작업 하지 않은 document_info 가져오기          
+        document_get_do_not_update_query = session.query(schema.DocumentInfo).filter(document_info.inspect_id == "NOT_INSPECTED")
+        do_not_update_list = document_get_do_not_update_query.all()
+        do_not_update_path_list = list()
+        for do_not_update_info in do_not_update_list:
+            origin_document_name = do_not_update_info.document_path.split("/")[-1]
+            document_regist_date:str = str(do_not_update_info.document_path)[:10]
+            real_docx_id = "/".join([document_regist_date, do_not_update_info.document_id, origin_document_name])
+            do_not_update_path_list.append(real_docx_id)
+
+        # 1. inspect_info 삭제 -> cascade가 recursive하게 되지 않음
+        # TODO: cascade로 삭제할 수 있게 처리하기
+        sql_inspect_info_delete_query = \
+            """
+                delete 
+                from inspect_info
+                where inspect_id in (
+                    select ii.inspect_id
+                    from inspect_info ii
+                    join inference_info ii2 on ii.inference_id  = ii2.inference_id
+                    join document_info di on ii2.document_id = di.document_id
+                    where di.document_upload_time <= :convert_date_time
+                    );            
+            """
+        session.execute(
+            sql_inspect_info_delete_query,
+            dict(
+                convert_date_time=convert_date_time
+            )
+        )            
+        # 2. document_info 삭제
+        document_info = schema.DocumentInfo
+        document_info_delete_query = session.query(schema.DocumentInfo).filter(document_info.document_upload_time <= convert_date_time)
+        logger.debug(f">>>>>>>>>>>>>>>>>> delete document_info count:{document_info_delete_query.count()}" )
+        document_info_delete_query.delete()
+        session.commit()
+        result = do_not_update_path_list
+    except Exception:
+        session.rollback()
+        raise CoreCustomException("D01.900.5003", "document_info")        
+    finally:
+        session.flush()
+        return result

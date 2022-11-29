@@ -2,3 +2,4 @@ defaults:
   - route: nak2210
   - document: nak2210
   - database: nak2210
+  - common: default

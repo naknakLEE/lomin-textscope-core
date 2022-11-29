@@ -178,10 +178,10 @@ def get_current_active_user_fake(request: Request) -> UserInfoInModel:
     )
     except:
         user_info = UserInfoInModel(
-        email="admin@lomin.ai",
+        email="admin@archives.go.kr",
         password="",
-        team="0000",
-        name="김관리자.auth.disabled",
+        team="0003_admin",
+        name="어드민",
         status="active"
     )
     return user_info
