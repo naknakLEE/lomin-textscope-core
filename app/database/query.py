@@ -159,6 +159,7 @@ def insert_document(
     document_type: str = "TRAINING",
     document_pages: int = 0,
     doc_type_idx: int = 0,
+    is_used: bool = True,
     auto_commit: bool = True
 ) -> Union[Optional[schema.DocumentInfo], JSONResponse]:
     try:
@@ -172,6 +173,7 @@ def insert_document(
             document_type=document_type,
             document_pages=document_pages,
             doc_type_idx=doc_type_idx,
+            is_used=is_used,
             auto_commit=auto_commit,
         )
     except IntegrityError as e:
@@ -239,7 +241,7 @@ def insert_inference(
     auto_commit: bool = True
 ) -> Union[Optional[schema.InferenceInfo], JSONResponse]:
     
-    del inference_result["response_log"]
+    # del inference_result["response_log"]
     
     try:
         result = schema.InferenceInfo.create(
