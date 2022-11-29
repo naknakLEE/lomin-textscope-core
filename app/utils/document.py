@@ -153,9 +153,19 @@ def delete_document(
     if settings.USE_MINIO:
         success = minio_client.remove(
             bucket_name=settings.MINIO_IMAGE_BUCKET,
-            image_name=document_id + '/' + document_name,
+            image_name=document_id + '/' + document_name.replace("minio/", ""),
         )
         
+    else:
+        root_path = Path(settings.IMG_PATH)
+        base_path = root_path.joinpath(document_id)
+        base_path.mkdir(parents=True, exist_ok=True)
+        save_path = base_path.joinpath(document_name)
+        
+        if os.path.isfile(save_path):
+            os.remove(save_path)
+            success = True
+    
     return success
 
 
