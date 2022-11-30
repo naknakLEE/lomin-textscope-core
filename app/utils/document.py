@@ -530,7 +530,12 @@ def generate_searchalbe_pdf(
         # # PDF/A-1a 변환
         # pdf2pdfa_convertor.convert(outputPath=pdf_file_save_dir.as_posix(), inputPath=pdf_save_path.as_posix())
 
-        pdf_convert(pdf_file_save_name, pdf_file_save_path, wordss, images)
+        if hydra_cfg.document.use_pdf_a1:
+            pdf_convert(pdf_file_save_name, pdf_file_save_path, wordss, images)
+        else:
+            Path(pdf_file_save_path).mkdir(parents=True, exist_ok=True)
+            pdf_parser.export_pdf(Path(pdf_file_name).as_posix(), wordss, images, True)
+        
 
         # pdf생성이 성공하면 이미지 폴더 지우기
         document_dir: str = inputs.get("document_dir")
@@ -571,10 +576,18 @@ def generate_searchable_pdf_2(
                 words.append(Word(text=text, bbox=box))
             wordss.append(words)
         
-        # pdf_file_save_path: str = os.path.dirname(pdf_file_name)
+        
         pdf_file_save_name = os.path.basename(pdf_file_name)
 
-        pdf_convert(pdf_file_save_name, pdf_save_path, wordss, images)
+        if hydra_cfg.document.use_pdf_a1:
+            pdf_convert(pdf_file_save_name, pdf_save_path, wordss, images)
+        else:
+            Path(pdf_save_path).mkdir(parents=True, exist_ok=True)
+            file_name = os.path.basename(pdf_file_name)
+            file_name = "/".join([pdf_save_path, file_name])
+            pdf_parser.export_pdf(Path(file_name).as_posix(), wordss, images, True)
+            end_file_path = file_name.replace(".pdf", ".end")
+            Path(end_file_path).touch()             
 
 
         # pdf_file_save_path = pdf_file_save_path.replace('minio', '/workspace')

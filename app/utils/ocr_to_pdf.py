@@ -53,9 +53,9 @@ class PdfParser():
         size_pdf_width = 210 * mm
         size_pdf_height = 297 * mm
         
-        logger.debug(f"=======================> Total Image Count:{len(images)}")
+        logger.info(f"=======================> Total Image Count:{len(images)}")
         for index, words, image in zip(range(len(images)), wordss, images):
-            logger.debug(f"=======================> Generate PDF To ImageCount:{index+1}")
+            logger.info(f"=======================> Generate PDF To ImageCount:{index+1}")
             # 1. set page size to A4
             pdf.setPageSize((size_pdf_width, size_pdf_height))
             
@@ -126,7 +126,7 @@ class PdfParser():
         result = None
         if save is True: result = pdf.save()
         else: result = pdf.getpdfdata()
-        
+        logger.info("=======================> Finish Generate PDF")
         return result
 
 

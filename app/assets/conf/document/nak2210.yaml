@@ -6,4 +6,5 @@ doc_type:
 multi_page_limit: 100
 thread_max_works: 3
 put_directory: /home/lomin/Downloads/CAMS/OCR/RESPDF
-no_update_directory: /home/lomin/Downloads/CAMS/OCR/DELPDF 
+no_update_directory: /home/lomin/Downloads/CAMS/OCR/DELPDF
+use_pdf_a1: False

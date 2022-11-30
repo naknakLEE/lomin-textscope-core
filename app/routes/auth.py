@@ -100,7 +100,8 @@ async def login_for_access_token(
         raise CoreCustomException(2401)
     
     # access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token_expires = timedelta(days=365000)
+    access_token_expires = timedelta(minutes=5256000)
+    logger.info(access_token_expires)
     access_token = create_access_token(
         data={
             "sub": form_data.email,
