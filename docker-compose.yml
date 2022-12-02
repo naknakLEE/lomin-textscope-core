@@ -7,6 +7,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_API_TRANSITION_WORKERS: ${MINIO_API_TRANSITION_WORKERS}
     ports:
       - 9000:${MINIO_IP_PORT}
       - 9001:9001
@@ -60,19 +61,19 @@ services:
   #   networks:
   #     - our_net
 
-  pgadmin:
-    container_name: textscope-pgadmin
-    image: dpage/pgadmin4 #TODO make Dockerfile
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
-      TZ: Asia/Seoul
-    depends_on:
-      - postgresql
-    ports:
-      - "5050:80"
-    networks:
-      - our_net
+  # pgadmin:
+  #   container_name: textscope-pgadmin
+  #   image: dpage/pgadmin4 #TODO make Dockerfile
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+  #     TZ: Asia/Seoul
+  #   depends_on:
+  #     - postgresql
+  #   ports:
+  #     - "5050:80"
+  #   networks:
+  #     - our_net
 
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}

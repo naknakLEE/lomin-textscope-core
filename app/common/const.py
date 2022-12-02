@@ -130,7 +130,7 @@ class Settings(BaseSettings):
     TEXTSCOPE_LOG_DIR_PATH: str
     LOG_ROTATION: str = "1MB"
     LOG_RETENTION: str = "30 days"
-    LOG_LEVEL: str = "DEBUG"
+    LOG_LEVEL: str = "INFO"
     FILE_MAX_BYTE: int = 1024 * 1024
     BACKUP_COUNT: int = 10
     BACKTRACE: str = "True"

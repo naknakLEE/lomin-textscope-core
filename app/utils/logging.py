@@ -1,4 +1,5 @@
 import os
+import sys
 
 from loguru import logger
 from app.common.const import get_settings
@@ -9,6 +10,10 @@ log_dir_path = settings.TEXTSCOPE_LOG_DIR_PATH
 os.makedirs(log_dir_path, exist_ok=True)
 
 log_path = os.path.join(log_dir_path, "server.log")
+
+logger.remove()
+logger.add(sys.stderr, level=settings.LOG_LEVEL)
+
 logger.add(
     log_path,
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",

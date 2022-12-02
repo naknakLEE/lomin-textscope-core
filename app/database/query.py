@@ -2,7 +2,7 @@ import json
 import uuid
 
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy import Date
@@ -776,7 +776,9 @@ def select_inference_all(
     # 2. 요청일자 filtering
     date_start = query_param.get('date_start')                      
     date_end   = query_param.get('date_end')
-    query = query.filter(dao_inference.inference_start_time.between(date_start, date_end))
+    date_end_after_one_day = datetime.strptime(date_end, '%Y.%m.%d') + timedelta(1)
+    date_end_after_one_day = date_end_after_one_day.strftime('%Y.%m.%d')    
+    query = query.filter(dao_inference.inference_start_time.between(date_start, date_end_after_one_day))
 
     result_list: list = list()
 
@@ -880,18 +882,6 @@ def select_inference_info(
 
     return document_response, inference_response, inference_id_dict
 
-sql_select_api_log_all = \
-    """
-    select to_char(api_response_datetime,'YYYY-MM-DD') as date,
-        avg(cast(api_response_time as real)) as avg_speed_value,
-        count(case when api_is_success is true then 1 end) as success_count,
-        count(case when api_is_success is false then 1 end) as fail_count,
-        count(*) as total_count
-    from log_api
-    where api_response_datetime between :date_start and :date_end
-    group by to_char(api_response_datetime,'YYYY-MM-DD');    
-    """
-
 def select_api_log_all(
     session: Session,
     **kwargs
@@ -900,6 +890,24 @@ def select_api_log_all(
         [Front]전용 대시보드 정보 조회
     """
     query_param: Dict = dict(kwargs)
+    date_end_after_one_day = datetime.strptime(kwargs.get('date_end'), '%Y.%m.%d') + timedelta(1)
+    date_end_after_one_day = date_end_after_one_day.strftime('%Y.%m.%d')
+
+    query_param.update(
+        date_end=date_end_after_one_day
+    )
+
+    sql_select_api_log_all = \
+        """
+        select to_char(api_response_datetime,'YYYY-MM-DD') as date,
+            avg(cast(api_response_time as real)) as avg_speed_value,
+            count(case when api_is_success is true then 1 end) as success_count,
+            count(case when api_is_success is false then 1 end) as fail_count,
+            count(*) as total_count
+        from log_api
+        where api_response_datetime between :date_start and :date_end
+        group by to_char(api_response_datetime,'YYYY-MM-DD');    
+        """
 
     result = session.execute(
         sql_select_api_log_all,
@@ -945,8 +953,10 @@ def select_api_log_all(
         processing_list.append(processing_dict)                                
         speed_list.append(speed_dict)
 
+    if min_speed_value == 9999: min_speed_value = 0 
+
     speed_total_dict = {
-        'min_speed_value': min_speed_value,
+        'min_speed_value': min_speed_value if min_speed_value != 9999 else 0,
         'max_speed_value': max_speed_value,
         'avg_speed_value': (min_speed_value + max_speed_value) / 2,
         'daily_response_speed_list': speed_list

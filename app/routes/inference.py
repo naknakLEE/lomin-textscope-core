@@ -72,20 +72,20 @@ def ocr(
     inputs["image_path"] = document_path
     task_id = log_id
     
-    logger.info("#0-1 inference start at {}", datetime.now())
-    logger.info("#0-2 start document_id: {}", document_id)
-    logger.info("#0-3 document_filename: {}", document_path.split("/")[-1])
+    logger.debug("#0-1 inference start at {}", datetime.now())
+    logger.debug("#0-2 start document_id: {}", document_id)
+    logger.debug("#0-3 document_filename: {}", document_path.split("/")[-1])
     
-    logger.info ("[{}] #1-1 try select user info from db", datetime.now())
+    logger.debug ("[{}] #1-1 try select user info from db", datetime.now())
     select_user_result = query.select_user(session, user_email=user_email)
-    logger.info ("[{}] #1-2 end select user info from db (result: {})", datetime.now(), select_user_result)
+    logger.debug ("[{}] #1-2 end select user info from db (result: {})", datetime.now(), select_user_result)
     
     if isinstance(select_user_result, JSONResponse):
         return select_user_result
     select_user_result: schema.UserInfo = select_user_result
     user_team: str = select_user_result.user_team
     
-    logger.info ("[{}] #2-1 try select log info from db", datetime.now())
+    logger.debug ("[{}] #2-1 try select log info from db", datetime.now())
     select_log_result = query.select_log(session, log_id=task_id) 
     if isinstance(select_log_result, schema.LogInfo):
         status_code, error = ErrorResponse.ErrorCode.get(2202)
@@ -94,11 +94,11 @@ def ocr(
         status_code_no_log, _ = ErrorResponse.ErrorCode.get(2201)
         if select_log_result.status_code != status_code_no_log:
             return select_log_result
-    logger.info ("[{}] #2-2 end select log info from db (result: {})", datetime.now(), select_log_result)
+    logger.debug ("[{}] #2-2 end select log info from db (result: {})", datetime.now(), select_log_result)
     
     # logger.debug(f"{task_id}-api request start:\n{pretty_dict(inputs)}")
     
-    logger.info ("[{}] #3-1 try insert log info to db", datetime.now())
+    logger.debug ("[{}] #3-1 try insert log info to db", datetime.now())
     insert_log_result = query.insert_log(
         session=session,
         log_id=task_id,
@@ -106,7 +106,7 @@ def ocr(
         user_team=user_team,
         log_content=dict({"request": inputs})
     )
-    logger.info ("[{}] #3-2 end insert log info to db (result: {})", datetime.now(), insert_log_result)
+    logger.debug ("[{}] #3-2 end insert log info to db (result: {})", datetime.now(), insert_log_result)
     if isinstance(insert_log_result, JSONResponse):
         return insert_log_result
     
@@ -130,7 +130,7 @@ def ocr(
     
     with Client() as client:
         # Inference
-        logger.info ("[{}] #4-1 try inference pipline({})", datetime.now(), settings.USE_OCR_PIPELINE)
+        logger.debug ("[{}] #4-1 try inference pipline({})", datetime.now(), settings.USE_OCR_PIPELINE)
         if settings.USE_OCR_PIPELINE == 'multiple':
             # TODO: sequence_type을 wrapper에서 받도록 수정
             # TODO: python 3.6 버전에서 async profiling 사용에 제한이 있어 sync로 변경했는데 추후 async 사용해 micro bacing 사용하기 위해서는 다시 변경 필요
@@ -155,7 +155,7 @@ def ocr(
                 response_log=response_log,
                 route_name=inputs.get("route_name", "ocr"),
             )
-        logger.info ("[{}] #4-2 try inference pipline({}) (status code: {})", datetime.now(), settings.USE_OCR_PIPELINE, status_code)
+        logger.debug ("[{}] #4-2 try inference pipline({}) (status code: {})", datetime.now(), settings.USE_OCR_PIPELINE, status_code)
         
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
@@ -174,27 +174,25 @@ def ocr(
             and "texts" not in inference_results
         ):
             
-            logger.info("[{}] #5-1 try convert rec_preds to texts", datetime.now())
+            logger.debug("[{}] #5-1 try convert rec_preds to texts", datetime.now())
             status_code, texts = pp.convert_preds_to_texts(
                 client=client,
                 rec_preds=inference_results.get("rec_preds", []),
             )
-            logger.info("[{}] #5-2 end convert rec_preds to texts (pp response status code: {})", datetime.now(), status_code)
+            logger.debug("[{}] #5-2 end convert rec_preds to texts (pp response status code: {})", datetime.now(), status_code)
             
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3503)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inference_results["texts"] = texts
 
-        # TODO: pp에서 tsbl_sort를 못할경우 얘를 쓰자
-        # tsbl_sort_result = sort_text_tblr(inference_result)
         doc_type_code = inference_results.get("doc_type")
         
         # Post processing
         # 미래과학아카데미는 ocr일경우 줄글 pp로 이동
         if inputs.get("route_name", "ocr") == 'ocr':
             
-            logger.info("[{}] #6-1 try general_pp for fsa", datetime.now())
+            logger.debug("[{}] #6-1 try general_pp for fsa", datetime.now())
             status_code, post_processing_results, response_log = pp.post_processing(
                 client=client,
                 task_id=task_id,
@@ -202,7 +200,7 @@ def ocr(
                 inputs=inference_result,
                 post_processing_type="general_pp",
             )            
-            logger.info("[{}] #6-2 end general_pp for fs (pp response status code: {})", datetime.now(), status_code)
+            logger.debug("[{}] #6-2 end general_pp for fs (pp response status code: {})", datetime.now(), status_code)
             
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
@@ -216,16 +214,16 @@ def ocr(
 
     
     response_log.update(inference_results.get("response_log", {}))
-    logger.info(f"OCR api total time: \t{datetime.now() - start_time}")
+    logger.debug(f"OCR api total time: \t{datetime.now() - start_time}")
 
     inference_id = get_ts_uuid("inference")
     doc_type_code = inference_results.get("doc_type")
     
     # doc_type_code로 doc_type_index 조회
     
-    logger.info("[{}] #7-1 try select doc type info from db", datetime.now())
+    logger.debug("[{}] #7-1 try select doc type info from db", datetime.now())
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
-    logger.info("[{}] #7-2 end select doc type info from db (doc_type: {})", datetime.now(), type(select_doc_type_result))
+    logger.debug("[{}] #7-2 end select doc type info from db (doc_type: {})", datetime.now(), type(select_doc_type_result))
     
     if isinstance(select_doc_type_result, JSONResponse):
         return select_doc_type_result
@@ -234,7 +232,7 @@ def ocr(
 
     inference_results.update(doc_type=select_doc_type_result)
 
-    logger.info("[{}] #8-1 try insert inference_result to db", datetime.now())
+    logger.debug("[{}] #8-1 try insert inference_result to db", datetime.now())
     insert_inference_result = query.insert_inference(
         session=session,
         inference_id=inference_id,
@@ -247,7 +245,7 @@ def ocr(
         doc_type_idx=doc_type_idx,
         response_log=response_log
     )
-    logger.info("[{}] #8-2 end isnert inference_result to db (result: {})", datetime.now(), type(insert_inference_result))
+    logger.debug("[{}] #8-2 end isnert inference_result to db (result: {})", datetime.now(), type(insert_inference_result))
     
     if isinstance(insert_inference_result, JSONResponse):
         return insert_inference_result
@@ -263,36 +261,7 @@ def ocr(
         )
     )
     
-    logger.info("#9-1 inference end at {}", datetime.now())
-    logger.info("#9-2 end document_id: {}", document_id)
+    logger.debug("#9-1 inference end at {}", datetime.now())
+    logger.debug("#9-2 end document_id: {}", document_id)
     
     return JSONResponse(content=jsonable_encoder(response))
-
-
-# @TODO utils로 이동
-def sort_text_tblr(inference_result: dict) -> Dict[str, list]:
-    t_list = inference_result.get("texts", [])
-    b_list = inference_result.get("boxes", [])
-    s_list = inference_result.get("scores", [])
-    c_list = inference_result.get("classes", [])
-    
-    s_list = s_list if len(s_list) > 0 else [ 0.0 for i in range(len(t_list)) ]
-    c_list = c_list if len(c_list) > 0 else [ "" for i in range(len(t_list)) ]
-    
-    tbsc_list = [ (t, b, s, c) for t, b, s, c in zip(t_list, b_list, s_list, c_list) ]
-    
-    tbsc_list.sort(key= lambda x : (x[1][1], x[1][0]))
-    
-    t_list_, b_list_, s_list_, c_list_ = (list(), list(), list(), list())
-    for tbsc in tbsc_list:
-        t_list_.append(tbsc[0])
-        b_list_.append(tbsc[1])
-        s_list_.append(tbsc[2])
-        c_list_.append(tbsc[3])
-    
-    return dict(
-        texts=t_list_,
-        boxes=b_list_,
-        scores=s_list_,
-        classes=c_list_
-    )
