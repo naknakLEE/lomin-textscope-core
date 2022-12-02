@@ -168,7 +168,8 @@ def ocr(
             post_processing_type = 'kdt1_cls' if inputs.get("route_name", None) == 'cls' else get_pp_api_name(doc_type_code)
 
         if post_processing_type is not None \
-            and doc_type_code is not None:        
+            and doc_type_code is not None \
+            and doc_type_code not in ['CP-FNS-ETC', "CP-AR"]:        
 
             logger.info(f"{task_id}-pp type:{post_processing_type}")
 
@@ -181,6 +182,7 @@ def ocr(
             class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
 
             pp_inputs = dict(
+                document_path=document_path,
                 texts=text_list,
                 boxes=box_list,
                 scores=score_list,
@@ -229,6 +231,10 @@ def ocr(
     inference_id = get_ts_uuid("inference")
     # KDT1-EST(기업개요표 방어코드)    
     doc_type_code = inference_results.get("doc_type") if inference_results.get("doc_type") else doc_type_code
+
+    # 감사보고서, 재무제표(기타) => 재무제표 처리
+    if doc_type_code in ['CP-AR', 'CP-FNS-ETC']:
+        doc_type_code = 'CP-FNS'
     
     # doc_type_code로 doc_type_index 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
