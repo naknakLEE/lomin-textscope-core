@@ -149,6 +149,9 @@ Nuitka
 *.jpg
 *.jpeg
 *.png
+!tests/**/*.png
+!tests/**/*.jpg
+!tests/**/*.jpeg
 *.xml
 *.mar
 *.npy
