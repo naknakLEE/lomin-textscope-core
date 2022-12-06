@@ -156,7 +156,7 @@ def ocr(
                 client,
                 inputs,
                 response_log,
-                infernece_result=inference_results
+                inference_result=inference_results
             )
             if isinstance(inference_results, JSONResponse):
                 return inference_results

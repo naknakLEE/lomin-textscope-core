@@ -57,7 +57,7 @@ def __kv__(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = dict()
+    inference_result: dict = dict()
 ) -> Tuple[int, dict, dict]:
     
     kv_inputs = dict()
@@ -65,15 +65,15 @@ def __kv__(
         image_id=            inputs.get("image_id"),
         image_path=          inputs.get("image_path"),
         doc_type=            inputs.get("doc_type"),
-        request_id=          infernece_result.get("request_id"),
-        image_width=         infernece_result.get("image_width"),
-        image_height=        infernece_result.get("image_height"),
-        texts=               infernece_result.get("texts"),
-        boxes=               infernece_result.get("boxes"),
-        scores=              infernece_result.get("scores"),
-        image_width_origin=  infernece_result.get("image_width_origin"),
-        image_height_origin= infernece_result.get("image_height_origin"),
-        angle=               infernece_result.get("angle")
+        request_id=          inference_result.get("request_id"),
+        image_width=         inference_result.get("image_width"),
+        image_height=        inference_result.get("image_height"),
+        texts=               inference_result.get("texts"),
+        boxes=               inference_result.get("boxes"),
+        scores=              inference_result.get("scores"),
+        image_width_origin=  inference_result.get("image_width_origin"),
+        image_height_origin= inference_result.get("image_height_origin"),
+        angle=               inference_result.get("angle")
     )
     
     # kv inference 요청
@@ -93,7 +93,7 @@ def __el__(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = dict()
+    inference_result: dict = dict()
 ) -> Tuple[int, dict, dict]:
     
     el_inputs = dict()
@@ -101,15 +101,15 @@ def __el__(
         image_id=            inputs.get("image_id"),
         image_path=          inputs.get("image_path"),
         doc_type=            inputs.get("doc_type"),
-        request_id=          infernece_result.get("request_id"),
-        image_width=         infernece_result.get("image_width"),
-        image_height=        infernece_result.get("image_height"),
-        texts=               infernece_result.get("texts"),
-        boxes=               infernece_result.get("boxes"),
-        scores=              infernece_result.get("scores"),
-        image_width_origin=  infernece_result.get("image_width_origin"),
-        image_height_origin= infernece_result.get("image_height_origin"),
-        angle=               infernece_result.get("angle")
+        request_id=          inference_result.get("request_id"),
+        image_width=         inference_result.get("image_width"),
+        image_height=        inference_result.get("image_height"),
+        texts=               inference_result.get("texts"),
+        boxes=               inference_result.get("boxes"),
+        scores=              inference_result.get("scores"),
+        image_width_origin=  inference_result.get("image_width_origin"),
+        image_height_origin= inference_result.get("image_height_origin"),
+        angle=               inference_result.get("angle")
     )
     
     # el inference 요청
@@ -129,7 +129,7 @@ def __tocr__(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = dict()
+    inference_result: dict = dict()
 ) -> Tuple[int, dict, dict]:
     
     doc_type_code = inputs.get("doc_type")
@@ -137,7 +137,7 @@ def __tocr__(
     # get pp route
     post_processing_type = get_pp_api_name(doc_type_code)
     if post_processing_type is None:
-        return (200, infernece_result, response_log)
+        return (200, inference_result, response_log)
     
     # TODO define get_template() func
     template = TOCR_TEMPLATES.get(doc_type_code)
@@ -168,7 +168,7 @@ def __pp__(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = dict()
+    inference_result: dict = dict()
 ) -> Tuple[int, dict, dict]:
     
     doc_type_code = inputs.get("doc_type")
@@ -177,25 +177,25 @@ def __pp__(
     # get pp route
     post_processing_type = get_pp_api_name(doc_type_code)
     if post_processing_type is None:
-        return (200, infernece_result, response_log)
+        return (200, inference_result, response_log)
 
-    text_list = infernece_result.get("texts")
+    text_list = inference_result.get("texts")
     
-    class_list = infernece_result.get("classes", [])
+    class_list = inference_result.get("classes", [])
     class_list = class_list if len(class_list) > 0 else [ "" for i in range(len(text_list)) ]
     
     pp_inputs = dict(
         texts=        text_list,
-        boxes=        infernece_result.get("boxes"),
-        scores=       infernece_result.get("scores"),
+        boxes=        inference_result.get("boxes"),
+        scores=       inference_result.get("scores"),
         classes=      class_list,
-        relations=    infernece_result.get("relations", {}),
-        rec_preds=    infernece_result.get("rec_preds"),
-        id_type=      infernece_result.get("id_type"),
-        doc_type=     inputs.get("doc_type"),
-        image_height= infernece_result.get("image_height"),
-        image_width=  infernece_result.get("image_width"),
-        cls_score=    infernece_result.get("cls_score"),
+        relations=    inference_result.get("relations", {}),
+        rec_preds=    inference_result.get("rec_preds"),
+        id_type=      inference_result.get("id_type"),
+        doc_type=     doc_type_code,
+        image_height= inference_result.get("image_height"),
+        image_width=  inference_result.get("image_width"),
+        cls_score=    inference_result.get("cls_score"),
         task_id=      task_id,
     )
     pp_response = client.post(
@@ -261,7 +261,7 @@ def gocr_(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = None # None: gocr is first of whole inference pipelines
+    inference_result: dict = None # None: gocr is first of whole inference pipelines
 ) -> Tuple[int, dict, dict]:
     
     gocr_response = client.post(
@@ -286,19 +286,19 @@ def cls_(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = dict() # before pipeline might be gocr
+    inference_result: dict = dict() # before pipeline might be gocr
 ) -> Tuple[int, dict, dict]:
     
     inputs.update(
-        request_id=          infernece_result.get("request_id"),
-        image_width=         infernece_result.get("image_width"),
-        image_height=        infernece_result.get("image_height"),
-        texts=               infernece_result.get("texts"),
-        boxes=               infernece_result.get("boxes"),
-        scores=              infernece_result.get("scores"),
-        image_width_origin=  infernece_result.get("image_width_origin"),
-        image_height_origin= infernece_result.get("image_height_origin"),
-        angle=               infernece_result.get("angle")
+        request_id=          inference_result.get("request_id"),
+        image_width=         inference_result.get("image_width"),
+        image_height=        inference_result.get("image_height"),
+        texts=               inference_result.get("texts"),
+        boxes=               inference_result.get("boxes"),
+        scores=              inference_result.get("scores"),
+        image_width_origin=  inference_result.get("image_width_origin"),
+        image_height_origin= inference_result.get("image_height_origin"),
+        angle=               inference_result.get("angle")
     )
     
     cls_response = client.post(
@@ -341,25 +341,25 @@ def kv_(
     inputs: dict,
     response_log: dict,
     /,
-    infernece_result: dict = dict() # before pipeline is gocr or cls
+    inference_result: dict = dict() # before pipeline is gocr or cls
 ) -> Tuple[int, dict, dict]:
     
     inputs.update(
-        request_id=          infernece_result.get("request_id"),
-        image_width=         infernece_result.get("image_width"),
-        image_height=        infernece_result.get("image_height"),
-        texts=               infernece_result.get("texts"),
-        boxes=               infernece_result.get("boxes"),
-        scores=              infernece_result.get("scores"),
-        image_width_origin=  infernece_result.get("image_width_origin"),
-        image_height_origin= infernece_result.get("image_height_origin"),
-        angle=               infernece_result.get("angle")
+        request_id=          inference_result.get("request_id"),
+        image_width=         inference_result.get("image_width"),
+        image_height=        inference_result.get("image_height"),
+        texts=               inference_result.get("texts"),
+        boxes=               inference_result.get("boxes"),
+        scores=              inference_result.get("scores"),
+        image_width_origin=  inference_result.get("image_width_origin"),
+        image_height_origin= inference_result.get("image_height_origin"),
+        angle=               inference_result.get("angle")
     )
     
     # if before pipeline was cls, can get cls_result from inference_result
     cls_result = dict(
-        doc_type= infernece_result.get("doc_type", {}).get("doc_type_code", "None"),
-        score=    infernece_result.get("cls_score", 1.0)
+        doc_type= inference_result.get("doc_type", {}).get("doc_type_code", "None"),
+        score=    inference_result.get("cls_score", 1.0)
     )
     
     # Apply doc type hint
@@ -391,20 +391,20 @@ def kv_(
     
     # was only cls
     if len(kv_pipelines) == 0:
-        return (status_code, infernece_result, response_log)
+        return (status_code, inference_result, response_log)
     
     for name, kv_pipline in kv_pipelines:
         pipeline_start_time = datetime.now()
         response_log.update({f"kv_{name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
         
-        status_code, infernece_result, response_log = kv_pipline(
+        status_code, inference_result, response_log = kv_pipline(
             client,
             inputs,
             response_log,
-            infernece_result=infernece_result
+            inference_result=inference_result
         )
-        if isinstance(infernece_result, JSONResponse):
-            return infernece_result
+        if isinstance(inference_result, JSONResponse):
+            return inference_result
         
         pipeline_end_time = datetime.now()
         response_log.update({f"kv_{name}_end_time":pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
@@ -485,7 +485,7 @@ def idcard_(
         return select_doc_type_result
     select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
     
-    infernece_result.update(doc_type=dict(
+    inference_result.update(doc_type=dict(
         doc_type_idx=select_doc_type_result.doc_type_idx,
         doc_type_code=select_doc_type_result.doc_type_code,
         doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
@@ -495,4 +495,4 @@ def idcard_(
     ))
     
     
-    return (status_code, infernece_result, response_log)
+    return (status_code, inference_result, response_log)
