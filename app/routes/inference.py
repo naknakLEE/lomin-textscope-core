@@ -46,12 +46,15 @@ Pipeline = TypeVar("Pipeline")
 PIPELINE_GOCR = pipeline.gocr_
 PIPELINE_CLS = pipeline.cls_
 PIPELINE_KV = pipeline.kv_
+PIPELINE_IDCARD = pipeline.idcard_
 
 INFERENCE_PIPELINE: Dict[str, Tuple[str, Pipeline]] = {
-    "gocr":   ( ("gocr", PIPELINE_GOCR), ),
-    "cls":    ( ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS) ),
-    "kv":     ( ("gocr", PIPELINE_GOCR),                        ("kv", PIPELINE_KV) ),
-    "cls-kv": ( ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS), ("kv", PIPELINE_KV) )
+    "gocr":   [ ("gocr", PIPELINE_GOCR), ],
+    "cls":    [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS) ],
+    "kv":     [ ("gocr", PIPELINE_GOCR),                        ("kv", PIPELINE_KV) ],
+    "cls-kv": [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS), ("kv", PIPELINE_KV) ],
+    
+    "idcard": [ ("idcard", PIPELINE_IDCARD) ]
 }
 
 

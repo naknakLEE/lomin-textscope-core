@@ -215,13 +215,43 @@ def __pp__(
     return (pp_response, pp_response_json, response_log)
 
 
+def __idcard__(
+    client: Client,
+    inputs: dict,
+    response_log: dict,
+    /,
+    inference_result: dict = None # None: __idcard__ is first of whole idcard pipelines
+) -> Tuple[int, dict, dict]:
+    
+    # idcard inference 요청
+    idcard_response = client.post(
+        f"{model_server_url}/idcard",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    
+    idcard_response_json: dict = idcard_response.json()
+    
+    # get real doc_type_code from classes
+    doc_type_code = "-".join(idcard_response_json.get("classes", [])[0].split("-")[:2])
+    
+    inputs.update(doc_type=doc_type_code)
+    idcard_response_json.update(doc_type=doc_type_code)
+    
+    
+    return (idcard_response.status_code, idcard_response_json, response_log)
+
+
 # lomin_doc_type에 따른 kv-pipeline 정의
 # (({pipelines}], [doc_types]), ...)
 KV_PIPELINE = (
-    ( (("pp",__pp__), ),              ["GV-BC", "GV-CFR", "GV-ARR"]),
-    ( (("kv",__kv__), ("pp",__pp__)), ["MD-MC", "MD-DN", "MD-COT", "MD-CMT", "MD-CAD", "MD-CS"]),
-    ( (("el",__el__), ("pp",__pp__)), ["MD-PRS", "MD-MB", "MD-MED", "MD-CPE"]),
-    ( (("tocr",__tocr__), ),          ["KBL1-IC", "KBL1-PIC"])
+    ( (("pp",__pp__), ),              [ ]),
+    ( (("kv",__kv__), ("pp",__pp__)), [ ]),
+    ( (("el",__el__), ("pp",__pp__)), [ ]),
+    ( (("tocr",__tocr__), ),          [ ]),
+    
+    ( (("idcard",__idcard__), ("pp",__pp__)), ["ID-RRC", "ID-DLC", "ID-ARC", "ID-PP"])
 )
 
 
@@ -386,7 +416,68 @@ def kv_(
         )
         logger.info("kv_pipeline {} time: {}s", name, (pipeline_end_time - pipeline_start_time).total_seconds())
     
-    infernece_result.update(kv=infernece_result.pop("result"))
+    inference_result.update(kv=inference_result.pop("result"))
+    
+    # doc_type_code로 doc_type_index 조회
+    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+    if isinstance(select_doc_type_result, JSONResponse):
+        return select_doc_type_result
+    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+    
+    inference_result.update(doc_type=dict(
+        doc_type_idx=select_doc_type_result.doc_type_idx,
+        doc_type_code=select_doc_type_result.doc_type_code,
+        doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+        doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+        doc_type_name_en=select_doc_type_result.doc_type_name_en,
+        doc_type_structed=select_doc_type_result.doc_type_structed
+    ))
+    
+    
+    return (status_code, inference_result, response_log)
+
+
+def idcard_(
+    session: Session,
+    client: Client,
+    inputs: dict,
+    response_log: dict,
+    /,
+    inference_result: dict = None # None: idcard use own det, rec models
+) -> Tuple[int, dict, dict]:
+    
+    idcard_pipelines = KV_PIPELINE[4][0]
+    
+    logger.info("idcard pipeline: {}", [ p for p, _ in idcard_pipelines ] )
+    
+    status_code, response_log = (200, dict())
+    
+    for name, idcard_pipeline in idcard_pipelines:
+        pipeline_start_time = datetime.now()
+        response_log.update({f"kv_{name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
+        
+        status_code, inference_result, response_log = idcard_pipeline(
+            client,
+            inputs,
+            response_log,
+            inference_result=inference_result
+        )
+        if isinstance(inference_result, JSONResponse):
+            return inference_result
+        
+        pipeline_end_time = datetime.now()
+        response_log.update({f"kv_{name}_end_time":pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
+        
+        inference_total_start_time = response_log.get("kv_total_start_time", pipeline_start_time)
+        response_log.update(
+            inference_total_start_time=inference_total_start_time,
+            inference_total_end_time=(inference_total_start_time - datetime.now()).total_seconds(),
+        )
+        logger.info("idcard_pipeline {} time: {}s", name, (pipeline_end_time - pipeline_start_time).total_seconds())
+    
+    inference_result.update(kv=inference_result.pop("result"))
+    
+    doc_type_code = inputs.get("doc_type")
     
     # doc_type_code로 doc_type_index 조회
     select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
