@@ -182,7 +182,7 @@ async def post_upload_document(
     response_log: dict = dict()
     request_datetime = datetime.now()
     
-    user_email:            str = current_user.email
+    user_email:           str = current_user.email
     document_id:          str = params.get("document_id", get_ts_uuid("document"))
     document_name:        str = params.get("file_name")
     document_data:        str = params.get("file")
