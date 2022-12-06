@@ -84,8 +84,8 @@ services:
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp
-    # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    entrypoint: python3 main.py
+    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
 
 
   wrapper:
@@ -112,8 +112,8 @@ services:
       - LC_ALL=C.UTF-8
       - CUSTOMER=${CUSTOMER}
     working_dir: /workspace/textscope_wrapper/wrapper
-    # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+    entrypoint: python3 main.py
+    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
 
 
   nginx:
