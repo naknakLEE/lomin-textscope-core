@@ -1,4 +1,4 @@
 defaults:
-  - route: kbl2206
+  - route: default
   - document: default
-  - database: kbl2206
+  - database: kbc2211
