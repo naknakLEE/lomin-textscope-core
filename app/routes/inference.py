@@ -422,6 +422,20 @@ def ocr(
             logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
         
         # CLS 결과 문서유형이 KV 모델 대상이 아닌 경우, CLS결과만 return
+        elif inference_results.get("doc_type").doc_type_code in ["LINA1-ETC"]:
+            inference_results["texts"] = cls_inputs["texts"]
+            inference_results["scores"] = cls_inputs["scores"]
+            inference_results["boxes"] = cls_inputs["boxes"]
+            response = dict(
+                    response_log=response_log,
+                    inference_results=inference_results,
+                    resource_id=dict(
+                        # log_id=task_id
+                    )
+                )
+            logger.info(f"x-request-id : {x_request_id} / CORE - cls END")
+            logger.info(f"x-request-id : {x_request_id} / CORE - ocr END")
+            return JSONResponse(content=jsonable_encoder(response))
         else:
             inference_results["texts"] = []
             response = dict(
