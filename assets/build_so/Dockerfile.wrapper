@@ -1,0 +1,5 @@
+ARG VERSION_BEFORE
+
+FROM docker.lomin.ai/ts-wrapper:${VERSION_BEFORE}
+
+COPY ./wrapper/ /workspace/textscope_wrapper/wrapper

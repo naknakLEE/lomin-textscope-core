@@ -1,0 +1,34 @@
+version: "2.3"
+
+services:
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper:${VERSION_AFTER:-0.6.0}
+    build:
+      context: ./
+      dockerfile: Dockerfile.wrapper
+      args:
+        VERSION_BEFORE: ${VERSION_BEFORE:-0.6.0}
+  
+  web:
+    image: docker.lomin.ai/ts-web:${VERSION_AFTER:-0.6.0}
+    build:
+      context: ./
+      dockerfile: Dockerfile.web
+      args:
+        VERSION_BEFORE: ${VERSION_BEFORE:-0.6.0}
+  
+  pp:
+    image: docker.lomin.ai/ts-pp:${VERSION_AFTER:-0.6.0}
+    build:
+      context: ./
+      dockerfile: Dockerfile.pp
+      args:
+        VERSION_BEFORE: ${VERSION_BEFORE:-0.6.0}
+  
+  serving:
+    image: docker.lomin.ai/ts-gpu-serving:${VERSION_AFTER:-0.6.0}
+    build:
+      context: ./
+      dockerfile: Dockerfile.serving
+      args:
+        VERSION_BEFORE: ${VERSION_BEFORE:-0.6.0}
