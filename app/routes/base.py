@@ -8,13 +8,14 @@ from fastapi.encoders import jsonable_encoder
 from app import hydra_cfg
 from app.common.const import get_settings
 from fastapi import BackgroundTasks
+from app.utils.background_task import CustomBackgroundTaskList
 
 from app.utils.document import (
-    document_dir_verify,
+    document_file_verify,
     multiple_request_ocr,
     generate_searchalbe_pdf,
     save_minio_pdf_convert_img,
-    get_inference_result_to_pdf
+    get_inference_result_to_pdf,
 )
 from app.utils.minio import MinioService
 from app.utils.utils import cal_time_elapsed_seconds
@@ -31,12 +32,13 @@ from app.utils.auth import get_current_active_user_fake as get_current_active_us
 
 settings = get_settings()   # default setting
 router = APIRouter()
+custom_background_task = CustomBackgroundTaskList()
 
 
 @router.post("/inference/ocr")
 async def post_inference_ocr(
     inputs: Dict = Body(...),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
+    # background_tasks: BackgroundTasks = BackgroundTasks(),
     session: Session = Depends(db.session),    
 ) -> JSONResponse:
     """
@@ -51,16 +53,24 @@ async def post_inference_ocr(
     # 시작 시간 측정
     request_datetime = datetime.now()
 
-    document_dir      :str = inputs.get("document_dir")
+    # document_dir      :str = inputs.get("document_dir")
 
-    path_verify = document_dir_verify(document_dir)
-    if isinstance(path_verify, JSONResponse): return path_verify
+    # path_verify = document_dir_verify(document_dir)
+    # if isinstance(path_verify, JSONResponse): return path_verify
 
-    background_tasks.add_task(
-        multiple_request_ocr,
-        inputs        
-    )
+    # background_tasks.add_task(
+    #     multiple_request_ocr,
+    #     inputs        
+    # )
     
+    # await bg_tasks_add_queue(multiple_request_ocr, inputs)
+    # custom_background_task = CustomBackgroundTask(multiple_request_ocr, inputs)
+    # custom_background_task.add_task()
+    # await custom_background_task()
+    custom_background_task.add_task(
+        multiple_request_ocr,
+        inputs
+    )
     # inference_result_list = multiple_request_ocr(inputs)
     # if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
     # # document_cnt로 sort(순서 보장을 위해)
@@ -104,7 +114,7 @@ async def post_inference_ocr(
 async def put_pdf(
     inputs: Dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
-    background_tasks: BackgroundTasks = BackgroundTasks(),
+    # background_tasks: BackgroundTasks = BackgroundTasks(),
     session: Session = Depends(db.session),    
 ) -> JSONResponse:
     """
@@ -120,7 +130,7 @@ async def put_pdf(
 
     pdf_dir      :str = inputs.get("pdf_dir")
 
-    path_verify = document_dir_verify(pdf_dir)
+    path_verify = document_file_verify(pdf_dir)
     if isinstance(path_verify, JSONResponse): return path_verify
 
     inputs.update(
@@ -128,10 +138,18 @@ async def put_pdf(
         user_team=current_user.team,   
     )
 
-    background_tasks.add_task(
+    # background_tasks.add_task(
+    #     get_inference_result_to_pdf,
+    #     inputs,
+    #     session        
+    # )    
+
+    # custom_background_task = CustomBackgroundTask(get_inference_result_to_pdf, inputs, session)
+    # custom_background_task.add_task()    
+    custom_background_task.add_task(
         get_inference_result_to_pdf,
         inputs,
-        session        
+        session
     )    
 
     # current_user_info = dict(

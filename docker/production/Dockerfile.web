@@ -40,6 +40,12 @@ COPY ./requirements/web/poetry.lock /workspace/
 WORKDIR /workspace
 RUN poetry install --no-dev
 
+RUN apt-get -qq update
+RUN apt-get -qq install -y software-properties-common
+RUN add-apt-repository ppa:libreoffice/ppa
+
+RUN apt-get -qq update
+RUN apt-get -qq install -y libreoffice=1:7.4.2~rc3-0ubuntu0.20.04.1~lo1
 
 COPY ./app/assets/ /workspace/app/assets/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/web/ /workspace/
@@ -60,6 +66,12 @@ RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /usr/bin/gcc
 
 RUN groupadd -r lomin -g 1000 && \
-    useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
+    useradd -m -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope
+
+COPY ./assets/fonts/NanumGothic.ttf /home/textscope/.local/share/fonts/NanumGothic.ttf
+RUN chown textscope:lomin /home/textscope/.local/share/fonts/NanumGothic.ttf
+
+RUN chown -R 1000:1000 /workspace
 
 USER textscope
+

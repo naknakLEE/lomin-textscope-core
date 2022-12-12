@@ -35,8 +35,8 @@ from sqlalchemy.orm import Session
 from app.database.schema import InferenceInfo
 import socket
 from datetime import date
-from minio.commonconfig import Tags
 from typing import Optional
+
 
 settings = get_settings()
 minio_client = MinioService()
@@ -49,6 +49,8 @@ support_file_extension_list = {
 }
 
 multipage_file_format = ['.pdf','.tif','.tiff']
+
+# pdf2pdfa_convertor = pdf_converter.PDF2PDFAConvertor(libreoffice="soffice")
 
 
 def get_file_extension(document_filename: str = "x.xxx") -> str:
@@ -245,10 +247,10 @@ def create_socket_msg(pdf_file_nm:str, status_code:int, gubun:str, **kwargs) -> 
     status_code_msg = f"result_code:{status_code}"
     msg_array = [pdf_file_nm_msg, status_code_msg]
 
-    err_info:dict = kwargs.get('err_info', None)
-    if status_code != 200 and err_info: 
-        msg_array.append(f"error_code:{err_info.get('error_code')}")
-        msg_array.append(f"error_message:{err_info.get('error_message')}")
+    err_info:ErrorResponse = kwargs.get('error', None)
+    if err_info: 
+        msg_array.append(f"error_code:{err_info.error_code}")
+        msg_array.append(f"error_message:{err_info.error_message}")
     msg_array.append(f"gubun:{gubun}")
     return ",".join(msg_array).encode('utf-8')    
 
@@ -272,20 +274,32 @@ def multiple_request_ocr(
         for file_name in file_list: document_cnt = generate_document_list(document_dir_path, file_name, document_data_list, document_cnt)
 
         # MultiThread로 ocr결과 담기
-        # TODO: 멀티쓰레드, 멀티프로세싱, async 속도 비교        
         with futures.ThreadPoolExecutor(max_workers=hydra_cfg.document.thread_max_works) as executor:
             future = executor.map(request_ocr,document_data_list,repeat(inputs))
             inference_result_list = list(future)
 
-            # ocr_result list sorting
-            sorted(inference_result_list, key=lambda k: k['cnt'])
+        # ocr_result list sorting
+        sorted(inference_result_list, key=lambda k: k['cnt'])
 
-            # sorting된 값을 가지고 pdf생성하기
-            inputs.update(
-                inference_result_list=inference_result_list
-            )
-            generate_searchalbe_pdf(inputs)        
-            socket_msg: bytes = create_socket_msg(pdf_file_name, 200, 'C')
+        # # sorting된 값을 가지고 pdf생성하기
+        inputs.update(
+            inference_result_list=inference_result_list
+        )
+        generate_searchalbe_pdf(inputs)        
+        socket_msg: bytes = create_socket_msg(pdf_file_name, 200, 'C')
+
+
+        # for document_data in document_data_list: inference_result_list.append(request_ocr(document_data, inputs))
+        # # logger.error()
+        # # ocr_result list sorting
+        # sorted(inference_result_list, key=lambda k: k['cnt'])
+
+        # # sorting된 값을 가지고 pdf생성하기
+        # inputs.update(
+        #     inference_result_list=inference_result_list
+        # )
+        # generate_searchalbe_pdf(inputs)        
+        # socket_msg: bytes = create_socket_msg(pdf_file_name, 200, 'C')     
 
     except Exception as exc:
         logger.error(exc, exc_info=True)
@@ -297,10 +311,11 @@ def multiple_request_ocr(
     # hydra config를 이용하여 소켓정보 가져오기
     socket_server_ip:str = hydra_cfg.route.socket_server_ip
     socket_server_port:int = hydra_cfg.route.socket_server_port
-        
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((socket_server_ip, socket_server_port))
-        client_socket.send(socket_msg)    
+    
+    if not settings.DEVELOP:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            client_socket.connect((socket_server_ip, socket_server_port))
+            client_socket.send(socket_msg)    
 
 def request_ocr(
     document_info: dict, inputs: dict
@@ -514,21 +529,6 @@ def generate_searchalbe_pdf(
         
         pdf_file_save_path: str = os.path.dirname(pdf_file_name)
         pdf_file_save_name = os.path.basename(pdf_file_name)
-        
-        # # 임시 저장 위치 (PDF)
-        # pdf_file_save_dir_temp = Path(pdf_file_save_path + "/.tmp")
-        # pdf_file_save_dir_temp.mkdir(parents=True, exist_ok=True)
-        
-        # # PDF 저장
-        # pdf_save_path = pdf_file_save_dir_temp.joinpath(pdf_file_save_name)
-        # pdf_parser.export_pdf(pdf_save_path.as_posix(), wordss, images, True)
-        
-        # # 실제 저장 위치 (PDF/A-1a)
-        # pdf_file_save_dir = Path(pdf_file_save_path)
-        # pdf_file_save_dir.mkdir(parents=True, exist_ok=True)
-        
-        # # PDF/A-1a 변환
-        # pdf2pdfa_convertor.convert(outputPath=pdf_file_save_dir.as_posix(), inputPath=pdf_save_path.as_posix())
 
         if hydra_cfg.document.use_pdf_a1:
             pdf_convert(pdf_file_save_name, pdf_file_save_path, wordss, images)
@@ -538,11 +538,9 @@ def generate_searchalbe_pdf(
         
 
         # pdf생성이 성공하면 이미지 폴더 지우기
-        document_dir: str = inputs.get("document_dir")
-        if os.path.exists(document_dir):
-            shutil.rmtree(document_dir)        
-        
-        
+        # document_dir: str = inputs.get("document_dir")
+        # if os.path.exists(document_dir):
+        #     shutil.rmtree(document_dir)                        
 
     except Exception as exc:    
         logger.error(exc)
@@ -558,7 +556,6 @@ def generate_searchable_pdf_2(
     default_pdf_save_path = hydra_cfg.document.put_directory
 
     try:
-        pdf_parser = PdfParser()
         wordss: list[List[Word]] = list()
         images: List[Image.Image] = inputs.get("pil_image_list", [])
 
@@ -588,33 +585,14 @@ def generate_searchable_pdf_2(
             pdf_parser.export_pdf(Path(file_name).as_posix(), wordss, images, True)
             end_file_path = file_name.replace(".pdf", ".end")
             Path(end_file_path).touch()             
-
-
-        # pdf_file_save_path = pdf_file_save_path.replace('minio', '/workspace')
-        
-        # # 임시 저장 위치 (PDF)
-        # pdf_file_save_dir_temp = Path(pdf_save_path + "/tmp")
-        # pdf_file_save_dir_temp.mkdir(parents=True, exist_ok=True)
-        
-        # # PDF 저장
-        # pdf_save_path = pdf_file_save_dir_temp.joinpath(pdf_file_save_name)
-        # pdf_parser.export_pdf(pdf_save_path.as_posix(), wordss, images, True)
-        
-        # # 실제 저장 위치 (PDF/A-1a)
-        # # pdf_file_save_dir = Path(default_pdf_save_path).joinpath(pdf_file_save_name)
-        # pdf_file_save_dir = Path(default_pdf_save_path)
-        # pdf_file_save_dir.mkdir(parents=True, exist_ok=True)
-        
-        # # PDF/A-1a 변환
-        # pdf2pdfa_convertor.convert(outputPath=pdf_file_save_dir.as_posix(), inputPath=pdf_save_path.as_posix())
                
     except Exception as exc:    
         logger.error(exc)
         exc.__setattr__('context', "C01.006.5003")
         raise exc    
 
-def document_dir_verify(document_path: str):
-    if not os.path.isdir(document_path):
+def document_file_verify(document_path: str):
+    if not os.path.isfile(document_path):
         status_code, error = ErrorResponse.ErrorCode.get(2508)
         return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return True        
@@ -626,19 +604,21 @@ def save_minio_pdf_convert_img(
     """
         pdf 파일을 img로 쪼개어 Minio 저장(local pc에는 저장X -> 요구사항)
     """
-    pdf_dir = inputs.get('pdf_dir')
-    pdf_list = os.listdir(pdf_dir)
+    pdf_dir:str = inputs.get('pdf_dir')
+    # pdf_list = os.listdir(pdf_dir)
     
-    pdf_list = list(filter(lambda x: Path(x).suffix.lower() == '.pdf', pdf_list))
-    pdf_file_name = pdf_list[0]
+    # pdf_list = list(filter(lambda x: Path(x).suffix.lower() == '.pdf', pdf_list))
+    # pdf_file_name = pdf_list[0]
 
-    file_path = os.path.join(pdf_dir, pdf_file_name)
+    pdf_file_name = Path(pdf_dir).name
+
+    # file_path = os.path.join(pdf_dir, pdf_file_name)
     document_id = get_ts_uuid("document")
     pdf_len = 0
     origin_object_name = ""
     today = date.today().isoformat()
 
-    with Path(file_path).open('rb') as file:
+    with Path(pdf_dir).open('rb') as file:
         pdf_data = file.read()
         buffered = BytesIO()
         try:        
@@ -692,6 +672,86 @@ def save_minio_pdf_convert_img(
 
     return [pdf_len, document_id, origin_object_name]
 
+# def save_minio_pdf_convert_img(
+#     inputs: dict,
+#     session: Session
+# ) -> Tuple[int, str, str]:
+#     """
+#         pdf 파일을 img로 쪼개어 Minio 저장(local pc에는 저장X -> 요구사항)
+#     """
+#     pdf_dir:str = inputs.get('pdf_dir')
+#     # pdf_list = os.listdir(pdf_dir)
+    
+#     # pdf_list = list(filter(lambda x: Path(x).suffix.lower() == '.pdf', pdf_list))
+#     # pdf_file_name = pdf_list[0]
+
+#     pdf_file_name = Path(pdf_dir).name
+
+#     # file_path = os.path.join(pdf_dir, pdf_file_name)
+#     document_id = get_ts_uuid("document")
+#     pdf_len = 0
+#     origin_object_name = ""
+#     today = date.today().isoformat()
+
+
+#     # TODO: PDF A/1 -> TO PDF
+#     convert_pdf_dir = pdf_dir.replace(pdf_file_name, "_".join(["convert", pdf_file_name]))
+#     pdf2pdfa_convertor.convert(outputPath=convert_pdf_dir, inputPath=pdf_dir, pdf_select_version="0")
+
+#     with Path(convert_pdf_dir).open('rb') as file:
+#         pdf_data = file.read()
+#         buffered = BytesIO()
+#         try:        
+#             document_pages: List[Image.Image] = read_image_from_bytes(pdf_data, pdf_file_name, 0.0, 1, separate=True)
+#             pdf_len = len(document_pages)
+#             if(not pdf_len):
+#                 status_code, error = ErrorResponse.ErrorCode.get(2103)
+#                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))                         
+#             success = False            
+#             # 원본 파일 집어 넣기
+#             origin_object_name = '/'.join([today, document_id, pdf_file_name])
+#             success = minio_client.put(
+#                 bucket_name=settings.MINIO_IMAGE_BUCKET,
+#                 object_name=origin_object_name,
+#                 data=pdf_data,
+#             )                    
+
+#             if(not success): raise DecompressionBombError            
+
+#             # pdf 파일을 쪼개어 jpeg로 변환후 한장씩 저장
+#             for page, document_page in enumerate(document_pages):
+#                 document_page.save(buffered, settings.MULTI_PAGE_SEPARATE_EXTENSION[1:])
+#                 object_name = '/'.join([today, document_id, str(page+1)+settings.MULTI_PAGE_SEPARATE_EXTENSION])
+#                 data = buffered.getvalue()
+
+#                 success &= minio_client.put(
+#                     bucket_name=settings.MINIO_IMAGE_BUCKET,
+#                     object_name=object_name,
+#                     data=data,
+#                 )                    
+#                 if(not success): raise DecompressionBombError
+#                 buffered.seek(0)            
+#         except DecompressionBombError:
+#             raise CoreCustomException("C01.003.2001")
+
+#     doc_type_idx = [0] * pdf_len
+#     doc_type_code = ["GOCR"] * pdf_len
+#     # save_path = "minio/" + pdf_file_name
+#     save_path = '/'.join([today, pdf_file_name])
+#     dao_document_params = {
+#         "document_id": document_id,
+#         "user_email": inputs.get('user_email'),
+#         "user_team": inputs.get('user_team'),
+#         "document_path": save_path,
+#         "document_pages": pdf_len,
+#         "doc_type_idx": doc_type_idx,
+#         "doc_type_code": doc_type_code,
+#         "cls_type_idx": 5
+#     }
+#     query.insert_document(session, **dao_document_params)                
+
+#     return [pdf_len, document_id, origin_object_name]    
+
 def get_inference_result_to_pdf(
     inputs: dict,
     # pdf_extract_inputs: dict,
@@ -711,9 +771,9 @@ def get_inference_result_to_pdf(
         )
         inference_results_list = list()
         
-        logger.debug("=====================> Start Inference Result Extract To PDF File")
+        logger.info("=====================> Start Inference Result Extract To PDF File")
         parsed_text_info, image_size, parsed_text_list = get_pdf_text_info(get_pdf_text_info_inputs)
-        logger.debug("=====================> Finish Inference Result Extract To PDF File")
+        logger.info("=====================> Finish Inference Result Extract To PDF File")
         for idx, parsed_text_info in enumerate(parsed_text_list):
             if len(parsed_text_info) > 0:
                 inference_id = get_ts_uuid("inference")
@@ -737,7 +797,7 @@ def get_inference_result_to_pdf(
         # DB 인서트에 성공하면
         pdf_dir = inputs.get('pdf_dir')
         if os.path.exists(pdf_dir):
-            shutil.rmtree(pdf_dir)          
+            os.remove(pdf_dir)          
 
         socket_msg: bytes = create_socket_msg(origin_object_name, 200, 'U')            
     except Exception as exc:
@@ -749,10 +809,11 @@ def get_inference_result_to_pdf(
     # hydra config를 이용하여 소켓정보 가져오기
     socket_server_ip:str = hydra_cfg.route.socket_server_ip
     socket_server_port:int = hydra_cfg.route.socket_server_port
-        
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect((socket_server_ip, socket_server_port))
-        client_socket.send(socket_msg)    
+
+    if not settings.DEVELOP:        
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            client_socket.connect((socket_server_ip, socket_server_port))
+            client_socket.send(socket_msg)    
 
 def pdf_convert(
     pdf_file_name: str,

@@ -3,7 +3,6 @@ import os
 import subprocess
 import shutil
 from pathlib import Path
-from typing import Optional
 from app.utils.logging import logger
 
 DEFAULT_LIBREOFFICECMD = "soffice"
@@ -43,8 +42,6 @@ class PDF2PDFAConvertor():
     
     
     def convert(self, outputPath: str, inputPath: str, pdf_select_version: str):
-        
-        logger.info("=======================> Start PDF Convert")
 
         self.writer_pdf_export_option.get("SelectPdfVersion").update(
             value=pdf_select_version
@@ -54,12 +51,14 @@ class PDF2PDFAConvertor():
         
         with subprocess.Popen(self.libreofficeExce, stdout=subprocess.PIPE, stdin=subprocess.PIPE) as proc:
             try:
+                logger.info("=======================> Start PDF Convert")
+                logger.debug(f"=======================> outputPath Path: {outputPath}")
+                logger.debug(f"=======================> inputPath Path: {inputPath}")
                 # convert to PDF/A-1a
                 out, err = proc.communicate(timeout=None)
-                
-                # remove origin pdf
-                remove_path = os.path.dirname(inputPath)
-                shutil.rmtree(remove_path)         
+                # logger.error(f"=======================> Subprocess Out: {out.decode()}")
+                if(err is not None):
+                    logger.error(f"=======================> Subprocess err: {err.decode()}")
                 
                 file_path = "/".join([outputPath, inputPath.split("/")[-1]])
                 
@@ -77,10 +76,14 @@ class PDF2PDFAConvertor():
                         elif d[3:19] == b'<xmp:CreateDate>':  p.writelines([d, d.replace(b'CreateDate', b'ModifyDate')])
                         else: p.write(d)
                 
+                # shutil.chown(file_path, user=UID)
                 # 빈파일(.end) 생성
                 if(pdf_select_version == "1"):
                     end_file_path = file_path.replace(".pdf", ".end")
                     Path(end_file_path).touch()
+                    # remove origin pdf
+                    remove_path = os.path.dirname(inputPath)
+                    shutil.rmtree(remove_path)                             
                     logger.info("=======================> Finish Convert PDF TO PDF/A")
                 else:
                     logger.info("=======================>  Finish Convert PDF/A TO PDF")
@@ -88,7 +91,7 @@ class PDF2PDFAConvertor():
             except subprocess.TimeoutExpired:
                 proc.kill()
                 outs, errs = proc.communicate()
-                print("proc timeout error: PDF to PDF/A converting")
+                logger.info("=======================> proc timeout error: PDF to PDF/A converting")
 
 
 
