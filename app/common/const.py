@@ -16,6 +16,13 @@ def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
         Path(f"/workspace/assets/textscope.json").read_text(encoding)
     )
     config = customer_config
+
+    # TODO 고객사별로 다르게할 필요 있음
+    # KDT 전용 config_json 등록
+    kdt_config = json.loads(
+        Path(f"/workspace/assets/kdt.json").read_text(encoding)
+    )
+    config.update(kdt_config)
     return config
 
 
@@ -24,6 +31,7 @@ class Settings(BaseSettings):
     POSTGRES_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
+    NGINX_SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
@@ -51,7 +59,7 @@ class Settings(BaseSettings):
             "passwd": "plugin0001!"
         }
     ]
-
+    POSTGRES_SCHEMA: str
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
@@ -140,13 +148,12 @@ class Settings(BaseSettings):
     # DATABASE INIT INSERT DATA
     INIT_DATA_XLSX_FILE_LIST: list = [
         {
-            "name": "textscope",
+            "name": "textscope_lina",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
         {
-            "name": "kei2205",
-            "password": "g12?oq4C+APT2I4wRKb!",
-            # "ignore": ["VW_IF_EMP", "VW_IF_ORG_CUR", "VW_IF_CD"]
+            "name": "kdt2204",
+            "password": "cbVTURA=Uhe76vRd*ele"
         },
     ]
 
@@ -157,6 +164,28 @@ class Settings(BaseSettings):
         "C_GRANT_USER",
         "D_REVOKE_USER"
     ]
+    
+    # TEMPLATE CONFIG
+    KBL1_IC_TEMPLATE_IMAGE_BASE64: str = ""
+    KBL1_IC_TEMPLATE_JSON: Dict = {}
+    KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64: str = ""
+    KBL1_PIC_TEMPLATE_JSON: Dict = {}
+    
+    #LINA TEMPLATE CONFIG
+    LINA1_PIC_TEMPLATE_JSON: Dict = {}
+    LINA1_PIC_TEMPLATE_IMAGE_P1_BASE64: str = ""
+    LINA1_PIC_TEMPLATE_IMAGE_P2_BASE64: str = ""
+    LINA1_PIC_TEMPLATE_IMAGE_P3_BASE64: str = ""
+    
+    LINA1_IC_TEMPLATE_JSON: Dict = {}
+    LINA1_IC_TEMPLATE_IMAGE_BASE64: str = ""
+
+    LINA1_CDT_A_TEMPLATE_JSON: Dict = {}
+    LINA1_CDT_B_TEMPLATE_JSON: Dict = {}
+    LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64: str = ""
+    LINA1_CDT_TEMPLATE_IMAGE_P2_BASE64: str = ""
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}
@@ -248,7 +277,7 @@ class Settings(BaseSettings):
     KEY_LENGTH_TABLE: Dict = {}
     DATABASE_INITIAL_DATA: Dict = {}
     KV_CATEGORY_MAPPING: Dict = {}
-
+    KDT_CUSTOM_MAPPING: Dict = {}
     class Config:
         env_file = "/workspace/.env"
         env_file_encoding = "utf-8"

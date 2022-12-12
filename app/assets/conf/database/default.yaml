@@ -1,2 +1,3 @@
+delete_privacy_data: False
 insert_initial_filename:
   - textscope

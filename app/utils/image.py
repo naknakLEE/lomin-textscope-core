@@ -83,6 +83,14 @@ def read_pillow_from_bytes(image_bytes, image_filename, page: int = 1):
     return pil_image
 
 
+def rotate_image(image: Image.Image, angle: float) -> Image.Image:
+    return image.rotate(angle, expand=True)
+
+
+def bytes_2_pil_image(image_bytes: bytes) -> Image.Image:
+    return Image.open(BytesIO(image_bytes))
+
+
 @lru_cache(maxsize=15)
 def read_image_from_bytes(
     image_bytes: str, image_filename: str, angle: Optional[float], page: int
@@ -96,7 +104,7 @@ def read_image_from_bytes(
         return None
     
     if angle:
-        image = image.rotate(angle, expand=True)
+        image = rotate_image(image, angle)
     
     return image
 
@@ -119,6 +127,13 @@ def get_image_info_from_bytes(
 
 
 def image_to_base64(image: Image, file_format: str = "jpeg") -> str:
+    buffered = BytesIO()
+    image.save(buffered, file_format)
+    
+    return base64.b64encode(buffered.getvalue())
+
+
+def pil_image_to_base64(image: Image.Image, file_format: str = "JPEG") -> str:
     buffered = BytesIO()
     image.save(buffered, file_format)
     

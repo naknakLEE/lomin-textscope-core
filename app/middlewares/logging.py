@@ -27,7 +27,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         request_datetime = datetime.now()
         try:
             request.state.req_time = request_datetime
-            logger.info(f"Request time: {request.state.req_time}")
             request.state.start = time.time()
             request.state.inspect = None
             request.state.user = None
@@ -73,8 +72,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 request.state.db.close()
             response_datetime = datetime.now()
             elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
-            logger.info(f"Response time: {response_datetime}")
-            logger.info(f"Elapsed time: {elapsed}")
+            logger.info(f"Req: {request_datetime}, Res: {response_datetime}, - {elapsed}s")
         return response
 
 

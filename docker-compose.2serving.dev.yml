@@ -1,0 +1,143 @@
+version: "2.3"
+
+services:
+  serving_0:
+    build:
+      context: inference_server
+      dockerfile: ./Dockerfile
+      args:
+        MAINTAINER: ${MAINTAINER}
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports:
+      - 8052:5000
+    volumes:
+      - ./:/workspace
+    shm_size: "16gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      - COLUMNS=${COLUMNS:-200}
+      - DISPLAY=$DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TERM=$TERM
+      - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - WARMUP_COUNT=${WARMUP_COUNT:-0}
+    runtime: nvidia
+    tty: true
+    working_dir: /workspace/inference_server
+    entrypoint: sh assets/run-dev.sh
+
+  serving_1:
+    build:
+      context: inference_server
+      dockerfile: ./Dockerfile
+      args:
+        MAINTAINER: ${MAINTAINER}
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports:
+      - 8054:5000
+    volumes:
+      - ./:/workspace
+    shm_size: "16gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      - COLUMNS=${COLUMNS:-200}
+      - DISPLAY=$DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TERM=$TERM
+      - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+      - WARMUP_COUNT=${WARMUP_COUNT:-0}
+    runtime: nvidia
+    tty: true
+    working_dir: /workspace/inference_server
+    entrypoint: sh assets/run-dev.sh
+
+  web:
+    image: docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/base/Dockerfile.web
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - COLUMNS=${COLUMNS:-200}
+    ports:
+      - 8000:${WEB_IP_PORT}
+      - 8267:8265
+    volumes:
+      - ./:/workspace
+    tty: true
+    working_dir: /workspace/app
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+
+  pp:
+    image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/base/Dockerfile.pp
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - COLUMNS=${COLUMNS:-200}
+    ports:
+      - 8080:${PP_IP_PORT}
+    volumes:
+      - ./:/workspace
+    tty: true
+    restart: unless-stopped
+    working_dir: /workspace/pp_server/pp
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+
+  wrapper:
+    image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    build:
+      context: ./
+      dockerfile: docker/base/Dockerfile.wrapper
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+        CUSTOMER: ${CUSTOMER}
+    ports:
+      - 8090:${WRAPPER_IP_PORT}
+      - 11120:11120
+    volumes:
+      - ./:/workspace
+    tty: true
+    environment:
+      - COLUMNS=${COLUMNS:-200}
+      - API_ENV=production
+      - PYTHONPATH=/workspace/textscope_wrapper
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - CUSTOMER=${CUSTOMER}
+    working_dir: /workspace/textscope_wrapper/wrapper
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+
+  grafana:
+    ports:
+      - 8053:3000
