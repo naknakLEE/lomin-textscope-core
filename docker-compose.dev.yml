@@ -110,27 +110,3 @@ services:
     working_dir: /workspace/textscope_wrapper/wrapper
     entrypoint: python3 main.py
 
-  nginx:
-    ports:
-      - 8050:80
-      - 443:443
-
-  nginx-exporter:
-    ports:
-      - 9113:9113
-
-  gpu_telemetry:
-    ports:
-      - 9400:9400
-
-  hardware_telemetry:
-    ports:
-      - 9100:9100
-
-  prometheus:
-    ports:
-      - 9090:9090
-
-  grafana:
-    ports:
-      - 3001:3000

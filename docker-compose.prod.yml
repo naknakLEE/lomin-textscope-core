@@ -81,6 +81,16 @@ services:
     working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
     entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout=300
 
-  grafana:
+  nginx:
+    container_name: textscope-plugin-webview
+    image: docker.lomin.ai/ts-plugin-webview:0.0.1
+    environment:
+      - PYTHONPATH=/workspace
+      - TZ=Asia/Seoul
     ports:
-      - 8053:3000
+      - 8085:8090
+    tty: true
+    entrypoint: ["nginx", "-g", "daemon off;"]
+    restart: always
+    networks:
+      - our_net    
