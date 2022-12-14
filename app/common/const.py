@@ -108,6 +108,10 @@ class Settings(BaseSettings):
     MINIO_USE_SSL: bool = False
     MINIO_IMAGE_BUCKET: str = "images"
     USE_MINIO: bool = True
+    MINIO_LIFE_CYCLE_ENABLED: str = "Enabled"
+    MINIO_LIFE_CYCLE_DAYS: int = 30
+    MINIO_LIFE_CYCLE_RULE_ID: str = "textscope_minio_life_cycle"
+    MINIO_LIMIT_HARD_SIZE: str = "100gi"     
 
     # HINT CONFIG
     KV_HINT_CER_THRESHOLD: float = 0.2
