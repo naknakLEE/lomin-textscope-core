@@ -53,8 +53,8 @@ COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/assets /workspace/pp_server/assets
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
 
 COPY ./pp_server/lovit/requirements.txt /workspace/pp_server/lovit/requirements.txt
-COPY ./requirements/pp/pyproject.toml /workspace/
-COPY ./requirements/pp/poetry.lock /workspace/
+COPY ./pp_server/requirements/pyproject.toml /workspace/
+COPY ./pp_server/requirements/poetry.lock /workspace/
 
 WORKDIR /workspace
 

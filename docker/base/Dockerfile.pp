@@ -35,8 +35,8 @@ RUN pip3 install --upgrade pip
 WORKDIR /workspace
 RUN pip3 install torch==1.8.1+cpu torchvision==0.9.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
-COPY ./requirements/pp/pyproject.toml /workspace/
-COPY ./requirements/pp/poetry.lock /workspace/
+COPY ./pp_server/requirements/pyproject.toml /workspace/
+COPY ./pp_server/requirements/poetry.lock /workspace/
 RUN poetry install
 
 # Nuitka
