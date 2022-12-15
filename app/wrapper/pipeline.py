@@ -1059,7 +1059,7 @@ def id_cls(
 
     inference_start_time = datetime.now()
                 
-    route_name = "idcard_kp"
+    route_name = "detection"
     detection_response = client.post(
         f"{model_server_url}/{route_name}",
         json=inputs,
