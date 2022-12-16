@@ -7,5 +7,5 @@ multi_page_limit: 100
 thread_max_works: 1
 put_directory: /CAMS/OCR/RESPDF
 no_update_directory: /CAMS/OCR/DELPDF
-use_pdf_a1: True
+use_pdf_a1: False
 bg_limit_task: 2

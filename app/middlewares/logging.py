@@ -13,7 +13,7 @@ from app.database.connection import db
 from app.utils.logger import api_logger
 from app.middlewares.exception_handler import exception_handler
 from app.common.const import get_settings
-from app.utils.utils import cal_time_elapsed_seconds
+from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
 from app.schemas import error_models as ErrorResponse
 from app.utils.auth import jwt_decode
 from app.database.schema import LogAPI
@@ -42,8 +42,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request.state.inspect = None
             request.state.user = None
             request.state.db = next(db.session())            
-            # if settings.USE_TEXTSCOPE_DATABASE:
-            #     request.state.db = next(db.session())
+            if(f"{request.method}_{request.url.path}" in self.INSERT_LOG_INFO_API):
+                api_id = get_ts_uuid('log_api')
+                request.state.api_id = api_id
             headers = request.headers
             ip = (
                 headers["x-forwarded-for"]
@@ -91,6 +92,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             if(f"{request.method}_{request.url.path}" in self.INSERT_LOG_INFO_API):
                 elapsed_datetime = cal_time_elapsed_seconds(request.state.req_time, datetime.now())
                 api_log_dict = dict({
+                    'api_id': api_id,
                     'api_end_point': request.url.path,
                     'api_method': request.method,
                     'api_status_code': response.status_code,
@@ -100,7 +102,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 LogAPI.create(
                     session=request.state.db,
                     **api_log_dict
-                )                   
+                )                 
+                 
             request.state.db.close()            
             response_datetime = datetime.now()
             elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)

@@ -55,7 +55,7 @@ async def remove_data_job():
 
     logger.debug(f"=====================> {today.isoformat()} Remove Data Job Finish")
 # schedule regist
-sched.add_job(remove_data_job, trigger='cron', hour='09', minute='56')
+sched.add_job(remove_data_job, trigger='cron', hour='00')
 sched.start()
 
 if __name__ == "__main__":

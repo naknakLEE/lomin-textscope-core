@@ -1305,3 +1305,17 @@ def delete_nak_data(
     finally:
         session.flush()
         return result
+
+def update_log_api_fail(session: Session, api_id: str, **kwargs: Dict) -> Union[Optional[schema.DocumentInfo], JSONResponse]:
+    try:
+        result = schema.LogAPI.update(
+            session=session,
+            p_key="api_id",
+            p_value=api_id,
+            **kwargs
+        )
+    except Exception as exc:
+        logger.error(exc, exc_info=True)
+        session.rollback()
+        raise CoreCustomException(4102, "문서")
+    return result        

@@ -792,7 +792,8 @@ class LogDbLink(Base, BaseMixin):
 class LogAPI(Base, BaseMixin):
     __tablename__ = 'log_api'
     __table_args__ = {'comment': 'textscope 서비스 api 로그 정보'}
-    api_id = Column(Integer, primary_key=True, comment='api 로그 아이디', index=True, autoincrement=True)
+    # api_id = Column(Integer, primary_key=True, comment='api 로그 아이디', index=True, autoincrement=True)
+    api_id = Column(String, primary_key=True, comment='api 로그 아이디', index=True)
     api_domain = Column(String, nullable=False, comment='api 도메인', default="core")
     api_end_point = Column(String, nullable=False, comment='api 엔드포인트')
     api_method = Column(String, nullable=False, comment='api Method')
@@ -926,10 +927,10 @@ def insert_initial_data() -> None:
     try:
         session = next(db.session())
         
-        # initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
-        # if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
-        #     logger.info(f'Textscope service initial data skipped')
-        #     return
+        initial_data: InspectInfo = InspectInfo.get(session, inspect_id=settings.STATUS_RUNNING_INFERENCE)
+        if initial_data is not None and initial_data.inspect_id == settings.STATUS_RUNNING_INFERENCE:
+            logger.info(f'Textscope service initial data skipped')
+            return
         
         db_dir="/workspace/app/assets/database/"
         

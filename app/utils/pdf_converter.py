@@ -75,18 +75,23 @@ class PDF2PDFAConvertor():
                         elif d[3:20] == b'<xmp:CreatorTool>': p.write(b'   <xmp:CreatorTool>Textscope OCR Engine</xmp:CreatorTool>\n')
                         elif d[3:19] == b'<xmp:CreateDate>':  p.writelines([d, d.replace(b'CreateDate', b'ModifyDate')])
                         else: p.write(d)
+
+                # remove origin pdf
+                remove_path = os.path.dirname(inputPath)
+                shutil.rmtree(remove_path)                            
+                logger.info("=======================> Finish PDF Convert")                        
                 
-                # shutil.chown(file_path, user=UID)
-                # 빈파일(.end) 생성
-                if(pdf_select_version == "1"):
-                    end_file_path = file_path.replace(".pdf", ".end")
-                    Path(end_file_path).touch()
-                    # remove origin pdf
-                    remove_path = os.path.dirname(inputPath)
-                    shutil.rmtree(remove_path)                             
-                    logger.info("=======================> Finish Convert PDF TO PDF/A")
-                else:
-                    logger.info("=======================>  Finish Convert PDF/A TO PDF")
+                # # shutil.chown(file_path, user=UID)
+                # # 빈파일(.end) 생성
+                # if(pdf_select_version == "1"):
+                #     end_file_path = file_path.replace(".pdf", ".end")
+                #     Path(end_file_path).touch()
+                #     # remove origin pdf
+                #     remove_path = os.path.dirname(inputPath)
+                #     shutil.rmtree(remove_path)                             
+                #     logger.info("=======================> Finish Convert PDF TO PDF/A")
+                # else:
+                #     logger.info("=======================>  Finish Convert PDF/A TO PDF")
 
             except subprocess.TimeoutExpired:
                 proc.kill()

@@ -3,28 +3,19 @@ from typing import Dict
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from app.models import UserInfo as UserInfoInModel
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Request
 from fastapi.encoders import jsonable_encoder
-from app import hydra_cfg
 from app.common.const import get_settings
-from fastapi import BackgroundTasks
-from app.utils.background_task import CustomBackgroundTaskList
+from app.utils.background_task import QueueBackGroundTask
 
 from app.utils.document import (
     document_file_verify,
     multiple_request_ocr,
-    generate_searchalbe_pdf,
-    save_minio_pdf_convert_img,
     get_inference_result_to_pdf,
 )
-from app.utils.minio import MinioService
 from app.utils.utils import cal_time_elapsed_seconds
 from app.database.connection import db 
 from app.utils.auth import get_current_active_user_fake as get_current_active_user
-# if hydra_cfg.route.use_token:
-#     from app.utils.auth import get_current_active_user as get_current_active_user
-# else:
-#     from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 """
     ### Nank2210 전용 API
@@ -32,11 +23,12 @@ from app.utils.auth import get_current_active_user_fake as get_current_active_us
 
 settings = get_settings()   # default setting
 router = APIRouter()
-custom_background_task = CustomBackgroundTaskList()
+queue_background_task = QueueBackGroundTask()
 
 
 @router.post("/inference/ocr")
 async def post_inference_ocr(
+    request: Request,
     inputs: Dict = Body(...),
     # background_tasks: BackgroundTasks = BackgroundTasks(),
     session: Session = Depends(db.session),    
@@ -53,35 +45,15 @@ async def post_inference_ocr(
     # 시작 시간 측정
     request_datetime = datetime.now()
 
-    # document_dir      :str = inputs.get("document_dir")
-
-    # path_verify = document_dir_verify(document_dir)
-    # if isinstance(path_verify, JSONResponse): return path_verify
-
-    # background_tasks.add_task(
-    #     multiple_request_ocr,
-    #     inputs        
-    # )
-    
-    # await bg_tasks_add_queue(multiple_request_ocr, inputs)
-    # custom_background_task = CustomBackgroundTask(multiple_request_ocr, inputs)
-    # custom_background_task.add_task()
-    # await custom_background_task()
-    custom_background_task.add_task(
-        multiple_request_ocr,
-        inputs
+    log_api_uuid = request.state.api_id
+    inputs.update(
+        log_api_uuid=log_api_uuid
     )
-    # inference_result_list = multiple_request_ocr(inputs)
-    # if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
-    # # document_cnt로 sort(순서 보장을 위해)
-    # sorted(inference_result_list, key=lambda k: k['cnt'])
-
-    # inputs.update(
-    #     inference_result_list=inference_result_list
-    # )
-    
-    # pdf_result = generate_searchalbe_pdf(inputs)
-    # if(isinstance(pdf_result, JSONResponse)): return pdf_result
+    queue_background_task.add_task(
+        multiple_request_ocr,
+        inputs,
+        session
+    )
 
     # 종료 시간 측정 
     response_datetime = datetime.now()
@@ -99,11 +71,14 @@ async def post_inference_ocr(
         )
     )
     
+    
+
     # response 객체 생성
     response.update(
         request_datetime=request_datetime,
         response_datetime=response_datetime,
         elapsed=elapsed,
+        log_api_uuid=log_api_uuid
     )    
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
@@ -112,6 +87,7 @@ async def post_inference_ocr(
 
 @router.put("/pdf")
 async def put_pdf(
+    request: Request,
     inputs: Dict = Body(...),
     current_user: UserInfoInModel = Depends(get_current_active_user),
     # background_tasks: BackgroundTasks = BackgroundTasks(),
@@ -132,42 +108,18 @@ async def put_pdf(
 
     path_verify = document_file_verify(pdf_dir)
     if isinstance(path_verify, JSONResponse): return path_verify
-
+    log_api_uuid = request.state.api_id
     inputs.update(
         user_email=current_user.email,
         user_team=current_user.team,   
+        log_api_uuid=log_api_uuid
     )
 
-    # background_tasks.add_task(
-    #     get_inference_result_to_pdf,
-    #     inputs,
-    #     session        
-    # )    
-
-    # custom_background_task = CustomBackgroundTask(get_inference_result_to_pdf, inputs, session)
-    # custom_background_task.add_task()    
-    custom_background_task.add_task(
+    queue_background_task.add_task(
         get_inference_result_to_pdf,
         inputs,
         session
     )    
-
-    # current_user_info = dict(
-    #     user_email=current_user.email,
-    #     user_team=current_user.team
-    # )
-    # pdf_len, document_id, origin_object_name = save_minio_pdf_convert_img(inputs, session, current_user_info)
-    # if(isinstance(pdf_len, JSONResponse)): return pdf_len
-
-    # pdf_extract_inputs = dict(
-    #     pdf_len = pdf_len,
-    #     document_id = document_id,
-    #     origin_object_name = origin_object_name,
-    #     pdf_dir = pdf_dir
-    # )
-    # inference_result_list = get_inference_result_to_pdf(pdf_extract_inputs, session)
-    # if(isinstance(inference_result_list, JSONResponse)): return inference_result_list
-
 
     # 종료 시간 측정 
     response_datetime = datetime.now()
