@@ -15,6 +15,7 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONPATH="$PYTHONPATH:/workspace/${CUSTOMER}_wrapper"
 ENV API_ENV="production"
 ENV DOCKER_ENV="True"
+ENV LD_LIBRARY_PATH="/opt/oracle/instantclient_21_7"
 
 RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
@@ -27,7 +28,10 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
     libmysqlclient-dev \
     python3-pip \
     python3-venv \
-    tzdata 
+    tzdata \
+    libaio1 libaio-dev\    
+    wget \
+    unzip    
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install vim
 
@@ -47,6 +51,11 @@ COPY ./requirements/${CUSTOMER}/poetry.lock /workspace/
 
 WORKDIR /workspace
 RUN poetry install --no-dev
+
+WORKDIR /opt/oracle
+
+RUN wget https://download.oracle.com/otn_software/linux/instantclient/217000/instantclient-basic-linux.x64-21.7.0.0.0dbru.zip
+RUN unzip instantclient-basic-linux.x64-21.7.0.0.0dbru.zip
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache
