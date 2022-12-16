@@ -21,7 +21,8 @@ from app.utils.utils import (get_pp_api_name, get_ts_uuid, pretty_dict,
                              set_ocr_response, substitute_spchar_to_alpha)
 from app.wrapper import pp
 
-model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+# model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
+model_server_url = f"http://{settings.NGINX_SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 gocr_route = "gocr"
 cls_route = "cls"
 
