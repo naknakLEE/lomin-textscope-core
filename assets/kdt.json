@@ -322,7 +322,7 @@
     },
     "KDT_ENDPOINT": {
       "SERVING": {
-        "KDT1-EST": "tocr",
+        "KDT1-EST": "tocr_legacy",
         "CP-FNS": "kvel"
       },
       "PP": {

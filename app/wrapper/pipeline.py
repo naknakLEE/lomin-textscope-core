@@ -195,7 +195,7 @@ def single(
             custom_inference_endpoint: Dict = kdt_custom_mapping.get('KDT_ENDPOINT').get('SERVING')
             convert_route_name = custom_inference_endpoint.get(doc_type) if custom_inference_endpoint.get(doc_type) else "kv"
             # endpoint가 tocr일경우 tocr에 맞는 input 만들기
-            if convert_route_name == 'tocr':
+            if convert_route_name == 'tocr_legacy':
                 tocr_inputs: Dict = dict(
                     template=kdt_custom_mapping.get('KDT_TOCR').get(doc_type, "")
                 )
