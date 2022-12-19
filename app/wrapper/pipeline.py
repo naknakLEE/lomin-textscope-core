@@ -234,7 +234,11 @@ def __idcard__(
     idcard_response_json: dict = idcard_response.json()
     
     # get real doc_type_code from classes
-    doc_type_code = "-".join(idcard_response_json.get("classes", [])[0].split("-")[:2])
+    response_classes = idcard_response_json.get('classes', [])
+    if len(response_classes) > 0:
+        doc_type_code = "-".join(idcard_response_json.get("classes", [])[0].split("-")[:2])
+    else:
+        doc_type_code = ""
     
     inputs.update(doc_type=doc_type_code)
     idcard_response_json.update(doc_type=doc_type_code)
@@ -478,21 +482,23 @@ def idcard_(
     inference_result.update(kv=inference_result.pop("result"))
     
     doc_type_code = inputs.get("doc_type")
-    
-    # doc_type_code로 doc_type_index 조회
-    select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
-    if isinstance(select_doc_type_result, JSONResponse):
-        return select_doc_type_result
-    select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
-    
-    inference_result.update(doc_type=dict(
-        doc_type_idx=select_doc_type_result.doc_type_idx,
-        doc_type_code=select_doc_type_result.doc_type_code,
-        doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
-        doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
-        doc_type_name_en=select_doc_type_result.doc_type_name_en,
-        doc_type_structed=select_doc_type_result.doc_type_structed
-    ))
-    
-    
+
+    if doc_type_code == '':
+        inference_result = {}
+    else:
+        # doc_type_code로 doc_type_index 조회
+        select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+        if isinstance(select_doc_type_result, JSONResponse):
+            return select_doc_type_result
+        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+        
+        inference_result.update(doc_type=dict(
+            doc_type_idx=select_doc_type_result.doc_type_idx,
+            doc_type_code=select_doc_type_result.doc_type_code,
+            doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+            doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+            doc_type_name_en=select_doc_type_result.doc_type_name_en,
+            doc_type_structed=select_doc_type_result.doc_type_structed
+        ))
+        
     return (status_code, inference_result, response_log)
