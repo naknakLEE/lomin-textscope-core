@@ -151,15 +151,18 @@ def ocr(
             pipeline_start_time = datetime.now()
             response_log.update({f"inference_{inference_name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
             
-            status_code, inference_results, response_log = inference_pipeline(
+            # status_code, inference_results, response_log = inference_pipeline(
+            pipeline_result = inference_pipeline(
                 session,
                 client,
                 inputs,
                 response_log,
                 inference_result=inference_results
             )
-            if isinstance(inference_results, JSONResponse):
-                return inference_results
+            if isinstance(pipeline_result, JSONResponse):
+                return pipeline_result 
+
+            status_code, inference_results, response_log = pipeline_result
             
             pipeline_end_time = datetime.now()
             response_log.update({f"inference_{inference_name}_end_time":pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})

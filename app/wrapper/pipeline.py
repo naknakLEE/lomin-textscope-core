@@ -233,17 +233,6 @@ def __idcard__(
     
     idcard_response_json: dict = idcard_response.json()
     
-    # get real doc_type_code from classes
-    response_classes = idcard_response_json.get('classes', [])
-    if len(response_classes) > 0:
-        doc_type_code = "-".join(idcard_response_json.get("classes", [])[0].split("-")[:2])
-    else:
-        doc_type_code = ""
-    
-    inputs.update(doc_type=doc_type_code)
-    idcard_response_json.update(doc_type=doc_type_code)
-    
-    
     return (idcard_response.status_code, idcard_response_json, response_log)
 
 
@@ -481,7 +470,7 @@ def idcard_(
     
     inference_result.update(kv=inference_result.pop("result"))
     
-    doc_type_code = inputs.get("doc_type")
+    doc_type_code = inference_result.get("doc_type", "ETC")
 
     if doc_type_code == '':
         inference_result = {}
