@@ -427,11 +427,9 @@ def kv_(
     
     logger.info("kv pipeline: {}", [ p for p, _ in kv_pipelines ] )
     
-    status_code, response_log = (200, dict())
-    
     # was only cls
     if len(kv_pipelines) == 0:
-        return (status_code, inference_result, response_log)
+        return (200, inference_result, response_log)
     
     for name, kv_pipline in kv_pipelines:
         pipeline_start_time = datetime.now()
