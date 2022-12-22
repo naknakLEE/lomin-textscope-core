@@ -39,7 +39,6 @@ WORKDIR /workspace
 COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/
 COPY ./requirements/${CUSTOMER}/poetry.lock /workspace/
 RUN poetry install
-RUN poetry add cx-oracle
 
 WORKDIR /opt/oracle
 
