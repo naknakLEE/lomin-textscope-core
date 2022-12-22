@@ -18,6 +18,7 @@ from app.schemas import error_models as ErrorResponse
 model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
+# @TODO BSN_CODE/ 내부로 옮길 예정
 TOCR_TEMPLATES = {
     "KBL1-IC": {
         "template_json": settings.KBL1_IC_TEMPLATE_JSON,

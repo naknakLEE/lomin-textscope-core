@@ -1,0 +1,11 @@
+{
+  "USE_TOKEN": false,
+  "INCLUDE_SCHEMA_ALL": false,
+  "INCLUDE_SCHEMA": [
+    "[get]/status",
+    "[post]/api/v1/docx",
+    "[get]/api/v1/docx",
+    "[post]/api/v1/inference/kv",
+    "[get]/docx/{document_id}/download"
+  ]
+}

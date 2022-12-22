@@ -1,22 +1,26 @@
 import json
 
+import os
+import glob
 from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
 from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
-from os import path
 from pathlib import Path
 
-base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+bsn_code = os.getenv("BSN_CODE")
 
 
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
     encoding = settings.__config__.env_file_encoding
-    customer_config = json.loads(
-        Path(f"/workspace/assets/textscope.json").read_text(encoding)
-    )
-    config = customer_config
-    return config
+    config_path_list = glob.glob(f"/workspace/assets/{bsn_code}/**/*.json", recursive=True)
+    
+    customer_config = dict()
+    for config_path in config_path_list:
+        customer_config.update(json.loads(Path(config_path).read_text(encoding)))
+    
+    return dict(BSN_CONFIG=customer_config)
 
 
 class Settings(BaseSettings):
@@ -93,13 +97,15 @@ class Settings(BaseSettings):
     BASE_PATH: str = "/workspace"
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
+    BSN_CODE: str = bsn_code
+    BSN_CONFIG: dict
     TEXTSCOPE_CORE_WORKERS: int = 1
 
     # MINIO CONFIG
     MINIO_ROOT_USER: str
     MINIO_ROOT_PASSWORD: str
     MINIO_USE_SSL: bool = False
-    MINIO_IMAGE_BUCKET: str = "images"
+    MINIO_IMAGE_BUCKET: str = "document"
     USE_MINIO: bool = True
 
     # HINT CONFIG
@@ -276,3 +282,6 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Any:
     return Settings()
+
+
+settings: Settings = get_settings()

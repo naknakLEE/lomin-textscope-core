@@ -8,7 +8,7 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
-      - 9002:${MINIO_IP_PORT}
+      - 9000:${MINIO_IP_PORT}
       - 9001:9001
     networks:
       - our_net
@@ -81,6 +81,7 @@ services:
     container_name: textscope-serving
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
@@ -96,6 +97,7 @@ services:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
@@ -113,6 +115,7 @@ services:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
@@ -127,6 +130,7 @@ services:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs

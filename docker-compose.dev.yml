@@ -8,6 +8,7 @@ services:
       args:
         USER: ${USER}
         CUSTOMER: ${CUSTOMER}
+        BSN_CODE: ${BSN_CODE}
         BUNDLE_PATH: ${BUNDLE_PATH}
         PYTHON_VERSION: 3.8
         MODEL_SERVICE: ${MODEL_SERVICE}
@@ -48,6 +49,7 @@ services:
       context: ./
       dockerfile: docker/base/Dockerfile.web
       args:
+        BSN_CODE: ${BSN_CODE}
         PYTHON_VERSION: ${PYTHON_VERSION}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
@@ -61,8 +63,8 @@ services:
       - ./:/workspace
     tty: true
     working_dir: /workspace/app
-    # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    entrypoint: python3 main.py
+    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
 
 
   pp:
@@ -71,21 +73,22 @@ services:
       context: ./
       dockerfile: docker/base/Dockerfile.pp
       args:
+        BSN_CODE: ${BSN_CODE}
         PYTHON_VERSION: ${PYTHON_VERSION}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
       - COLUMNS=${COLUMNS:-200}
-    # ports:
-    #   - 8080:${PP_IP_PORT}
+    ports:
+      - 8080:${PP_IP_PORT}
     volumes:
       - ./:/workspace
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp
-    # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    entrypoint: python3 main.py
+    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
 
 
   wrapper:
@@ -94,6 +97,7 @@ services:
       context: ./
       dockerfile: docker/base/Dockerfile.wrapper
       args:
+        BSN_CODE: ${BSN_CODE}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -110,10 +114,9 @@ services:
       - PYTHONPATH=/workspace/textscope_wrapper
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
-      - CUSTOMER=${CUSTOMER}
     working_dir: /workspace/textscope_wrapper/wrapper
-    # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+    entrypoint: python3 main.py
+    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
 
 
   nginx:
