@@ -237,6 +237,42 @@ def __idcard__(
     return (idcard_response.status_code, idcard_response_json, response_log)
 
 
+def __cell_detect__(
+    client: Client,
+    inputs: dict,
+    response_log: dict,
+    /,
+    inference_result: dict = None # before pipeline might be gocr
+) -> Tuple[int, dict, dict]:
+    
+    inputs.update(
+        request_id=          inference_result.get("request_id"),
+        image_id=            inputs.get("image_id"),
+        image_path=          inputs.get("image_path"),
+        angle=               inference_result.get("angle"),
+        texts=               inference_result.get("texts"),
+        classes=             inference_result.get("classes"),
+        boxes=               inference_result.get("boxes"),
+        scores=              inference_result.get("scores"),
+        image_width=         inference_result.get("image_width"),
+        image_height=        inference_result.get("image_height"),
+        image_width_origin=  inference_result.get("image_width_origin"),
+        image_height_origin= inference_result.get("image_height_origin"),
+    )
+    
+    cell_detect_response = client.post(
+        f"{model_server_url}/cell_detection",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    
+    cell_detect_response_json: dict = cell_detect_response.json()
+    
+    
+    return (cell_detect_response.status_code, cell_detect_response_json, response_log)
+
+
 # lomin_doc_type에 따른 kv-pipeline 정의
 # (({pipelines}], [doc_types]), ...)
 KV_PIPELINE = (
@@ -245,7 +281,8 @@ KV_PIPELINE = (
     ( (("el",__el__), ("pp",__pp__)), [ ]),
     ( (("tocr",__tocr__), ),          [ ]),
     
-    ( (("idcard",__idcard__), ("pp",__pp__)), ["ID-RRC", "ID-DLC", "ID-ARC", "ID-PP"])
+    ( (("idcard",__idcard__), ("pp",__pp__)), [ ]),
+    ( (("cell_detect",__cell_detect__), ("pp",__pp__)), ["CP-REF"]),
 )
 
 
