@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Union
 from fastapi import APIRouter, Depends, Body, HTTPException, Request
+from fastapi import Path as fastapi_Path
 from fastapi.encoders import jsonable_encoder
 from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
@@ -363,5 +364,48 @@ def post_document_image_crop(
         format=params.format,
         crop=crop_images,
     ))
+    
+    return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+
+@router.get("/docx/{document_id}/download")
+def post_document_image_crop(
+    document_id: str = fastapi_Path("", description="문서 아이디"),
+    session: Session = Depends(db.session)
+) -> JSONResponse:
+    response = dict()
+    response_log = dict()
+    request_datetime = datetime.now()
+    
+    # 문서 정보 조회
+    select_document_result = query.select_document(session, document_id=document_id)
+    if isinstance(select_document_result, JSONResponse):
+        return select_document_result
+    select_document_result: schema.DocumentInfo = select_document_result
+    
+    document_path = Path(select_document_result.document_path)
+    document_bytes = get_image_bytes(document_id, document_path)
+    
+    response_datetime = datetime.now()
+    elapsed = cal_time_elapsed_seconds(request_datetime, response_datetime)
+    response_log.update(
+        dict(
+            request_datetime=request_datetime,
+            response_datetime=response_datetime,
+            elapsed=elapsed,
+        )
+    )
+    
+    document_data = base64.b64encode(document_bytes)
+    
+    response.update(dict(
+        request_datetime=request_datetime,
+        response_datetime=response_datetime,
+        elapsed=elapsed,
+        response_log=response_log,
+        document_file_name=document_path.name,
+        document_data=document_data
+    ))
+    
     
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
