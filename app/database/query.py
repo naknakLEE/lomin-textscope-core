@@ -265,7 +265,7 @@ def insert_inference(
             document_id=document_id,
             user_email=user_email,
             user_team=user_team,
-            inference_result=jsonable_encoder(ir),
+            inference_result=jsonable_encoder(inference_result),
             inference_type=inference_type,
             inference_start_time=response_log.get("inference_start_time"),
             inference_end_time=response_log.get("inference_end_time"),

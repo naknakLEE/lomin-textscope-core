@@ -24,7 +24,6 @@ from app import hydra_cfg
 
 settings = get_settings()
 metadata = Base.metadata
-metadata.schema = settings.POSTGRES_SCHEMA
 
 ModelType = TypeVar("ModelType", bound=Base)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
