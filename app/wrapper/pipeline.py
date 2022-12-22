@@ -176,10 +176,13 @@ def __pp__(
     task_id = inputs.get("task_id")
     
     # get pp route
-    post_processing_type = get_pp_api_name(doc_type_code)
-    if post_processing_type is None:
+    pp_api_list = get_pp_api_name(doc_type_code)
+    logger.info("pp api list: {}", pp_api_list)
+    
+    # pp_api_list is defined with no api
+    if len(pp_api_list) == 0:
         return (200, inference_result, response_log)
-
+    
     text_list = inference_result.get("texts")
     
     class_list = inference_result.get("classes", [])
@@ -190,7 +193,9 @@ def __pp__(
         boxes=        inference_result.get("boxes"),
         scores=       inference_result.get("scores"),
         classes=      class_list,
-        relations=    inference_result.get("relations", {}),
+        result=       inference_result.get("result"),
+        relations=    inference_result.get("relations"),
+        tables=       inference_result.get("tables"),
         rec_preds=    inference_result.get("rec_preds"),
         id_type=      inference_result.get("id_type"),
         doc_type=     doc_type_code,
@@ -199,11 +204,15 @@ def __pp__(
         cls_score=    inference_result.get("cls_score"),
         task_id=      task_id,
     )
-    pp_response = client.post(
-        f"{pp_server_url}/post_processing/{post_processing_type}",
-        json=pp_inputs,
-        timeout=settings.TIMEOUT_SECOND,
-    )
+    
+    for pp_api in pp_api_list:
+        pp_response = client.post(
+            f"{pp_server_url}/post_processing/{pp_api}",
+            json=pp_inputs,
+            timeout=settings.TIMEOUT_SECOND,
+        )
+        
+        pp_inputs.update(pp_response.json())
     
     pp_response_json: dict = pp_response.json()
     
