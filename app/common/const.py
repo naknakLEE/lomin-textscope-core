@@ -59,7 +59,6 @@ class Settings(BaseSettings):
             "passwd": "plugin0001!"
         }
     ]
-    POSTGRES_SCHEMA: str
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
@@ -157,6 +156,10 @@ class Settings(BaseSettings):
         },
         {
             "name": "kdt2204",
+            "password": "cbVTURA=Uhe76vRd*ele"
+        },
+        {
+            "name": "textscope",
             "password": "cbVTURA=Uhe76vRd*ele"
         },
     ]

@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 
 from app.database import query
 from app.utils.logging import logger
-from app.wrapper.pipeline import rotator
+from app.wrapper.pipeline import rotate_
 from app.schemas import error_models as ErrorResponse
 from app.utils.image import rotate_image, bytes_2_pil_image, pil_image_to_base64
 
@@ -36,7 +36,7 @@ def request_rotator(
         }
         
         with Client() as client:
-            status_code, res, response_log = rotator(client, rotator_inputs)
+            status_code, res, response_log = rotate_(client, rotator_inputs)
 
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)

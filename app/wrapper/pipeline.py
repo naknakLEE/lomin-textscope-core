@@ -261,6 +261,27 @@ KV_PIPELINE = (
 )
 
 
+def rotate_(
+    client: Client,
+    inputs: dict,
+    response_log: dict = {},
+) -> Tuple[int, dict, dict]:
+    
+    rotate_response = client.post(
+        f"{model_server_url}/rotate",
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    
+    status_code = rotate_response.status_code
+    if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
+        status_code, error = ErrorResponse.ErrorCode.get(3500)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    
+    return (status_code, rotate_response.json(), response_log)
+
 def gocr_(
     session: Session,
     client: Client,
