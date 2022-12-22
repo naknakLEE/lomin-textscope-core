@@ -189,7 +189,10 @@ def single(
         elif reverse_doc_type.get(doc_type): 
             doc_type = reverse_doc_type.get(doc_type)
         
-        if doc_type not in ['CP-FNS-ETC', "CP-AR"]:
+        if doc_type not in kdt_custom_mapping.get("DOC_TYPE", {}).keys():
+            doc_type = "ETC"
+        
+        if doc_type not in ['CP-FNS-ETC', "CP-AR", "ETC"]:
             inputs.update(doc_type=doc_type)                         
 
             custom_inference_endpoint: Dict = kdt_custom_mapping.get('KDT_ENDPOINT').get('SERVING')

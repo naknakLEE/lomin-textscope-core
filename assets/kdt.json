@@ -228,7 +228,7 @@
       "KDT1-04-02" : {"title":"CP-FNS-PD","type":"word"},
       "KDT1-04-03" : {"title":"CP-FNS-DD","type":"word"},
       "KDT1-04-04" : {"title":"-","type":"table"},
-      "KDT1-04-05" : {"title":"","type":"word"},
+      "KDT1-04-05" : {"title":"CP-FNS-CN","type":"word"},
       "KDT1-04-06" : {"title":"","type":"word"}
     },
     "KDT1-05": {
@@ -307,7 +307,7 @@
       "KDT1-07-32" : {"title":"KDT1-URF-SNTR","type":"boolean"},
       "KDT1-07-33" : {"title":"KDT1-URF-APC","type":"word"},
       "KDT1-07-34" : {"title":"KDT1-URF-PICS","type":"boolean"},
-      "KDT1-07-35" : {"title":"","type":"word"}
+      "KDT1-07-35" : {"title":"KDT1-URF-CBRB","type":"word"}
     },
     "KDT1-08": {
       "KDT1-08-00" : {"title":"TITLE","type":"word"},
@@ -318,7 +318,9 @@
     },
     "KDT1-09": {
       "KDT1-09-00" : {"title":"TITLE","type":"word"},
-      "KDT1-09-01" : {"title":"GV-FSVI-RN","type":"word"}
+      "KDT1-09-01" : {"title":"GV-FSVI-IN","type":"word"},
+      "KDT1-09-02" : {"title":"GV-FSVI-RN","type":"word"},
+      "KDT1-09-03" : {"title":"GV-FSVI-CN","type":"word"}
     },
     "KDT_ENDPOINT": {
       "SERVING": {
