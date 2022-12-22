@@ -27,7 +27,7 @@ from app.wrapper import pipeline
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app import models
-from app.wrapper.pipeline import rotator
+from app.wrapper.pipeline import rotate_
 from app.utils.document import document_path_verify
 from app.utils.utils import cal_time_elapsed_seconds, get_ts_uuid
 from app.schemas import error_models as ErrorResponse
