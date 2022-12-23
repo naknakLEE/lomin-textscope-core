@@ -235,6 +235,7 @@ def get_pdf_text_info(inputs: Dict) -> Tuple[Dict, Tuple[int, int]]:
                 "id_type": "",
             }))
             parsed_text_list.append(parsed_text_info)
+            page_num += 1
     
     return parsed_text_info, image_size, parsed_text_list
 

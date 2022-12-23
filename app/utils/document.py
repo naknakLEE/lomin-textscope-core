@@ -390,7 +390,6 @@ def generate_document_list(
     """
         request로 입력받은 경로를 통해 documnet_list 생성
     """
-    if(file_name == '인증서_iso_9001_1148173913_GC1202203709_20220406_GC1_page=000001.png'): return document_cnt
     file_path = os.path.join(document_dir_path, file_name)
     with Path(file_path).open('rb') as file:
         document_data = file.read()
