@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 from app.database.connection import db
 from app.common.const import get_settings
 from app import models
+from app.service.categories import get_model_categories as get_model_categories_service
 from sqlalchemy.orm import Session
 
 
@@ -17,26 +18,7 @@ router = APIRouter()
 def get_model_categories(
     model_id: str, session: Session = Depends(db.session)
 ) -> JSONResponse:
-    response = dict()
-    response_log = dict()
-    request_datetime = datetime.now()
-
-    # @TODO: select db where model_id
-
-    # test용 데이터
-    categories = [
-        models.Category(code="A01", name="주민등록증"),
-        models.Category(code="A02", name="운전면허증"),
-    ]
-
-    response.update(dict(categories=categories))
-    response_datetime = datetime.now()
-    response_log.update(
-        dict(
-            request_datetime=request_datetime,
-            response_datetime=response_datetime,
-            response=response,
-        )
+    return get_model_categories_service(
+        model_id = model_id,
+        session = session
     )
-
-    return JSONResponse(status_code=200, content=jsonable_encoder(response))
