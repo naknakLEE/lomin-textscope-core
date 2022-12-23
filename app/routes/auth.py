@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.models import Token, OAuth2PasswordRequestForm
 from app.schemas.json_schema import auth_token_responses
 from app.utils.auth import create_access_token, authenticate_user

@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 from app.models import OAuth2PasswordRequestForm, UserInfo as UserInfoInModel
 from fastapi import APIRouter, Body, Depends, Request
 from fastapi.encoders import jsonable_encoder
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.routes.inference import ocr
 from app.service import docx
 

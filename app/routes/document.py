@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.database.connection import db
 from app.database import query, schema
 from app.common.const import get_settings

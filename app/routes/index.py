@@ -17,7 +17,7 @@ from fastapi.security import (
 
 import base64
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.services.index import request_rotator
 from app.utils.background import bg_ocr
 from app.database.connection import db

@@ -10,7 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid

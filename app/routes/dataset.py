@@ -22,7 +22,7 @@ from app.utils.utils import (
     image_file_validation,
 )
 from app.database import query
-from app import mc
+from app.database.minio import mc
 
 
 console = Console()

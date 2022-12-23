@@ -16,7 +16,7 @@ from app import models
 from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.database import query, schema
 from app.utils.utils import is_admin
 if hydra_cfg.route.use_token:
