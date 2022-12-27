@@ -59,6 +59,7 @@ class Settings(BaseSettings):
             "passwd": "plugin0001!"
         }
     ]
+    POSTGRES_SCHEMA: str = "public"
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
