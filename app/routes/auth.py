@@ -1,20 +1,19 @@
 from typing import Dict
-from datetime import timedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.models import Token, OAuth2PasswordRequestForm
 from app.schemas.json_schema import auth_token_responses
-from app.utils.auth import create_access_token, authenticate_user
-from app.utils.utils import is_admin
 from app.common.const import get_settings
-from app.database import query
 from app.database.connection import db
 from app.models import UserInfo as UserInfoInModel
-from app.schemas import error_models as ErrorResponse
+from app.service.auth import (
+    login_for_access_token as login_for_access_token_service,
+    token_validation as token_validation_service
+)
 
 from app.utils.auth import get_current_active_user as get_current_active_user_token_validation
 if hydra_cfg.route.use_token:
@@ -43,24 +42,9 @@ async def login_for_access_token(
     -  expires: token 만료 시간 설정
 
     """
-    user = authenticate_user(form_data.email, form_data.password, session)
-    if user is None:
-        status_code, error = ErrorResponse.ErrorCode.get(2401)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error": error}))
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": form_data.email, "scopes": form_data.scopes},
-        expires_delta=access_token_expires,
-    )
-    
-    
-    return JSONResponse(
-        status_code=201,
-        content=jsonable_encoder({
-            "access_token": access_token,
-            "token_type": "bearer"
-        })
+    return await login_for_access_token_service(
+        form_data = form_data,
+        session = session
     )
 
 
@@ -70,23 +54,7 @@ async def token_validation(
     session: Session = Depends(db.session)
 ) -> JSONResponse:
     
-    if isinstance(current_user, JSONResponse):
-        return current_user
-    
-    admin = False
-    # 사용자의 모든 정책(권한) 확인
-    user_policy_result = query.get_user_group_policy(session, user_email=current_user.email)
-    if isinstance(user_policy_result, JSONResponse):
-        admin = False
-    else:
-        admin = is_admin(user_policy_result)
-    
-    
-    response = dict(
-        email=current_user.email,
-        user_team=current_user.team,
-        name=current_user.name,
-        admin=str(admin)
+    return await token_validation_service(
+        current_user = current_user,
+        session = session
     )
-    
-    return JSONResponse(status_code=200, content=jsonable_encoder(response))

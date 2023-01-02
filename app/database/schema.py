@@ -20,7 +20,8 @@ from passlib.context import CryptContext
 from app.database.connection import Base, db
 from app.utils.logging import logger
 from app.common.const import get_settings
-from app import hydra_cfg
+from app.config import hydra_cfg
+
 
 settings = get_settings()
 metadata = Base.metadata
