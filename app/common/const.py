@@ -1,4 +1,5 @@
 import json
+import base64
 
 from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
@@ -6,6 +7,9 @@ from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
 from os import path
 from pathlib import Path
+from PIL import Image
+from io import BytesIO
+
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
@@ -15,7 +19,7 @@ def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
     customer_config = json.loads(
         Path(f"/workspace/assets/textscope.json").read_text(encoding)
     )
-    config = customer_config
+    config: dict = customer_config
 
     # TODO 고객사별로 다르게할 필요 있음
     # KDT 전용 config_json 등록
@@ -23,6 +27,27 @@ def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
         Path(f"/workspace/assets/kdt.json").read_text(encoding)
     )
     config.update(kdt_config)
+    
+    buffered = BytesIO()
+    for doc_type, templates in config.get("TOCR_TEMPLATES").items():
+        for index, template_image_info in templates.get("template_images", {}).items():
+            
+            # load template json
+            image_id = template_image_info.get("image_id")
+            template_json = config.get("TOCR_TEMPLATES_JSON").get(image_id)
+            templates.update(template_json=template_json)
+            
+            # load template image
+            template_image_path = template_image_info.get("image_path")
+            
+            template_image = Image.open(template_image_path)
+            template_image.save(buffered, "png")
+            template_image_base64 = str(base64.b64encode(buffered.getvalue()))[2:-1]
+            buffered.seek(0)
+            
+            template_image_info.update(image_bytes=template_image_base64)
+    
+    
     return config
 
 
@@ -31,7 +56,7 @@ class Settings(BaseSettings):
     POSTGRES_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
-    NGINX_SERVING_IP_ADDR: str
+    # NGINX_SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
@@ -174,26 +199,8 @@ class Settings(BaseSettings):
     ]
     
     # TEMPLATE CONFIG
-    KBL1_IC_TEMPLATE_IMAGE_BASE64: str = ""
-    KBL1_IC_TEMPLATE_JSON: Dict = {}
-    KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64: str = ""
-    KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64: str = ""
-    KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64: str = ""
-    KBL1_PIC_TEMPLATE_JSON: Dict = {}
-    
-    #LINA TEMPLATE CONFIG
-    LINA1_PIC_TEMPLATE_JSON: Dict = {}
-    LINA1_PIC_TEMPLATE_IMAGE_P1_BASE64: str = ""
-    LINA1_PIC_TEMPLATE_IMAGE_P2_BASE64: str = ""
-    LINA1_PIC_TEMPLATE_IMAGE_P3_BASE64: str = ""
-    
-    LINA1_IC_TEMPLATE_JSON: Dict = {}
-    LINA1_IC_TEMPLATE_IMAGE_BASE64: str = ""
-
-    LINA1_CDT_A_TEMPLATE_JSON: Dict = {}
-    LINA1_CDT_B_TEMPLATE_JSON: Dict = {}
-    LINA1_CDT_TEMPLATE_IMAGE_P1_BASE64: str = ""
-    LINA1_CDT_TEMPLATE_IMAGE_P2_BASE64: str = ""
+    TOCR_TEMPLATES: dict = {}
+    TOCR_TEMPLATES_JSON: dict = {}
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}

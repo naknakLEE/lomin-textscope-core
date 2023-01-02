@@ -21,41 +21,6 @@ from app.schemas import error_models as ErrorResponse
 model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 
-# TODO: 고객사별로 다르게할 필요 있음
-# assets/bsn/{bsn_code}.json에 따라 수정하기 쉽게 변경 필요
-TOCR_TEMPLATES = {
-    "KBL1-IC": {
-        "template_json": settings.KBL1_IC_TEMPLATE_JSON,
-        "template_images": {
-            "0": {
-                "image_id": "template",
-                "image_path": "보험금청구서_template_1.png",
-                "image_bytes": settings.KBL1_IC_TEMPLATE_IMAGE_BASE64
-            }
-        }
-    },
-    "KBL1-PIC": {
-        "template_json": settings.KBL1_PIC_TEMPLATE_JSON,
-        "template_images": {
-            "0": {
-                "image_id": "template_1",
-                "image_path": "개인정보동의서_템플릿_1.png",
-                "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64
-            },
-            "1": {
-                "image_id": "template_2",
-                "image_path": "개인정보동의서_템플릿_2.png",
-                "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64
-            },
-            "2": {
-                "image_id": "template_3",
-                "image_path": "개인정보동의서_템플릿_3.png",
-                "image_bytes": settings.KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64
-            }
-        }
-    }
-}
-
 
 def __kv__(
     client: Client,
@@ -145,7 +110,7 @@ def __tocr__(
         return (200, inference_result, response_log)
     
     # TODO define get_template() func
-    template = TOCR_TEMPLATES.get(doc_type_code)
+    template = settings.TOCR_TEMPLATES.get(doc_type_code)
     
     tocr_inputs = dict()
     tocr_inputs.update(
@@ -424,14 +389,16 @@ def kv_(
         pipeline_start_time = datetime.now()
         response_log.update({f"kv_{name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
         
-        status_code, inference_result, response_log = kv_pipline(
+        kv_pipeline_result = kv_pipline(
             client,
             inputs,
             response_log,
             inference_result=inference_result
         )
-        if isinstance(inference_result, JSONResponse):
-            return inference_result
+        if isinstance(kv_pipeline_result, JSONResponse):
+            return kv_pipeline_result
+        
+        status_code, inference_result, response_log = kv_pipeline_result
         
         pipeline_end_time = datetime.now()
         response_log.update({f"kv_{name}_end_time":pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
