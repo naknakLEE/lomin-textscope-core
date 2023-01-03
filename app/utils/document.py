@@ -49,7 +49,7 @@ support_file_extension_list = {
 }
 
 multipage_file_format = ['.pdf','.tif','.tiff']
-max_workers = max_workers=hydra_cfg.document.thread_max_works
+max_workers = hydra_cfg.document.thread_max_works
 
 # pdf2pdfa_convertor = pdf_converter.PDF2PDFAConvertor(libreoffice="soffice")
 
@@ -517,10 +517,10 @@ def generate_searchalbe_pdf(
 
             wordss.append(words)
 
-            document_path_copy = Path(f"{pdf_file_name}.jpeg")
             document_bytes = base64.b64decode(inference_result.get("base64_encode_file"))
-            images.append(read_image_from_bytes(document_bytes, document_path_copy.name, angle, 0))
+            pdf_img = read_image_from_bytes(document_bytes, inference_result.get('image_path'), angle, 0)
         
+            images.append(pdf_img)
         pdf_file_save_path: str = os.path.dirname(pdf_file_name)
         pdf_file_save_name = os.path.basename(pdf_file_name)
 

@@ -2,7 +2,8 @@ import io
 
 from typing import List, Union
 from PIL import Image
-from pathlib import Path
+from io import BytesIO
+from app import hydra_cfg
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -22,6 +23,15 @@ class Word():
 class PdfParser():
     y_font_offset = 0.7 * mm
     scale_font_size = 1.0
+
+    PDF_72DPI_LONG_PIXEL  = 842
+    PDF_72DPI_SHORT_PIXEL = 595
+    STANDARD_PIXEL = 2340
+
+    RESIZE_DPI   = hydra_cfg.document.resize_dpi
+    LONG_PIXEL   = int(RESIZE_DPI * 297 / 25.4)
+    SHORT_PIXEL  = int(RESIZE_DPI * 210 / 25.4)
+    JPEG_QUALITY = hydra_cfg.document.jpeg_quality
     
     def getStringLength(self, text: str) -> float:
         l = 0.0
@@ -50,14 +60,16 @@ class PdfParser():
         pdf.setProducer("Textscope Studio")
         
         # A4 size
-        size_pdf_width = 210 * mm
-        size_pdf_height = 297 * mm
-        
+        # size_pdf_width = 210 * mm
+        # size_pdf_height = 297 * mm
+
+        # size_pdf_width = 595
+        # size_pdf_height = 842
+
         logger.info(f"=======================> Total Image Count:{len(images)}")
         for index, words, image in zip(range(len(images)), wordss, images):
             logger.info(f"=======================> Generate PDF To ImageCount:{index+1}")
             # 1. set page size to A4
-            pdf.setPageSize((size_pdf_width, size_pdf_height))
             
             # 2. read image from given
             pil_image = image if isinstance(image, Image.Image) else Image.open(io.BytesIO(image))
@@ -65,6 +77,18 @@ class PdfParser():
             # 3. get image width heigth for scaling bbox coordinate to pdf coordinate
             size_image_width = pil_image.width
             size_image_height = pil_image.height
+            bigger_size = 0
+
+            if size_image_height > size_image_width:
+                size_pdf_width = self.PDF_72DPI_SHORT_PIXEL
+                size_pdf_height = self.PDF_72DPI_LONG_PIXEL                
+                bigger_size = size_image_height
+            else:
+                size_pdf_width = self.PDF_72DPI_LONG_PIXEL
+                size_pdf_height = self.PDF_72DPI_SHORT_PIXEL
+                bigger_size = size_image_width
+
+            pdf.setPageSize((size_pdf_width, size_pdf_height))
             
             # 4. get width, height scale
             scale_image_to_pdf_width = size_pdf_width / size_image_width
@@ -117,7 +141,22 @@ class PdfParser():
                 pdf.drawText(text)
             
             # 6. add image layer
-            pdf_image = ImageReader(pil_image)
+            # 6-1. resize img file
+            if (bigger_size < self.STANDARD_PIXEL):
+                convert_img = pil_image
+            elif (bigger_size == size_image_height):
+                convert_img = pil_image.resize((self.SHORT_PIXEL, self.LONG_PIXEL), Image.ANTIALIAS)
+            else:
+                convert_img = pil_image.resize((self.LONG_PIXEL, self.SHORT_PIXEL), Image.ANTIALIAS)            
+
+            # 6-2. convert JPEG with custorm quality if custom quality not Zero
+            if(self.JPEG_QUALITY):           
+                byte_io:BytesIO = BytesIO()
+                convert_img.save(byte_io, format='jpeg', quality=self.JPEG_QUALITY)
+                convert_img = Image.open(byte_io)
+
+            pdf_image = ImageReader(convert_img)
+
             pdf.drawImage(pdf_image, 0, 0, width=size_pdf_width, height=size_pdf_height, preserveAspectRatio=True, anchor="c")
             
             pdf.showPage()
