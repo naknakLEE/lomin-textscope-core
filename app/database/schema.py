@@ -181,7 +181,7 @@ class BaseMixin:
                 
                 session.flush()
                 session.commit()
-
+                logger.info(f"Removed: {query} documents")
             except AttributeError as exce:
                 logger.error(exce)
                 return None
