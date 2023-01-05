@@ -100,7 +100,9 @@ class Settings(BaseSettings):
     POOL_SIZE: int = 50
     MAX_OVERFLOW: int = 20000
     INITIAL_DB: bool = True
-
+    APPLY_DB_LIFECYCLE: bool = False
+    DB_LIFECYCLE_DAYS: int = 30
+    
     # STORAGE CONFIG
     MINIO_ACCESS_KEY: str = "H7YX3286K2P7C8O94CM8"
     MINIO_SECRET_KEY: str = "MSJsIpHGaA4BpxMQZXUyvgx+Ci0YrLJDpCj89C3J"

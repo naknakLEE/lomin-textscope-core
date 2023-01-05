@@ -168,6 +168,27 @@ class BaseMixin:
         session.commit()
         return obj
 
+
+    @typing.no_type_check
+    @classmethod
+    def remove_older_than(
+        cls, session: Session, **kwargs: Dict[str, Any]
+    ) -> Optional[ModelType]:
+        query = session.query(cls)
+        for key, val in kwargs.items():
+            try:
+                col = getattr(cls, key)
+                query = query.filter(col < val).delete()
+                
+                session.flush()
+                session.commit()
+
+            except AttributeError as exce:
+                logger.error(exce)
+                return None
+            
+        return query
+
     # 특정 컬럼(p_key)를 특정 값(p_value)로 업데이트
     # update '테이블명' set 'p_key' = 'p_value' where **kwargs
     @typing.no_type_check
