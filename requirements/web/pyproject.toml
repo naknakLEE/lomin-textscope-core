@@ -48,6 +48,7 @@ imagecodecs = "2020.5.30"
 hydra-core = "^1.1.2"
 msoffcrypto-tool = "^5.0.0"
 openpyxl = "^3.0.10"
+apscheduler = "3.7.0"
 
 [tool.poetry.dev-dependencies]
 Nuitka = "0.7.5"
