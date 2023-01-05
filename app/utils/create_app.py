@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from dataclasses import asdict
+from app.database.query import delete_data_after_days
+from app.utils.cron import register_cron
 
 from prometheusrock import PrometheusMiddleware, metrics_route
 from rich import pretty
@@ -41,6 +43,10 @@ def app_generator() -> FastAPI:
             create_extension()
             create_db_users()
             insert_initial_data()
+
+        if settings.APPLY_DB_LIFECYCLE:   
+            life_days = settings.DB_LIFECYCLE_DAYS if settings.DB_LIFECYCLE_DAYS else 5
+            register_cron(function=delete_data_after_days, session = next(db.session()),life_days=life_days) 
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware

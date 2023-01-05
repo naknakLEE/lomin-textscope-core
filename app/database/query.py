@@ -4,7 +4,7 @@ import uuid
 
 
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import HTTPException
 from typing import Any, Dict, List, Union, Optional, Tuple
 from sqlalchemy.orm import Session
@@ -802,3 +802,23 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
     
     return doc_type_list
 
+def delete_data_after_days(session: Session, **kwargs: Dict) -> Union[any, JSONResponse]:
+    try:
+        now = datetime.now()
+        life_days = kwargs.get("life_days", 45)
+        criteria = now - timedelta(days=45)
+    
+        result_loginfo = schema.LogInfo.remove_older_than(session, created_time=criteria )
+        result_inspectinfo = schema.InspectInfo.remove_older_than(session, inspect_start_time=criteria )
+        result_inferenceinfo= schema.InferenceInfo.remove_older_than(session, inference_start_time=criteria )
+        result_documentinfo = schema.DocumentInfo.remove_older_than(session, document_upload_time=criteria )
+
+        if result_loginfo is None:
+            status_code, error = ErrorResponse.ErrorCode.get(2107)
+            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    except Exception:
+        logger.exception("doc_type_all select error")
+        status_code, error = ErrorResponse.ErrorCode.get(4101)
+        error.error_message = error.error_message.format("모든 문서 종류(소분류)")
+        result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return result
