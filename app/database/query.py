@@ -28,7 +28,7 @@ def select_cls_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsInf
     try:
         result = schema.ClsInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2108)
+            status_code, error = ErrorResponse.ErrorCode.get(210)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("cls_all select error")
@@ -820,22 +820,25 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
     return doc_type_list
 
 def delete_data_after_days(session: Session, **kwargs: Dict) -> Union[any, JSONResponse]:
+    result = None
     try:
         now = datetime.now()
-        life_days = kwargs.get("life_days", 45)
-        criteria = now - timedelta(days=45)
+        life_days = kwargs.get("life_days", 5)
+        criteria = now - timedelta(days=5)
     
         result_loginfo = schema.LogInfo.remove_older_than(session, created_time=criteria )
         result_inspectinfo = schema.InspectInfo.remove_older_than(session, inspect_start_time=criteria )
         result_inferenceinfo= schema.InferenceInfo.remove_older_than(session, inference_start_time=criteria )
         result_documentinfo = schema.DocumentInfo.remove_older_than(session, document_upload_time=criteria )
 
+        logger.info("Complete: delete_data_after_days")
+
         if result_loginfo is None:
             status_code, error = ErrorResponse.ErrorCode.get(2107)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
-        logger.exception("doc_type_all select error")
+        logger.exception("data delete error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
-        error.error_message = error.error_message.format("모든 문서 종류(소분류)")
+        error.error_message = error.error_message.format("문서 삭제 실패")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     return result
