@@ -139,8 +139,8 @@ def ocr(
         doc_type_code = inference_results.get("doc_type") if inference_results.get("doc_type") else inputs.get("doc_type")
 
         # KDT1-EST(TOCR)일 경우 kv에 바로 넣어주기 -> pp를 web을 통해 안보내므로
-        if doc_type_code == 'KDT1-EST':
-            inference_results['kv'] = inference_result.get('result')
+        # if doc_type_code == 'KDT1-EST':
+        #     inference_results['kv'] = inference_result.get('result')
         
         # convert preds to texts
         if (

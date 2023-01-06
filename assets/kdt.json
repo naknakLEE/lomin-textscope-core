@@ -75,25 +75,25 @@
       "KDT1-01-47" : {"title":"KDT1-EST-RCCB","type":"array"},
       "KDT1-01-48" : {"title":"KDT1-EST-RCAT","type":"array"},
       "KDT1-01-49" : {"title":"KDT1-EST-RCFD","type":"array"},
-      "KDT1-01-50" : {"title":"","type":"word"},
-      "KDT1-01-51" : {"title":"","type":"word"},
-      "KDT1-01-52" : {"title":"","type":"word"},
-      "KDT1-01-53" : {"title":"","type":"word"},
-      "KDT1-01-54" : {"title":"","type":"integer"},
-      "KDT1-01-55" : {"title":"","type":"integer"},
-      "KDT1-01-56" : {"title":"","type":"word"},
-      "KDT1-01-57" : {"title":"","type":"word"},
-      "KDT1-01-58" : {"title":"","type":"integer"},
-      "KDT1-01-59" : {"title":"","type":"integer"},
-      "KDT1-01-60" : {"title":"","type":"word"},
-      "KDT1-01-61" : {"title":"","type":"word"},
-      "KDT1-01-62" : {"title":"","type":"word"},
+      "KDT1-01-50" : {"title":"KDT1-EST-CRN","type":"word"},
+      "KDT1-01-51" : {"title":"KDT1-EST-CRRN","type":"word"},
+      "KDT1-01-52" : {"title":"KDT1-EST-CC","type":"word"},
+      "KDT1-01-53" : {"title":"KDT1-EST-CA","type":"word"},
+      "KDT1-01-54" : {"title":"KDT1-EST-CEY1","type":"integer"},
+      "KDT1-01-55" : {"title":"KDT1-EST-CEM1","type":"integer"},
+      "KDT1-01-56" : {"title":"KDT1-EST-CEBS1","type":"word"},
+      "KDT1-01-57" : {"title":"KDT1-EST-CEBD1","type":"word"},
+      "KDT1-01-58" : {"title":"KDT1-EST-CEY2","type":"integer"},
+      "KDT1-01-59" : {"title":"KDT1-EST-CEM2","type":"integer"},
+      "KDT1-01-60" : {"title":"KDT1-EST-CEBS2","type":"word"},
+      "KDT1-01-61" : {"title":"KDT1-EST-CEBGS","type":"word"},
+      "KDT1-01-62" : {"title":"KDT1-EST-CEBD2","type":"word"},
       "KDT1-01-63" : {"title":"","type":"array"},
       "KDT1-01-64" : {"title":"","type":"array"},
-      "KDT1-01-65" : {"title":"","type":"array"},
-      "KDT1-01-66" : {"title":"","type":"array"},
-      "KDT1-01-67" : {"title":"","type":"array"},
-      "KDT1-01-68" : {"title":"","type":"array"},
+      "KDT1-01-65" : {"title":"KDT1-EST-CCEP","type":"array"},
+      "KDT1-01-66" : {"title":"KDT1-EST-CCCB","type":"array"},
+      "KDT1-01-67" : {"title":"KDT1-EST-CCAT","type":"array"},
+      "KDT1-01-68" : {"title":"KDT1-EST-CCFD","type":"array"},
       "KDT1-01-69" : {"title":"KDT1-EST-MP","type":"array"},
       "KDT1-01-70" : {"title":"KDT1-EST-MN","type":"array"},
       "KDT1-01-71" : {"title":"KDT1-EST-MAT","type":"array"},
@@ -147,10 +147,10 @@
       "KDT1-01-119" : {"title":"KDT1-EST-RCPYE","type":"array"},
       "KDT1-01-120" : {"title":"KDT1-EST-RCPMS","type":"array"},
       "KDT1-01-121" : {"title":"KDT1-EST-RCPME","type":"array"},
-      "KDT1-01-122" : {"title":"","type":"array"},
-      "KDT1-01-123" : {"title":"","type":"array"},
-      "KDT1-01-124" : {"title":"","type":"array"},
-      "KDT1-01-125" : {"title":"","type":"array"}
+      "KDT1-01-122" : {"title":"KDT1-EST-CCPDY","type":"array"},
+      "KDT1-01-123" : {"title":"KDT1-EST-CCPEY","type":"array"},
+      "KDT1-01-124" : {"title":"KDT1-EST-CCPDM","type":"array"},
+      "KDT1-01-125" : {"title":"KDT1-EST-CCPEM","type":"array"}
     },
     "KDT1-02": {
       "KDT1-02-00" : {"title":"TITLE","type":"word"},
@@ -324,7 +324,7 @@
     },
     "KDT_ENDPOINT": {
       "SERVING": {
-        "KDT1-EST": "tocr_legacy",
+        "KDT1-EST": "kv",
         "CP-FNS": "kvel"
       },
       "PP": {
@@ -337,7 +337,8 @@
           "KDT1-URF",
           "CP-CCC",
           "GV-FSC",
-          "GV-FSVI"
+          "GV-FSVI",
+          "KDT1-EST" 
         ],
         "kdt1_kvel": [
           "CP-FNS"
