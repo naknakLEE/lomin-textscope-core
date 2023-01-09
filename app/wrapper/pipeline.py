@@ -473,14 +473,16 @@ def kv_(
         pipeline_start_time = datetime.now()
         response_log.update({f"kv_{name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
         
-        status_code, inference_result, response_log = kv_pipline(
+        kv_pipeline_result = kv_pipline(
             client,
             inputs,
             response_log,
             inference_result=inference_result
         )
-        if isinstance(inference_result, JSONResponse):
+        if isinstance(kv_pipeline_result, JSONResponse):
             return inference_result
+        
+        status_code, inference_result, response_log = kv_pipeline_result
         
         pipeline_end_time = datetime.now()
         response_log.update({f"kv_{name}_end_time":pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
