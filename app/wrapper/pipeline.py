@@ -17,6 +17,7 @@ from app.schemas import error_models as ErrorResponse
 
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
 SERVING_MAPPING = settings.BSN_CONFIG.get("SERVING_MAPPING_TABLE")
+KV_PIPELINE_MAPPING: dict = settings.BSN_CONFIG.get("KV_PIPELINE_MAPPING_TABLE")
 
 # @TODO BSN_CODE/ 내부로 옮길 예정
 TOCR_TEMPLATES = {
@@ -117,6 +118,42 @@ def __el__(
     el_response = client.post(
         f'{SERVING_MAPPING.get("el")}/el',
         json=el_inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    
+    
+    return (el_response.status_code, el_response.json(), response_log)
+
+
+def __kvel__(
+    client: Client,
+    inputs: dict,
+    response_log: dict,
+    /,
+    inference_result: dict = dict()
+) -> Tuple[int, dict, dict]:
+    
+    kvel_inputs = dict()
+    kvel_inputs.update(
+        image_id=            inputs.get("image_id"),
+        image_path=          inputs.get("image_path"),
+        doc_type=            inputs.get("doc_type"),
+        request_id=          inference_result.get("request_id"),
+        image_width=         inference_result.get("image_width"),
+        image_height=        inference_result.get("image_height"),
+        texts=               inference_result.get("texts"),
+        boxes=               inference_result.get("boxes"),
+        scores=              inference_result.get("scores"),
+        image_width_origin=  inference_result.get("image_width_origin"),
+        image_height_origin= inference_result.get("image_height_origin"),
+        angle=               inference_result.get("angle")
+    )
+    
+    # el inference 요청
+    el_response = client.post(
+        f'{SERVING_MAPPING.get("kvel")}/kvel',
+        json=kvel_inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
     )
@@ -283,15 +320,16 @@ def __cell_detect__(
 
 
 # lomin_doc_type에 따른 kv-pipeline 정의
-# (({pipelines}], [doc_types]), ...)
+# ( [doc_types], ([{pipelines}]) )
 KV_PIPELINE = (
-    ( (("pp",__pp__), ),              [ ]),
-    ( (("kv",__kv__), ("pp",__pp__)), [ ]),
-    ( (("el",__el__), ("pp",__pp__)), [ ]),
-    ( (("tocr",__tocr__), ),          [ ]),
+    ( KV_PIPELINE_MAPPING.get("pp", []),          (("pp",__pp__), ) ),
+    ( KV_PIPELINE_MAPPING.get("kv", []),          (("kv",__kv__), ("pp",__pp__)) ),
+    ( KV_PIPELINE_MAPPING.get("el", []),          (("el",__el__), ("pp",__pp__)) ),
+    ( KV_PIPELINE_MAPPING.get("kvel", []),        (("kvel",__kvel__), ("pp",__pp__)) ),
+    ( KV_PIPELINE_MAPPING.get("tocr", []),        (("tocr",__tocr__), ) ),
     
-    ( (("idcard",__idcard__), ("pp",__pp__)), [ ]),
-    ( (("cell_detect",__cell_detect__), ("pp",__pp__)), ["CP-REF"]),
+    ( KV_PIPELINE_MAPPING.get("idcard", []),      (("idcard",__idcard__), ("pp",__pp__)) ),
+    ( KV_PIPELINE_MAPPING.get("cell_detect", []), (("cell_detect",__cell_detect__), ("pp",__pp__)) ),
 )
 
 
@@ -420,7 +458,7 @@ def kv_(
     doc_type_code = inputs.get("doc_type")
     
     kv_pipelines = ()
-    for pipelines, doc_type_codes in KV_PIPELINE:
+    for doc_type_codes, pipelines in KV_PIPELINE:
         if doc_type_code in doc_type_codes:
             kv_pipelines = pipelines
             break
@@ -484,7 +522,7 @@ def idcard_(
     inference_result: dict = None # None: idcard use own det, rec models
 ) -> Tuple[int, dict, dict]:
     
-    idcard_pipelines = KV_PIPELINE[4][0]
+    idcard_pipelines = KV_PIPELINE[4][1]
     
     logger.info("idcard pipeline: {}", [ p for p, _ in idcard_pipelines ] )
     
