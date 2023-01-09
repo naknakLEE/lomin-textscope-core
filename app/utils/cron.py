@@ -4,17 +4,22 @@ from app.utils.logging import logger
 from apscheduler.schedulers.background import BackgroundScheduler 
 
 
-def register_cron(args=[],**kwargs):
+def register_cron(function, args=[],**kwargs):
+    """input으로 들어온 function을 cron으로 등록해주는 함수
+        function의 이름을 기준으로, 다른 로직을 실행한다.
+
+    Args:
+        function (function): cron으로 등록할 function argument.
+        args (list, optional): cron 등록 대상의 function 실행 시, 첨부할 argument. Defaults to [].
+    """    
     flag = False
     
     # init background scheduler for running deletion job
     scheduler = BackgroundScheduler()
 
     # get want to croning function name
-    func=kwargs.get("function")
-
-    kwargs_wrapper=kwargs.get("kwargs", [])
-
+    
+    func = function
     if func.__name__ == None:
         return
 
@@ -27,10 +32,12 @@ def register_cron(args=[],**kwargs):
             if session == None:
                 logger.error(f"Job Failed: \n\tfunction:{func.__name__}\n\tdetail:DB Session is not defined")
                 return
-            args.append(session)
+            
             #TODO: cron 실행시점 .env로 관리 필요
-            scheduler.add_job(func, 'cron', [session], kwargs={"life_days":kwargs["life_days"]},\
-                hour='0', minute='0', second='0')
+            scheduler.add_job(func, 'cron', kwargs=kwargs,\
+                # hour='0', minute='0', second='0')
+                second='0')
+
             logger.info(f"Job added: {func.__name__}")
             flag = True
 

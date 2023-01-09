@@ -8,7 +8,7 @@ import openpyxl
 
 
 from fastapi.encoders import jsonable_encoder
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, Optional, TypeVar, Union
 from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, NUMERIC, JSON, String, func, ARRAY
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session, relationship
@@ -171,22 +171,29 @@ class BaseMixin:
 
     @typing.no_type_check
     @classmethod
-    def remove_older_than(
-        cls, session: Session, **kwargs: Dict[str, Any]
-    ) -> Optional[ModelType]:
+    def remove_older_than(cls, session: Session, reference_column: str, delete_before: dt.datetime) -> Union[int, None]:
+        """ 일정 시간이 지난, DB 내 특정 테이블의 데이터를 삭제하기 위해 구현한 쿼리.
+        class method 형식이므로, schema.py에 등록된 테이블 클래스의 인스턴스는 본 메소드를 호출할 수 있다.
+
+        Args:
+            session (Session): ORM(SQLAlchemy) Session - ORM 매핑 오브젝트에 대한 영속적인 옵션, 동작을 제어하는 세션 인스턴스
+            reference_column (str): 기준 일시와 비교할 Column. Date 타입의 Column이어야 함.
+            delete_before (datetime.datetime): 삭제 기준 일시. 본 일시보다 이전 데이터는 모두 삭제된다.
+        Returns:
+            Optional[ModelType]: 
+                성공한 경우: 삭제한 문서 건수(int) / 
+                reference_column 명이 잘못된 경우: None
+        """            
         query = session.query(cls)
-        for key, val in kwargs.items():
-            try:
-                col = getattr(cls, key)
-                query = query.filter(col < val).delete()
-                
-                session.flush()
-                session.commit()
-                logger.info(f"Removed: {query} documents")
-            except AttributeError as exce:
-                logger.error(exce)
-                return None
-            
+        try:
+            col = getattr(cls, reference_column)
+            query = query.filter(col < delete_before).delete()            
+            session.flush()
+            session.commit()
+            logger.info(f"Removed: {query} documents")
+        except AttributeError as exce:
+            logger.error(exce)
+            return None
         return query
 
     # 특정 컬럼(p_key)를 특정 값(p_value)로 업데이트
