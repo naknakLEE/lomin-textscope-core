@@ -45,8 +45,8 @@ def app_generator() -> FastAPI:
             insert_initial_data()
 
         if settings.APPLY_DB_LIFECYCLE:   
-            life_days = settings.DB_LIFECYCLE_DAYS if settings.DB_LIFECYCLE_DAYS else 5
-            register_cron(function=delete_data_after_days, session = next(db.session()),life_days=life_days) 
+            life_days = settings.DB_LIFECYCLE_DAYS 
+            register_cron(delete_data_after_days, session = next(db.session()),life_days=life_days) 
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
