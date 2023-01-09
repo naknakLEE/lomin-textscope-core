@@ -15,8 +15,8 @@ from app.utils.logging import logger
 from app.utils.utils import get_pp_api_name
 from app.schemas import error_models as ErrorResponse
 
-model_server_url = f"http://{settings.SERVING_IP_ADDR}:{settings.SERVING_IP_PORT}"
 pp_server_url = f"http://{settings.PP_IP_ADDR}:{settings.PP_IP_PORT}"
+SERVING_MAPPING = settings.BSN_CONFIG.get("SERVING_MAPPING_TABLE")
 
 # @TODO BSN_CODE/ 내부로 옮길 예정
 TOCR_TEMPLATES = {
@@ -79,7 +79,7 @@ def __kv__(
     
     # kv inference 요청
     kv_response = client.post(
-        f"{model_server_url}/kv",
+        f'{SERVING_MAPPING.get("kv")}/kv',
         json=kv_inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -115,7 +115,7 @@ def __el__(
     
     # el inference 요청
     el_response = client.post(
-        f"{model_server_url}/el",
+        f'{SERVING_MAPPING.get("el")}/el',
         json=el_inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -154,7 +154,7 @@ def __tocr__(
     
     # tocr inference 요청
     tocr_response = client.post(
-        f"{model_server_url}/tocr",
+        f'{SERVING_MAPPING.get("tocr")}/tocr',
         json=tocr_inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -235,7 +235,7 @@ def __idcard__(
     
     # idcard inference 요청
     idcard_response = client.post(
-        f"{model_server_url}/idcard",
+        f'{SERVING_MAPPING.get("idcard")}/idcard',
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -270,7 +270,7 @@ def __cell_detect__(
     )
     
     cell_detect_response = client.post(
-        f"{model_server_url}/cell_detection",
+        f'{SERVING_MAPPING.get("cell_detection")}/cell_detection',
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -305,7 +305,7 @@ def gocr_(
 ) -> Tuple[int, dict, dict]:
     
     gocr_response = client.post(
-        f"{model_server_url}/gocr",
+        f'{SERVING_MAPPING.get("gocr")}/gocr',
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
@@ -342,7 +342,7 @@ def cls_(
     )
     
     cls_response = client.post(
-        f"{model_server_url}/cls",
+        f'{SERVING_MAPPING.get("cls")}/cls',
         json=inputs,
         timeout=settings.TIMEOUT_SECOND,
         headers={"User-Agent": "textscope core"},
