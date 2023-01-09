@@ -24,7 +24,7 @@ def select_cls_all(session: Session, **kwargs: Dict) -> Union[List[schema.ClsInf
     try:
         result = schema.ClsInfo.get_all_multi(session, **kwargs)
         if result is None:
-            status_code, error = ErrorResponse.ErrorCode.get(210)
+            status_code, error = ErrorResponse.ErrorCode.get(2108)
             result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("cls_all select error")
@@ -753,23 +753,30 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
     
     return doc_type_list
 
-def delete_data_after_days(session: Session, **kwargs: Dict) -> Union[any, JSONResponse]:
+def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSONResponse]:
+    """일정 시간이 지난, DB 내 특정 테이블의 데이터를 삭제하는 쿼리를, 호출하는 함수
+
+    Args:
+        session (Session): ORM(SQLAlchemy) Session - ORM 매핑 오브젝트에 대한 영속적인 옵션, 동작을 제어하는 세션 인스턴스
+
+    Returns:
+        Union[None, JSONResponse]: 성공 시 None / 실패 시 JSONResponse
+    """    
+
     result = None
     try:
         now = datetime.now()
         life_days = kwargs.get("life_days", 5)
-        criteria = now - timedelta(days=5)
-    
-        result_loginfo = schema.LogInfo.remove_older_than(session, created_time=criteria )
-        result_inspectinfo = schema.InspectInfo.remove_older_than(session, inspect_start_time=criteria )
-        result_inferenceinfo= schema.InferenceInfo.remove_older_than(session, inference_start_time=criteria )
-        result_documentinfo = schema.DocumentInfo.remove_older_than(session, document_upload_time=criteria )
+        criteria = now - timedelta(days=life_days)
+
+        # 형식: schema.{Table 변수}.remove_older_than(session, {삭제 기준으로 참조할 Column 명(type: date)}={삭제 기준 일시})
+        result_loginfo = schema.LogInfo.remove_older_than(session=session, reference_column="created_time", delete_before=criteria)
+        result_inspectinfo = schema.InspectInfo.remove_older_than(session=session, reference_column="inspect_start_time", delete_before=criteria)
+        result_inferenceinfo= schema.InferenceInfo.remove_older_than(session=session, reference_column="inference_start_time", delete_before=criteria)
+        result_documentinfo = schema.DocumentInfo.remove_older_than(session=session, reference_column="document_upload_time", delete_before=criteria)
 
         logger.info("Complete: delete_data_after_days")
 
-        if result_loginfo is None:
-            status_code, error = ErrorResponse.ErrorCode.get(2107)
-            result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     except Exception:
         logger.exception("data delete error")
         status_code, error = ErrorResponse.ErrorCode.get(4101)
