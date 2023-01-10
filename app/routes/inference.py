@@ -372,7 +372,39 @@ def ocr(
 
     # kv (cls_kv case)
     if inputs.get("route_name") == "cls_kv":
-        # CLS 결과 문서유형이 KV 모델 대상인 경우, 실행
+        # CLS 결과 문서유형이 KV 모델 대상인 경우, 실행 
+        if doc_type_code in ID_CLS_DOC_TYPE :
+                #if RRB -> LINA1-04-01: True
+                #if RRC -> LINA1-04-01: False
+                
+                keyvalue_template={
+                    "id": "kv-000",
+                    "type": "boolean",
+                    "key": "LINA1-04-01",
+                    "confidence": inference_results["cls_score"],
+                    "text_ids": [
+                        "txt-0001"
+                    ],
+                    "value": doc_type_code == "ID-RRB",
+                    "bbox": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 0,
+                    "h": 0
+                    },
+                    "comparison": True,
+                    "is_hint_used": False,
+                    "is_hint_trusted": False
+                }
+                inference_results.update(key_values=[keyvalue_template])
+                response = dict(
+                    response_log=response_log,
+                    inference_results=inference_results,
+                    resource_id=dict(
+                        # log_id=task_id
+                    )
+                )
+                return JSONResponse(content=jsonable_encoder(response))
         if inference_results.get("doc_type").doc_type_code in KV_DOC_TYPE:
             logger.info(f"x-request-id : {x_request_id} / CORE - kv START")
             with Client() as client:
