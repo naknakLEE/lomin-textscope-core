@@ -475,11 +475,11 @@ def kv_(
     if len(kv_pipelines) == 0:
         return (200, inference_result, response_log)
     
-    for name, kv_pipline in kv_pipelines:
+    for name, kv_pipeline in kv_pipelines:
         pipeline_start_time = datetime.now()
         response_log.update({f"kv_{name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
         
-        kv_pipeline_result = kv_pipline(
+        kv_pipeline_result = kv_pipeline(
             client,
             inputs,
             response_log,
