@@ -101,6 +101,7 @@ services:
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
+      - ./assets/${BSN_CODE}:/workspace/assets/${BSN_CODE}
     restart: unless-stopped
     depends_on:
       - postgresql
@@ -134,6 +135,7 @@ services:
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
+      - ./assets/${BSN_CODE}:/workspace/assets/${BSN_CODE}
     restart: unless-stopped
     depends_on:
       - postgresql
