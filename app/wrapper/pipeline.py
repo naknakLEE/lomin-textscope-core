@@ -230,6 +230,12 @@ def __pp__(
         boxes=        inference_result.get("boxes"),
         scores=       inference_result.get("scores"),
         classes=      class_list,
+        all_boxes_x=  inference_result.get("all_boxes_x"),
+        all_boxes_y=  inference_result.get("all_boxes_y"),
+        texts_wraped= inference_result.get("texts_wraped"),
+        boxes_wraped= inference_result.get("boxes_wraped"),
+        scores_wraped=inference_result.get("scores_wraped"),
+        classes_wraped=inference_result.get("classes_wraped"),
         result=       inference_result.get("result"),
         relations=    inference_result.get("relations"),
         tables=       inference_result.get("tables"),
@@ -328,7 +334,7 @@ KV_PIPELINE = (
     ( KV_PIPELINE_MAPPING.get("kvel", []),        (("kvel",__kvel__), ("pp",__pp__)) ),
     ( KV_PIPELINE_MAPPING.get("tocr", []),        (("tocr",__tocr__), ) ),
     
-    ( KV_PIPELINE_MAPPING.get("idcard", []),      (("idcard",__idcard__), ("pp",__pp__)) ),
+    ( KV_PIPELINE_MAPPING.get("idcard", []),      (("idcard",__idcard__), ("pp",__pp__)) ), # KV_PIPELINE[5][1] 고정
     ( KV_PIPELINE_MAPPING.get("cell_detect", []), (("cell_detect",__cell_detect__), ("pp",__pp__)) ),
 )
 
@@ -524,11 +530,12 @@ def idcard_(
     inference_result: dict = None # None: idcard use own det, rec models
 ) -> Tuple[int, dict, dict]:
     
-    idcard_pipelines = KV_PIPELINE[4][1]
+    idcard_pipelines = KV_PIPELINE[5][1]
     
     logger.info("idcard pipeline: {}", [ p for p, _ in idcard_pipelines ] )
     
     status_code, response_log = (200, dict())
+    inputs["doc_type"] = inputs["kv"]["hint"]["doc_type"]["doc_type"]
     
     for name, idcard_pipeline in idcard_pipelines:
         pipeline_start_time = datetime.now()
