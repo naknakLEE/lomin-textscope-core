@@ -11,6 +11,10 @@ from pp_server.pp.postprocess.general import regex_yyyy_mm_dd
 def test_yyyymmdd():
     res = regex_yyyy_mm_dd('2022 년 10 월 29 일 - ')
     assert ('20221029', '2022년10월29') == res, "regex_yyyy_mm_dd 테스트 실패"
+    
+    res = regex_yyyy_mm_dd('2022 년 12 원 11 일 - 제 01036 호')
+    assert ('20221211', '2022년12월11') == res, "regex_yyyy_mm_dd 테스트 실패"
+    
 
 @pytest.mark.parametrize(
     "test_input, expected",
