@@ -10,4 +10,4 @@ no_update_directory: /CAMS/OCR/DELPDF
 use_pdf_a1: False
 bg_limit_task: 2
 resize_dpi: 72
-jpeg_quality: 30
+jpeg_quality: 0

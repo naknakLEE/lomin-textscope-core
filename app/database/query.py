@@ -1260,10 +1260,12 @@ def delete_nak_data(
     """
     result = False 
     try:
-        convert_date_time = datetime.strptime(date_time_str, '%Y-%m-%d')
         document_info = schema.DocumentInfo
         # 0. 검수작업 하지 않은 document_info 가져오기          
-        document_get_do_not_update_query = session.query(schema.DocumentInfo).filter(document_info.inspect_id == "NOT_INSPECTED")
+        document_get_do_not_update_query = session.query(schema.DocumentInfo).filter(
+            func.to_char(document_info.document_upload_time, 'YYYY-mm-dd') == date_time_str,
+            document_info.inspect_id == "NOT_INSPECTED"
+            )
         do_not_update_list = document_get_do_not_update_query.all()
         do_not_update_path_list = list()
         for do_not_update_info in do_not_update_list:
@@ -1283,23 +1285,24 @@ def delete_nak_data(
                     from inspect_info ii
                     join inference_info ii2 on ii.inference_id  = ii2.inference_id
                     join document_info di on ii2.document_id = di.document_id
-                    where di.document_upload_time <= :convert_date_time
+                    where to_char(di.document_upload_time, 'YYYY-mm-dd') = :date_time_str
                     );            
             """
         session.execute(
             sql_inspect_info_delete_query,
             dict(
-                convert_date_time=convert_date_time
+                date_time_str=date_time_str
             )
         )            
         # 2. document_info 삭제
         document_info = schema.DocumentInfo
-        document_info_delete_query = session.query(schema.DocumentInfo).filter(document_info.document_upload_time <= convert_date_time)
+        document_info_delete_query = session.query(schema.DocumentInfo).filter(func.to_char(document_info.document_upload_time, 'YYYY-mm-dd') == date_time_str)
         logger.debug(f">>>>>>>>>>>>>>>>>> delete document_info count:{document_info_delete_query.count()}" )
-        document_info_delete_query.delete()
+        document_info_delete_query.delete(synchronize_session=False)
         session.commit()
         result = do_not_update_path_list
-    except Exception:
+    except Exception as exc:
+        logger.error(exc, exc_info=True)
         session.rollback()
         raise CoreCustomException("D01.900.5003", "document_info")        
     finally:
