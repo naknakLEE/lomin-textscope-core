@@ -1,7 +1,22 @@
-version: "2.3"
+version: "3.8"
 
 services:
+  nginx_serving:
+    image: docker.lomin.ai/ts-nginx-serving:${TEXTSCOPE_NGINX_VERSION}
+    container_name: textscope-nginx-serving
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx-serving
+    ports:
+      - 50033:5000
+    depends_on:
+      - serving_0
+      - serving_1
+    networks:
+      - our_net
+      
   serving_0:
+    container_name: textscope-serving_0
     build:
       context: inference_server
       dockerfile: ./Dockerfile.production
@@ -20,7 +35,13 @@ services:
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
       - WARMUP_COUNT=${WARMUP_COUNT:-30}
-    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
     tty: true
     entrypoint: |
       sh -c "
@@ -28,6 +49,7 @@ services:
             "
 
   serving_1:
+    container_name: textscope-serving_1
     build:
       context: inference_server
       dockerfile: ./Dockerfile.production
@@ -46,7 +68,13 @@ services:
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
       - WARMUP_COUNT=${WARMUP_COUNT:-30}
-    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]
+              capabilities: [gpu]
     tty: true
     entrypoint: |
       sh -c "
@@ -67,8 +95,8 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
-    entrypoint: python3 main.py    
-    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    # entrypoint: python3 main.py    
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT} --timeout 1200
 
   pp:
     user: "0:0"
@@ -86,8 +114,8 @@ services:
       - PYTHONPATH=/workspace
     tty: true
     working_dir: /workspace/pp_server
-    entrypoint: python3 main.py
-    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT} --timeout 1200
 
   wrapper:
     user: "0:0"

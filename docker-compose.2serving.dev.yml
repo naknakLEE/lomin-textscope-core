@@ -1,21 +1,36 @@
-version: "2.3"
+version: "3.8"
 
 services:
+  nginx_serving:
+    image: docker.lomin.ai/ts-nginx-serving:${TEXTSCOPE_NGINX_VERSION}
+    container_name: textscope-nginx-serving
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.nginx-serving
+    ports:
+      - 50033:5000
+    depends_on:
+      - serving_0
+      # - serving_1
+    networks:
+      - our_net
+
   serving_0:
+    image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+    container_name: textscope-serving_0
     build:
       context: inference_server
-      dockerfile: ./Dockerfile
       args:
-        MAINTAINER: ${MAINTAINER}
-        APP_NAME: inference_server
-        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
-        UBUNTU_VERSION: ${UBUNTU_VERSION}
-        POETRY_VERSION: ${POETRY_VERSION}
+        USER: ${USER}
         CUSTOMER: ${CUSTOMER}
-        PYTHON_VERSION: ${PYTHON_VERSION}
+        BUNDLE_PATH: ${BUNDLE_PATH}
+        PYTHON_VERSION: 3.8
+        MODEL_SERVICE: ${MODEL_SERVICE}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8052:5000
+      - 5000:${SERVING_IP_PORT}
     volumes:
       - ./:/workspace
     shm_size: "16gb"
@@ -29,43 +44,56 @@ services:
       - TERM=$TERM
       - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
       - WARMUP_COUNT=${WARMUP_COUNT:-0}
-    runtime: nvidia
     tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
     working_dir: /workspace/inference_server
     entrypoint: sh assets/run-dev.sh
 
-  serving_1:
-    build:
-      context: inference_server
-      dockerfile: ./Dockerfile
-      args:
-        MAINTAINER: ${MAINTAINER}
-        APP_NAME: inference_server
-        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
-        UBUNTU_VERSION: ${UBUNTU_VERSION}
-        POETRY_VERSION: ${POETRY_VERSION}
-        CUSTOMER: ${CUSTOMER}
-        PYTHON_VERSION: ${PYTHON_VERSION}
-        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
-    ports:
-      - 8054:5000
-    volumes:
-      - ./:/workspace
-    shm_size: "16gb"
-    ulimits:
-      memlock: -1
-      stack: 67108864
-    environment:
-      - COLUMNS=${COLUMNS:-200}
-      - DISPLAY=$DISPLAY
-      - NVIDIA_VISIBLE_DEVICES=all
-      - TERM=$TERM
-      - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
-      - WARMUP_COUNT=${WARMUP_COUNT:-0}
-    runtime: nvidia
-    tty: true
-    working_dir: /workspace/inference_server
-    entrypoint: sh assets/run-dev.sh
+  # serving_1:
+  #   container_name: textscope-serving_1
+  #   image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
+  #   build:
+  #     context: inference_server
+  #     args:
+  #       USER: ${USER}
+  #       CUSTOMER: ${CUSTOMER}
+  #       BUNDLE_PATH: ${BUNDLE_PATH}
+  #       PYTHON_VERSION: 3.8
+  #       MODEL_SERVICE: ${MODEL_SERVICE}
+  #       UBUNTU_VERSION: ${UBUNTU_VERSION}
+  #       POETRY_VERSION: ${POETRY_VERSION:-1.1.13}
+  #       TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+  #   ports:
+  #     - 5000:${SERVING_IP_PORT}
+  #   volumes:
+  #     - ./:/workspace
+  #   shm_size: "16gb"
+  #   ulimits:
+  #     memlock: -1
+  #     stack: 67108864
+  #   environment:
+  #     - COLUMNS=${COLUMNS:-200}
+  #     - DISPLAY=$DISPLAY
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - TERM=$TERM
+  #     - BENTOML_CONFIG=/workspace/inference_server/assets/bentoml_configuration.yml
+  #     - WARMUP_COUNT=${WARMUP_COUNT:-0}
+  #   tty: true
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids: ["1"]
+  #             capabilities: [gpu]
+  #   working_dir: /workspace/inference_server
+  #   entrypoint: sh assets/run-dev.sh
 
   web:
     image: docker.lomin.ai/ts-web-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -87,7 +115,8 @@ services:
     tty: true
     working_dir: /workspace/app
     # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+
 
   pp:
     image: docker.lomin.ai/ts-pp-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -101,15 +130,16 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
       - COLUMNS=${COLUMNS:-200}
-    ports:
-      - 8080:${PP_IP_PORT}
+    # ports:
+    #   - 8080:${PP_IP_PORT}
     volumes:
       - ./:/workspace
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp
     # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+
 
   wrapper:
     image: docker.lomin.ai/ts-wrapper-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -138,6 +168,28 @@ services:
     # entrypoint: python3 main.py
     entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
 
+
+  nginx:
+    ports:
+      - 8050:80
+      - 443:443
+
+  nginx-exporter:
+    ports:
+      - 9113:9113
+
+  gpu_telemetry:
+    ports:
+      - 9400:9400
+
+  hardware_telemetry:
+    ports:
+      - 9100:9100
+
+  prometheus:
+    ports:
+      - 9090:9090
+
   grafana:
     ports:
-      - 8053:3000
+      - 3001:3000

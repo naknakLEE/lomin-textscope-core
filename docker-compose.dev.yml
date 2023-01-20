@@ -16,8 +16,6 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
       - 5000:${SERVING_IP_PORT}
-      - 5002:5002
-      - 8266:8265
     volumes:
       - ./:/workspace
     shm_size: "16gb"
