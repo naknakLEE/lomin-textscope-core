@@ -93,6 +93,17 @@ do
                 # cp inference_server/${metedata_path} build/textscope/serving/${build_metadata_path}
                 cp -r inference_server/assets/${metadata_folder_path} build/textscope/serving/${metadata_parent_path}
             fi
+
+            # copy tokenizer
+            if cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.tokenizer_path; then
+                tokenizer_path=`cat inference_server/assets/conf/model/${bsn_name}.yaml | shyaml get-value resources.${i}.tokenizer_path`
+                build_tokenizer_path=${tokenizer_path#assets/}
+                tokenizer_parent_path="$(dirname "$build_tokenizer_path")"
+                echo $build_tokenizer_path
+
+                mkdir -p build/textscope/serving/${build_tokenizer_path}
+                cp -r inference_server/assets/${build_tokenizer_path} build/textscope/serving/${tokenizer_parent_path}
+            fi
         fi
     else
         echo "Optional value(copy_container) does not exist. I'll skip that line."
