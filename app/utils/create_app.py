@@ -1,33 +1,33 @@
-from fastapi import FastAPI
 from dataclasses import asdict
-from app.database.query import delete_data_after_days
-from app.utils.cron import register_cron
 
+from fastapi import FastAPI
 from prometheusrock import PrometheusMiddleware, metrics_route
 from rich import pretty
 from rich.traceback import install
+
+from app.database.query import delete_data_after_days
+from app.utils.cron import register_cron
+
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, base
-from app.routes import document, model, inspect
-from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
-
+from app.database.connection import db
+from app.database.schema import (create_db_table, create_db_users,
+                                 create_extension, insert_initial_data)
 from app.errors.exceptions import ResourceDataError
-from app.database.schema import (
-    create_db_table,
-    create_extension,
-    create_db_users,
-    insert_initial_data
-)
+from app.middlewares.exception_handler import (resource_exception_handler,
+                                               validation_exception_handler)
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import (
     validation_exception_handler,
     resource_exception_handler,
 )
+from app.routes import (auth, base, dao, dataset, document, index, inference,
+                        inspect, ldap, model, prediction, status, users,
+                        websocket)
 
 settings = get_settings()
 
@@ -45,10 +45,11 @@ def app_generator() -> FastAPI:
 
         if settings.APPLY_DB_LIFECYCLE:   
             life_days = settings.DB_LIFECYCLE_DAYS 
-            register_cron(delete_data_after_days, session = next(db.session()),life_days=life_days) 
+            register_cron(delete_data_after_days, session = next(db.session()), life_days=life_days) 
 
     if settings.PROFILING_TOOL == "pyinstrument":
-        from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
+        from fastapi_profiler.profiler_middleware import \
+            PyInstrumentProfilerMiddleware
 
         app.add_middleware(
             PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
