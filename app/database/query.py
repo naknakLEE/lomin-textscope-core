@@ -820,6 +820,7 @@ def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSO
 
         # 형식: schema.{Table 변수}.remove_older_than(session, {삭제 기준으로 참조할 Column 명(type: date)}={삭제 기준 일시})
         result_loginfo = schema.LogInfo.remove_older_than(session=session, reference_column="created_time", delete_before=criteria)
+        result_logapi = schema.LogAPI.remove_older_than(session=session, reference_column="api_response_datetime", delete_before=criteria)
         result_inspectinfo = schema.InspectInfo.remove_older_than(session=session, reference_column="inspect_start_time", delete_before=criteria)
         result_inferenceinfo= schema.InferenceInfo.remove_older_than(session=session, reference_column="inference_start_time", delete_before=criteria)
         result_documentinfo = schema.DocumentInfo.remove_older_than(session=session, reference_column="document_upload_time", delete_before=criteria)
