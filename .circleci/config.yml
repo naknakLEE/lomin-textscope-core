@@ -19,6 +19,7 @@ jobs:
     machine: true
     resource_class: lomin/1
     steps:
+      - run:    
           name: docker run
           command: |
             echo "==========> Start Docker Run";
