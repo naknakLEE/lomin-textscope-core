@@ -1,0 +1,43 @@
+version: "3.4"
+
+services:
+  wrapper:
+    ports:
+      - 5677:5677
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5677 -m main",
+      ]
+
+  web:
+    ports:
+      - 5678:5678
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5678 -m main",
+      ]
+
+  pp:
+    ports:
+      - 5679:5679
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "pip3 install debugpy -t /tmp && python3 /tmp/debugpy  --listen 0.0.0.0:5679 -m main",
+      ]
+
+  # serving:
+  #   ports:
+  #     - 5680:5680
+  #   entrypoint: [
+  #       "sh",
+  #       "-c",
+  #       "pip3 install debugpy -t /tmp &&
+  #       python3 serving/model_registration.py &&
+  #       python3 /tmp/debugpy  --listen 0.0.0.0:5680 -m bentoml serve serving.textscope_model_service:svc --reload --host 0.0.0.0",
+  #     ]

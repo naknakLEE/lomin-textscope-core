@@ -27,6 +27,7 @@ services:
       - 5000:5000
     volumes:
       - ./:/workspace
+      - ./:/textscope
     shm_size: 16gb
     tty: true
     environment:
@@ -37,10 +38,10 @@ services:
         reservations:
           devices:
           - driver: nvidia
-            device_ids: ['0']
+            device_ids: ['1']
             capabilities: [gpu]
     working_dir: /workspace/inference_server
-    # command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
+    command: bentoml serve-gunicorn ModelService/ --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   serving_replica:
     image: docker.lomin.ai/ts-gpu-serving-base:${TEXTSCOPE_BASE_IMAGE_VERSION}
@@ -71,6 +72,7 @@ services:
       - 8000:8000
     volumes:
       - ./:/workspace
+      - ./:/textscope
     tty: true
     working_dir: /workspace/app
     # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8000
@@ -108,6 +110,7 @@ services:
       - 11120:11120
     volumes:
       - ./:/workspace
+      - ./:/textscope
     tty: true
     environment: 
       - API_ENV=production

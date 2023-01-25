@@ -6,6 +6,9 @@
     },
     "DOCUMENT_TYPE_SET": {
         "ZZ": "신청서",
+        "Z1": "거래통장",
+        "Z2": "사업자등록증",
+        "Z3": "신분증",
         "A1": "사업자등록증",
         "A2": "거래통장",
         "A3": "매장사진",
@@ -223,6 +226,107 @@
         "Z2_3_사업자등록증_사업자등록증명"
     ],
     "DOC_MAPPING_TABLE": {
+        "rrc" : {
+            "title" : "title",
+            "rrc_name": "rrc_name", 
+            "rrc_regnum": "rrc_regnum",
+            "rrc_issue_date": "rrc_issue_date"
+        },
+        "dlc" : {
+            "dlc_name_ko": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_valid_date": "dlc_exp_date"
+        },
+        "dlc_title" : {
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_exp_date": "dlc_exp_date"
+        },
+        "arc" : {
+            "name_en": "arc_name",
+            "id_arc": "arc_regnum",
+            "issue_date": "arc_issue_date"
+        },
+        "pp" : {
+            "pp_title": "pp_title",
+            "pp_name": "pp_name",
+            "pp_regnum": "pp_regnum",
+            "pp_issue_date": "pp_issue_date"
+        },
+        "business" : {
+            "business_num_value": "cbr_regnum_business",
+            "business_regnum_value": "cbr_regnum_corp",
+            "business_repre_value": "cbr_ceo_name",
+            "business_name_value": "cbr_name",
+            "business_address_value": "cbr_address_business",
+            "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
+            "business_addresshq_value": "cbr_address_headquarter"
+        },
+        "bb" : {
+            "account_num_value": "bb_account_num",
+            "bank_name_value": "bb_bank",
+            "account_name_value": "bb_account_holder"
+        },
+        "ccr" : {
+            "ccr_title": "ccr_title",
+            "ccr_issue_date": "ccr_issue_date",
+            "ccr_num_pages": "ccr_num_pages",
+            "ccr_issued_stock": "ccr_issued_stock",
+            "ccr_exp_date": "ccr_exp_date"
+        },
+        "crs" : {
+            "crs_issue_date": "crs_issue_date"
+        },
+        "all" : {
+            "title" : "title",
+            "rrc_name": "rrc_name", 
+            "rrc_regnum": "rrc_regnum",
+            "rrc_issue_date": "rrc_issue_date", 
+
+            "dlc_name_ko": "dlc_name",
+            "dlc_regnum": "dlc_regnum",
+            "dlc_issue_date": "dlc_issue_date",
+            "dlc_license_num": "dlc_license_num",
+            "dlc_valid_date": "dlc_valid_date",
+
+            "name_en": "arc_name",
+            "id_arc": "arc_regnum",
+            "issue_date": "arc_issue_date",
+
+            "pp_title": "pp_title",
+            "pp_name": "pp_name",
+            "pp_regnum": "pp_regnum",
+            "pp_issue_date": "pp_issue_date",
+
+            "business_num_value": "cbr_regnum_business",
+            "business_regnum_value": "cbr_regnum_corp",
+            "business_repre_value": "cbr_ceo_name",
+            "business_name_value": "cbr_name",
+            "business_address_value": "cbr_address_business",
+            "business_worktype_value": "cbr_work_type",
+            "business_workcond_value": "cbr_work_cond",
+            "business_addresshq_value": "cbr_address_headquarter",
+
+            "account_num_value": "bb_account_num",
+            "bank_name_value": "bb_bank",
+            "account_name_value": "bb_account_holder",
+
+            "dlc_title": "dlc_title",
+            "name": "dlc_name",
+            "dlc_exp_date": "dlc_exp_date",
+
+            "ccr_title": "ccr_title",
+            "ccr_issue_date": "ccr_issue_date",
+            "ccr_num_pages": "ccr_num_pages",
+            "ccr_issued_stock": "ccr_issued_stock",
+            "ccr_exp_date": "ccr_exp_date",
+
+            "crs_issue_date": "crs_issue_date"
+
+        },
         "주민등록증": {
             "title": "rrc_title",
             "rrc_name": "rrc_name",
@@ -648,9 +752,9 @@
         "business_worktype_value"
     ],
     "PP_MAPPING_TABLE": {
-        "general_pp": ["Z2", "Z3"],
-        "seal_imp_cert": "인감증명서",
-        "ccr": "법인등기부",
-        "bankbook": ["Z1"]
+        "general_pp": ["Z2", "Z3", "A1", "L3", "J1", "R6", "W2", "J5"],
+        "seal_imp_cert": ["인감증명서", "N2"],
+        "ccr": ["법인등기부", "N1"],
+        "bankbook": ["Z1", "A2", "AC"]
     }
 }

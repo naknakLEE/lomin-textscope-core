@@ -26,8 +26,8 @@ def get_pp_api_name(doc_type: str) -> Union[None, str]:
         return "kv"
     elif doc_type.split("_")[0] in pp_mapping_table.get("bankbook"):
         return "bankbook"
-    elif pp_mapping_table.get("seal_imp_cert") in doc_type:
+    elif doc_type.split("_")[0] in pp_mapping_table.get("seal_imp_cert"):
         return "seal_imp_cert"
-    elif pp_mapping_table.get("ccr") in doc_type:
+    elif doc_type.split("_")[0] in pp_mapping_table.get("ccr"):
         return "ccr"
     return None
