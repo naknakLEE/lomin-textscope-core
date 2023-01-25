@@ -186,10 +186,12 @@ class BaseMixin:
         query = session.query(cls)
         try:
             col = getattr(cls, reference_column)
-            query = query.filter(col < delete_before).delete()            
+            table_name = getattr(cls, '__tablename__')
+            
+            query = query.filter(col < delete_before).delete()
             session.flush()
             session.commit()
-            logger.info(f"Removed: {query} documents")
+            logger.info(f"Removed: {query} documents / {table_name}")
         except AttributeError as exce:
             logger.error(exce)
             return None
