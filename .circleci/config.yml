@@ -12,7 +12,7 @@ jobs:
       - aws-cli/setup:
           aws-access-key-id: AWS_ACCESS_KEY
           aws-secret-access-key: AWS_ACCESS_SECRET
-          aws-region: AWS_REGION_NAME
+          aws-region: AWS_REGION
   docker-build:
     machine: true
     resource_class: lomin/1

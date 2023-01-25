@@ -47,7 +47,7 @@ do
         path_depth=`echo ${model_path} | tr -cd '/' | wc -m`
         model_path_s3=`echo ${model_path} | cut -d '/' -f 1-${path_depth}`
         
-        aws s3 cp s3://lomin-model-repository/textscope/${model_path_s3}/ ../inference_server/${model_path_s3}/ --recursive
+        aws s3 cp s3://lomin-model-repository/textscope/${model_path_s3} inference_server/${model_path_s3}/ --recursive
         echo ""
     fi
 done
