@@ -14,7 +14,7 @@ git submodule update --init --recursive
 
 
 ########## 2. Download Model File Start ##########
-if [ -z "$BASH_VERSION" ]; then exec bash "$0" "$@"; exit; fi
+# if [ -z "$BASH_VERSION" ]; then exec bash "$0" "$@"; exit; fi
 
 model_config=`cat ../inference_server/assets/conf/config.yaml | shyaml get-value defaults.2.model`
 model_count=`cat ../inference_server/assets/conf/model/${model_config}.yaml | shyaml get-length resources`
