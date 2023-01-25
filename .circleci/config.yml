@@ -18,7 +18,6 @@ jobs:
     resource_class: lomin/1
     steps:
       - checkout
-      - aws-cli/install
       - run:
           name: docker build
           command: |
