@@ -2,8 +2,16 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@2.0.6
+  gh: circleci/github-cli@1.0
 
 jobs:
+  aws-cli-cred-setup:
+    executor: aws-cli/default
+    steps:
+      - aws-cli/setup:
+          aws-access-key-id: AWS_ACCESS_KEY
+          aws-secret-access-key: AWS_ACCESS_SECRET
+          aws-region: AWS_REGION_NAME
   docker-build:
     machine: true
     resource_class: lomin/1
@@ -44,7 +52,11 @@ workflows:
   feature-develop-PR: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
+      - aws-cli-cred-setup:
+          context: aws        
       - docker-build:
+          requires:
+            - aws-cli-cred-setup       
           context:
             - .env
             - aws      
