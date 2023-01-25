@@ -1,7 +1,7 @@
 
-from app.utils.logging import logger
+from apscheduler.schedulers.background import BackgroundScheduler
 
-from apscheduler.schedulers.background import BackgroundScheduler 
+from app.utils.logging import logger
 
 
 def register_cron(function, args=[],**kwargs):
