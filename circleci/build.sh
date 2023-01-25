@@ -6,6 +6,9 @@ set +x
 ########## 1. Prepare Start ##########
 pip3 install hydra-core python-dotenv alive_progress awscli
 
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+mkdir -p /home/circleci/.config/ssh && cp /home/circleci/.ssh/id_rsa /home/circleci/.config/ssh/id_rsa
+
 git submodule update --init --recursive
 ########## 1. Prepare End   ##########
 
