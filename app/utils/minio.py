@@ -151,6 +151,34 @@ class MinioService:
             logger.info("error log detail: {}", error_log)
             del(exc_type, exc_value, exc_traceback, error_log)
 
+    def remove_(self, bucket_name: str, object_name: str):
+        if not self._bucket_exists(bucket_name):
+            logger.error(f"Error occur for not exist bucket '{bucket_name}'")
+        try:
+            delete_object_list = map(
+                lambda x: DeleteObject(x.object_name),
+                self.client.list_objects(bucket_name, prefix=object_name, recursive=True),
+            )
+            errors = self.client.remove_objects(bucket_name, delete_object_list)
+            for error in errors:
+                print("error occured when deleting object", error)
+
+        except S3Error:
+            logger.error(f"Error occur for load image '{object_name}'")
+            logger.error(f"'{object_name}' is not exists")
+        except Exception:
+            error = sys.exc_info()
+            exc_type, exc_value, exc_traceback = error
+            error_log = {
+                'filename': exc_traceback.tb_frame.f_code.co_filename,
+                'lineno'  : exc_traceback.tb_lineno,
+                'name'    : exc_traceback.tb_frame.f_code.co_name,
+                'type'    : exc_type.__name__,
+                'message' : str(exc_value),
+            }
+            logger.info("error log detail: {}", error_log)
+            del(exc_type, exc_value, exc_traceback, error_log)
+
     def move_file_to_local_directory(self, bucket_name: str, document_path_list: list, local_directory: str):
         Path(local_directory).mkdir(parents=True, exist_ok=True)
 
