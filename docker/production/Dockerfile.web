@@ -45,11 +45,13 @@ RUN apt-get -qq install -y software-properties-common
 RUN add-apt-repository ppa:libreoffice/ppa
 
 RUN apt-get -qq update
-RUN apt-get -qq install -y libreoffice=1:7.4.2~rc3-0ubuntu0.20.04.1~lo1
+# RUN apt-get -qq install -y libreoffice=1:7.4.3~rc3-0ubuntu0.20.04.1~lo1
+RUN apt-get -qq install -y libreoffice
 
 COPY ./app/assets/ /workspace/app/assets/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/web/ /workspace/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/kdt.json /workspace/assets/kdt.json
 COPY ./.env.prod /workspace/.env
 
 
@@ -64,6 +66,9 @@ RUN python3 /workspace/assets/build_script/rm_init_db_file.py
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
     rm -rf /usr/bin/gcc
+
+USER root
+RUN echo "export DEPLOY_DATE=$(date +'%Y-%m-%d')" >> /etc/bash.bashrc
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -m -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope

@@ -22,7 +22,8 @@ from passlib.context import CryptContext
 from app.database.connection import Base, db
 from app.utils.logging import logger
 from app.common.const import get_settings
-from app import hydra_cfg
+from app.config import hydra_cfg
+
 
 settings = get_settings()
 metadata = Base.metadata
@@ -38,7 +39,8 @@ primary_column_table = {
     
     "CompanyUserInfo": "emp_eno",
     "KeiOrgInfo": "org_org_id",
-    
+
+    "ClsInfo": "cls_idx",    
     "ClsGroupInfo": "cls_idx",
     "DocTypeInfo": "doc_type_idx",
     "KvClassInfo": "kv_class_code",
@@ -47,6 +49,7 @@ primary_column_table = {
     "DocTypeKvClass": "doc_type_idx,kv_class_code",
     "DocTypeModel": "doc_type_idx,model_idx",
     "ClsGroupModel": "cls_idx,model_idx",
+    "ClsModel": "cls_idx,model_idx",
     "DocTypeClsGroup": "cls_idx,doc_type_idx",
     
     "CompanyInfo": "company_code",
@@ -431,6 +434,17 @@ class ClsGroupInfo(Base, BaseMixin):
     is_used = Column(Boolean, comment='사용 여부')
 
 
+class ClsInfo(Base, BaseMixin):
+    __tablename__ = 'cls_info'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류(대분류) 정보'}
+    
+    company_code = Column(String, comment='회사 유니크 코드')
+    cls_idx = Column(Integer, primary_key=True, comment='문서 종류(대분류) 유니크 인덱스')
+    cls_code = Column(String, comment='문서 종류(대분류) 표준 코드')
+    cls_name_kr = Column(String, comment='문서 종류(대분류) 한글 명')
+    cls_name_en = Column(String, comment='문서 종류(대분류) 영문 명')
+    is_used = Column(Boolean, comment='사용 여부')
+
 class DocTypeInfo(Base, BaseMixin):
     __tablename__ = 'doc_type_info'
     __table_args__ = {'comment': 'textscope 서비스 문서 종류(소분류) 정보'}
@@ -513,6 +527,17 @@ class DocTypeModel(Base, BaseMixin):
     doc_type_info = relationship('DocTypeInfo')
     model_info = relationship('ModelInfo')
 
+class ClsModel(Base, BaseMixin):
+    __tablename__ = 'cls_model'
+    __table_args__ = {'comment': 'textscope 서비스 문서 종류 대분류 소분류 관계'}
+
+    created_time = Column(DateTime, primary_key=True, default=func.now())
+    cls_idx = Column(ForeignKey('cls_info.cls_idx'), nullable=False, comment='문서 종류(대분류) 유니크 인덱스')
+    model_idx = Column(ForeignKey('model_info.model_idx'), nullable=False, comment='문서 분류 모델 유니크 인덱스')
+    is_used = Column(Boolean, comment='사용 여부')
+
+    cls_info = relationship('ClsInfo')
+    model_info = relationship('ModelInfo')
 
 class ClsGroupModel(Base, BaseMixin):
     __tablename__ = 'cls_group_model'
@@ -558,6 +583,17 @@ class LogInfo(Base, BaseMixin):
     log_content = Column(JSON, comment='로그 내용')
     is_used = Column(Boolean, comment='사용 여부')
 
+# class LogAPI(Base, BaseMixin):
+#     __tablename__ = 'log_api'
+#     __table_args__ = {'comment': 'textscope 서비스 api 로그 정보'}
+#     api_id = Column(Integer, primary_key=True, comment='api 로그 아이디', index=True)
+#     api_domain = Column(String, nullable=False, comment='api 도메인', default="wrapper")
+#     api_end_point = Column(String, nullable=False, comment='api 엔드포인트')
+#     api_method = Column(String, nullable=False, comment='api Method')
+#     api_status_code = Column(String, nullable=False, comment='api http 응답코드')
+#     api_is_success = Column(Boolean, nullable=False, comment='api 응답 성공여부')
+#     api_response_time = Column(String, nullable=False, comment='api 응답시간')
+#     api_response_datetime = Column(DateTime, default=func.now(), comment="api 로그 생성시간")
 
 class CompanyInfo(Base, BaseMixin):
     __tablename__ = 'company_info'
@@ -616,7 +652,6 @@ class DocumentInfo(Base, BaseMixin):
     doc_type_code = Column(ARRAY(String, zero_indexes=True), comment="문서에 포함된 문서 종류(소분류) 항목코드 리스트")
     doc_type_cls_match = Column(ARRAY(Integer, zero_indexes=True), comment="문서 종류(대분류)에 포함되지 않은 종류(소분류)이면 기타서류(31)로 변경되어 저장된 정보")
     document_accuracy = Column(Float, comment="문서 인식정확도")
-    # inspect_id = Column(String, default='RUNNING_INFERENCE', comment='문서의 최근 검수 아이디')
     inspect_id = Column(String, default="NOT_INSPECTED", comment='문서의 최근 검수 아이디')
     is_used = Column(Boolean, comment='사용 여부')
 
@@ -990,6 +1025,7 @@ def insert_initial_data() -> None:
                             
                         elif isinstance(db_type, JSON):
                             cell_value: dict = json.loads(cell_value)
+                        
                         init_data.update({column_name:cell_value})
                     
                     if len(init_data) != 0:

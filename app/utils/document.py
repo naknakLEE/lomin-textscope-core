@@ -4,24 +4,22 @@ import pdf2image
 import base64
 import shutil
 
-from httpx import Client
 from PIL import Image
 from PIL.Image import DecompressionBombError
 from io import BytesIO
 from pathlib import Path
 from functools import lru_cache
-from typing import Tuple, List
+from typing import Optional, Tuple, List
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.utils.logging import logger
 from app.common.const import get_settings
 from app.utils.minio import MinioService
 from app.utils.image import read_image_from_bytes
 from app.schemas import error_models as ErrorResponse
 from app.middlewares.exception_handler import CoreCustomException
-from app.wrapper import pipeline, pp
 from app.database import query
 
 from concurrent import futures
@@ -36,6 +34,11 @@ from app.database.schema import InferenceInfo
 import socket
 from datetime import date
 from typing import Optional
+
+from app.service.inference import (
+    ocr as ocr_service,
+)
+from app.models import UserInfo as UserInfoInModel
 
 
 settings = get_settings()
@@ -53,8 +56,47 @@ max_workers = hydra_cfg.document.thread_max_works
 
 # pdf2pdfa_convertor = pdf_converter.PDF2PDFAConvertor(libreoffice="soffice")
 
+def get_file_bytes_header(bytes_file: bytes) -> Optional[bytes]:
+    with tifffile.FileHandle(bytes_file) as fh:
+        try:
+            fh.seek(0)
+            header = fh.read(4)
+            file_bytes_header = header[:2] # b'MB' b'II' ..
+        except:
+            logger.warning("byes header extraction failed")
+            file_bytes_header = None
+    return file_bytes_header
+
+def convert_bytes_header_2_filetype(bytes_file:bytes):
+    convert_dict = {
+        b'BM': '.bmp',
+        b'II': '.tif',
+        b'MM': '.tif',
+        b'EP': '.tif',
+        b'\xff\xd8' : '.jpeg',
+        b'\x89PNG\r\n\x1a\n' : ".png"
+    }
+    # file_byes_header = get_file_bytes_header(bytes_file)
+    
+
+    file_bytes_header = bytes_file[:20]
+    file_type = None
+    for k, v in convert_dict.items():
+        if file_bytes_header.startswith(k): file_type = v
+            
+
+    # if file_byes_header in convert_dict.keys():
+    #     return convert_dict[file_byes_header]
+    # else:
+    #     return None
+    
+    return file_type
+    
+    
+
 
 def get_file_extension(document_filename: str = "x.xxx") -> str:
+    
     return Path(document_filename).suffix.lower()
 
 
@@ -71,22 +113,28 @@ def get_stored_file_extension(document_path: str) -> str:
 @lru_cache(maxsize=15)
 def get_page_count(document_data: str, document_filename: str) -> int:
     document_bytes = base64.b64decode(document_data)
-    file_extension = get_file_extension(document_filename)
+    file_type = get_file_extension(document_filename)
+
+    file_type_header = convert_bytes_header_2_filetype(document_bytes)
+    if file_type_header:
+        document_filename = document_filename.replace(file_type, file_type_header)
+        file_type = file_type_header
+
     total_pages = 1
     
-    if file_extension in support_file_extension_list.get("image"):
+    if file_type in support_file_extension_list.get("image"):
         total_pages = 1
         
-    elif file_extension in support_file_extension_list.get("tif"):
+    elif file_type in support_file_extension_list.get("tif"):
         try:
             with tifffile.TiffFile(BytesIO(document_bytes)) as tif:
                 total_pages = len(tif.pages)
         except:
-            logger.exception("read pillow")
+            logger.exception("read tiff")
             logger.error(f"Cannot load {document_filename}")
             total_pages = 0
             
-    elif file_extension in support_file_extension_list.get("pdf"):
+    elif file_type in support_file_extension_list.get("pdf"):
         pages = pdf2image.convert_from_bytes(document_bytes)
         total_pages = len(pages)
         
@@ -94,7 +142,7 @@ def get_page_count(document_data: str, document_filename: str) -> int:
         logger.error(f"{document_filename} is not supported!")
         total_pages = 0
     
-    return total_pages
+    return total_pages, document_filename
 
 # A1 (1684, 2384 pts), 300dpi
 MAX_IMAGE_PIXEL_SIZE = (7016, 9933)
@@ -217,6 +265,37 @@ def save_upload_document(
     
     return success, save_path, (len(save_document_dict) - 1)
 
+def delete_document(
+    document_id: str,
+    document_name: str
+) -> Tuple[bool, Path]:
+    
+    success = False
+    if settings.USE_MINIO:
+        success = minio_client.remove(
+            bucket_name=settings.MINIO_IMAGE_BUCKET,
+            image_name=document_id + '/' + document_name.replace("minio/", ""),
+        )
+        
+    else:
+        root_path = Path(settings.IMG_PATH)
+        base_path = root_path.joinpath(document_id)
+        base_path.mkdir(parents=True, exist_ok=True)
+        save_path = base_path.joinpath(document_name)
+        
+        if os.path.isfile(save_path):
+            os.remove(save_path)
+            success = True
+    
+    return success
+
+
+def document_path_verify(document_path: str):
+    if not os.path.isfile(document_path):
+        status_code, error = ErrorResponse.ErrorCode.get(2508)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    return True
+
 
 def get_document_bytes(document_id: str, document_path: Path) -> str:
     document_bytes = None
@@ -256,6 +335,7 @@ def create_socket_msg(pdf_file_nm:str, status_code:int, gubun:str, **kwargs) -> 
     return ",".join(msg_array).encode('utf-8')    
 
 def multiple_request_ocr(
+    current_user: UserInfoInModel,
     inputs: dict,
     session: Session
 ):
@@ -279,10 +359,10 @@ def multiple_request_ocr(
         if(max_workers > 1):
             # MultiThread로 ocr결과 담기
             with futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                future = executor.map(request_ocr,document_data_list,repeat(inputs))
+                future = executor.map(request_ocr, repeat(current_user), document_data_list, repeat(inputs), repeat(session))
                 inference_result_list = list(future)        
         else:
-            for document_data in document_data_list: inference_result_list.append(request_ocr(document_data, inputs))
+            for document_data in document_data_list: inference_result_list.append(request_ocr(current_user, document_data, inputs, session))
 
         # ocr_result list sorting
         sorted(inference_result_list, key=lambda k: k['cnt'])
@@ -312,75 +392,44 @@ def multiple_request_ocr(
             client_socket.send(socket_msg)    
 
 def request_ocr(
-    document_info: dict, inputs: dict
+    current_user: UserInfoInModel,
+    document_info: dict, 
+    inputs: dict,
+    session: Session
 ):
+    logger.debug(f"======================> current_user:{current_user.email}")
     """
         문서 하나당 ocr 요청
     """
-    document_data:bytes = document_info.get('data')
-    document_cnt: int   = document_info.get('cnt')
-    document_name: str  = document_info.get('name')
+    document_data:bytes = document_info.get('data', '')
+    document_cnt: int   = document_info.get('cnt', '')
+    document_name: str  = document_info.get('name', '')
     target_page: int    = 0
 
     new_inputs = copy.deepcopy(inputs)
     new_inputs.update(
-        image_bytes=document_data,
-        image_path=document_name,
+        image_bytes=document_data.decode(),
+        document_path=document_name,
         document_cnt=document_cnt,
         page=target_page,
-        doc_type=None,        
+        route_name="kv",
+        doc_type="GOCR",      
+        background=True,  
     )
-    response_log = dict()
-    with Client() as client:
-        # Inference
-        status_code, inference_results, response_log = pipeline.single(
-            client=client,
-            inputs=new_inputs,
-            response_log=response_log,
-            route_name='gocr',
-        )
-        if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
-            logger.error(inference_results, exc_info=True)
-            exec = Exception()
-            exec.__setattr__('context', 3501)
-            raise exec
 
-        # convert preds to texts
-        if (
-            "texts" not in inference_results
-        ):
-            status_code, texts = pp.convert_preds_to_texts(
-                client=client,
-                rec_preds=inference_results.get("rec_preds", []),
-            )
-            if status_code < 200 or status_code >= 400:
-                exec = Exception()
-                exec.__setattr__('context', 3503)
-                raise exec
-
-            inference_results["texts"] = texts             
-
-        doc_type_code = inference_results.get("doc_type")
-        inference_results.update(doc_type=doc_type_code)
-
-        # Post processing -> Searchable_pp일경우 line_word
-        status_code, post_processing_results, response_log = pp.post_processing(
-            client=client,
-            task_id="",
-            response_log=response_log,
-            inputs=inference_results,
-            post_processing_type='line_word',
-        )
-        if status_code < 200 or status_code >= 400:
-            exec = Exception()
-            exec.__setattr__('context', 3502)
-            raise exec             
-        logger.debug(post_processing_results.get('result'))
-        inference_results.update(
-            post_processing_results.get('result'),
-            base64_encode_file=document_data,
-            cnt = document_cnt
-        )                   
+    inference_results = dict()
+    ocr_result = ocr_service(
+        request = None,
+        inputs = new_inputs,
+        current_user = current_user,
+        session = session
+    )
+    inference_results.update(
+        ocr_result.get('inference_results').get('kv'),
+        base64_encode_file=document_data,
+        cnt = document_cnt,
+        document_name = document_name,
+    )            
 
     return inference_results
 
@@ -518,7 +567,7 @@ def generate_searchalbe_pdf(
             wordss.append(words)
 
             document_bytes = base64.b64decode(inference_result.get("base64_encode_file"))
-            pdf_img = read_image_from_bytes(document_bytes, inference_result.get('image_path'), angle, 0)
+            pdf_img = read_image_from_bytes(document_bytes, inference_result.get('document_name'), angle, 0)
         
             images.append(pdf_img)
         pdf_file_save_path: str = os.path.dirname(pdf_file_name)
@@ -614,6 +663,7 @@ def save_minio_pdf_convert_img(
         buffered = BytesIO()
         try:        
             document_pages: List[Image.Image] = read_image_from_bytes(pdf_data, pdf_file_name, 0.0, 1, separate=True)
+
             pdf_len = len(document_pages)
             if(not pdf_len):
                 status_code, error = ErrorResponse.ErrorCode.get(2103)

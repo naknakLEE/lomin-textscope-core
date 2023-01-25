@@ -1,7 +1,7 @@
 import typing
 import asyncio
 from queue import SimpleQueue
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.utils.logging import logger
 from starlette.concurrency import run_in_threadpool
 
@@ -47,9 +47,11 @@ class QueueBackGroundTask:
                 await run_in_threadpool(bg_progress_task.func, *bg_progress_task.args, **bg_progress_task.kwargs)     
         except Exception as exc:       
             logger.error(exc, exc_info=True)
+        finally:
+            self.bg_progress_cnt -= 1
         logger.debug(f"==================> Background Task Finish")                              
 
-        self.bg_progress_cnt -= 1
+        
         if self.bg_tasks_queue.empty(): return
 
         asyncio.create_task(self.__do_task())

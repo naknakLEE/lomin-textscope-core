@@ -16,8 +16,9 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 ENV API_ENV="production"
 ENV DOCKER_ENV="True"
 
-RUN apt-get -qq update && \
-    apt-get -y -qq install locales && \
+RUN apt-get -qq update
+
+RUN apt-get -y -qq install locales && \
     locale-gen ko_KR.UTF-8
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
@@ -27,7 +28,10 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
     libmysqlclient-dev \
     python3-pip \
     python3-venv \
-    tzdata
+    tzdata \
+    g++ \
+    openjdk-8-jdk \
+    python3-dev
 
 # RUN pip3 install --upgrade pip
 
@@ -48,11 +52,13 @@ COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/main.py /workspace/pp_server/
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/pp/assets /workspace/pp_server/assets
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
 
+COPY ./pp_server/lovit/requirements.txt /workspace/pp_server/lovit/requirements.txt
 COPY ./pp_server/requirements/pyproject.toml /workspace/
 COPY ./pp_server/requirements/poetry.lock /workspace/
 
 WORKDIR /workspace
 
+RUN pip3 install -r /workspace/pp_server/lovit/requirements.txt
 RUN poetry install --no-dev
 
 COPY ./.env.prod /workspace/.env
@@ -60,6 +66,9 @@ COPY ./.env.prod /workspace/.env
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache && \
     rm -rf /usr/bin/gcc
+
+USER root
+RUN echo "export DEPLOY_DATE=$(date +'%Y-%m-%d')" >> /etc/bash.bashrc
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope

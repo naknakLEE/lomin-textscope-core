@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.models import UserInfo as UserInfoInModel
 from app.database.connection import db 
 from app.service import front

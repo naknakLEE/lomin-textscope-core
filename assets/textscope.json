@@ -11,7 +11,9 @@
     "HKL01-DT-CHT",
     "HKL01-DT-PRS"
   ],
-  "INSURANCE_SUPPORT_DOCUMENT": ["HKL01-DT-IB"],
+  "INSURANCE_SUPPORT_DOCUMENT": [
+    "HKL01-DT-IB"
+  ],
   "PARAMETER_FULL_NAME_MAPPING_TABLE": {
     "lnbzDocClcd": "document type",
     "doc_type": "hint doc_type",
@@ -19,7 +21,10 @@
     "edmsId": "edms id"
   },
   "DOC_TYPE_SET": {
-    "PASSPORT": ["J5", "Z3_1_신분증_여권"],
+    "PASSPORT": [
+      "J5",
+      "Z3_1_신분증_여권"
+    ],
     "REPRESENTATIVE_ID": [
       "J1",
       "L3",
@@ -30,16 +35,24 @@
       "신분증",
       "idcard"
     ],
-    "ROTATE": ["ROTATE"],
-    "CHECKBOX_MODEL": ["checkbox"],
-    "DURIEL_CLS_MODEL": ["du_single_cls_model"],
+    "ROTATE": [
+      "ROTATE"
+    ],
+    "CHECKBOX_MODEL": [
+      "checkbox"
+    ],
+    "DURIEL_CLS_MODEL": [
+      "du_single_cls_model"
+    ],
     "DURIEL_KV_MODEL_DIAGNOSIS": [
       "HKL01-DT-MC",
       "HKL01-DT-CAD",
       "HKL01-DT-CS",
       "HKL01-DT-CHT"
     ],
-    "DURIEL_KV_MODEL_PRESCRIPTION": ["HKL01-DT-PRS"],
+    "DURIEL_KV_MODEL_PRESCRIPTION": [
+      "HKL01-DT-PRS"
+    ],
     "DURIEL_SUPPORT_DOCUMENT": [
       "HKL01-DT-MC",
       "HKL01-DT-CAD",
@@ -47,13 +60,38 @@
       "HKL01-DT-CHT",
       "HKL01-DT-PRS"
     ],
-    "BUSINESS_REGISTRATION": ["A1", "Z2", "사업자등록증"],
-    "LIFE_INSURANCE": ["HKL01-DT-IB"],
-    "TRANSACTION_BANK_BOOK": ["A2", "AC", "Z1", "RF", "bankbook", "통장사본"],
-    "CERTIFIED_COPY_OF_CORPORATE_REGISTRATION": ["N1"],
-    "CORPORATE_SEAL_CERTIFICATE": ["N2", "W3", "J8"],
-    "OTHER_ATTACHED_DOCUMENTS": ["EZ", "EY"],
-    "BUSINESS_REGISTRATION_CERTIFICATE": ["E3", "ER"]
+    "BUSINESS_REGISTRATION": [
+      "A1",
+      "Z2",
+      "사업자등록증"
+    ],
+    "LIFE_INSURANCE": [
+      "HKL01-DT-IB"
+    ],
+    "TRANSACTION_BANK_BOOK": [
+      "A2",
+      "AC",
+      "Z1",
+      "RF",
+      "bankbook",
+      "통장사본"
+    ],
+    "CERTIFIED_COPY_OF_CORPORATE_REGISTRATION": [
+      "N1"
+    ],
+    "CORPORATE_SEAL_CERTIFICATE": [
+      "N2",
+      "W3",
+      "J8"
+    ],
+    "OTHER_ATTACHED_DOCUMENTS": [
+      "EZ",
+      "EY"
+    ],
+    "BUSINESS_REGISTRATION_CERTIFICATE": [
+      "E3",
+      "ER"
+    ]
   },
   "CLASS_MAPPING_TABLE": {
     "rrc_name": "rrc_name",
@@ -121,7 +159,9 @@
     ]
   },
   "LENGTH_SET": {
-    "length_5": ["ccr_num_pages"],
+    "length_5": [
+      "ccr_num_pages"
+    ],
     "length_8": [
       "rrc_issue_date",
       "dlc_issue_date",
@@ -149,8 +189,12 @@
       "id_rrc",
       "id_dlc"
     ],
-    "length_50": ["dlc_license_num"],
-    "length_100": ["bb_account_num"],
+    "length_50": [
+      "dlc_license_num"
+    ],
+    "length_100": [
+      "bb_account_num"
+    ],
     "length_200": [
       "cbr_work_type",
       "cbr_work_cond",
@@ -204,7 +248,11 @@
     "accident_details",
     "HKL01-KV-MDC"
   ],
-  "COMMA_KEY": ["HKL01-KV-MDC", "HKL01-KV-DCC", "HKL01-KV-DNC"],
+  "COMMA_KEY": [
+    "HKL01-KV-MDC",
+    "HKL01-KV-DCC",
+    "HKL01-KV-DNC"
+  ],
   "NTOC": {
     "1": "I",
     "2": "Z",
@@ -224,30 +272,6 @@
   },
   "PP_MAPPING_TABLE": {
     "general_pp": [
-      "사업자등록증", 
-      "GV-CBR"
-    ],
-    "kxm": [
-      "FN-OIP",
-      "FN-BP",
-      "TD-CI",
-      "TD-PL",
-      "TD-BL",
-      "TD-PO"
-    ],
-    "commercial_bill": [
-      "FN-CB"
-    ],
-    "heungkuk": [
-      "Z2",
-      "HKL01-DT-IB",
-      "HKL01-DT-MC",
-      "HKL01-DT-CAD",
-      "HKL01-DT-CS",
-      "HKL01-DT-CHT",
-      "HKL01-DT-PRS"
-    ],
-    "idcard": [
       "ID-ARB",
       "ID-ARC",
       "ID-DLC",
@@ -255,21 +279,16 @@
       "ID-ONC",
       "ID-PRC",
       "ID-RRC",
-      "Z3",
-      "J1",
-      "L3",
-      "R6",
-      "W2",
-      "Z3",
-      "J5",
-      "신분증",
-      "idcard"
+      "FN-OIP",
+      "FN-BP",
+      "TD-CI",
+      "TD-PL",
+      "TD-BL",
+      "TD-PO"      
     ],
-    "seal_imp_cert": ["J8_인감증명서", "N2_법인인감증명서"],
-    "ccr": ["N1_법인등기부 등본(등기사항 전부증명서)"],
-    "bankbook": ["A2", "AC", "Z1", "RF", "Z1", "통장사본", "bankbook", "FN-BB"],
-    "busan_bank": ["법인등기부등본"],
-    "business_registration": ["사업자등록증", "GV-CBR"]
+    "line_word": [
+      "GOCR"
+    ]
   },
   "KV_CATEGORY_MAPPING": {
     "NONE": {},
@@ -2460,7 +2479,6 @@
       }
     }
   },
-
   "DATABASE_INITIAL_DATA": {
     "category": [
       {
@@ -2605,5 +2623,1205 @@
     "image": [],
     "task": [],
     "inference": []
+  },
+  "TOCR_TEMPLATES": {
+    "KBL1-IC": {
+      "template_json": {}
+    },
+    "KBL1-PIC": {
+      "template_json": {}
+    }
+  },
+  "TOCR_TEMPLATES_JSON": {
+    "template_ic_0": {
+      "보험금청구서식_템플릿.png546361": {
+        "page": "0",
+        "filename": "보험금청구서식_템플릿.png",
+        "size": 546361,
+        "regions": [
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 272,
+              "y": 216,
+              "width": 220,
+              "height": 72
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-ISN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 593,
+              "y": 219,
+              "width": 318,
+              "height": 65
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-ISRRN",
+              "bool": {
+                "korean": false,
+                "english_uppercase": false,
+                "english_lowercase": false,
+                "digit": true,
+                "special_character": true
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 532,
+              "y": 293,
+              "width": 46,
+              "height": 50
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ISMRY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 639,
+              "y": 291,
+              "width": 50,
+              "height": 54
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ISMRN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 266,
+              "y": 346,
+              "width": 231,
+              "height": 80
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-SBN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 592,
+              "y": 347,
+              "width": 321,
+              "height": 75
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-SBRRN",
+              "bool": {
+                "korean": false,
+                "english_uppercase": false,
+                "english_lowercase": false,
+                "digit": true,
+                "special_character": true
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 210,
+              "y": 568,
+              "width": 44,
+              "height": 43
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDME",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 436,
+              "y": 569,
+              "width": 45,
+              "height": 41
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDAM",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 590,
+              "y": 563,
+              "width": 53,
+              "height": 54
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDOP",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 754,
+              "y": 567,
+              "width": 49,
+              "height": 49
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDOPR",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 914,
+              "y": 569,
+              "width": 52,
+              "height": 44
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDDG",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1074,
+              "y": 564,
+              "width": 49,
+              "height": 49
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDOS",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1233,
+              "y": 568,
+              "width": 52,
+              "height": 48
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDD",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1396,
+              "y": 566,
+              "width": 50,
+              "height": 49
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CLDETC",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 385,
+              "y": 1150,
+              "width": 219,
+              "height": 62
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-ARBN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 714,
+              "y": 1148,
+              "width": 478,
+              "height": 63
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-ARAN",
+              "bool": {
+                "korean": false,
+                "english_uppercase": false,
+                "english_lowercase": false,
+                "digit": true,
+                "special_character": true
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1273,
+              "y": 1149,
+              "width": 313,
+              "height": 63
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-ARAH",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1439,
+              "y": 1693,
+              "width": 60,
+              "height": 64
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-CFYN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1331,
+              "y": 1918,
+              "width": 242,
+              "height": 71
+            },
+            "region_attributes": {
+              "label": "signature",
+              "class": "KBL1-IC-SBYN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1367,
+              "y": 2055,
+              "width": 206,
+              "height": 81
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-RSI",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 208,
+              "y": 631,
+              "width": 49,
+              "height": 46
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ADDDE",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 368,
+              "y": 630,
+              "width": 49,
+              "height": 48
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ADDDS",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 527,
+              "y": 634,
+              "width": 50,
+              "height": 44
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ADDSC",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 683,
+              "y": 629,
+              "width": 62,
+              "height": 50
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ADDETC",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1245,
+              "y": 677,
+              "width": 65,
+              "height": 65
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ADY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1376,
+              "y": 672,
+              "width": 62,
+              "height": 71
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-IC-ADN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 331,
+              "y": 760,
+              "width": 278,
+              "height": 46
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-ADAD",
+              "bool": {
+                "korean": false,
+                "english_uppercase": false,
+                "english_lowercase": false,
+                "digit": true,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 975,
+              "y": 758,
+              "width": 603,
+              "height": 60
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": true,
+                "special_character": false
+              },
+              "label": "word",
+              "class": "KBL1-IC-ADAP"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 588,
+              "y": 812,
+              "width": 1000,
+              "height": 70
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": true,
+                "special_character": false
+              },
+              "label": "word",
+              "class": "KBL1-IC-ADAI"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 847,
+              "y": 900,
+              "width": 721,
+              "height": 70
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": true,
+                "special_character": false
+              },
+              "label": "word",
+              "class": "KBL1-IC-AIDN"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1253,
+              "y": 1003,
+              "width": 53,
+              "height": 54
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "label": "check_box",
+              "class": "KBL1-IC-UIY"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1375,
+              "y": 996,
+              "width": 61,
+              "height": 67
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-IC-UIN",
+              "label": "check_box"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1444,
+              "y": 1284,
+              "width": 52,
+              "height": 54
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-IC-ALYN",
+              "label": "check_box"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 290,
+              "y": 1367,
+              "width": 55,
+              "height": 51
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "label": "check_box",
+              "class": "KBL1-IC-HGEMSG"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 523,
+              "y": 1367,
+              "width": 72,
+              "height": 57
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "label": "check_box",
+              "class": "KBL1-IC-HGEEM"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 713,
+              "y": 1363,
+              "width": 65,
+              "height": 64
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "label": "check_box",
+              "class": "KBL1-IC-HGEPST"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 866,
+              "y": 1359,
+              "width": 73,
+              "height": 68
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "label": "check_box",
+              "class": "KBL1-IC-HGEC"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1078,
+              "y": 1363,
+              "width": 61,
+              "height": 57
+            },
+            "region_attributes": {
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "label": "check_box",
+              "class": "KBL1-IC-HGENA"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 131,
+              "y": 57,
+              "width": 285,
+              "height": 74
+            },
+            "region_attributes": {
+              "label": "word",
+              "class": "KBL1-IC-DN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": false,
+                "english_lowercase": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          }
+        ],
+        "file_attributes": {}
+      }
+    },
+    "template_pic_0": {
+      "개인정보동의서_템플릿_1.png441533": {
+        "filename": "개인정보동의서_템플릿_1.png",
+        "size": 441533,
+        "regions": [
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1153,
+              "y": 1358,
+              "width": 54,
+              "height": 57
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-PIC-MCUUIN"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1382,
+              "y": 1362,
+              "width": 61,
+              "height": 51
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-PIC-MCUUIY"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1151,
+              "y": 1694,
+              "width": 59,
+              "height": 51
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-PIC-MCUSIN"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1378,
+              "y": 1691,
+              "width": 68,
+              "height": 53
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-PIC-MCUSIY"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1153,
+              "y": 2178,
+              "width": 58,
+              "height": 63
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-PIC-MCUPIN"
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1379,
+              "y": 2172,
+              "width": 71,
+              "height": 67
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              },
+              "class": "KBL1-PIC-MCUPIY"
+            }
+          }
+        ],
+        "file_attributes": {},
+        "page": "0"
+      }
+    },
+    "template_pic_1": {
+      "개인정보동의서_템플릿_2.png513415": {
+        "filename": "개인정보동의서_템플릿_2.png",
+        "size": 513415,
+        "regions": [
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1143,
+              "y": 1418,
+              "width": 76,
+              "height": 78
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-PDUIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1375,
+              "y": 1419,
+              "width": 76,
+              "height": 79
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-PDUIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1139,
+              "y": 1697,
+              "width": 77,
+              "height": 98
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-PDSIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1375,
+              "y": 1705,
+              "width": 72,
+              "height": 83
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-PDSIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1143,
+              "y": 2098,
+              "width": 67,
+              "height": 83
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-PDPIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1370,
+              "y": 2099,
+              "width": 87,
+              "height": 87
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-PDPIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          }
+        ],
+        "file_attributes": {},
+        "page": "1"
+      }
+    },
+    "template_pic_2": {
+      "개인정보동의서_템플릿_3.png348912": {
+        "filename": "개인정보동의서_템플릿_3.png",
+        "size": 348912,
+        "regions": [
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1139,
+              "y": 723,
+              "width": 76,
+              "height": 74
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-POPIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1376,
+              "y": 720,
+              "width": 74,
+              "height": 77
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-POPIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1143,
+              "y": 1392,
+              "width": 72,
+              "height": 80
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-IUIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1373,
+              "y": 1395,
+              "width": 82,
+              "height": 78
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-IUIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1142,
+              "y": 1553,
+              "width": 72,
+              "height": 78
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-ISIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1376,
+              "y": 1550,
+              "width": 75,
+              "height": 85
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-ISIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1141,
+              "y": 1866,
+              "width": 74,
+              "height": 81
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-IPIN",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1374,
+              "y": 1874,
+              "width": 83,
+              "height": 73
+            },
+            "region_attributes": {
+              "label": "check_box",
+              "class": "KBL1-PIC-IPIY",
+              "bool": {
+                "korean": false,
+                "digit": false,
+                "special_character": false
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 851,
+              "y": 2086,
+              "width": 133,
+              "height": 83
+            },
+            "region_attributes": {
+              "label": "signature",
+              "class": "KBL1-PIC-ISYN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": true,
+                "special_character": true
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 846,
+              "y": 2168,
+              "width": 143,
+              "height": 82
+            },
+            "region_attributes": {
+              "label": "signature",
+              "class": "KBL1-PIC-SBYN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": true,
+                "special_character": true
+              }
+            }
+          },
+          {
+            "shape_attributes": {
+              "name": "rect",
+              "x": 1457,
+              "y": 2092,
+              "width": 121,
+              "height": 80
+            },
+            "region_attributes": {
+              "label": "signature",
+              "class": "KBL1-PIC-SPAYN",
+              "bool": {
+                "korean": true,
+                "english_uppercase": true,
+                "english_lowercase": true,
+                "digit": true,
+                "special_character": true
+              }
+            }
+          }
+        ],
+        "file_attributes": {},
+        "page": "2"
+      }
+    }
   }
 }

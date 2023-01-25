@@ -12,7 +12,7 @@ from starlette.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.database import query, schema
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.middlewares.exception_handler import CoreCustomException

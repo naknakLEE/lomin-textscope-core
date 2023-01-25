@@ -14,8 +14,10 @@ from rich.traceback import install
 install(show_locals=True)
 pretty.install()
 
-from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, test, rpa, drm, base, front
+from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, base, test, rpa, drm, front
 from app.routes import document, model, inspect
+from app.routes.api import index as api_index
+from app.routes.api import inference as api_inference
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -35,7 +37,6 @@ from app.middlewares.exception_handler import (
     core_exception_handler,
     CoreCustomException
 )
-
 
 settings = get_settings()
 
@@ -126,11 +127,20 @@ def app_generator() -> FastAPI:
     app.include_router(inspect.router, tags=["Kei Inpsect Info"], prefix="/v1/docx/inspect", include_in_schema=True)
     
     app.include_router(users.router, tags=["Company User Info"], prefix="/v1/user", include_in_schema=True)
+
+    # Base Function Route 등록
+    app.include_router(base.router, tags=["Base Function"], prefix="/base", include_in_schema=True)
+    
+    
+    app.include_router(api_index.router, tags=["API"], prefix="/api/v1", include_in_schema=True)
+    app.include_router(api_inference.router, tags=["API"], prefix="/api/v1/inference")
     
     app.include_router(test.router, tags=["Kei Connection Test Api"], prefix="/test", include_in_schema=True)
     app.include_router(rpa.router, tags=["Kei Robotic Process Automation"], prefix="/v1/rpa", include_in_schema=True)
     app.include_router(drm.router, tags=["Kei DRM"], prefix="/v1/drm", include_in_schema=True)
-    app.include_router(base.router, tags=["nak2210 API"], prefix="/api/v1", include_in_schema=True)
+
+    # TODO: Check 필요
+    # app.include_router(base.router, tags=["nak2210 API"], prefix="/api/v1", include_in_schema=True)
 
     app.include_router(front.router, tags=["nak2210 DashBoard API"], prefix="", include_in_schema=True)
 

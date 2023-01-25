@@ -15,7 +15,7 @@ def apply_cls_hint(
     cls_result: Dict = {},
     hint_threshold: float = cls_hint_score_threshold,
 ) -> Dict:
-    score = cls_result.get("score", 0.0)
+    score = cls_result.get("cls_score", 0.0)
     result: Dict[str, Any] = {
         "doc_type": "None",
         "confidence": score,

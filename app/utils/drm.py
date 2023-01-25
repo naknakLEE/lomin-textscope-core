@@ -3,7 +3,7 @@ import os
 import base64
 from pathlib import Path
 
-from app import hydra_cfg
+from app.config import hydra_cfg
 from starlette.responses import JSONResponse
 from app.common.const import get_settings
 from app.utils.logging import logger

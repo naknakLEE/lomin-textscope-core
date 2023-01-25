@@ -155,4 +155,5 @@
 **/inference_server/
 **/build-folder/
 # exclude app/ folder
-!**/app/** 
+!**/app/**
+kei2205.xlsx 

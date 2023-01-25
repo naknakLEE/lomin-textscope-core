@@ -15,7 +15,7 @@ services:
         PYTHON_VERSION: ${PYTHON_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 5000:5000
+      - 8052:5000
     environment:
       - CUDA_VISIBLE_DEVICES=0
       - SERVICE_INSTANCE=serving
@@ -41,7 +41,8 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
 
   pp:
     user: "0:0"
@@ -59,7 +60,8 @@ services:
       - PYTHONPATH=/workspace
     tty: true
     working_dir: /workspace/pp_server
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
 
   wrapper:
     user: "0:0"
@@ -74,13 +76,16 @@ services:
         POETRY_VERSION: ${POETRY_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8050:${WRAPPER_IP_PORT}
+      - 8055:${WRAPPER_IP_PORT}
     tty: true
-    volumes:
-      - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
     working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT}
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
 
   grafana:
     ports:
-      - 3001:3000
+      - 8053:3000
+
+  nginx:
+    ports:
+      - 8050:80
+      - 8080:8080

@@ -9,7 +9,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.utils.logging import logger
-from app import hydra_cfg
+from app.config import hydra_cfg
 from app.database import query, schema
 from app.database.connection import db
 from app.routes.inference import ocr
@@ -357,3 +357,37 @@ def update_document_info_doc_type_idxs(session: Session, document_info: schema.D
         doc_type_code=doc_type_list,
         doc_type_cls_match=doc_type_cls_match
     )
+
+
+def bg_ocr(request: Request, current_user: UserInfoInModel, /, **kwargs: Dict):
+    document_id = kwargs.get("document_id")
+    document_pages = kwargs.get("document_pages", 1)
+    document_path = kwargs.get("save_path")
+    doc_type_code = kwargs.get("doc_type_code")
+    
+    ocr_params = dict()
+    ocr_params.update(DEFAULT_PARAMS)
+    
+    
+    if doc_type_code is not None: # CLSKV
+        ocr_params.update(DEFAULT_CLSKV_PARAMS)
+        ocr_params.get("hint", {}).get("doc_type", {}).update(doc_type=doc_type_code)
+    else: # GOCR
+        ocr_params.update(DEFAULT_GOCR_PARAMS)
+    
+    session = next(db.session())
+    
+    for page in range(1, document_pages + 1):
+        task_id=get_ts_uuid("task")
+        
+        ocr_params.update(
+            task_id=task_id,
+            request_id=task_id,
+            document_id=document_id,
+            page=page,
+            document_path=document_path,
+        )
+        
+        ocr(request=request, inputs=ocr_params, current_user=current_user, session=session)
+    
+    query.update_document(session, document_id, inspect_id="NOT_INSPECTED")

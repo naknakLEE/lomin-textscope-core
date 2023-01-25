@@ -37,8 +37,10 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSIO
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
     poetry config virtualenvs.create false
 
+# COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}_wrapper /workspace/
 COPY ./${CUSTOMER}_wrapper /workspace/${CUSTOMER}_wrapper
 COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/kdt.json /workspace/assets/kdt.json
 COPY ./.env.prod /workspace/.env
 
 COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/
@@ -51,6 +53,9 @@ RUN poetry install --no-dev
 
 RUN rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache
+
+USER root
+RUN echo "export DEPLOY_DATE=$(date +'%Y-%m-%d')" >> /etc/bash.bashrc
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope

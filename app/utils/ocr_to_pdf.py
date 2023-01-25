@@ -3,7 +3,7 @@ import io
 from typing import List, Union
 from PIL import Image
 from io import BytesIO
-from app import hydra_cfg
+from app.config import hydra_cfg
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -26,11 +26,11 @@ class PdfParser():
 
     PDF_72DPI_LONG_PIXEL  = 842
     PDF_72DPI_SHORT_PIXEL = 595
-    STANDARD_PIXEL = 2340
+    STANDARD_PIXEL = 297 * mm
 
     RESIZE_DPI   = hydra_cfg.document.resize_dpi
-    LONG_PIXEL   = int(RESIZE_DPI * 297 / 25.4)
-    SHORT_PIXEL  = int(RESIZE_DPI * 210 / 25.4)
+    LONG_PIXEL   = round(RESIZE_DPI * 297 / 25.4)
+    SHORT_PIXEL  = round(RESIZE_DPI * 210 / 25.4)
     JPEG_QUALITY = hydra_cfg.document.jpeg_quality
     
     def getStringLength(self, text: str) -> float:
@@ -143,20 +143,21 @@ class PdfParser():
             # 6. add image layer
             # 6-1. resize img file
             if (bigger_size < self.STANDARD_PIXEL):
-                convert_img = pil_image
+                convert_img = pil_image 
             elif (bigger_size == size_image_height):
                 convert_img = pil_image.resize((self.SHORT_PIXEL, self.LONG_PIXEL), Image.ANTIALIAS)
             else:
                 convert_img = pil_image.resize((self.LONG_PIXEL, self.SHORT_PIXEL), Image.ANTIALIAS)            
 
-            # 6-2. convert JPEG with custorm quality if custom quality not Zero
+            # 6-2. convert JPEG with custom quality if custom quality not Zero
             if(self.JPEG_QUALITY):           
                 byte_io:BytesIO = BytesIO()
                 convert_img.save(byte_io, format='jpeg', quality=self.JPEG_QUALITY)
                 convert_img = Image.open(byte_io)
 
             pdf_image = ImageReader(convert_img)
-
+            
+            
             pdf.drawImage(pdf_image, 0, 0, width=size_pdf_width, height=size_pdf_height, preserveAspectRatio=True, anchor="c")
             
             pdf.showPage()

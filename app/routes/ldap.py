@@ -8,6 +8,14 @@ from app.utils.utils import pretty_dict
 from app.common.const import get_settings
 from app.utils.logging import logger
 from app.schemas.ldap import GroupAdd, NewUserAddToGroup, UserDelete, UserUpdate
+from app.service.ldap import (
+    search_ldap_user_all as search_ldap_user_all_service,
+    search_ldap_user as search_ldap_user_service,
+    add_ldap_group as add_ldap_group_service,
+    add_new_user_to_group as add_new_user_to_group_service,
+    delete_user as delete_user_service,
+    update_user as update_user_service
+)
 
 
 settings = get_settings()
@@ -18,46 +26,14 @@ router = APIRouter()
 async def search_ldap_user_all(
     dc: str = "dc=lomin,dc=ai",
     objectClass: str = "inetOrgPerson",
-    ldap_server=Depends(initialize_ldap),
+    ldap_server = Depends(initialize_ldap),
 ):
-    with Connection(
-        ldap_server,
-        user=settings.LDAP_ADMIN_USER,
-        password=settings.LDAP_ADMIN_PASSWORD,
-    ) as conn:
-        try:
-            success = conn.search(
-                search_base=dc,
-                search_filter=f"(objectClass={objectClass})",
-                search_scope="SUBTREE",
-                attributes=["member", "sn", "cn", "objectClass"],
-            )
-            result = {}
-            if success:
-                for entry in conn.entries:
-                    key = (
-                        "-".join(entry.cn.value)
-                        if isinstance(entry.cn.value, list)
-                        else entry.cn.value
-                    )
-                    result[key] = {
-                        "cn": entry.cn.value,
-                        "sn": entry.sn.value,
-                        "objectClass": entry.objectClass.value,
-                        "member": entry.member.value,
-                    }
-                logger.info("Search user result: \n{}".format(pretty_dict(result)))
-            else:
-                logger.warning("Search user failed")
-        except LDAPException:
-            msg = "[LDAPException]Search user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-        except Exception:
-            msg = "[Exception]Search user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-    return JSONResponse(content=result, status_code=200)
+    return await search_ldap_user_all_service(
+        dc = dc,
+        objectClass = objectClass,
+        ldap_server =ldap_server
+    )
+
 
 
 @router.get("/user/cn")
@@ -66,35 +42,11 @@ async def search_ldap_user(
     dc: str = "dc=lomin,dc=ai",
     ldap_server=Depends(initialize_ldap),
 ):
-    result = {}
-    with Connection(
-        ldap_server,
-        user=settings.LDAP_ADMIN_USER,
-        password=settings.LDAP_ADMIN_PASSWORD,
-    ) as conn:
-        try:
-            success = conn.search(
-                dc,
-                f"(cn={cn})",
-                attributes=["cn", "sn", "mail", "objectClass"],
-            )
-            if success:
-                entry = conn.entries[0]
-                for key, value in vars(entry).items():
-                    if "state" not in key:
-                        result[key] = value.value
-                logger.info(pretty_dict(result))
-            else:
-                logger.warning("Search user failed")
-        except LDAPException:
-            msg = "[LDAPException]Search user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-        except Exception:
-            msg = "[Exception]Search user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-    return JSONResponse(content=result, status_code=200)
+    return await search_ldap_user_service(
+        cn = cn,
+        dc = dc,
+        ldap_server = ldap_server
+    )
 
 
 @router.post("/group")
@@ -102,34 +54,10 @@ async def add_ldap_group(
     inputs: GroupAdd,
     ldap_server=Depends(initialize_ldap),
 ):
-    result = "\n"
-    with Connection(
-        ldap_server,
-        user=settings.LDAP_ADMIN_USER,
-        password=settings.LDAP_ADMIN_PASSWORD,
-    ) as conn:
-        try:
-            ldap_attr = {
-                "objectClass": inputs.objectClass,
-                "gidNumber": inputs.gidNumber,
-            }
-            success = conn.add(inputs.dn, attributes=ldap_attr)
-            conn_result = conn.result
-            result = conn_result.get("description")
-            if success:
-                logger.info("Add group result: \n{}".format(pretty_dict(conn_result)))
-            else:
-                logger.warning("Add group result: \n{}".format(pretty_dict(conn_result)))
-                result = conn_result.get("description")
-        except LDAPException:
-            msg = "[LDAPException]Search ldap group failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-        except Exception:
-            msg = "[Exception]Search ldap group failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-    return PlainTextResponse(status_code=201, content=result)
+    return await add_ldap_group_service(
+        inputs = inputs,
+        ldap_server = ldap_server
+    )
 
 
 @router.post("/user")
@@ -137,62 +65,20 @@ async def add_new_user_to_group(
     inputs: NewUserAddToGroup,
     ldap_server=Depends(initialize_ldap),
 ):
-    result = "\n"
-    with Connection(
-        ldap_server,
-        user=settings.LDAP_ADMIN_USER,
-        password=settings.LDAP_ADMIN_PASSWORD,
-    ) as conn:
-        ldap_attr = {"cn": inputs.cn, "sn": inputs.sn, "mail": inputs.mail}
-        try:
-            success = conn.add(
-                inputs.dn, object_class="inetOrgPerson", attributes=ldap_attr
-            )
-            conn_result = conn.result
-            if success:
-                logger.info("Add user result: \n{}".format(pretty_dict(conn_result)))
-            else:
-                logger.warning("Add user result: \n{}".format(pretty_dict(conn_result)))
-                result = conn_result.get("description")
-        except LDAPException:
-            msg = "[LDAPException]Add new user to group failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-        except Exception:
-            msg = "[Exception]Add new user to group failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-    return PlainTextResponse(status_code=201, content=result)
-
+    return await add_new_user_to_group_service(
+        inputs = inputs,
+        ldap_server = ldap_server
+    )
 
 @router.delete("/user")
 async def delete_user(
     inputs: UserDelete,
     ldap_server=Depends(initialize_ldap),
 ):
-    result = "\n"
-    with Connection(
-        ldap_server,
-        user=settings.LDAP_ADMIN_USER,
-        password=settings.LDAP_ADMIN_PASSWORD,
-    ) as conn:
-        try:
-            success = conn.delete(dn=inputs.dn)
-            conn_result = conn.result
-            if success:
-                logger.info("Delete user result: \n{}".format(pretty_dict(conn_result)))
-            else:
-                logger.warning("Delete user result: \n{}".format(pretty_dict(conn_result)))
-                result = conn_result.get("description")
-        except LDAPException:
-            msg = "[LDAPException]Delete user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-        except Exception:
-            msg = "[Exception]Delete user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-    return PlainTextResponse(content=result, status_code=200)
+    return await delete_user_service(
+        inputs = inputs,
+        ldap_server = ldap_server
+    )
 
 
 @router.put("/user/update")
@@ -200,32 +86,7 @@ async def update_user(
     inputs: UserUpdate,
     ldap_server=Depends(initialize_ldap),
 ):
-    result = "\n"
-    with Connection(
-        ldap_server,
-        user=settings.LDAP_ADMIN_USER,
-        password=settings.LDAP_ADMIN_PASSWORD,
-    ) as conn:
-        try:
-            success = conn.modify(
-                inputs.dn,
-                {
-                    "givenName": [(MODIFY_REPLACE, [inputs.givenName])],
-                    "sn": [(MODIFY_REPLACE, [inputs.sn])],
-                },
-            )
-            conn_result = conn.result
-            if success:
-                logger.info("Update user result: \n{}".format(pretty_dict(conn_result)))
-            else:
-                logger.warning("Update user result: \n{}".format(pretty_dict(conn_result)))
-                result = conn_result.get("description")
-        except LDAPException:
-            msg = "[LDAPException]Update user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-        except Exception:
-            msg = "[Exception]Update user failed"
-            logger.exception(msg)
-            raise HTTPException(status_code=500, detail={"msg": msg})
-    return PlainTextResponse(content=result, status_code=200)
+    return await update_user_service(
+        inputs = inputs,
+        ldap_server = ldap_server
+    )

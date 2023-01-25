@@ -55,7 +55,8 @@ RUN apt-get -qq install -y software-properties-common
 RUN add-apt-repository ppa:libreoffice/ppa
 
 RUN apt-get -qq update
-RUN apt-get -qq install -y libreoffice=1:7.4.2~rc3-0ubuntu0.20.04.1~lo1
+# RUN apt-get -qq install -y libreoffice=1:7.4.2~rc3-0ubuntu0.20.04.1~lo1
+RUN apt-get -qq install -y  libreoffice
 
 COPY ./assets/fonts/NanumGothic.ttf /home/textscope/.local/share/fonts/NanumGothic.ttf
 RUN chown textscope:lomin /home/textscope/.local/share/fonts/NanumGothic.ttf

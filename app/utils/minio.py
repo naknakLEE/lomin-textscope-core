@@ -92,11 +92,38 @@ class MinioService:
             logger.info("error log detail: {}", error_log)
             del(exc_type, exc_value, exc_traceback, error_log)
         finally:
-            response.close()
-            response.release_conn()
+            if(response):
+                response.close()
+                response.release_conn()
             return image_bytes
+    
+    def remove(self, bucket_name: str, image_name: str) -> Optional[bytes]:
+        result = False
+        if not self._bucket_exists(bucket_name):
+            logger.error(f"Error occur for not exist bucket '{bucket_name}'")
+            return None
+        try:
+            self.client.remove_object(bucket_name, image_name)
+            result = True
+        except S3Error:
+            logger.error(f"Error occur for delete image '{image_name}'")
+            logger.error(f"'{image_name}' is not exists")
+        except Exception:
+            error = sys.exc_info()
+            exc_type, exc_value, exc_traceback = error
+            error_log = {
+                'filename': exc_traceback.tb_frame.f_code.co_filename,
+                'lineno'  : exc_traceback.tb_lineno,
+                'name'    : exc_traceback.tb_frame.f_code.co_name,
+                'type'    : exc_type.__name__,
+                'message' : str(exc_value),
+            }
+            logger.info("error log detail: {}", error_log)
+            del(exc_type, exc_value, exc_traceback, error_log)
+        finally:
+            return result
 
-    def remove(self, bucket_name: str, object_name: str):
+    def remove_(self, bucket_name: str, object_name: str):
         if not self._bucket_exists(bucket_name):
             logger.error(f"Error occur for not exist bucket '{bucket_name}'")
         try:
@@ -147,4 +174,4 @@ class MinioService:
                     'message' : str(exc_value),
                 }
                 logger.info("error log detail: {}", error_log)
-                del(exc_type, exc_value, exc_traceback, error_log)                
+                del(exc_type, exc_value, exc_traceback, error_log)  

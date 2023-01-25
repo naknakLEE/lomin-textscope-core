@@ -15,13 +15,17 @@ RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
     locale-gen ko_KR.UTF-8
 
+RUN apt-get update
+
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
     python3-pip \
     python3-venv \
     tzdata \
     libgl1-mesa-glx libglib2.0-0 \
     libmysqlclient-dev \
-    curl
+    curl \
+    g++ \
+    python3-dev
 
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
@@ -41,6 +45,7 @@ RUN sed -i 's/# Support for gcc and clang, restricting visibility as much as pos
 
 WORKDIR /workspace/pp_server/lovit
 COPY ./pp_server/lovit /workspace/pp_server/lovit
+RUN pip3 install -r /workspace/pp_server/lovit/requirements.txt
 RUN python3 setup.py build develop && \
     rm -rf /workspace/pp_server/lovit
 
@@ -52,5 +57,7 @@ RUN groupadd -r lomin -g 1000 && \
 USER textscope
 
 WORKDIR /workspace/pp_server/pp
+
+ENV PYTHONPATH="$PYTHONPATH:/workspace/pp_server"
 
 ENTRYPOINT ["python3", "main.py"]

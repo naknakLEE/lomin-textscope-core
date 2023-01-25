@@ -30,6 +30,9 @@ settings = get_settings()
 pp_mapping_table = settings.PP_MAPPING_TABLE
 document_type_set = settings.DOCUMENT_TYPE_SET
 
+# TODO 고객사별로 다르게할 필요 있음
+kdt_pp_custom_mapping: Dict = settings.KDT_CUSTOM_MAPPING.get('KDT_ENDPOINT').get('PP')
+
 
 # @FIXME: 이름과 기능이 맞지 않음
 def pretty_dict(
@@ -88,35 +91,20 @@ def set_json_response(
         )
     )
 
-
+# TODO 고객사별로 다르게할 필요 있음
 def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optional[str]:
     if not isinstance(pp_mapping_table, dict):
         raise ResourceDataError(detail="pp mapping table is not a dict")
     
-    pp_type = "general_pp"
+    pp_api= "general_pp"
+    for pp_api, doc_type_list in pp_mapping_table.items():
+        if doc_type in doc_type_list: break
     
-    if doc_type in pp_mapping_table.get("general_pp", []):
-        pp_type = "general_pp"
-    elif doc_type in pp_mapping_table.get("kxm", []):
-        pp_type = "kxm"
-    elif doc_type in pp_mapping_table.get("commercial_bill", []):
-        pp_type = "commercial_bill"
-    elif doc_type in pp_mapping_table.get("heungkuk", []):
-        pp_type = "heungkuk"
-    elif doc_type in pp_mapping_table.get("idcard", []):
-        pp_type = "idcard"
-    elif doc_type in pp_mapping_table.get("bankbook", []):
-        pp_type = "bankbook"
-    elif doc_type in pp_mapping_table.get("seal_imp_cert", []):
-        pp_type = "seal_imp_cert"
-    elif doc_type in pp_mapping_table.get("ccr", []):
-        pp_type = "ccr"
-    elif doc_type in pp_mapping_table.get("busan_bank", []):
-        pp_type = "busan_bank"
-    elif customer == "kakaobank" and doc_type in document_type_set:
-        pp_type = document_type_set.get(doc_type)
-    
-    return pp_type
+    if customer == "kakaobank" and doc_type in document_type_set:
+        pp_api = document_type_set.get(doc_type)
+
+
+    return pp_api
 
 
 def cal_time_elapsed_seconds(

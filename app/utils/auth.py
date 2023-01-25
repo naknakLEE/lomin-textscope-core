@@ -170,7 +170,7 @@ async def initialize_ldap() -> Server:
 def get_current_active_user_fake(request: Request) -> UserInfoInModel:
     try:
         user_info = UserInfoInModel(
-        email=request.state.email,
+        email=request.get("state").get("email") if request.get("state").get("email") != None else None,
         password="",
         team="0000",
         name="",

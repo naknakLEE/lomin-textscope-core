@@ -1,0 +1,3 @@
+minio_lifecyle:
+  enable: Disabled
+  expiration_days: 7
