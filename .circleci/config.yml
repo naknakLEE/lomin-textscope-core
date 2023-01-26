@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run: 
           name: Setting .env file
-          command: echo ${ENV_NEW} | base64 --decode > .env      
+          command: echo "$ENV_NEW" | base64 --decode > .env      
       - run:
           name: docker build
           command: |
