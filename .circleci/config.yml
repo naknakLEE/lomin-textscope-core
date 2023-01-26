@@ -60,9 +60,7 @@ workflows:
       - docker-build:
           requires:
             - aws-cli-cred-setup       
-          context:
-            - .env
-            # - aws      
+          context: .env
           filters:
             branches:
               only: /feature\/.*/    
