@@ -38,5 +38,10 @@ docker volume rm $(docker volume ls --filter name=${PWD##*/}_ --format "{{.Name}
 
 
 ########## 2. Docker Build Start    ##########
+{
+    docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
+} || {
+    systemctl restart docker && docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
+}
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ########## 2. Docker Build End      ##########
