@@ -11,10 +11,7 @@ jobs:
     steps:
       - run:
           name: setting pip
-          command: pip install shyaml hydra-core python-dotenv alive_progress awscli      
-      - run:
-          name: setting PATH
-          command: PATH="$HOME/.local/bin:$PATH"
+          command: pip install shyaml hydra-core python-dotenv alive_progress awscli
   docker-build:
     machine: true
     resource_class: lomin/1

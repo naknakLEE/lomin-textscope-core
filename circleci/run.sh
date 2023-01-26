@@ -1,5 +1,6 @@
-pwd
-whoami
+#!/bin/bash
+
+PATH="$HOME/.local/bin:$PATH"
 
 ########## 1. Delete Docker Container & Volume and Network Start ##########
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
