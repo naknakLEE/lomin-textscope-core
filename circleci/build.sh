@@ -8,7 +8,7 @@ ls -al
 whoami
 
 ########## 1. Prepare Start ##########
-pip3 install hydra-core python-dotenv alive_progress awscli
+# pip3 install hydra-core python-dotenv alive_progress awscli
 
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 mkdir -p /home/circleci/.config/ssh && cp ~/.ssh/id_rsa ~/.config/ssh/id_rsa
@@ -19,7 +19,7 @@ git submodule update --init --recursive
 
 ########## 2. Download Model File Start ##########
 # if [ -z "$BASH_VERSION" ]; then exec bash "$0" "$@"; exit; fi
-# PATH="$HOME/.local/bin:$PATH"
+PATH="$HOME/.local/bin:$PATH"
 
 # if pip list | grep shyaml; then
 #     echo "shyaml installed"
