@@ -7,7 +7,9 @@ jobs:
     working_directory: ~/textscope    
     steps:
       - checkout
-      - run: echo $ENV_NEW | base64 --decode > .env      
+      - run: 
+          name: Setting .env file
+          command: echo ${ENV_NEW} | base64 --decode > .env      
       - run:
           name: docker build
           command: |
