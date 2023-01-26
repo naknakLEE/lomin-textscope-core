@@ -11,7 +11,7 @@ jobs:
     steps:
       - aws-cli/setup:
           aws-access-key-id: AWS_ACCESS_KEY
-          aws-secret-access-key: AWS_ACCESS_SECRET
+          aws-secret-access-key: AWS_SECRET_KEY
           aws-region: AWS_REGION
   docker-build:
     machine: true
