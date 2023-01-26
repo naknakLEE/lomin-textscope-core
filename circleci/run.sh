@@ -7,8 +7,8 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml config |
 shyaml keys services | { 
     while read services; 
     do 
-    docker stop $services; 
-    docker rm $services; 
+    docker stop `textscope-$services`; 
+    docker rm `textscope-$services`; 
     done; 
 }|| true
 
@@ -35,7 +35,7 @@ shyaml keys networks | {
     done; 
 }|| true
 
-docker volume rm $(docker volume ls --filter name=${PWD##*/}_ --format "{{.Name}}") || true
+# docker volume rm $(docker volume ls --filter name=${PWD##*/}_ --format "{{.Name}}") || true
 ########## 1. Delete Docker Container & Volume and Network End   ##########
 
 
