@@ -5,6 +5,7 @@ set +x
 
 pwd
 ls -al
+whoami
 
 ########## 1. Prepare Start ##########
 pip3 install hydra-core python-dotenv alive_progress awscli
