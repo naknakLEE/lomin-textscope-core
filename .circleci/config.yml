@@ -1,6 +1,18 @@
 version: 2.1
 
+orbs:
+  python: circleci/python@1.0.0
+
+
 jobs:
+  pip-setting:
+    machine: true
+    resource_class: lomin/1
+    working_directory: ~/textscope
+    steps:
+      - run:
+          name: setting pip
+          command: pip install shyaml        
   docker-build:
     machine: true
     resource_class: lomin/1
@@ -45,8 +57,14 @@ jobs:
 workflows:
   feature-develop-PR: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
-    jobs:    
+    jobs:
+      - pip-setting:    
+          filters:
+            branches:
+              only: /feature\/.*/          
       - docker-build:   
+          requires:
+            - pip-setting      
           context: 
             - .env          
             - aws_new

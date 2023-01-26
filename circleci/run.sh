@@ -1,4 +1,5 @@
 pwd
+whoami
 
 ########## 1. Delete Docker Container & Volume and Network Start ##########
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
@@ -38,10 +39,5 @@ docker volume rm $(docker volume ls --filter name=${PWD##*/}_ --format "{{.Name}
 
 
 ########## 2. Docker Build Start    ##########
-{
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
-} || {
-    systemctl restart docker && docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
-}
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ########## 2. Docker Build End      ##########
