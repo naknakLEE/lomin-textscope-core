@@ -1,3 +1,5 @@
+pwd
+
 ########## 1. Delete Docker Container & Volume and Network Start ##########
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
 shyaml keys services | { 
