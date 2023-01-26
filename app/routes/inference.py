@@ -216,6 +216,7 @@ def ocr(
             task_id=task_id,
             route_name=inputs.get("route_name", "cls"),
         )
+
     if status_code != 200:
         status_code, error = ErrorResponse.ErrorCode.get(status_code)
         logger.error(f"x-request-id : {x_request_id} / CORE - kv inference server error")
