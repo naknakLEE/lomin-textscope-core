@@ -46,7 +46,7 @@ do
         continue
     fi
 
-    if test -f ../inference_server/${model_path}; then
+    if test -f inference_server/${model_path}; then
         echo -e "Already exist\r\n"
     else
         path_depth=`echo ${model_path} | tr -cd '/' | wc -m`

@@ -1,24 +1,13 @@
 version: 2.1
 
-orbs:
-  aws-cli: circleci/aws-cli@2.0.6
-  gh: circleci/github-cli@1.0
-
 jobs:
-  aws-cli-cred-setup:
-    machine: true
-    resource_class: lomin/1  
-    steps:
-      - aws-cli/setup:
-          aws-access-key-id: AWS_ACCESS_KEY
-          aws-secret-access-key: AWS_SECRET_KEY
-          aws-region: AWS_REGION
   docker-build:
     machine: true
     resource_class: lomin/1
     working_directory: ~/textscope    
     steps:
       - checkout
+      - run: echo "$ENV_NEW" | base64 --decode > .env      
       - run:
           name: docker build
           command: |
@@ -54,13 +43,11 @@ jobs:
 workflows:
   feature-develop-PR: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
-    jobs:
-      - aws-cli-cred-setup:
-          context: aws        
-      - docker-build:
-          requires:
-            - aws-cli-cred-setup       
-          context: .env
+    jobs:    
+      - docker-build:   
+          context: 
+            - aws_new
+            - .env
           filters:
             branches:
               only: /feature\/.*/    
