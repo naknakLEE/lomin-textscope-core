@@ -1,6 +1,8 @@
 pwd
 ls -al
 
+ifconfig
+
 aws configure list
 cat ~/.aws/config
 
