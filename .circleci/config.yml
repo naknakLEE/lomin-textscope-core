@@ -3,7 +3,6 @@ version: 2.1
 orbs:
   python: circleci/python@1.0.0
 
-
 jobs:
   pip-setting:
     machine: true
@@ -13,6 +12,9 @@ jobs:
       - run:
           name: setting pip
           command: pip install shyaml hydra-core python-dotenv alive_progress awscli      
+      - run:
+          name: setting PATH
+          command: PATH="$HOME/.local/bin:$PATH"
   docker-build:
     machine: true
     resource_class: lomin/1

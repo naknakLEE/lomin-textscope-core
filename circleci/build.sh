@@ -19,7 +19,7 @@ git submodule update --init --recursive
 
 ########## 2. Download Model File Start ##########
 # if [ -z "$BASH_VERSION" ]; then exec bash "$0" "$@"; exit; fi
-PATH="$HOME/.local/bin:$PATH"
+# PATH="$HOME/.local/bin:$PATH"
 
 # if pip list | grep shyaml; then
 #     echo "shyaml installed"
