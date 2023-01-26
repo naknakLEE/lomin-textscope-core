@@ -60,7 +60,7 @@ workflows:
             - aws-cli-cred-setup       
           context:
             - .env
-            - aws      
+            # - aws      
           filters:
             branches:
               only: /feature\/.*/    
