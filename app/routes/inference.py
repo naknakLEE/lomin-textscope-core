@@ -70,7 +70,7 @@ ONLY_PP_TYPE= [
 
 # TODO: 토큰을 이용한 유저 체크 부분 활성화
 @router.post("/ocr", status_code=200, responses=inference_responses)
-def ocr(
+async def ocr(
     *,
     request: Request,
     inputs: Dict = Body(...),

@@ -24,6 +24,7 @@ from app.database.schema import (
 )
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
+from app.middlewares.pyinstrument_handling  import Profiling_Middleware_Pyinstrument
 from app.middlewares.exception_handler import (
     validation_exception_handler,
     resource_exception_handler,
@@ -45,11 +46,8 @@ def app_generator() -> FastAPI:
             insert_initial_data()
 
     if settings.PROFILING_TOOL == "pyinstrument":
-        from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
 
-        app.add_middleware(
-            PyInstrumentProfilerMiddleware, unicode=True, color=True, show_all=True
-        )
+        app.add_middleware(Profiling_Middleware_Pyinstrument)
     elif settings.PROFILING_TOOL == "cProfile":
         from fastapi_cprofile.profiler import CProfileMiddleware
 
@@ -58,7 +56,7 @@ def app_generator() -> FastAPI:
             enable=True,
             server_app=app,
             print_each_request=True,
-            filename="/tmp/output.pstats",
+            filename="./output_1.pstats",
             strip_dirs=False,
             sort_by="cumulative",
         )
