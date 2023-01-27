@@ -15,6 +15,9 @@ from app.wrapper import pp
 from app.common import settings
 from app.utils.hint import apply_cls_hint
 from app.utils.logging import logger
+from fastapi.responses import JSONResponse
+from app.schemas import error_models as ErrorResponse
+from fastapi.encoders import jsonable_encoder
 
 from app.utils.utils import (
     pretty_dict,
@@ -158,6 +161,9 @@ def single(
             timeout=settings.TIMEOUT_SECOND,
             headers={"User-Agent": "textscope core"},
         )
+        if (inferecne_response.status_code < 200 or inferecne_response.status_code >= 400):
+            status_code, error = ErrorResponse.ErrorCode.get(3501)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
         doc_type = inferecne_response.json().get('doc_type')
         if doc_type_hint and doc_type_hint.use:
             cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint, cls_result=inferecne_response.json().get('cls_result', {}))
@@ -179,6 +185,9 @@ def single(
                 timeout=settings.TIMEOUT_SECOND,
                 headers={"User-Agent": "textscope core"},
             )
+            if (inferecne_response.status_code < 200 or inferecne_response.status_code >= 400):
+                status_code, error = ErrorResponse.ErrorCode.get(3501)
+                return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
             inputs = inferecne_response.json()
             if doc_type_hint and doc_type_hint.use:
                 cls_hint_result = apply_cls_hint(doc_type_hint=doc_type_hint, cls_result=inputs)

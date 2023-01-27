@@ -119,13 +119,19 @@ def ocr(
             )
     
     with Client() as client:        
-        status_code, inference_results, response_log = pipeline.single(
+        pipeline_result = pipeline.single(
             client=client,
             inputs=inputs,
             response_log=response_log,
             route_name=inputs.get("route_name", "ocr"),
             )
+        
+        if isinstance(pipeline_result, JSONResponse):
+            logger.error(f"Error occured from inference server : {inputs.get('document_path').split('/')[1]}")
+            return pipeline_result
 
+        status_code, inference_results, response_log = pipeline_result
+        
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
