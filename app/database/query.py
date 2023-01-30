@@ -766,7 +766,7 @@ def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSO
     result = None
     try:
         now = datetime.now()
-        life_days = kwargs.get("life_days", 60) # 교보생명 default : 60days
+        life_days = kwargs.get("life_days", 5)
         criteria = now - timedelta(days=life_days)
 
         # 형식: schema.{Table 변수}.remove_older_than(session, {삭제 기준으로 참조할 Column 명(type: date)}={삭제 기준 일시})
