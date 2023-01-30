@@ -146,6 +146,13 @@ def convert_dict_value_to_none(inf_response: Dict[str, Any]) -> Dict[str, Any]:
             
 
 def test_MD_PRS_response_200_and_structure():
+    """
+        api/v1/inference/kv API가 정상적으로 처리(200)되었을 때
+        응답 구조가 일치하는지 확인합니다.
+    
+        Value는 None으로 변환하고 Key만 확인합니다.
+        List인 경우 첫번째 요소만 확인합니다.
+    """
     url = "http://localhost:8090/api/v1/inference/kv"
     token = post_auth_token()
     document_id = post_upload_file(
