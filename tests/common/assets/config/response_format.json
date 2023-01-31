@@ -1,0 +1,101 @@
+{
+  "post_api_v1_docx": {
+    "request": {
+      "document_name": null
+    },
+    "response_metadata": {
+      "request_datetime": null,
+      "response_datetime": null,
+      "time_elapsed": null
+    },
+    "document_id": null
+  },
+  "post_api_v1_inference_kv": {
+    "request":{
+       "document_id":null,
+       "detection_score_threshold":null,
+       "rectify":{
+          "rotation_90n":null,
+          "rotation_fine":null
+       },
+       "hint":{
+          "key_value":[
+             {
+                "use":null,
+                "trust":null,
+                "key":null,
+                "value":null
+             }
+          ],
+          "doc_type":{
+             "use":null,
+             "trust":null,
+             "doc_type":null
+          }
+       },
+       "detection_resize_ratio":null,
+       "page":null
+    },
+    "response_metadata":{
+       "request_datetime":null,
+       "response_datetime":null,
+       "time_elapsed":null
+    },
+    "document_metadata":{
+       "user_email":null,
+       "filename":null,
+       "document_model_type":null,
+       "document_description":null,
+       "pages":null,
+       "upload_datetime":null
+    },
+    "resource_id":{
+       
+    },
+    "prediction":{
+       "rectification":{
+          "rotated":null,
+          "expand":null,
+          "image":{
+             "width":null,
+             "height":null
+          }
+       },
+       "key_values":[
+          {
+             "id":null,
+             "type":null,
+             "key":null,
+             "confidence":null,
+             "text_ids":null,
+             "value":null,
+             "bbox":{
+                "x":null,
+                "y":null,
+                "w":null,
+                "h":null
+             },
+             "comparison":null,
+             "is_hint_used":null,
+             "is_hint_trusted":null
+          }
+       ],
+       "texts":[
+          {
+             "id":null,
+             "text":null,
+             "bbox":{
+                "x":null,
+                "y":null,
+                "w":null,
+                "h":null
+             },
+             "confidence":null,
+             "kv_ids":null
+          }
+       ],
+       "tables":null
+    }
+ }
+
+}

@@ -1,0 +1,111 @@
+{
+  "post_api_v1_docx": {
+    "request": {
+      "document_name": null
+    },
+    "response_metadata": {
+      "request_datetime": null,
+      "response_datetime": null,
+      "time_elapsed": null
+    },
+    "document_id": null
+  },
+  "post_api_v1_inference_cls_kv": {
+    "request": {
+      "document_id": null,
+      "detection_score_threshold": null,
+      "rectify": {
+        "rotation_90n": null,
+        "rotation_fine": null
+      },
+      "cls": {
+        "cls_threshold": null
+      },
+      "kv": {
+        "hint": {
+          "key_value": [
+            {
+              "use": null,
+              "trust": null,
+              "key": null,
+              "value": null
+            }
+          ],
+          "doc_type": {
+            "use": null,
+            "trust": null,
+            "doc_type": null
+          }
+        }
+      },
+      "detection_resize_ratio": null,
+      "page": null
+    },
+    "response_metadata": {
+      "request_datetime": null,
+      "response_datetime": null,
+      "time_elapsed": null
+    },
+    "document_metadata": {
+      "user_email": null,
+      "filename": null,
+      "document_model_type": null,
+      "document_description": null,
+      "pages": null,
+      "upload_datetime": null
+    },
+    "resource_id": {},
+    "prediction": {
+      "doc_type": {
+        "doc_type_code": null,
+        "doc_type_name_kr": null,
+        "doc_type_name_en": null,
+        "confidence": null,
+        "is_hint_used": null,
+        "is_hint_trusted": null
+      },
+      "rectification": {
+        "rotated": null,
+        "expand": null,
+        "image": {
+          "width": null,
+          "height": null
+        }
+      },
+      "key_values": [
+        {
+          "id": null,
+          "type": null,
+          "key": null,
+          "confidence": null,
+          "text_ids": null,
+          "value": null,
+          "bbox": {
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null
+          },
+          "comparison": null,
+          "is_hint_used": null,
+          "is_hint_trusted": null
+        }
+      ],
+      "tables": null,
+      "texts": [
+        {
+          "id": null,
+          "text": null,
+          "confidence": null,
+          "bbox": {
+            "x": null,
+            "y": null,
+            "w": null,
+            "h": null
+          },
+          "kv_ids": null
+        }
+      ]
+    }
+  }
+}
