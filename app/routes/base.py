@@ -3,15 +3,21 @@ from typing import Dict
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from app.models import OAuth2PasswordRequestForm, UserInfo as UserInfoInModel
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, Request
+
 from fastapi.encoders import jsonable_encoder
 from app import hydra_cfg
 from app.common.const import get_settings
 from app.utils.auth import create_access_token
 from app.utils.logging import logger
+from app.service import docx
+from app.routes.inference import ocr
+
+
 
 from app.utils.document import (
     delete_document,
+    document_path_verify,
     get_page_count,
     is_support_format,
     save_upload_document,
@@ -199,3 +205,143 @@ async def post_delete_document(
     )
 
     return JSONResponse(status_code=200, content=jsonable_encoder(response))
+
+@router.post("/docx/cls-kv")
+async def post_upload_document_cls_kv(
+    request: Request,
+    inputs: Dict = Body(...),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session),    
+) -> JSONResponse:
+    """
+    ### [Base]전용 문서 업로드 후 cls -> kv 진행 API
+    base64encoding된 문서 data와 문서 파일명을 토대로 적재(minio or local)후 DB에 Document Info Insert<br>
+    그 후 cls 및 kv 진행하여 return
+    """
+    # 한국평가용, 나중에는 /inference/docx-cls-kv로 변경 필요
+    # 시작 시간 측정
+    request_datetime = datetime.now()
+
+    docx_upload_param = dict(
+        current_user = current_user,
+        session = session,
+        document_name = inputs.get('document_name'),
+        document_data = inputs.get('document_data'),
+        document_path = inputs.get('document_path'),
+    )
+
+    # 1. 문서 업로드
+    docx_upload_result = docx.upload_docx(inputs = docx_upload_param)
+    if(type(docx_upload_result) is JSONResponse):
+        return docx_upload_result
+
+    docx_info = {x.name: getattr(docx_upload_result, x.name) for x in docx_upload_result.__table__.columns}
+    docx_id = docx_info.get('document_id', '')
+    inputs['document_id'] = docx_id
+
+
+    # 2. cls진행
+    # doc_type을 미리 사전지식으로 parameter에서 알려주고 use 및 trust가 true일경우 이 작업 생략 
+    # inputs['is_call_function'] = True    
+    # if(
+    #     inputs['hint']['doc_type']['doc_type'] 
+    #     and inputs['hint']['doc_type']['use'] 
+    #     and inputs['hint']['doc_type']['trust']):
+    #     pass
+    # else:
+    #     inputs['route_name'] = 'cls'
+    #     cls_response = ocr(request=request, inputs=inputs, current_user=current_user, session=session)
+    #     if(type(cls_response) is JSONResponse): return cls_response 
+    #     cls_result = cls_response.get("inference_results", {})
+    #     doc_type = cls_result.get("doc_type","")
+    #     inputs['doc_type'] = doc_type.get('doc_type_code')
+    #     inputs['cls_result'] = {
+    #         'score': cls_result.get('cls_score'),
+    #         'doc_type': doc_type.get('doc_type_code')
+    #     }
+
+    # 3. kv진행
+    inputs['is_call_function'] = True
+    inputs['route_name'] = 'kv' 
+    kv_response = ocr(request=request, inputs=inputs, current_user=current_user, session=session)
+    if(type(kv_response) is JSONResponse): return kv_response
+    kv_response.update(
+        document_info = docx_info
+    )
+    return JSONResponse(content=jsonable_encoder(kv_response))
+    
+    
+@router.post("/inference/docx-cls-kv")
+async def post_inference_docx_cls_kv(
+    request: Request,
+    inputs: Dict = Body(...),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session),    
+) -> JSONResponse:
+    """
+    ### [Base]전용 문서 업로드 후 cls -> kv 진행 API
+    base64encoding된 문서 data와 문서 파일명을 토대로 적재(minio or local)후 DB에 Document Info Insert<br>
+    그 후 cls 및 kv 진행하여 return
+    """
+    # 한국평가용, 나중에는 /inference/docx-cls-kv로 변경 필요
+    # 시작 시간 측정
+    request_datetime = datetime.now()
+
+    docx_upload_param = dict(
+        current_user = current_user,
+        session = session,
+        document_name = inputs.get('document_name'),
+        document_data = inputs.get('document_data'),
+        document_path = inputs.get('document_path'),
+    )
+
+    # 1. 문서 업로드
+    
+    upload_document = False
+    if upload_document:
+        docx_upload_result = docx.upload_docx(inputs = docx_upload_param)
+    else: 
+        docx_upload_result = docx.upload_docx(inputs = docx_upload_param, upload_document = False)
+    if(type(docx_upload_result) is JSONResponse):
+        return docx_upload_result
+
+    docx_info = {x.name: getattr(docx_upload_result, x.name) for x in docx_upload_result.__table__.columns}
+    docx_id = docx_info.get('document_id', '')
+    inputs['document_id'] = docx_id
+    
+
+    # 2. cls진행
+    # doc_type을 미리 사전지식으로 parameter에서 알려주고 use 및 trust가 true일경우 이 작업 생략 
+    # inputs['is_call_function'] = True    
+    # if(
+    #     inputs['hint']['doc_type']['doc_type'] 
+    #     and inputs['hint']['doc_type']['use'] 
+    #     and inputs['hint']['doc_type']['trust']):
+    #     pass
+    # else:
+    #     inputs['route_name'] = 'cls'
+    #     cls_response = ocr(request=request, inputs=inputs, current_user=current_user, session=session)
+    #     if(type(cls_response) is JSONResponse): return cls_response 
+    #     cls_result = cls_response.get("inference_results", {})
+    #     doc_type = cls_result.get("doc_type","")
+    #     inputs['doc_type'] = doc_type.get('doc_type_code')
+    #     inputs['cls_result'] = {
+    #         'score': cls_result.get('cls_score'),
+    #         'doc_type': doc_type.get('doc_type_code')
+    #     }
+
+    # 3. kv진행
+    inputs['is_call_function'] = True
+    inputs['route_name'] = 'kv' 
+    if inputs.get('document').get('file'):
+        inputs['image_bytes'] = inputs['document']['file']
+        inputs['document_path'] = inputs['document']['file_path']
+        del inputs['document']
+    kv_response = await ocr(request=request, inputs=inputs, current_user=current_user, session=session)
+    if(type(kv_response) is JSONResponse): return kv_response
+    kv_response.update(
+        document_info = docx_info
+    )
+    return JSONResponse(content=jsonable_encoder(kv_response))
+    
+

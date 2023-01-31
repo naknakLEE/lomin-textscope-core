@@ -239,13 +239,14 @@ async def ocr(
         doc_type_idxs.append(doc_type_idx)
         doc_type_codes.append(select_doc_type_result.doc_type_code)
             
-        query.update_document(
-            session, 
-            document_id=inputs["document_id"], 
-            doc_type_idx=doc_type_idx,
-            doc_type_idxs=doc_type_idxs,
-            doc_type_codes=doc_type_codes
-        )
+        if inputs["document_id"]:
+            query.update_document(
+                session, 
+                document_id=inputs["document_id"], 
+                doc_type_idx=doc_type_idx,
+                doc_type_idxs=doc_type_idxs,
+                doc_type_codes=doc_type_codes
+            )
         inference_results["process_type"] = "cls"
 
     # kv case
@@ -282,7 +283,7 @@ async def ocr(
             doc_type_structed=select_doc_type_result.doc_type_structed
         ))
         # 추론 결과에서 개인정보 삭제
-        db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), inputs["wrapper_route"])
+        db_inference_results = get_removed_text_inference_result(deepcopy(inference_results), inputs.get("wrapper_route"))
         insert_inference_result = query.insert_inference(
             session=session,
             inference_id=inference_id,
@@ -302,7 +303,10 @@ async def ocr(
         inference_results["process_type"] = "kv"
         logger.info(f"x-request-id : {x_request_id} / CORE - kv END")
     
+    document_info = query.select_document(session=session, document_id=document_id)
+    
     response = dict(
+        document_info=document_info,
         response_log=response_log,
         inference_results=inference_results,
         resource_id=dict(
@@ -555,6 +559,7 @@ def ocr_old(
     if isinstance(insert_inference_result, JSONResponse):
         return insert_inference_result
     insert_inference_result: schema.InferenceInfo = insert_inference_result
+    
     
     
     response = dict(

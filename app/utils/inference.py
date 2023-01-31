@@ -3,7 +3,7 @@
 inference 시 필요한 각종 util logic
 '''
 
-def get_removed_text_inference_result(inference_result : dict, post_processing_type: str):
+def get_removed_text_inference_result(inference_result : dict, post_processing_type: str = None):
     '''
     inference_result에서 인식된 텍스트만 삭제하여 return 합니다(개인정보 보호이슈).
     '''
