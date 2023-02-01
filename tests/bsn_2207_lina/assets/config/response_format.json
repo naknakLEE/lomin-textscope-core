@@ -1,15 +1,4 @@
 {
-  "post_api_v1_docx": {
-    "request": {
-      "document_name": null
-    },
-    "response_metadata": {
-      "request_datetime": null,
-      "response_datetime": null,
-      "time_elapsed": null
-    },
-    "document_id": null
-  },
   "post_api_v1_inference_cls_kv": {
     "request": {
       "document_id": null,

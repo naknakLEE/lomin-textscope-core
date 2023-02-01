@@ -1,6 +1,7 @@
-from typing import List, Any, Optional, Dict
-
 from os import path
+from typing import List, Any, Optional, Dict
+from tests.bsn_2207_lina.utils.const import Const
+from tests.bsn_2207_lina.utils.util import *
 
 import json
 
@@ -8,11 +9,12 @@ import uuid
 import requests
 import pytest
 
-ROOT_URL="http://localhost:8050"
-RESPONSE_FORMAT_PATH = path.join(path.dirname(path.realpath(__file__)), "assets/format/response_format.json")
-f = open(RESPONSE_FORMAT_PATH, 'r')
-FORMAT_JSON = json.load(f)
-
+constants = Const()
+_root_url=constants.INTEGRATED_API_ROOT_URL
+_sample_image_dir=path.join(constants.PROJECT_ROOT_PATH, constants.SAMPLE_IMAGE_PATH)
+_res_format_full_path = path.join(constants.PROJECT_ROOT_PATH, constants.RESPONSE_FORMAT_PATH)
+f = open(_res_format_full_path, 'r')
+_format_json = json.load(f)
 
 ### test cls_kv api
 @pytest.mark.asyncio("Test 'POST /api/v1/inference/cls-kv api")
@@ -25,11 +27,11 @@ async def test_post_api_v1_inference_cls_kv():
         Value는 None으로 변환하고 Key만 확인합니다.
         List인 경우 첫번째 요소만 확인합니다.
     """
-    url = f"{ROOT_URL}/api/v1/inference/cls-kv"
+    url = f"{_root_url}/api/v1/inference/cls-kv"
     # token = post_auth_token()
     token = None
     document_id = post_upload_file(
-        "assets/images/MD-CAD/22032600000301_입퇴원확인서_2022032608171891.png", token)
+        _sample_image_dir, token)
     # print(document_id)
     request_input = {
         "document_id": document_id,
@@ -77,6 +79,6 @@ async def test_post_api_v1_inference_cls_kv():
     # print(inf_cls_kv_response_structure)
     
     ## format
-    assert convert_dict_value_to_none(cls_kv_response_json) == FORMAT_JSON["post_api_v1_inference_cls_kv"], "/api/v1/inference/cls-kv 응답 구조가 일치하지 않습니다."
+    assert convert_dict_value_to_none(cls_kv_response_json) == _format_json["post_api_v1_inference_cls_kv"], "/api/v1/inference/cls-kv 응답 구조가 일치하지 않습니다."
     
     ## content
