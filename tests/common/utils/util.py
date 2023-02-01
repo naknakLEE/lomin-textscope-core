@@ -1,4 +1,10 @@
 from typing import List, Any, Optional, Dict
+from os import path
+from tests.common.utils.const import Const
+import requests
+
+constants = Const()
+_root_url=constants.INTEGRATED_API_ROOT_URL
 
 def get_dotenv(env_file: str):
     env_vars = [] # or dict {}
@@ -22,7 +28,7 @@ def get_dotenv(env_file: str):
 # reqeust post upload file
 def post_upload_file(file_path: str, token: str):
     url_path = "/api/v1/docx"
-    url = ROOT_URL + url_path
+    url = _root_url + url_path
     
     document_id = None
     with open(file_path, "rb") as f:
@@ -58,4 +64,6 @@ def convert_dict_value_to_none(inf_response: Dict[str, Any]) -> Dict[str, Any]:
         else:
             inf_response[key] = None
     return inf_response
-            
+
+def get_project_root_dir():
+    return path.join(path.dirname(path.realpath(__file__)), "../../../")
