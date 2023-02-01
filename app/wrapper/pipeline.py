@@ -325,6 +325,27 @@ def __cell_detect__(
     return (cell_detect_response.status_code, cell_detect_response_json, response_log)
 
 
+def __bankbook__(
+    client: Client,
+    inputs: dict,
+    response_log: dict,
+    /,
+    inference_result: dict = None # None: __bankbook__ is first of whole idcard pipelines
+) -> Tuple[int, dict, dict]:
+    
+    # bankbook inference 요청
+    bankbook_response = client.post(
+        f'{SERVING_MAPPING.get("bankbook")}/bankbook',
+        json=inputs,
+        timeout=settings.TIMEOUT_SECOND,
+        headers={"User-Agent": "textscope core"},
+    )
+    
+    bankbook_response_json: dict = bankbook_response.json()
+    
+    return (bankbook_response.status_code, bankbook_response_json, response_log)
+
+
 # lomin_doc_type에 따른 kv-pipeline 정의
 # ( [doc_types], ([{pipelines}]) )
 KV_PIPELINE = (
@@ -336,6 +357,7 @@ KV_PIPELINE = (
     
     ( KV_PIPELINE_MAPPING.get("idcard", []),      (("idcard",__idcard__), ("pp",__pp__)) ), # KV_PIPELINE[5][1] 고정
     ( KV_PIPELINE_MAPPING.get("cell_detect", []), (("cell_detect",__cell_detect__), ("pp",__pp__)) ),
+    ( KV_PIPELINE_MAPPING.get("bankbook", []),    (("bankbook",__bankbook__), ("pp",__pp__)) ), # KV_PIPELINE[7][1] 고정
 )
 
 
@@ -559,6 +581,70 @@ def idcard_(
             inference_total_end_time=(inference_total_start_time - datetime.now()).total_seconds(),
         )
         logger.info("idcard_pipeline {} time: {}s", name, (pipeline_end_time - pipeline_start_time).total_seconds())
+    
+    inference_result.update(kv=inference_result.pop("result"))
+    
+    doc_type_code = inference_result.get("doc_type", "ETC")
+
+    if doc_type_code == '':
+        inference_result = {}
+    else:
+        # doc_type_code로 doc_type_index 조회
+        select_doc_type_result = query.select_doc_type(session, doc_type_code=doc_type_code)
+        if isinstance(select_doc_type_result, JSONResponse):
+            return select_doc_type_result
+        select_doc_type_result: schema.DocTypeInfo = select_doc_type_result
+        
+        inference_result.update(doc_type=dict(
+            doc_type_idx=select_doc_type_result.doc_type_idx,
+            doc_type_code=select_doc_type_result.doc_type_code,
+            doc_type_code_parent=select_doc_type_result.doc_type_code_parent,
+            doc_type_name_kr=select_doc_type_result.doc_type_name_kr,
+            doc_type_name_en=select_doc_type_result.doc_type_name_en,
+            doc_type_structed=select_doc_type_result.doc_type_structed
+        ))
+        
+    return (status_code, inference_result, response_log)
+
+
+def bankbook_(
+    session: Session,
+    client: Client,
+    inputs: dict,
+    response_log: dict,
+    /,
+    inference_result: dict = None # None: idcard use own det, rec models
+) -> Tuple[int, dict, dict]:
+    
+    bankbook_pipelines = KV_PIPELINE[7][1]
+    
+    logger.info("bankbook pipeline: {}", [ p for p, _ in bankbook_pipelines ] )
+    
+    status_code, response_log = (200, dict())
+    inputs["doc_type"] = inputs["kv"]["hint"]["doc_type"]["doc_type"]
+    
+    for name, bankbook_pipeline in bankbook_pipelines:
+        pipeline_start_time = datetime.now()
+        response_log.update({f"kv_{name}_start_time":pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
+        
+        status_code, inference_result, response_log = bankbook_pipeline(
+            client,
+            inputs,
+            response_log,
+            inference_result=inference_result
+        )
+        if isinstance(inference_result, JSONResponse):
+            return inference_result
+        
+        pipeline_end_time = datetime.now()
+        response_log.update({f"kv_{name}_end_time":pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]})
+        
+        inference_total_start_time = response_log.get("kv_total_start_time", pipeline_start_time)
+        response_log.update(
+            inference_total_start_time=inference_total_start_time,
+            inference_total_end_time=(inference_total_start_time - datetime.now()).total_seconds(),
+        )
+        logger.info("bankbook_pipeline {} time: {}s", name, (pipeline_end_time - pipeline_start_time).total_seconds())
     
     inference_result.update(kv=inference_result.pop("result"))
     
