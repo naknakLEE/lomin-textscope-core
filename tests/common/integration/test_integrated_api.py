@@ -12,8 +12,8 @@ import pytest
 constants = Const()
 _root_url=constants.INTEGRATED_API_ROOT_URL
 _sample_image_dir=path.join(constants.PROJECT_ROOT_PATH, constants.SAMPLE_IMAGE_PATH)
-res_format_full_path = path.join(constants.PROJECT_ROOT_PATH, constants.RESPONSE_FORMAT_PATH)
-f = open(res_format_full_path, 'r')
+_res_format_full_path = path.join(constants.PROJECT_ROOT_PATH, constants.RESPONSE_FORMAT_PATH)
+f = open(_res_format_full_path, 'r')
 _format_json = json.load(f)
 
 @pytest.mark.asyncio("Test 'POST /api/v1/docx api")
