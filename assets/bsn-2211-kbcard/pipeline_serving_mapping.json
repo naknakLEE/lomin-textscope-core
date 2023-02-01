@@ -1,11 +1,9 @@
 {
   "SERVING_MAPPING_TABLE": {
     "__comment__": [
-      "serving url with pipeline mapping table"
+      "serving url with pipeline mapping table",
+      "gocr, cls, kv, el, kvel, tocr, idcard, cell_detection"
     ],
-    "gocr": "http://textscope-serving:5000",
-    "cls": "http://textscope-serving:5000",
-    "kvel": "http://textscope-serving:5000",
     "idcard": "http://textscope-serving:5000"
   }
 }
