@@ -1,0 +1,113 @@
+version: "2.3"
+
+services:
+  serving_0:
+    build:
+      context: inference_server
+      dockerfile: ./Dockerfile.production
+      args:
+        MAINTAINER: ${MAINTAINER}
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports:
+      - 8052:5000
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
+      - WARMUP_COUNT=${WARMUP_COUNT:-30}
+    runtime: nvidia
+    tty: true
+    entrypoint: |
+      sh -c "
+                bentoml serve textscope_model_service:`cat /workspace/inference_server/assets/conf/service/default.yaml | shyaml get-value version` --host 0.0.0.0
+            "
+
+  serving_1:
+    build:
+      context: inference_server
+      dockerfile: ./Dockerfile.production
+      args:
+        MAINTAINER: ${MAINTAINER}
+        APP_NAME: inference_server
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        CUSTOMER: ${CUSTOMER}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports:
+      - 8052:5000
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - SERVICE_INSTANCE=serving
+      - WARMUP_COUNT=${WARMUP_COUNT:-30}
+    runtime: nvidia
+    tty: true
+    entrypoint: |
+      sh -c "
+                bentoml serve textscope_model_service:`cat /workspace/inference_server/assets/conf/service/default.yaml | shyaml get-value version` --host 0.0.0.0
+            "
+
+  web:
+    user: "0:0"
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.web
+      args:
+        MAINTAINER: ${MAINTAINER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    tty: true
+    working_dir: /workspace
+    # entrypoint: bash
+    entrypoint: python3 main.py    
+    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+
+  pp:
+    user: "0:0"
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.pp
+      args:
+        MAINTAINER: ${MAINTAINER}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        CUSTOMER: ${CUSTOMER}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    environment:
+      - PYTHONPATH=/workspace
+    tty: true
+    working_dir: /workspace/pp_server
+    entrypoint: python3 main.py
+    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+
+  wrapper:
+    user: "0:0"
+    build:
+      context: ./
+      dockerfile: docker/production/Dockerfile.wrapper
+      args:
+        MAINTAINER: ${MAINTAINER}
+        CUSTOMER: ${CUSTOMER}
+        BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        POETRY_VERSION: ${POETRY_VERSION}
+        TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
+    ports:
+      - 8050:${WRAPPER_IP_PORT}
+    tty: true
+    working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+
+  # grafana:
+  #   ports:
+  #     - 8053:3000
