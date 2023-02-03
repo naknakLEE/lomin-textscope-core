@@ -34,8 +34,6 @@ services:
       - CUDA_VISIBLE_DEVICES=1
       - SERVICE_INSTANCE=serving_replica
     runtime: nvidia
-    depends_on: 
-      - mysql1
     command: bentoml serve-gunicorn /workspace/inference_server/ModelService/ --port=5000 --disable-microbatch --timeout=${MODEL_SERVER_TIMEOUT_SECOND}
 
   web:
@@ -92,8 +90,28 @@ services:
     volumes:
       - ./${CUSTOMER}_wrapper:/workspace/${CUSTOMER}_wrapper
     working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
-    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090 --max-requests 7000
     # command: python3 /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app/main.py
+
+  restarter:
+    image: docker.lomin.ai/ts-restarter:0.0.1
+    container_name: restarter
+    restart: always
+    environment: 
+      - TZ=Asia/Seoul
+      - API_ENV=production
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8      
+    build:
+      context: ./
+      dockerfile: docker/base/Dockerfile.restart
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+    working_dir: /workspace/restarter
+    command: sh restart.sh
 
   grafana:
     ports:

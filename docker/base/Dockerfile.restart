@@ -1,0 +1,13 @@
+ARG UBUNTU_VERSION=20.04
+FROM ubuntu:${UBUNTU_VERSION}
+
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
+
+COPY ./restarter /workspace/restarter
+
+WORKDIR /workspace
