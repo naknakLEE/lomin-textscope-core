@@ -193,6 +193,8 @@ class Settings(BaseSettings):
     KEYWORDS: Dict = {}
     KEYWORDS_ALL: Dict = {}
     PP_MAPPING_TABLE: Dict = {}
+    INFERENCE_MAPPING_TABLE: Dict = {}
+    KV_MAPPING_TABLE: Dict = {}
 
     # KAKAOBANK CONFIG
     ESSENTIAL_KEYS: Dict = {}

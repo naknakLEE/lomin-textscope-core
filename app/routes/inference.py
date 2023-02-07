@@ -105,42 +105,16 @@ async def ocr(
     
     
     async with AsyncClient() as client:
-        # Inference
-        if settings.USE_OCR_PIPELINE == 'multiple':
-            # TODO: sequence_type을 wrapper에서 받도록 수정
-            # TODO: python 3.6 버전에서 async profiling 사용에 제한이 있어 sync로 변경했는데 추후 async 사용해 micro bacing 사용하기 위해서는 다시 변경 필요
-            status_code, inference_results, response_log = pipeline.multiple(
-                client=client,
-                inputs=inputs,
-                sequence_type="kv",
-                response_log=response_log,
-            )
-            response_log = dict()
-        elif settings.USE_OCR_PIPELINE == 'duriel':
-            status_code, inference_results, response_log = pipeline.heungkuk_life(
-                client=client,
-                inputs=inputs,
-                response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
-            )
-        elif settings.USE_OCR_PIPELINE == 'single':
-            status_code, inference_results, response_log = await pipeline.single(
-                client=client,
-                inputs=inputs,
-                response_log=response_log,
-                route_name=inputs.get("route_name", "ocr"),
-            )
+        status_code, inference_results, response_log = await pipeline.single(
+            client=client,
+            inputs=inputs,
+            response_log=response_log,
+            route_name=inputs.get("route_name", "gocr"),
+        )
         if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
             status_code, error = ErrorResponse.ErrorCode.get(3501)
             return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-        
-        # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
-        inference_result = inference_results
-        if "kv_result" in inference_results:
-            inference_result = inference_results.get("kv_result", {})
-        logger.debug(f"{task_id}-inference results:\n{inference_results}")
-        
-        
+
         # convert preds to texts
         if (
             inputs.get("convert_preds_to_texts") is not None
@@ -153,9 +127,14 @@ async def ocr(
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3503)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
-            inference_results["texts"] = texts
+            inference_results["texts"] = texts            
         
-        
+        # inference_result: response 생성에 필요한 값, inference_results: response 생성하기 위한 과정에서 생성된 inference 결과 포함한 값
+        inference_result = inference_results
+        if "kv_result" in inference_results:
+            inference_result = inference_results.get("kv_result", {})
+        logger.debug(f"{task_id}-inference results:\n{inference_results}")
+                
         # Post processing
         post_processing_type = get_pp_api_name(inference_results.get("doc_type", ""))
         logger.info(f"{task_id}-pp type:{post_processing_type}")
@@ -177,18 +156,25 @@ async def ocr(
                 angle=inference_results.get("angle", 0),
                 task_id=task_id
             )
-            if(post_processing_type == 'idcard_pp'):
-                pp_inputs['rotation_matrix'] = inference_results.get("rotation_matrix")
-                pp_inputs['pad_tuple'] = inference_results.get("pad_tuple")
-                pp_inputs['pad_width'] = inference_results.get("pad_width")
-                pp_inputs['pad_height'] = inference_results.get("pad_height")
+            if post_processing_type == 'general_idcard':    
+                pp_inputs['all_boxes_x'] = inference_results.get("all_boxes_x")
+                pp_inputs['all_boxes_y'] = inference_results.get("all_boxes_y")
+                pp_inputs['texts_wraped'] = inference_results.get("texts_wraped")
+                pp_inputs['scores_wraped'] = inference_results.get("scores_wraped")
+                pp_inputs['boxes_wraped'] = inference_results.get("boxes_wraped")
+                pp_inputs['classes_wraped'] = inference_results.get("classes_wraped")
+            elif post_processing_type == 'bankbook':
+                inference_results.update({
+                    'doc_type': post_processing_type
+                })
             status_code, post_processing_results, response_log = await pp.post_processing(
                 client=client,
                 task_id=task_id,
                 response_log=response_log,
                 inputs=pp_inputs,
-                post_processing_type=post_processing_type,
+                post_processing_type= "sgi_idcard" if post_processing_type == 'general_idcard' else post_processing_type,
             )
+
             if status_code < 200 or status_code >= 400:
                 status_code, error = ErrorResponse.ErrorCode.get(3502)
                 return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
@@ -202,9 +188,11 @@ async def ocr(
                 logger.info(
                     f'{task_id}-post-processed text result:\n{pretty_dict(inference_results.get("texts", {}))}'
                 )
-        if(len(inference_results.get("texts", [])) > 0 and post_processing_type != 'idcard_pp'):
+        if(len(inference_results.get("texts", [])) > 0 and post_processing_type != 'general_idcard'):
             inference_results = get_unmodified_bbox(inference_results)
-    
+    inference_results.update(
+        pp_doc_type=post_processing_results.get("doc_type") or inference_results.get("doc_type", "")
+    )
     response_log.update(inference_results.get("response_log", {}))
     response.update(response_log=response_log)
     response.update(inference_results=inference_results)

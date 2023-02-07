@@ -109,7 +109,7 @@ def get_unmodified_bbox(input: Dict):
                 kv_box.values()
                 )
             for key, nmbbox in zip(kv_box.keys(), unmodified_bbox):
-                input["kv"][key]["unmodified_bbox"] = nmbbox
+                input["kv"][key]["unmodified_box"] = nmbbox
         
         
         if boundary_coord:
@@ -124,7 +124,7 @@ def get_unmodified_bbox(input: Dict):
             input.get("image_height_origin"),
             input.get("angle"),
             crop_kv_box)
-        input["unmodified_bbox"] = unmodified_bbox
+        input["unmodified_box"] = unmodified_bbox
         
         # TODO 아래 주석은 4dot unmodified box를 구하는 좌표입니다.
         # 신분증에서 4dot detection를 사용하게 된다면, 아래 주석을 해제하고 사용.
@@ -142,14 +142,14 @@ def get_unmodified_bbox(input: Dict):
         #         unmodified_bbox = dot4_to_rectangle(all_boxes_x, all_boxes_y)
                 
         #         for key, nmbbox in zip(kv_box.keys(), unmodified_bbox):
-        #             input["kv"][key]["unmodified_bbox"] = nmbbox
+        #             input["kv"][key]["unmodified_box"] = nmbbox
                 
         # if input.get("boxes"):
         #     unmodified_all_box = warp_bboxes_to_origin(input.get("boxes"), input.get("transform_matrix"))
         #     all_boxes_x = unmodified_all_box.get("all_boxes_x")
         #     all_boxes_y = unmodified_all_box.get("all_boxes_y")
         #     unmodified_bbox = dot4_to_rectangle(all_boxes_x, all_boxes_y)
-        #     input["unmodified_bbox"] = unmodified_bbox
+        #     input["unmodified_box"] = unmodified_bbox
     else:
         kv_box = {}
         if "kv" in input:
@@ -164,14 +164,14 @@ def get_unmodified_bbox(input: Dict):
                 kv_box.values()
                 )
             for key, nmbbox in zip(kv_box.keys(), unmodified_bbox):
-                input["kv"][key]["unmodified_bbox"] = nmbbox
+                input["kv"][key]["unmodified_box"] = nmbbox
         
         unmodified_bbox = reverse_rotated_bbox(
             input.get("image_width_origin"), 
             input.get("image_height_origin"),
             input.get("angle"),
             input.get("boxes"))
-        input["unmodified_bbox"] = unmodified_bbox
+        input["unmodified_box"] = unmodified_bbox
         
     return input
         
