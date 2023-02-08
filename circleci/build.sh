@@ -24,8 +24,8 @@ model_config=`cat inference_server/assets/conf/config.yaml | shyaml get-value de
 if test [$model_config='default'];
 then
     echo "Change Model Config To ${BSN_CODE}"
-    sed -i "s/model: default/model: ${BSN_CODE}/gi" inference_server/assets/conf/config.yaml
-    model_config=${BSN_CODE}
+    model_config=${BSN_CODE//-/_}
+    sed -i "s/model: default/model: ${model_config}/" inference_server/assets/conf/config.yaml
 fi
 
 model_count=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-length resources`
