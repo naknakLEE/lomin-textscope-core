@@ -21,7 +21,7 @@ jobs:
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"          
             echo "==========> Start Docker Build";
-            sh circleci/build.sh $BSN_CODE
+            bash circleci/build.sh $BSN_CODE
             echo "==========> Finish Docker Build"
   docker-run:
     machine: true    
