@@ -1,157 +1,80 @@
 version: 2.1
 
 orbs:
-  aws-cli: circleci/aws-cli@2.0.6
-  gh: circleci/github-cli@1.0
-
-workflows:
-  develop-PR:
-    jobs:
-      - docker-build:
-          context:
-            - .env
-            - aws
-          filters:
-            branches:
-              only:
-                - /feature\/.*/
-      - docker-up:
-          context: .env
-          requires:
-            - docker-build
-          filters:
-            branches:
-              only:
-                - /feature\/.*/
-      - unit_test:
-          requires:
-            - docker-up
-      - docker-down:
-          requires:
-            - unit_test
+  python: circleci/python@1.0.0
 
 jobs:
+  set-bsn-code:
+    machine: true
+    resource_class: lomin/1
+    steps:
+      - run:
+          name: Get pull request title
+          command: |
+            PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
+            PR_TITLE=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+            echo "Pull request title is: $PR_TITLE"
+            BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
   docker-build:
     machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
+    resource_class: lomin/1
     steps:
       - checkout
-      - run: ls
+      - run: 
+          name: Setting .env file
+          command: echo "$ENV_NEW" | base64 --decode > .env      
       - run:
-          name: CI Preparations
+          name: docker build
           command: |
-            pip3 install boto3 botocore hydra-core python-dotenv alive_progress awscli
-      - aws-cli/install
-      - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
-      - run: mkdir -p /home/circleci/.config/ssh && cp /home/circleci/.ssh/id_rsa /home/circleci/.config/ssh/id_rsa
-      - run:
-          name: check running container and rm container
-          command: |
-            app="serving"
-            if docker ps | awk -v app="$app" 'NR > 1 && $NF == app{ret=1; exit} END{exit !ret}'; then
-              docker stop "$app" && docker rm -f "$app"
-            fi
-      - run:
-          name: Install Submodules
-          command: |
-            git submodule init
-            git submodule update
-      - run: echo "$env2" | base64 --decode > .env
-      - run: sudo rm -rf inference_server/ModelService
-      - run:
-          name: model download & textscope build
-          command: |
-            sh init.sh
-
-  docker-up:
+            echo "==========> Start Docker Build";
+            sh circleci/build.sh
+            echo "==========> Finish Docker Build"
+  docker-run:
     machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
+    resource_class: lomin/1    
+    steps:
+      - run:    
+          name: docker run
+          command: |
+            echo "==========> Start Docker Run";
+            sh circleci/run.sh
+            echo "==========> Finish Docker Run"                                  
+  code-test:
+    machine: true
+    resource_class: lomin/1
     steps:
       - run:
-          name: Set EnvironmentVariables $DISPLAY
-          command: export DISPLAY=:0 
-      - run: 
-          name: Delete the container in the docker compose file.
+          name: code test
           command: |
-            docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
-            shyaml keys services | { 
-              while read services; 
-              do 
-                docker stop $services; 
-                docker rm $services; 
-              done; 
-            }|| true
-      - run: 
-          name: Delete the docker network after deleting the container connected to the docker network.
-          command: |
-            docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
-            shyaml keys networks | { 
-              while read network; 
-              do 
-                docker network inspect $network | 
-                grep Name | 
-                grep -v $network | 
-                cut -d '"' -f4 | { 
-                  while read service; 
-                  do 
-                    docker stop  $service; 
-                    docker rm $service; 
-                  done; 
-                }; 
-                if docker network rm $network ; then
-                  echo "$network network rm successful"
-                else
-                  echo "$network There is no container connected to the docker network"
-                fi
-              done; 
-            }|| true
-      - run: 
-          name: Delete the docker volume
-          command: |
-            docker volume rm $(docker volume ls --filter name=${PWD##*/}_ --format "{{.Name}}") || true
-      - run: 
-          name: up
-          command: |
-            docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-      - run:
-          name: Run on fail status
-          command: |
-            docker-compose down
-          when: on_fail
+            echo "==========> Start Code Test";
+            sh circleci/test.sh
+            echo "==========> Finish Code Test"               
 
-  unit_test:
-    machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
-    steps:
-      - run:
-          name: run test
-          command: |
-            docker exec web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
-      - store_test_results:
-          path: test_results
-      - store_artifacts:
-          path: test_results
-          destination: v0.1.0
-      - run:
-          name: Run on fail status
-          command: |
-            docker-compose down
-          when: on_fail
-
-  docker-down:
-    machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
-    steps:
-      - run:
-          name: down
-          command: |
-            docker-compose down
-      - run:
-          name: Run on fail status
-          command: |
-            docker-compose down
-          when: on_fail
+workflows:
+  feature-develop-PR: 
+    jobs:          
+      - set-bsn-code:
+          filters:
+            branches:
+              only: /feature\/.*/      
+      - docker-build:   
+          requires:
+            - set-bsn-code        
+          context: 
+            - .env          
+            - aws_new
+          filters:
+            branches:
+              only: /feature\/.*/    
+      - docker-run:
+          requires:
+            - docker-build   
+          filters:
+            branches:
+              only: /feature\/.*/
+      - code-test:
+          requires:
+            - docker-run
+          filters:
+            branches:
+              only: /feature\/.*/            

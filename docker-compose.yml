@@ -15,6 +15,7 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
+    
   postgresql:
     container_name: textscope-postgresql
     image: postgres:14
@@ -28,57 +29,10 @@ services:
       - 55432:${POSTGRES_IP_PORT}
     networks:
       - our_net
-  elasticsearch:
-    container_name: textscope-elasticsearch
-    image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
-    build:
-      context: elasticsearch
-      dockerfile: Dockerfile.elasticsearch
-    restart: on-failure
-    volumes:
-      - esdata:/usr/share/elasticsearch/data:rw
-    ports:
-      - 9200:9200
-      - 9300:9300
-    environment:
-      - cluster.name=ts-cluster
-      - discovery.type=single-node
-      - http.host=0.0.0.0
-      - transport.host=127.0.0.1
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - xpack.security.enabled=false
-    networks:
-      - our_net
-
-  kibana:
-    container_name: textscope-kibana
-    image: docker.elastic.co/kibana/kibana:7.16.2
-    ports:
-      - 5601:5601
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - our_net
-
-  pgadmin:
-    container_name: textscope-pgadmin
-    image: dpage/pgadmin4 #TODO make Dockerfile
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
-      TZ: Asia/Seoul
-    depends_on:
-      - postgresql
-    ports:
-      - "5050:80"
-    networks:
-      - our_net
 
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
-    container_name: textscope-serving
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}-kbc2211
+    container_name: textscope-serving-kbc2211
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
@@ -93,8 +47,8 @@ services:
       - our_net
 
   web:
-    container_name: textscope-web
-    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
+    container_name: textscope-web-kbc2211
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}-kbc2211
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
@@ -112,8 +66,8 @@ services:
       - our_net
 
   pp:
-    container_name: textscope-pp
-    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
+    container_name: textscope-pp-kbc2211
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}-kbc2211
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
@@ -127,8 +81,8 @@ services:
       - our_net
 
   wrapper:
-    container_name: textscope-wrapper
-    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
+    container_name: textscope-wrapper-kbc2211
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}-kbc2211
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
