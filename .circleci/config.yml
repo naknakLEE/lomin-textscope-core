@@ -6,6 +6,7 @@ orbs:
 jobs:
   docker-build:
     machine: true
+    resource_class: lomin/1    
     steps:
       - checkout
       - run: 
@@ -24,6 +25,7 @@ jobs:
             echo "==========> Finish Docker Build"
   docker-run:
     machine: true    
+    resource_class: lomin/1    
     steps:
       - run:    
           name: docker run
@@ -33,6 +35,7 @@ jobs:
             echo "==========> Finish Docker Run"                                  
   code-test:
     machine: true
+    resource_class: lomin/1    
     steps:
       - run:
           name: code test
