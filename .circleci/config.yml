@@ -16,7 +16,7 @@ jobs:
           name: docker build
           command: |
             PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
-            PR_TITLE=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+            PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"          
