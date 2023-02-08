@@ -21,7 +21,7 @@ git submodule update --init --recursive
 
 ########## 2. Download Model File Start ##########
 model_config=`cat inference_server/assets/conf/config.yaml | shyaml get-value defaults.2.model`
-if test [[ model_config = 'default' ]];
+if test [$model_config='default'];
 then
     echo "Change Model Config To ${BSN_CODE}"
     sed -i "s/model: default/model: ${BSN_CODE}/gi" inference_server/assets/conf/config.yaml
@@ -41,7 +41,7 @@ do
 
     echo "[$((${index} + 1))/$((${model_count} + 1))] ${model_name}"
 
-    if [["rotate detection recognition"=~"${model_name}"*]];
+    if ["rotate detection recognition"=~"${model_name}"*];
     then
         echo -e "continue ${model_name} for prevent duplication\r\n"
         continue
@@ -56,7 +56,7 @@ do
         aws s3 cp s3://lomin-model-repository/textscope/${model_path} inference_server/${model_path_s3}/ --recursive
     fi
 
-    if [[ -v template_path ]];
+    if [-v template_path];
     then
         cp -r /home/lomin/Templates/${BSN_CODE} inference_server/e2e_inference/assets    
     fi
