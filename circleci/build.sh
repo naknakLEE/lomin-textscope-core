@@ -3,6 +3,10 @@ set -eux
 
 set +x
 
+BSN_CODE=$1
+
+echo "BSN_CODE is: $BSN_CODE"
+
 PATH="$HOME/.local/bin:$PATH"
 
 ########## 1. Prepare Start ##########
