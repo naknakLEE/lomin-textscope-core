@@ -16,6 +16,12 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
+
   postgresql:
     container_name: textscope-postgresql
     image: postgres:14
@@ -31,6 +37,12 @@ services:
       - 55432:${POSTGRES_IP_PORT}
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "50m"
+          max-file: "20"
+          compress: "true"
+  
   elasticsearch:
     container_name: textscope-elasticsearch
     image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
@@ -52,6 +64,11 @@ services:
       - xpack.security.enabled=false
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   kibana:
     container_name: textscope-kibana
@@ -65,6 +82,11 @@ services:
       - elasticsearch
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   pgadmin:
     container_name: textscope-pgadmin
@@ -74,12 +96,18 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
       TZ: Asia/Seoul
+      SCRIPT_NAME: /pgadmin
     depends_on:
       - postgresql
     ports:
       - "5050:80"
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   serving:
     image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
@@ -95,6 +123,11 @@ services:
     runtime: nvidia
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "50m"
+          max-file: "40"
+          compress: "true"
 
   web:
     container_name: textscope-web
@@ -112,6 +145,11 @@ services:
       - SYS_PTRACE
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "50m"
+          max-file: "20"
+          compress: "true"
 
   pp:
     container_name: textscope-pp
@@ -126,6 +164,11 @@ services:
       - SYS_PTRACE
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "50m"
+          max-file: "20"
+          compress: "true"
 
   wrapper:
     container_name: textscope-wrapper
@@ -141,24 +184,35 @@ services:
       - minio
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "50m"
+          max-file: "20"
+          compress: "true"
 
   nginx:
     container_name: textscope-nginx
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.nginx
+      dockerfile: docker/base/Dockerfile.nginx
       args:
         CONF_NAME: nginx
         MAINTAINER: ${MAINTAINER}
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
     depends_on:
       - wrapper
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   nginx-exporter:
     container_name: textscope-nginx_exporter
@@ -168,6 +222,11 @@ services:
       - -nginx.scrape-uri=http://${NGINX_IP_ADDR}:8080/metrics
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   gpu_telemetry:
     container_name: textscope-gpu_telemetry
@@ -176,6 +235,11 @@ services:
     runtime: nvidia
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   hardware_telemetry:
     container_name: textscope-hardware_telemetry
@@ -184,6 +248,11 @@ services:
     networks:
       - our_net
     entrypoint: /bin/node_exporter
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   prometheus:
     container_name: textscope-prometheus
@@ -203,6 +272,11 @@ services:
       - --storage.tsdb.retention=90d
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
   grafana:
     container_name: textscope-grafana
@@ -224,6 +298,11 @@ services:
     restart: always
     networks:
       - our_net
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "10"
+          compress: "true"
 
 volumes:
   prometheus_data:

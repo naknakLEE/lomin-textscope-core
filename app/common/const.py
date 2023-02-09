@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     POOL_SIZE: int = 50
     MAX_OVERFLOW: int = 20000
     INITIAL_DB: bool = True
+    APPLY_DB_LIFECYCLE: bool = False
+    DB_LIFECYCLE_DAYS: int = 3650
 
     # STORAGE CONFIG
     MINIO_ACCESS_KEY: str = "H7YX3286K2P7C8O94CM8"
@@ -103,6 +105,10 @@ class Settings(BaseSettings):
     MINIO_USE_SSL: bool = False
     MINIO_IMAGE_BUCKET: str = "images"
     USE_MINIO: bool = True
+    MINIO_LIFE_CYCLE_ENABLED: str = "Enabled"
+    MINIO_LIFE_CYCLE_DAYS: int = 3650
+    MINIO_LIFE_CYCLE_RULE_ID: str = "textscope_minio_life_cycle"
+    MINIO_LIMIT_HARD_SIZE: str = "100gi"  
 
     # HINT CONFIG
     KV_HINT_CER_THRESHOLD: float = 0.2

@@ -19,6 +19,7 @@ from app.routes import document, model, inspect
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
+import app.config
 
 from app.errors.exceptions import ResourceDataError
 from app.database.schema import (
@@ -27,6 +28,8 @@ from app.database.schema import (
     create_db_users,
     insert_initial_data
 )
+from app.database.query import delete_data_after_days
+from app.utils.cron import register_cron
 from app.middlewares.logging import LoggingMiddleware
 from app.middlewares.timeout_handling import TimeoutMiddleware
 from app.middlewares.exception_handler import (
@@ -76,6 +79,10 @@ def app_generator() -> FastAPI:
             create_extension()
             create_db_users()
             insert_initial_data()
+        
+        if settings.APPLY_DB_LIFECYCLE:   
+            life_days = settings.DB_LIFECYCLE_DAYS 
+            register_cron(delete_data_after_days, session = next(db.session()),life_days=life_days)
 
     if settings.PROFILING_TOOL == "pyinstrument":
         from fastapi_profiler.profiler_middleware import PyInstrumentProfilerMiddleware
