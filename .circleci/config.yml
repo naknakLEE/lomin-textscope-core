@@ -3,38 +3,47 @@ version: 2.1
 orbs:
   python: circleci/python@1.0.0
 
-jobs:
-  docker-build:
+executors:
+  lomin-dev:
     machine: true
     resource_class: lomin/1
-    working_directory: ~/textscope/application/application    
+    working_directory: ~/textscope/application/application  
+
+jobs:
+  set-env-var:
+    executor: default    
     steps:
       - checkout
       - run: 
-          name: Setting .env file
+          name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env      
       - run:
-          name: docker build
+          name: Add BSN_CODE in .env file
           command: |
             PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
             PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
-            echo "BSN_CODE is: $BSN_CODE"          
-            echo "==========> Start Docker Build";
-            bash circleci/build.sh $BSN_CODE
-            echo "==========> Finish Docker Build"
-  docker-run:
-    machine: true    
-    resource_class: lomin/1
-    working_directory: ~/textscope/application    
+            echo "BSN_CODE is: $BSN_CODE"
+            echo "BSN_CODE=$BSN_CODE" | tee .env
+  docker-build:
+    executor: default    
     steps:
       - run:    
-          name: docker run
+          name: Import environment variables
           command: |
-            echo "==========> Start Docker Run";
-            sh circleci/run.sh
-            echo "==========> Finish Docker Run"                                  
+            cat .env > $BASH_ENV
+      - run:    
+          name: Excute build.sh
+          command: |
+            bash circleci/build.sh $BSN_CODE
+  docker-run:
+    executor: default    
+    steps:
+      - run:    
+          name: Excute run.sh
+          command: |
+            bash circleci/run.sh
   code-test:
     machine: true
     resource_class: lomin/1    
@@ -49,10 +58,13 @@ jobs:
 workflows:
   feature-develop-PR: 
     jobs:          
+      - set-env-var:
+          filters:
+            branches:
+              only: /feature\/.*/      
       - docker-build:   
-          # context: 
-          #   - .env          
-          #   - aws_new
+          requires:
+            - set-env-var   
           filters:
             branches:
               only: /feature\/.*/    

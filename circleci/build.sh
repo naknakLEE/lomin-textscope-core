@@ -6,7 +6,7 @@ set +x
 BSN_CODE=$1
 
 echo "BSN_CODE is: $BSN_CODE"
-echo "BSN_CODE=$BSN_CODE" | tee .env
+# echo "BSN_CODE=$BSN_CODE" | tee .env
 
 PATH="$HOME/.local/bin:$PATH"
 
