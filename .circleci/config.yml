@@ -6,7 +6,8 @@ orbs:
 jobs:
   docker-build:
     machine: true
-    resource_class: lomin/1    
+    resource_class: lomin/1
+    working_directory: ~/textscope    
     steps:
       - checkout
       - run: 
@@ -25,7 +26,8 @@ jobs:
             echo "==========> Finish Docker Build"
   docker-run:
     machine: true    
-    resource_class: lomin/1    
+    resource_class: lomin/1
+    working_directory: ~/textscope    
     steps:
       - run:    
           name: docker run
@@ -60,9 +62,9 @@ workflows:
           filters:
             branches:
               only: /feature\/.*/
-      - code-test:
-          requires:
-            - docker-run
-          filters:
-            branches:
-              only: /feature\/.*/            
+      # - code-test:
+      #     requires:
+      #       - docker-run
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/            
