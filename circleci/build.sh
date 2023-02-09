@@ -6,6 +6,7 @@ set +x
 BSN_CODE=$1
 
 echo "BSN_CODE is: $BSN_CODE"
+echo "BSN_CODE=$BSN_CODE" | tee .env
 
 PATH="$HOME/.local/bin:$PATH"
 
@@ -38,7 +39,9 @@ for index in `seq 0 ${model_count}`
 do
     model_name=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.name`
     model_path=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.model_path`
-    template_path=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.template_path`
+    if ["template_path"=~`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml keys resources.${index}`]; then
+        template_path=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.template_path`    
+    fi
 
     echo "[$((${index} + 1))/$((${model_count} + 1))] ${model_name}"
 
@@ -57,7 +60,7 @@ do
         aws s3 cp s3://lomin-model-repository/textscope/${model_path} inference_server/${model_path_s3}/ --recursive
     fi
 
-    if [-v template_path];
+    if [ -v template_path ];
     then
         cp -r /home/lomin/Templates/${BSN_CODE} inference_server/e2e_inference/assets    
     fi

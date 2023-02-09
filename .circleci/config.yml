@@ -48,9 +48,9 @@ workflows:
   feature-develop-PR: 
     jobs:          
       - docker-build:   
-          context: 
-            - .env          
-            - aws_new
+          # context: 
+          #   - .env          
+          #   - aws_new
           filters:
             branches:
               only: /feature\/.*/    
