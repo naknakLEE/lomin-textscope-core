@@ -7,7 +7,7 @@ executors:
   lomin-dev:
     machine: true
     resource_class: lomin/1
-    working_directory: ~/textscope/application/application  
+    working_directory: ~/textscope/application  
 
 jobs:
   set-env-var:
@@ -25,7 +25,7 @@ jobs:
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
-            echo "BSN_CODE=$BSN_CODE" | tee .env
+            echo "BSN_CODE=$BSN_CODE" | tee -a .env
   docker-build:
     executor: lomin-dev    
     steps:
