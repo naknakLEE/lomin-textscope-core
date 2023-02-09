@@ -11,7 +11,7 @@ executors:
 
 jobs:
   set-env-var:
-    executor: default    
+    executor: lomin-dev    
     steps:
       - checkout
       - run: 
@@ -27,7 +27,7 @@ jobs:
             echo "BSN_CODE is: $BSN_CODE"
             echo "BSN_CODE=$BSN_CODE" | tee .env
   docker-build:
-    executor: default    
+    executor: lomin-dev    
     steps:
       - run:    
           name: Import environment variables
@@ -38,7 +38,7 @@ jobs:
           command: |
             bash circleci/build.sh $BSN_CODE
   docker-run:
-    executor: default    
+    executor: lomin-dev    
     steps:
       - run:    
           name: Excute run.sh
