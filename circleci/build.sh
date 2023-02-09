@@ -45,7 +45,6 @@ do
     echo "[$((${index} + 1))/$((${model_count} + 1))] ${model_name}"
 
     if [[ "rotate detection recognition" =~ "${model_name}"* ]]; then
-    then
         echo -e "continue ${model_name} for prevent duplication\r\n"
         continue
     fi
