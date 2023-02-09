@@ -1,0 +1,27 @@
+#!/bin/bash
+# TODO 각프로젝트마다 다르게 설정
+
+cd /home/lomin/Circleci/textscope-client/textscope-evaluator
+
+python3 tools/textscope_eval/textscope_requester.py \
+    --textscope-url http://localhost:8090 \
+    --input-dir /home/lomin/Circleci/sample/bsn-2211-kbacrd/ID-RRC\
+    --output-dir /home/lomin/Circleci/result/bsn-2211-kbacrd/ID-RRC\
+    --endpoint-type kv \
+    --doc-type KBC3-01 \
+    --business-code kbc3 \
+    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json
+
+python3 -m tools.textscope_eval.textscope_exporter \
+    --input-dir /home/lomin/Circleci/result/bsn-2211-kbacrd/ID-RRC/inference_outputs \
+    --output-dir /home/lomin/Circleci/result/bsn-2211-kbacrd/ID-RRC/excel \
+    --business-code kbc3 \
+    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json 
+
+python3 tools/textscope_eval/textscope_evaluator.py \
+    --textscope-output-xlsx /home/lomin/Circleci/result/bsn-2211-kbacrd/ID-RRC/excel/kv_result.xlsx \
+    --gt-xlsx /home/lomin/Circleci/gt/bsn-2211-kbcard/ID-RRC/ID-RRC_gt.xlsx \
+    --output-dir /home/lomin/Circleci/result/bsn-2211-kbacrd/ID-RRC/output \
+    --business-code kbc3 \
+    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json
+

@@ -8,31 +8,39 @@ executors:
     machine: true
     resource_class: lomin/1
 jobs:
-  set-env-var:
+  # set-env-var:
+  #   executor: lomin-dev    
+  #   steps:
+  #     - checkout
+  #     - run: 
+  #         name: Generate .env file
+  #         command: echo "$ENV_NEW" | base64 --decode > .env      
+  #     - run:
+  #         name: Add BSN_CODE in .env file
+  #         command: |
+  #           PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
+  #           PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+  #           echo "Pull request title is: $PR_TITLE"
+  #           BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
+  #           echo "BSN_CODE=$BSN_CODE" | tee -a .env
+  #           echo "BSN_CODE=$BSN_CODE" >> bsn_code.txt
+  docker-build:
     executor: lomin-dev    
     steps:
       - checkout
       - run: 
           name: Generate .env file
-          command: echo "$ENV_NEW" | base64 --decode > .env      
-      - run:
-          name: Add BSN_CODE in .env file
+          command: echo "$ENV_NEW" | base64 --decode > .env
+      - run:    
+          name: Import BSN_CODE and Docker build
           command: |
             PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
-            PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+            PR_TITLE=$(curl -s https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
-            echo "BSN_CODE=$BSN_CODE" | tee -a .env
-            echo "BSN_CODE=$BSN_CODE" >> bsn_code.txt
-  docker-build:
-    executor: lomin-dev    
-    steps:
-      - run:    
-          name: Import environment variables and Execute build.sh
-          command: |
-            cat bsn_code.txt > $BASH_ENV
-            echo "DockerBuild Jobs BSN_CODE is: $BSN_CODE"
-            bash circleci/build.sh $BSN_CODE
+            echo "BSN_CODE is: $BSN_CODE"
+            echo "BSN_CODE=$BSN_CODE" | tee -a .env          
+            sh circleci/build.sh $BSN_CODE
   docker-run:
     executor: lomin-dev    
     steps:
@@ -40,27 +48,33 @@ jobs:
           name: Excute run.sh
           command: |
             bash circleci/run.sh
-  code-test:
-    machine: true
-    resource_class: lomin/1    
+  # code-test:
+  #   machine: true
+  #   resource_class: lomin/1    
+  #   steps:
+  #     - run:
+  #         name: code test
+  #         command: |
+  #           echo "==========> Start Code Test";
+  #           sh circleci/test.sh
+  #           echo "==========> Finish Code Test"               
+  export-evaluator:
+    executor: lomin-dev 
     steps:
       - run:
-          name: code test
+          name: Execute Evaluator
           command: |
-            echo "==========> Start Code Test";
-            sh circleci/test.sh
-            echo "==========> Finish Code Test"               
-
+            bash circleci/run_eval_scrp.sh
 workflows:
   feature-develop-PR: 
     jobs:          
-      - set-env-var:
-          filters:
-            branches:
-              only: /feature\/.*/      
+      # - set-env-var:
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/      
       - docker-build:   
-          requires:
-            - set-env-var   
+          # requires:
+          #   - set-env-var   
           filters:
             branches:
               only: /feature\/.*/    
@@ -70,6 +84,12 @@ workflows:
           filters:
             branches:
               only: /feature\/.*/
+      - export-evaluator:
+          requires:
+            - docker-run   
+          filters:
+            branches:
+              only: /feature\/.*/              
       # - code-test:
       #     requires:
       #       - docker-run
