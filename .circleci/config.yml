@@ -7,8 +7,6 @@ executors:
   lomin-dev:
     machine: true
     resource_class: lomin/1
-    working_directory: ~/textscope/application  
-
 jobs:
   set-env-var:
     executor: lomin-dev    
@@ -33,6 +31,7 @@ jobs:
           name: Import environment variables and Execute build.sh
           command: |
             cat bsn_code.txt > $BASH_ENV
+            echo "DockerBuild Jobs BSN_CODE is: $BSN_CODE"
             bash circleci/build.sh $BSN_CODE
   docker-run:
     executor: lomin-dev    
