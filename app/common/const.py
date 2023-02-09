@@ -105,7 +105,7 @@ class Settings(BaseSettings):
     MINIO_USE_SSL: bool = False
     MINIO_IMAGE_BUCKET: str = "images"
     USE_MINIO: bool = True
-    MINIO_LIFE_CYCLE_ENABLED: str = "Enabled"
+    MINIO_LIFE_CYCLE_ENABLED: str = "Disabled"
     MINIO_LIFE_CYCLE_DAYS: int = 3650
     MINIO_LIFE_CYCLE_RULE_ID: str = "textscope_minio_life_cycle"
     MINIO_LIMIT_HARD_SIZE: str = "100gi"  
