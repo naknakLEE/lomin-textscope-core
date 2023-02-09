@@ -7,7 +7,7 @@ jobs:
   docker-build:
     machine: true
     resource_class: lomin/1
-    working_directory: ~/textscope    
+    working_directory: ~/textscope/application/application    
     steps:
       - checkout
       - run: 
@@ -27,7 +27,7 @@ jobs:
   docker-run:
     machine: true    
     resource_class: lomin/1
-    working_directory: ~/textscope    
+    working_directory: ~/textscope/application    
     steps:
       - run:    
           name: docker run
