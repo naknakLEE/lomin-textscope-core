@@ -38,7 +38,7 @@ for index in `seq 0 ${model_count}`
 do
     model_name=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.name`
     model_path=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.model_path`
-    template_path = `cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.template_path`
+    template_path=`cat inference_server/assets/conf/model/${model_config}.yaml | shyaml get-value resources.${index}.template_path`
 
     echo "[$((${index} + 1))/$((${model_count} + 1))] ${model_name}"
 
