@@ -30,13 +30,11 @@ jobs:
     executor: lomin-dev    
     steps:
       - run:    
-          name: Import environment variables
+          name: Import environment variables and Execute build.sh
           command: |
             cat .env > $BASH_ENV
-      - run:    
-          name: Excute build.sh
-          command: |
             bash circleci/build.sh $BSN_CODE
+            
   docker-run:
     executor: lomin-dev    
     steps:
