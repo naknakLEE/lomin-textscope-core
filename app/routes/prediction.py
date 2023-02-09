@@ -395,6 +395,12 @@ def get_document_info_inference_pdf(
             if select_inspect_result is not None:
                 angle = select_inspect_result.inspect_result.get("angle", 0)
         
+        text_type = "kv"
+        if select_inference_result.doc_type_idx == 0 \
+            or select_inference_result.doc_type_idx not in doc_type_idx_code.keys():
+            
+            text_type = "gocr"
+        
         words: List[Word] = list()
         if text_type == "kv":
             kv = None
