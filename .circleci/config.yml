@@ -64,6 +64,7 @@ jobs:
       - run:
           name: Execute Evaluator
           command: |
+            pip install tqdm openpyxl pandas
             bash circleci/run_eval_scrp.sh
 workflows:
   feature-develop-PR: 
