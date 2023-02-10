@@ -60,7 +60,7 @@ do
 
     if [ ${template_path} != False ];
     then
-        cp -r /home/lomin/Templates/${BSN_CODE} inference_server/e2e_inference/assets    
+        cp -r /home/lomin/Templates/${BSN_CODE}/synthcard inference_server/e2e_inference/assets    
     fi
         
 done

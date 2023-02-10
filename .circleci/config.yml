@@ -40,13 +40,14 @@ jobs:
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
             echo "BSN_CODE=$BSN_CODE" | tee -a .env          
-            sh circleci/build.sh $BSN_CODE
+            bash circleci/build.sh $BSN_CODE
   docker-run:
     executor: lomin-dev    
     steps:
       - run:    
           name: Excute run.sh
           command: |
+            chmod -R 777 .
             bash circleci/run.sh
   # code-test:
   #   machine: true
@@ -64,7 +65,6 @@ jobs:
       - run:
           name: Execute Evaluator
           command: |
-            pip install tqdm openpyxl pandas
             bash circleci/run_eval_scrp.sh
 workflows:
   feature-develop-PR: 
