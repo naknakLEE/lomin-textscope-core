@@ -47,7 +47,6 @@ jobs:
       - run:    
           name: Excute run.sh
           command: |
-            chmod -R 777 .
             bash circleci/run.sh
   # code-test:
   #   machine: true

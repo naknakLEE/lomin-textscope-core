@@ -31,8 +31,8 @@ services:
       - our_net
 
   serving:
-    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}-kbc2211
-    container_name: textscope-serving-kbc2211
+    image: docker.lomin.ai/ts-gpu-serving:${TEXTSCOPE_SERVING_VERSION}
+    container_name: textscope-serving
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
@@ -47,8 +47,8 @@ services:
       - our_net
 
   web:
-    container_name: textscope-web-kbc2211
-    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}-kbc2211
+    container_name: textscope-web
+    image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
@@ -66,8 +66,8 @@ services:
       - our_net
 
   pp:
-    container_name: textscope-pp-kbc2211
-    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}-kbc2211
+    container_name: textscope-pp
+    image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
@@ -81,8 +81,8 @@ services:
       - our_net
 
   wrapper:
-    container_name: textscope-wrapper-kbc2211
-    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}-kbc2211
+    container_name: textscope-wrapper
+    image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
       - BSN_CODE=${BSN_CODE}
