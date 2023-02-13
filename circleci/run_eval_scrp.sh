@@ -10,13 +10,13 @@ python3 tools/textscope_eval/textscope_requester.py \
     --endpoint-type kv \
     --doc-type KBC3-01 \
     --business-code kbc3 \
-    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json
+    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json &&
 
 python3 -m tools.textscope_eval.textscope_exporter \
     --input-dir /home/lomin/Circleci/result/bsn-2211-kbcard/ID-RRC/inference_outputs \
     --output-dir /home/lomin/Circleci/result/bsn-2211-kbcard/ID-RRC/excel \
     --business-code kbc3 \
-    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json 
+    --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_kbc3.json &&
 
 python3 tools/textscope_eval/textscope_evaluator.py \
     --textscope-output-xlsx /home/lomin/Circleci/result/bsn-2211-kbcard/ID-RRC/excel/kv_result.xlsx \
