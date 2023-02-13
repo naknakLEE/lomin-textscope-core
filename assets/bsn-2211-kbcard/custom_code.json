@@ -1,0 +1,154 @@
+{
+  "USE_MAPPER": true,
+  "VALID_DOC_TYPE": [
+    "KBC3-00",
+    "KBC3-01",
+    "KBC3-02",
+    "KBC3-03",
+    "KBC3-04"
+  ],
+  "DOC_TYPE_MAPPER": {
+    "__comment__": "lomin -> custom mapping table",
+    "ETC": "KBC3-00",
+    "ID-RRC": "KBC3-01",
+    "ID-DLC": "KBC3-02",
+    "ID-ARC": "KBC3-03",
+    "ID-OKC": "KBC3-03",
+    "ID-PP": "KBC3-04"
+  },
+  "DOC_TYPE_MAPPER_REVERSE": {
+    "__comment__": [
+      "custom -> lomin mapping table",
+      "대표 lomin doc_type 코드만 작성"
+    ],
+    "KBC3-00": "ETC",
+    "KBC3-01": "ID-RRC",
+    "KBC3-02": "ID-DLC",
+    "KBC3-03": "ID-ARC",
+    "KBC3-04": "ID-PP"
+  },
+  "CUSTOM_FIELD_MAPPER": {
+    "__comment__": "custom field mapping table",
+    "KBC3-01": {
+      "ID-RRC-TTL": "KBC3-01-01",
+      "ID-RRC-NM": "KBC3-01-02",
+      "ID-RRC-NM-M": "KBC3-01-02-01",
+      "ID-RRC-RGN": "KBC3-01-03",
+      "ID-RRC-RGN-F": "KBC3-01-03-01",
+      "ID-RRC-RGN-B": "KBC3-01-03-02",
+      "ID-RRC-OD": "KBC3-01-05",
+      "ID-RRC-P": "KBC3-01-07",
+      "ID-RRC-BO": "KBC3-01-15"
+    },
+    "KBC3-02": {
+      "ID-DLC-TTL": "KBC3-02-01",
+      "ID-DLC-DLN": "KBC3-02-04",
+      "ID-DLC-DLN-1": "KBC3-02-04-01",
+      "ID-DLC-DLN-2": "KBC3-02-04-02",
+      "ID-DLC-DLN-3": "KBC3-02-04-03",
+      "ID-DLC-DLN-4": "KBC3-02-04-04",
+      "ID-DLC-NM": "KBC3-02-05",
+      "ID-DLC-NM-M": "KBC3-02-05-01",
+      "ID-DLC-RGN": "KBC3-02-06",
+      "ID-DLC-RGN-F": "KBC3-02-06-01",
+      "ID-DLC-RGN-B": "KBC3-02-06-02",
+      "ID-DLC-OD": "KBC3-02-12",
+      "ID-DLC-P": "KBC3-02-14",
+      "ID-DLC-BO": "KBC3-02-15"
+    },
+    "KBC3-03": {
+      "ID-ARC-TTL": "KBC3-03-01",
+      "ID-ARC-FRN": "KBC3-03-02",
+      "ID-ARC-FRN-F": "KBC3-03-02-01",
+      "ID-ARC-FRN-B": "KBC3-03-02-02",
+      "ID-ARC-NM": "KBC3-03-04",
+      "ID-ARC-NM-M": "KBC3-03-04-01",
+      "ID-ARC-OD": "KBC3-03-07",
+      "ID-ARC-P": "KBC3-03-09",
+      "ID-ARC-BO": "KBC3-03-15",
+      "ID-OKC-TTL": "KBC3-03-01",
+      "ID-OKC-FRN": "KBC3-03-02",
+      "ID-OKC-FRN-F": "KBC3-03-02-01",
+      "ID-OKC-FRN-B": "KBC3-03-02-02",
+      "ID-OKC-NM": "KBC3-03-04",
+      "ID-OKC-NM-M": "KBC3-03-04-01",
+      "ID-OKC-OD": "KBC3-03-07",
+      "ID-OKC-P": "KBC3-03-09",
+      "ID-OKC-BO": "KBC3-03-15"
+    },
+    "KBC3-04": {
+      "ID-PP-TTL": "KBC3-04-01",
+      "ID-PP-TP": "KBC3-04-02",
+      "ID-PP-AC": "KBC3-04-03",
+      "ID-PP-NLT": "KBC3-04-04",
+      "ID-PP-PN": "KBC3-04-05",
+      "ID-PP-LFN": "KBC3-04-06",
+      "ID-PP-BD": "KBC3-04-07",
+      "ID-PP-GD": "KBC3-04-08",
+      "ID-PP-ED": "KBC3-04-09",
+      "ID-PP-PPN": "KBC3-04-10",
+      "ID-PP-BO": "KBC3-04-15"
+    }
+  },
+  "CUSTOM_FIELD_PROPERTY": {
+    "__comment__": [
+      "custom field property table",
+      " - type: boolean, integer, float, word (default: word)",
+      " - list: True, False (default: False)",
+      " - default: {value}"
+    ],
+    "KBC3-01": {
+      "KBC3-01-01": {},
+      "KBC3-01-02": {},
+      "KBC3-01-02-01": {},
+      "KBC3-01-03": {},
+      "KBC3-01-03-01": {},
+      "KBC3-01-03-02": {},
+      "KBC3-01-05": {},
+      "KBC3-01-07": {},
+      "KBC3-01-15": {}
+    },
+    "KBC3-02": {
+      "KBC3-02-01": {},
+      "KBC3-02-04": {},
+      "KBC3-02-04-01": {},
+      "KBC3-02-04-02": {},
+      "KBC3-02-04-03": {},
+      "KBC3-02-04-04": {},
+      "KBC3-02-05": {},
+      "KBC3-02-05-01": {},
+      "KBC3-02-06": {},
+      "KBC3-02-06-01": {},
+      "KBC3-02-06-02": {},
+      "KBC3-02-12": {},
+      "KBC3-02-14": {},
+      "KBC3-02-15": {}
+    },
+    "KBC3-03": {
+      "KBC3-03-01": {},
+      "KBC3-03-02": {},
+      "KBC3-03-02-01": {},
+      "KBC3-03-02-02": {},
+      "KBC3-03-04": {},
+      "KBC3-03-04-01": {
+        "list": true
+      },
+      "KBC3-03-07": {},
+      "KBC3-03-09": {},
+      "KBC3-03-15": {}
+    },
+    "KBC3-04": {
+      "KBC3-04-01": {},
+      "KBC3-04-02": {},
+      "KBC3-04-03": {},
+      "KBC3-04-04": {},
+      "KBC3-04-05": {},
+      "KBC3-04-06": {},
+      "KBC3-04-07": {},
+      "KBC3-04-08": {},
+      "KBC3-04-09": {},
+      "KBC3-04-10": {},
+      "KBC3-04-15": {}
+    }
+  }
+}

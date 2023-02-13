@@ -1,0 +1,9 @@
+{
+  "PP_MAPPING_TABLE": {
+    "__comment__": [
+      "pp api with doc_type code mapping table",
+      "pp api must be list"
+    ],
+    "CP-REF": ["sht1_kvel"]
+  }
+}

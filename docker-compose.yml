@@ -23,6 +23,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DATABASE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - 55432:${POSTGRES_IP_PORT}
     networks:
@@ -82,6 +84,7 @@ services:
     container_name: textscope-serving
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
@@ -97,6 +100,7 @@ services:
     image: docker.lomin.ai/ts-web:${TEXTSCOPE_CORE_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
@@ -114,6 +118,7 @@ services:
     image: docker.lomin.ai/ts-pp:${TEXTSCOPE_PP_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs
@@ -128,6 +133,7 @@ services:
     image: docker.lomin.ai/ts-wrapper:${TEXTSCOPE_WRAPPER_VERSION}
     environment:
       - CUSTOMER=${CUSTOMER}
+      - BSN_CODE=${BSN_CODE}
       - TZ=Asia/Seoul
     volumes:
       - ${MOUNT_LOG_PATH}:/workspace/logs

@@ -18,17 +18,13 @@ from PIL import Image
 from rich.progress import track
 from datetime import datetime
 
-from app.common.const import get_settings
+from app.common.const import settings
 from app.errors.exceptions import ResourceDataError
 from app.utils.logging import logger
 
 
-settings = get_settings()
-pp_mapping_table = settings.PP_MAPPING_TABLE
-document_type_set = settings.DOCUMENT_TYPE_SET
-
-# TODO 고객사별로 다르게할 필요 있음
-kdt_pp_custom_mapping: Dict = settings.KDT_CUSTOM_MAPPING.get('KDT_ENDPOINT').get('PP')
+PP_MAPPING_TABLE: Dict[str, List[str]] = settings.BSN_CONFIG.get("PP_MAPPING_TABLE", {})
+document_type_set = settings.BSN_CONFIG.get("DOCUMENT_TYPE_SET")
 
 
 # @FIXME: 이름과 기능이 맞지 않음
@@ -88,20 +84,9 @@ def set_json_response(
         )
     )
 
-# TODO 고객사별로 다르게할 필요 있음
-def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> Optional[str]:
-    if not isinstance(pp_mapping_table, dict):
-        raise ResourceDataError(detail="pp mapping table is not a dict")
-    
-    pp_api= "general_pp"
-    for pp_api, doc_type_list in pp_mapping_table.items():
-        if doc_type in doc_type_list: break
-    
-    if customer == "kakaobank" and doc_type in document_type_set:
-        pp_api = document_type_set.get(doc_type)
 
-
-    return pp_api
+def get_pp_api_name(doc_type: str, customer: str = settings.CUSTOMER) -> List[str]:
+    return PP_MAPPING_TABLE.get(doc_type, ["general_pp"])
 
 
 def cal_time_elapsed_seconds(

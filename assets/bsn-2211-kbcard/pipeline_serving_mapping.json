@@ -1,0 +1,9 @@
+{
+  "SERVING_MAPPING_TABLE": {
+    "__comment__": [
+      "serving url with pipeline mapping table",
+      "rotate, gocr, cls, kv, el, kvel, tocr, idcard, bankbook, ..."
+    ],
+    "idcard": "http://textscope-serving:5000"
+  }
+}

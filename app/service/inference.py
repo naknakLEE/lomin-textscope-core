@@ -10,7 +10,6 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from app.config import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
@@ -34,34 +33,34 @@ from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
 from app.errors import exceptions as ex
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
-Pipeline = TypeVar("Pipeline")
-PIPELINE_GOCR = pipeline.gocr_
-PIPELINE_CLS = pipeline.cls_
-PIPELINE_KV = pipeline.kv_
-PIPELINE_IDCARD = pipeline.idcard_
+router = APIRouter()
 
+Pipeline = TypeVar("Pipeline")
 INFERENCE_PIPELINE: Dict[str, Tuple[str, Pipeline]] = {
-    "gocr":   [ ("gocr", PIPELINE_GOCR), ],
-    "cls":    [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS) ],
-    "kv":     [ ("gocr", PIPELINE_GOCR),                        ("kv", PIPELINE_KV) ],
-    "cls-kv": [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS), ("kv", PIPELINE_KV) ],
+    "rotate":   [ ("rotate", pipeline.rotate_), ],
     
-    "idcard": [ ("idcard", PIPELINE_IDCARD) ]
+    "gocr":     [ ("gocr", pipeline.gocr_), ],
+    "cls":      [ ("gocr", pipeline.gocr_), ("cls", pipeline.cls_) ],
+    "kv":       [ ("gocr", pipeline.gocr_),                        ("kv", pipeline.kv_) ],
+    "cls-kv":   [ ("gocr", pipeline.gocr_), ("cls", pipeline.cls_), ("kv", pipeline.kv_) ],
+    
+    "idcard":   [ ("idcard", pipeline.idcard_) ],
+    "bankbook": [ ("bankbook", pipeline.bankbook_) ],
 }
 
 
 def ocr(
     *,
     request: Request,
-    inputs: Dict,
-    current_user: UserInfoInModel,
-    session: Session,
+    inputs: Dict = Body(...),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
 ) -> Dict:
     """
     ### 토큰과 파일을 전달받아 모델 서버에 ocr 처리 요청
@@ -156,8 +155,8 @@ def ocr(
                 inference_result=inference_results
             )
             if isinstance(pipeline_result, JSONResponse):
-                return pipeline_result
-            
+                return pipeline_result 
+
             status_code, inference_results, response_log = pipeline_result
             
             pipeline_end_time = datetime.now()
@@ -171,7 +170,8 @@ def ocr(
             logger.info("{} inference time: {}s", inference_name, (pipeline_end_time - pipeline_start_time).total_seconds())
     
     # DB에 저장하는 추론 결과에서 텍스트 또는 값 삭제 -> 개인정보 제거
-    if hydra_cfg.database.delete_privacy_data:
+    delete_privacy_data = settings.BSN_CONFIG["DATABASE"]["DELETE_PRIVACY_DATA"]
+    if delete_privacy_data:
         privacy_inference_results = get_removed_text_inference_result(inference_results)
     
     inference_id = get_ts_uuid("inference")
@@ -181,7 +181,7 @@ def ocr(
         document_id=document_id,
         user_email=user_email,
         user_team=user_team,
-        inference_result=privacy_inference_results if hydra_cfg.database.delete_privacy_data else inference_results,
+        inference_result=privacy_inference_results if delete_privacy_data else inference_results,
         inference_type=inputs.get("inference_type"),
         page_num=inference_results.get("page", target_page),
         doc_type_idx=inference_results.get("doc_type", {}).get("doc_type_idx", 0),
@@ -209,9 +209,9 @@ def ocr(
 def ocr_old(
     *,
     request: Request,
-    inputs: Dict,
-    current_user: UserInfoInModel,
-    session: Session,
+    inputs: Dict = Body(...),
+    current_user: UserInfoInModel = Depends(get_current_active_user),
+    session: Session = Depends(db.session),
 ) -> Dict:
     """
     cls-kv 적용전 ocr

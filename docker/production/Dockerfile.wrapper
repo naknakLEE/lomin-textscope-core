@@ -4,6 +4,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG BUILD_FOLDER_PATH
 ARG CUSTOMER
+ARG BSN_CODE
 ARG MAINTAINER
 ARG POETRY_VERSION
 
@@ -38,8 +39,7 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSIO
     poetry config virtualenvs.create false
 
 COPY ./${CUSTOMER}_wrapper /workspace/${CUSTOMER}_wrapper
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/textscope.json /workspace/assets/textscope.json
-COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/kdt.json /workspace/assets/kdt.json
+COPY ./${BUILD_FOLDER_PATH}/${CUSTOMER}/assets/${BSN_CODE} /workspace/assets/${BSN_CODE}
 COPY ./.env.prod /workspace/.env
 
 COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/

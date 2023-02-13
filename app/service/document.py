@@ -7,10 +7,9 @@ from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.config import hydra_cfg
 from app.database.connection import db
 from app.database import query, schema
-from app.common.const import get_settings
+from app.common.const import settings
 from app.utils.logging import logger
 from app.schemas import error_models as ErrorResponse
 from app.models import UserInfo as UserInfoInModel
@@ -21,19 +20,17 @@ from app.utils.image import (
 )
 from app.utils.utils import is_admin
 
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
-settings = get_settings()
-
 def get_thumbnail(
     document_id:  str,
-    page_num:     int             ,
-    scale:        float           ,
-    current_user: UserInfoInModel ,
+    page_num:     int,
+    scale:        float,
+    current_user: UserInfoInModel,
     session:      Session         
 ) -> JSONResponse:
     """

@@ -1,0 +1,22 @@
+{
+  "USE_MAPPER": false,
+  "VALID_DOC_TYPE": [
+  ],
+  "DOC_TYPE_MAPPER": {
+    "__comment__": "lomin -> custom mapping table"
+  },
+  "DOC_TYPE_MAPPER_REVERSE": {
+    "__comment__": "custom -> lomin mapping table"
+  },
+  "CUSTOM_FIELD_MAPPER": {
+    "__comment__": "custom field mapping table"
+  },
+  "CUSTOM_FIELD_PROPERTY": {
+    "__comment__": [
+      "custom field property table",
+      " - type: boolean, integer, float, word (default: word)",
+      " - list: True, False (default: False)",
+      " - default: {value}"
+    ]
+  }
+}

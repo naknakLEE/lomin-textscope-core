@@ -256,9 +256,7 @@ def insert_inference(
     
     # del inference_result["response_log"]
     
-    if(inference_result.get("response_log")): del inference_result["response_log"]
     try:
-        
         result = schema.InferenceInfo.create(
             session=session,
             inference_id=inference_id,

@@ -95,8 +95,4 @@ def app_generator() -> FastAPI:
     # Base Function Route 등록
     app.include_router(base.router, tags=["Base Function"], prefix="/base", include_in_schema=True)
     
-    
-    app.include_router(api_index.router, tags=["API"], prefix="/api/v1", include_in_schema=True)
-    app.include_router(api_inference.router, tags=["API"], prefix="/api/v1/inference")
-    
     return app

@@ -28,7 +28,6 @@ services:
             "
 
   web:
-    user: "0:0"
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.web
@@ -38,14 +37,14 @@ services:
         POETRY_VERSION: ${POETRY_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         CUSTOMER: ${CUSTOMER}
+        BSN_CODE: ${BSN_CODE}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
     # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT} --timeout 1200
 
   pp:
-    user: "0:0"
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.pp
@@ -55,22 +54,23 @@ services:
         POETRY_VERSION: ${POETRY_VERSION}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         CUSTOMER: ${CUSTOMER}
+        BSN_CODE: ${BSN_CODE}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
       - PYTHONPATH=/workspace
     tty: true
     working_dir: /workspace/pp_server
     # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT} --timeout 1200
 
   wrapper:
-    user: "0:0"
     build:
       context: ./
       dockerfile: docker/production/Dockerfile.wrapper
       args:
         MAINTAINER: ${MAINTAINER}
         CUSTOMER: ${CUSTOMER}
+        BSN_CODE: ${BSN_CODE}
         BUILD_FOLDER_PATH: ${BUILD_FOLDER_PATH}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         POETRY_VERSION: ${POETRY_VERSION}

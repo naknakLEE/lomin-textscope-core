@@ -1,0 +1,11 @@
+{
+  "PP_MAPPING_TABLE": {
+    "__comment__": [
+      "pp api with doc_type code mapping table",
+      "pp api must be list"
+    ],
+    "ID-RRC": ["kbc3_idcard"],
+    "ID-DLC": ["kbc3_idcard"],
+    "ID-ARC": ["kbc3_idcard"]
+  }
+}

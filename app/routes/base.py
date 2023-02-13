@@ -6,8 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from app.models import OAuth2PasswordRequestForm, UserInfo as UserInfoInModel
 from fastapi import APIRouter, Body, Depends
-from app.config import hydra_cfg
-from app.common.const import get_settings
+from app.common.const import settings
 from app.utils.logging import logger
 from app.utils.minio import MinioService
 from app.database.connection import db 
@@ -16,7 +15,7 @@ from app.service.base import (
     post_upload_document as post_upload_document_service,
     post_delete_document as post_delete_document_service
 )
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
@@ -27,7 +26,6 @@ else:
     TASK_ID(ClickUp): CU-2unzy4h
 """
 
-settings = get_settings()   # default setting
 router = APIRouter()
 minio_client = MinioService()   # minio service setting
 

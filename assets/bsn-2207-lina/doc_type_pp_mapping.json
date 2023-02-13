@@ -1,0 +1,28 @@
+{
+  "PP_MAPPING_TABLE": {
+    "__comment__": [
+      "pp api with doc_type code mapping table",
+      "pp api must be list"
+    ],
+    "MD-CS": ["lina1_kv"],
+    "MD-CAD": ["lina1_kv"],
+    "MD-MC": ["lina1_kv"],
+    "MD-DN": ["lina1_kv"],
+    "MD-COT": ["lina1_kv"],
+    "MD-CMT": ["lina1_kv"],
+    "LINA1-AFC": ["lina1_kv"],
+    "LINA1-CDT-A": ["lina1_tocr"],
+    "LINA1-CDT-B": ["lina1_tocr"],
+    "LINA1-IC": ["lina1_tocr"],
+    "LINA1-PIC": ["lina1_tocr"],
+    "ID-RRC": ["lina1_id_cls"],
+    "ID-RRB": ["lina1_id_cls"],
+    "ID-DLC": ["lina1_id_cls"],
+    "ID-ARB": ["lina1_id_cls"],
+    "ID-ARC": ["lina1_id_cls"],
+    "ID-OKC": ["lina1_id_cls"],
+    "ID-ONC": ["lina1_id_cls"],
+    "ID-PP": ["lina1_id_cls"],
+    "ID-PRC": ["lina1_id_cls"]
+  }
+}

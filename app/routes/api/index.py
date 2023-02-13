@@ -9,18 +9,13 @@ from fastapi.encoders import jsonable_encoder
 from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
-from fastapi.security import (
-    HTTPAuthorizationCredentials,
-    HTTPBearer
-)
 import base64
 
-from app.config import hydra_cfg
 from app.utils.background import bg_ocr
 from app.database.connection import db
 from app.database import query, schema
 from app.models import UserInfo as UserInfoInModel
-from app.common.const import get_settings
+from app.common.const import settings
 from app.utils.logging import logger
 from app import models
 from app.utils.document import document_path_verify
@@ -38,14 +33,13 @@ from app.utils.image import (
     get_image_bytes,
     load_image,
 )
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
-    
-settings = get_settings()
+
+
 router = APIRouter()
-security = HTTPBearer() if hydra_cfg.route.use_token else HTTPBearerFake()
 
 
 @router.post("/docx")

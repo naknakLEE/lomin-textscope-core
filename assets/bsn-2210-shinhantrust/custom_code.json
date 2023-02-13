@@ -1,0 +1,70 @@
+{
+  "USE_MAPPER": true,
+  "VALID_DOC_TYPE": [
+    "SHT-00",
+    "SHT-01"
+  ],
+  "DOC_TYPE_MAPPER": {
+    "__comment__": "lomin -> custom mapping table",
+    "ETC": "SHT-00",
+    "CP-REF": "SHT-01"
+  },
+  "DOC_TYPE_MAPPER_REVERSE": {
+    "__comment__": "custom -> lomin mapping table",
+    "SHT-00": "ETC",
+    "SHT-01": "CP-REF"
+  },
+  "CUSTOM_FIELD_MAPPER": {
+    "__comment__": "custom field mapping table",
+    "SHT-01": {
+      "CP-REF-IB": "SHT-01-01",
+      "CP-REF-AN": "SHT-01-02",
+      "CP-REF-AH": "SHT-01-03",
+      "CP-REF-EI": "SHT-01-04",
+      "CP-REF-WRA": "SHT-01-05",
+      "CP-REF-TRA": "SHT-01-06",
+      "CP-REF-RT": "SHT-01-07",
+      "CP-REF-DA": "SHT-01-08",
+      "CP-REF-DBN": "SHT-01-09",
+      "CP-REF-ED": "SHT-01-10"
+    }
+  },
+  "CUSTOM_FIELD_PROPERTY": {
+    "__comment__": [
+      "custom field property table",
+      " - type: boolean, integer, float, word (default: word)",
+      " - list: True, False (default: False)",
+      " - default: {value}"
+    ],
+    "SHT-01": {
+      "SHT-01-01": {
+        "list": true
+      },
+      "SHT-01-02": {
+        "list": true
+      },
+      "SHT-01-03": {
+        "list": true
+      },
+      "SHT-01-04": {
+        "list": true
+      },
+      "SHT-01-05": {
+        "list": true
+      },
+      "SHT-01-06": {},
+      "SHT-01-07": {
+        "list": true
+      },
+      "SHT-01-08": {
+        "list": true
+      },
+      "SHT-01-09": {
+        "list": true
+      },
+      "SHT-01-10": {
+        "list": true
+      }
+    }
+  }
+}

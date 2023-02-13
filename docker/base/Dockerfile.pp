@@ -15,6 +15,8 @@ RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
     locale-gen ko_KR.UTF-8
 
+RUN apt-get -qq update
+
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
     python3-pip \
     python3-venv \
@@ -23,6 +25,7 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
     libmysqlclient-dev \
     curl \
     g++ \
+    openjdk-8-jdk \
     python3-dev
 
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \

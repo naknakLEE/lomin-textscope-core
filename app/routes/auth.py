@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
-from app.config import hydra_cfg
+from app.common.const import settings
 from app.models import Token, OAuth2PasswordRequestForm
 from app.schemas.json_schema import auth_token_responses
 from app.common.const import get_settings
@@ -16,7 +16,7 @@ from app.service.auth import (
 )
 
 from app.utils.auth import get_current_active_user as get_current_active_user_token_validation
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user

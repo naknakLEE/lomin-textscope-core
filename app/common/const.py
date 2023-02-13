@@ -1,54 +1,52 @@
 import json
 import base64
 
+import os
+import glob
 from typing import List, Optional, Any, Dict, Tuple
 from pydantic import BaseSettings
 from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
-from os import path
 from pathlib import Path
 from PIL import Image
 from io import BytesIO
 
-
-base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+bsn_code = os.getenv("BSN_CODE")
 
 
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
+    # LOAD BSN CONFIG
     encoding = settings.__config__.env_file_encoding
-    customer_config = json.loads(
-        Path(f"/workspace/assets/textscope.json").read_text(encoding)
-    )
-    config: dict = customer_config
-
-    # TODO 고객사별로 다르게할 필요 있음
-    # KDT 전용 config_json 등록
-    kdt_config = json.loads(
-        Path(f"/workspace/assets/kdt.json").read_text(encoding)
-    )
-    config.update(kdt_config)
+    config_path_list = glob.glob(f"/workspace/assets/{bsn_code}/*.json", recursive=False)
     
-    buffered = BytesIO()
-    for doc_type, templates in config.get("TOCR_TEMPLATES").items():
-        for index, template_image_info in templates.get("template_images", {}).items():
+    customer_config = dict()
+    for config_path in config_path_list:
+        customer_config.update(json.loads(Path(config_path).read_text(encoding)))
+    
+    # LOAD TOCR CONFIG
+    tocr_templates: dict = customer_config.get("TOCR_TEMPLATES", None)
+    if tocr_templates is not None:
+        tocr_templates.pop("__comment__")
+        
+        for doc_type, template_info in tocr_templates.items():
+            gt_json_path = template_info["template_json"]["json_path"]
+            gt_json = json.loads(Path(gt_json_path).read_text(encoding))
             
-            # load template json
-            image_id = template_image_info.get("image_id")
-            template_json = config.get("TOCR_TEMPLATES_JSON").get(image_id)
-            templates.update(template_json=template_json)
+            template_info["template_json"] = gt_json
             
-            # load template image
-            template_image_path = template_image_info.get("image_path")
-            
-            template_image = Image.open(template_image_path)
-            template_image.save(buffered, "png")
-            template_image_base64 = str(base64.b64encode(buffered.getvalue()))[2:-1]
-            buffered.seek(0)
-            
-            template_image_info.update(image_bytes=template_image_base64)
+            buffered = BytesIO()
+            for idx, image_info in template_info["template_images"].items():
+                template_image = Image.open(image_info["image_path"])
+                template_image.save(buffered, image_info["image_path"].split(".")[-1])
+                template_image_base64 = str(base64.b64encode(buffered.getvalue()))[2:-1]
+                buffered.seek(0)
+                
+                image_info["image_bytes"]=template_image_base64
+            buffered.close()
     
     
-    return config
+    return dict(BSN_CONFIG=customer_config)
 
 
 class Settings(BaseSettings):
@@ -56,7 +54,7 @@ class Settings(BaseSettings):
     POSTGRES_IP_ADDR: str
     WEB_IP_ADDR: str
     SERVING_IP_ADDR: str
-    # NGINX_SERVING_IP_ADDR: str
+    NGINX_SERVING_IP_ADDR: str
     REDIS_IP_ADDR: str
     PP_IP_ADDR: str
     MINIO_IP_ADDR: str
@@ -125,6 +123,8 @@ class Settings(BaseSettings):
     BASE_PATH: str = "/workspace"
     TIMEOUT_SECOND: float = 1200.0
     CUSTOMER: str
+    BSN_CODE: str = bsn_code
+    BSN_CONFIG: dict
     TEXTSCOPE_CORE_WORKERS: int = 1
 
     # MINIO CONFIG
@@ -136,7 +136,6 @@ class Settings(BaseSettings):
     MINIO_LIFE_CYCLE_ENABLED: str = "Enabled"
     MINIO_LIFE_CYCLE_DAYS: int = 30
     MINIO_LIFE_CYCLE_RULE_ID: str = "textscope_minio_life_cycle"
-    MINIO_LIMIT_HARD_SIZE: str = "100gi"     
 
     # HINT CONFIG
     KV_HINT_CER_THRESHOLD: float = 0.2
@@ -176,14 +175,6 @@ class Settings(BaseSettings):
 
     # DATABASE INIT INSERT DATA
     INIT_DATA_XLSX_FILE_LIST: list = [
-        {
-            "name": "textscope_lina",
-            "password": "cbVTURA=Uhe76vRd*ele"
-        },
-        {
-            "name": "kdt2204",
-            "password": "cbVTURA=Uhe76vRd*ele"
-        },
         {
             "name": "textscope",
             "password": "cbVTURA=Uhe76vRd*ele"
@@ -315,3 +306,6 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Any:
     return Settings()
+
+
+settings: Settings = get_settings()

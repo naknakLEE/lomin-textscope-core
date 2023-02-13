@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from pydantic.networks import EmailStr
 import urllib.parse
 
+from app.common.const import settings
 from app.database.connection import db
 # from app.database.schema import Users, Usage
 from app.utils.auth import get_password_hash
@@ -16,10 +17,9 @@ from app import models
 from app.models import UserInfo as UserInfoInModel
 from app.schemas import error_models as ErrorResponse
 
-from app.config import hydra_cfg
 from app.database import query, schema
 from app.utils.utils import is_admin
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user

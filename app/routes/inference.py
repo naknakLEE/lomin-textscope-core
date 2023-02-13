@@ -10,7 +10,6 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from app.config import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
@@ -34,34 +33,17 @@ from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
 from app.errors import exceptions as ex
-
-
 from app.service.inference import (
     ocr as ocr_service,
     ocr_old as ocr_old_service
 )
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
 
 
 router = APIRouter()
-
-Pipeline = TypeVar("Pipeline")
-PIPELINE_GOCR = pipeline.gocr_
-PIPELINE_CLS = pipeline.cls_
-PIPELINE_KV = pipeline.kv_
-PIPELINE_IDCARD = pipeline.idcard_
-
-INFERENCE_PIPELINE: Dict[str, Tuple[str, Pipeline]] = {
-    "gocr":   [ ("gocr", PIPELINE_GOCR), ],
-    "cls":    [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS) ],
-    "kv":     [ ("gocr", PIPELINE_GOCR),                        ("kv", PIPELINE_KV) ],
-    "cls-kv": [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS), ("kv", PIPELINE_KV) ],
-    
-    "idcard": [ ("idcard", PIPELINE_IDCARD) ]
-}
 
 
 @router.post("/ocr", status_code=200, responses=inference_responses)

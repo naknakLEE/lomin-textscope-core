@@ -17,14 +17,13 @@ from fastapi.security import (
 
 import base64
 
-from app.config import hydra_cfg
 from app.services.index import request_rotator
 from app.utils.background import bg_ocr
 from app.database.connection import db
 from app.database import query, schema
 from app.models import UserInfo as UserInfoInModel
 from app.wrapper import pipeline
-from app.common.const import get_settings
+from app.common.const import settings
 from app.utils.logging import logger
 from app import models
 from app.wrapper.pipeline import rotate_
@@ -44,13 +43,10 @@ from app.utils.image import (
     read_image_from_bytes,
     load_image,
 )
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user
-
-
-settings = get_settings()
 
 
 def check_status() -> Any:
@@ -279,7 +275,7 @@ async def post_upload_document(
         if isinstance(insert_document_result, JSONResponse):
             return insert_document_result
         
-        if hydra_cfg.document.background_ocr:
+        if settings.BSN_CONFIG["DOCUMENT"]["BACKGROUND_OCR"]:
             # task_id = get_ts_uuid("task")
             # response.get("resource_id").update(task_id=task_id)
             background_tasks.add_task(

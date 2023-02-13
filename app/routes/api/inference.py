@@ -8,7 +8,6 @@ from pathlib import Path
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from app.config import hydra_cfg
 from app.wrapper import pp, pipeline, settings
 from app.schemas.json_schema import inference_responses
 from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
@@ -31,7 +30,7 @@ from app.database import query, schema
 from app.database.connection import db
 from app.schemas import error_models as ErrorResponse
 from app.errors import exceptions as ex
-if hydra_cfg.route.use_token:
+if settings.BSN_CONFIG.get("USE_TOKEN", False):
     from app.utils.auth import get_current_active_user as get_current_active_user
 else:
     from app.utils.auth import get_current_active_user_fake as get_current_active_user

@@ -90,12 +90,21 @@ do
     cp -r ${model_parent_path} ${build_model_path_cp}
     echo "Copied: ${model_parent_path} -> ${build_model_path}"
 
-
     # ./build/textscope/serving/models/에 있는 비암호화 모델 삭제
     model_path_length=`echo ${model_path} | tr -cd '/' | wc -m`
     model_filename=`echo ${model_path} | cut -d '/' -f $((${model_path_length} + 1))`
 
     rm ${build_model_path}/${model_filename}
+
+    # 토크나이저 있으면 복사 ./inference_server/assets/models/bros_tokenizer -> ./build/textscope/serving/models/bros_tokenizer
+    copy_tokenizer=`cat ${model_config} | shyaml get-value resources.${index}.tokenizer_path False`
+    if [ ${copy_tokenizer} != False ];
+    then
+        tokenizer_path_cp=`echo ${copy_tokenizer} | cut -d '/' -f 2-`
+        cp -r ./inference_server/${copy_tokenizer} ./build/textscope/serving/${tokenizer_path_cp}
+        echo "Copied: ./inference_server/${copy_tokenizer} -> ./build/textscope/serving/${tokenizer_path_cp}"
+    fi
+
 done
 
 # ./inference_server/assets/models/에 있는 암호화된 모델 삭제

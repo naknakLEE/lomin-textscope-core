@@ -4,6 +4,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG BUILD_FOLDER_PATH
 ARG CUSTOMER
+ARG BSN_CODE
 ARG MAINTAINER
 ARG POETRY_VERSION
 
@@ -20,6 +21,8 @@ RUN apt-get -qq update
 
 RUN apt-get -y -qq install locales && \
     locale-gen ko_KR.UTF-8
+
+RUN apt-get -qq update
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install \
     curl \
