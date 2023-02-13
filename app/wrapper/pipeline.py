@@ -143,6 +143,7 @@ def single(
         if(doc_type_hint.use and doc_type_hint.trust): doc_type = doc_type_hint.doc_type
 
     # gocr
+    inputs['dpi_resized_origin'] = False # dpi 보정 전의 원본 이미지 width, height 
     inferecne_response = client.post(
         f"{model_server_url}/gocr",
         json=inputs,

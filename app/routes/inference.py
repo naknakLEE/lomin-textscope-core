@@ -198,6 +198,8 @@ def ocr(
                 doc_type=inference_results.get("doc_type"),
                 image_height=inference_results.get("image_height"),
                 image_width=inference_results.get("image_width"),
+                image_width_origin=inference_results.get("image_width_origin"),
+                image_height_origin=inference_results.get("image_height_origin"),
                 relations=inference_results.get("relations"),
                 task_id=task_id,
             )
@@ -228,7 +230,12 @@ def ocr(
                 inference_results["tables"] = post_processing_results.get('tables')
                 logger.info(
                     f'{task_id}-post-processed tables result:\n{pretty_dict(inference_results.get("tables", {}))}'
-                )                
+                )    
+            if post_processing_results.get('boxes'):
+                inference_results["boxes"] = post_processing_results.get('boxes')
+                # logger.info(
+                #     f'{task_id}-post-processed boxes result:\n{pretty_dict(inference_results.get("boxes", {}))}'
+                # )                
         
     
     response_log.update(inference_results.get("response_log", {}))
