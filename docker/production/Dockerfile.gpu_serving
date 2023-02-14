@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION
 
-FROM nvidia/cuda:11.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
+FROM nvidia/cuda:11.1.1-cudnn8-runtime-ubuntu${UBUNTU_VERSION}
 
 ARG BUILD_FOLDER_PATH
 ARG APP_NAME
@@ -27,9 +27,9 @@ RUN apt-get update && \
 RUN pip3 install --upgrade pip && \
     pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
-RUN git clone http://github.com/bentoml/bentoml && \
+RUN git clone -b v0.13.1 http://github.com/bentoml/bentoml && \
     cd bentoml && \
-    pip3 install -r ./guides/quick-start/requirements.txt
+    pip3 install -r ./guides/quick-start/requirements.txt --verbose
 
 COPY ./requirments/requirments-serving.txt /workspace/
 RUN pip3 install -r /workspace/requirments-serving.txt && \

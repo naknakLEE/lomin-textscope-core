@@ -1,4 +1,4 @@
-SCRIPT_BASE_PATH="/media/sf_Textscope"
+SCRIPT_BASE_PATH="."
 .  ${SCRIPT_BASE_PATH}/.env
 
 THALES_LINUXENV="linuxenv"
