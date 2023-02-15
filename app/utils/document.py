@@ -23,7 +23,7 @@ from app.schemas import error_models as ErrorResponse
 settings = get_settings()
 minio_client = MinioService()
 support_file_extension_list = {
-    "image": [".jpg", ".jpeg", ".jp2", ".png", ".bmp"],
+    "image": [".jpg", ".jpeg", ".jp2", ".png", ".bmp", ".jfif"],
     "tif": [".tif", ".tiff"],
     "pdf": [".pdf"]
 }
