@@ -3,6 +3,7 @@ FROM ubuntu:${UBUNTU_VERSION}
 
 ARG POETRY_VERSION
 ARG CUSTOMER
+ARG POETRY_VERSION
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -10,6 +11,7 @@ ENV PYTHONPATH="$PYTHONPATH:/workspace/${CUSTOMER}_wrapper"
 ENV API_ENV="production"
 ENV PATH="/root/.local/bin:${PATH}"
 ENV DOCKER_ENV="True"
+ENV LD_LIBRARY_PATH="/opt/oracle/instantclient_21_7"
 
 RUN apt-get -qq update && \
     apt-get -y -qq install locales && \
@@ -22,7 +24,10 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y -qq install git \
     libgl1-mesa-glx libglib2.0-0 \
     libmysqlclient-dev \
     vim \
-    curl
+    curl \
+    libaio1 libaio-dev \
+    wget \
+    unzip
 
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 - && \
     echo "PATH=/root/.local/bin:$PATH" > /etc/environment && \
@@ -34,6 +39,11 @@ WORKDIR /workspace
 COPY ./requirements/${CUSTOMER}/pyproject.toml /workspace/
 COPY ./requirements/${CUSTOMER}/poetry.lock /workspace/
 RUN poetry install
+
+WORKDIR /opt/oracle
+
+RUN wget https://download.oracle.com/otn_software/linux/instantclient/217000/instantclient-basic-linux.x64-21.7.0.0.0dbru.zip
+RUN unzip instantclient-basic-linux.x64-21.7.0.0.0dbru.zip
 
 RUN groupadd -r lomin -g 1000 && \
     useradd -m -u 1000 -r -g lomin -s /sbin/nologin -c "Docker image user" textscope

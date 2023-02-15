@@ -64,7 +64,7 @@ services:
     tty: true
     working_dir: /workspace/app
     entrypoint: python3 main.py
-    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
 
 
   pp:
@@ -80,15 +80,15 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     environment:
       - COLUMNS=${COLUMNS:-200}
-    ports:
-      - 8080:${PP_IP_PORT}
+    # ports:
+    #   - 8080:${PP_IP_PORT}
     volumes:
       - ./:/workspace
     tty: true
     restart: unless-stopped
     working_dir: /workspace/pp_server/pp
     entrypoint: python3 main.py
-    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
 
 
   wrapper:
@@ -116,12 +116,16 @@ services:
       - LC_ALL=C.UTF-8
     working_dir: /workspace/textscope_wrapper/wrapper
     entrypoint: python3 main.py
-    # entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+    # entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
 
 
   nginx:
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
     ports:
       - 8050:80
+      - 8080:8080
       - 443:443
 
   nginx-exporter:

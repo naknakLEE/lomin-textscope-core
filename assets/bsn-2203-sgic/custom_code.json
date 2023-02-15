@@ -1,0 +1,162 @@
+{
+  "USE_MAPPER": true,
+  "VALID_DOC_TYPE": [
+    "ID-ARB",
+    "ID-ARC",
+    "ID-DLC",
+    "ID-OKC",
+    "ID-ONC",
+    "ID-PRC",
+    "ID-RRC",
+    "Z3",
+    "J1",
+    "L3",
+    "R6",
+    "W2",
+    "Z3",
+    "J5",
+    "신분증",
+    "idcard",
+    "A2",
+    "AC",
+    "RF",
+    "Z1",
+    "통장사본",
+    "bankbook",
+    "FN-BB"
+  ],
+  "DOC_TYPE_MAPPER": {
+    "__comment__": "lomin -> custom mapping table"
+  },
+  "DOC_TYPE_MAPPER_REVERSE": {
+    "__comment__": [
+      "custom -> lomin mapping table",
+      "대표 lomin doc_type 코드만 작성"
+    ],
+    "ID-ARB": "idcard",
+    "ID-ARC": "idcard",
+    "ID-DLC": "idcard",
+    "ID-OKC": "idcard",
+    "ID-ONC": "idcard",
+    "ID-PRC": "idcard",
+    "ID-RRC": "idcard",
+    "Z3": "idcard",
+    "J1": "idcard",
+    "L3": "idcard",
+    "R6": "idcard",
+    "W2": "idcard",
+    "J5": "idcard",
+    "신분증": "idcard",
+    "idcard": "idcard",
+    "A2": "bankbook",
+    "AC": "bankbook",
+    "RF": "bankbook",
+    "Z1": "bankbook",
+    "통장사본": "bankbook",
+    "bankbook": "bankbook",
+    "FN-BB": "bankbook"
+  },
+  "CUSTOM_FIELD_MAPPER": {
+    "__comment__": "custom field mapping table",
+    "ID-RRC": {
+      "ID-RRC-TTL": "title",
+      "ID-RRC-RGN": "rrc_regnum",
+      "ID-RRC-NM": "rrc_name",
+      "ID-RRC-RA": "address",
+      "ID-RRC-OD": "rrc_issue_date",
+      "ID-RRC-CO": "representer"
+    },
+    "ID-DLC": {
+      "ID-DLC-TTL": "title",
+      "ID-DLC-TTLE": "title_eng",
+      "ID-DLC-LT": "license_type",
+      "ID-DLC-NM": "dlc_name",
+      "ID-DLC-DLN": "dlc_license_num",
+      "ID-DLC-RGN": "dlc_regnum",
+      "ID-DLC-RA": "address",
+      "ID-DLC-RP": "dlc_exp_date",
+      "ID-DLC-SN": "card_code",
+      "ID-DLC-OD": "dlc_issue_date",
+      "ID-DLC-CP": "representer"
+    },
+    "ID-OKC": {
+      "ID-OKC-TTL": "title",
+      "ID-OKC-FRN": "arc_regnum",
+      "ID-OKC-GD": "sex",
+      "ID-OKC-NM": "arc_name",
+      "ID-OKC-NLT": "nationality",
+      "ID-OKC-SQ": "residential_status",
+      "ID-OKC-IOK": "immigration_name",
+      "ID-OKC-OD": "arc_issue_date"
+    },
+    "ID-ARC": {
+      "ID-ARC-TTL": "title",
+      "ID-ARC-FRN": "arc_regnum",
+      "ID-ARC-GD": "sex",
+      "ID-ARC-NM": "arc_name",
+      "ID-ARC-NLT": "nationality",
+      "ID-ARC-SQ": "residential_status",
+      "ID-ARC-IOK": "immigration_name",
+      "ID-ARC-OD": "arc_issue_date"
+    },
+    "FN-BB": {
+      "bank_name_value": "bb_bank",
+      "account_num_value": "bb_account_num",
+      "account_name_value": "bb_account_holder"
+    }
+  },
+  "CUSTOM_FIELD_PROPERTY": {
+    "__comment__": [
+      "custom field property table",
+      " - type: boolean, integer, float, word (default: word)",
+      " - list: True, False (default: False)",
+      " - default: {value}"
+    ],
+    "ID-RRC": {
+      "title": {},
+      "rrc_regnum": {},
+      "rrc_name": {},
+      "address": {},
+      "rrc_issue_date": {},
+      "representer": {}
+    },
+    "ID-DLC": {
+      "title": {},
+      "title_eng": {},
+      "license_type": {},
+      "dlc_name": {},
+      "dlc_license_num": {},
+      "dlc_regnum": {},
+      "address": {},
+      "dlc_exp_date": {},
+      "card_code": {},
+      "dlc_issue_date": {},
+      "representer": {}
+    },
+    "ID-OKC": {
+      "title": {},
+      "arc_regnum": {},
+      "sex": {},
+      "arc_name": {},
+      "nationality": {},
+      "residential_status": {},
+      "immigration_name": {},
+      "arc_issue_date": {}
+    },
+    "ID-ARC": {
+      "title": {},
+      "arc_regnum": {},
+      "sex": {},
+      "arc_name": {},
+      "nationality": {},
+      "residential_status": {},
+      "immigration_name": {},
+      "arc_issue_date": {}
+    },
+    "FN-BB": {
+      "bb_bank": {},
+      "bb_account_num": {},
+      "bb_account_holder": {}
+    }
+  }
+}

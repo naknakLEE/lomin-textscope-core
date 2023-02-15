@@ -1,0 +1,65 @@
+{
+  "TOCR_TEMPLATES": {
+    "__comment__": [
+      "use lomin_doc_type_code"
+    ],
+    "LINA1-CDT-A": {
+      "template_json": {
+        "json_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-CDT-A/gt_v0.7.0.json"
+      },
+      "template_images": {
+        "0": {
+          "image_id": "A0124_page=000001",
+          "image_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-CDT-A/template/치아치료확인서_page=000003.png",
+          "image_bytes": ""
+        }
+      }
+    },
+    "LINA1-CDT-B": {
+      "template_json": {
+        "json_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-CDT-B/gt_v0.7.0.json"
+      },
+      "template_images": {
+        "0": {
+          "image_id": "A0124_page=000001",
+          "image_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-CDT-B/template/치아치료확인서_page=000002.png",
+          "image_bytes": ""
+        }
+      }
+    },
+    "LINA1-IC": {
+      "template_json": {
+        "json_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-IC/gt_v0.3.0.json"
+      },
+      "template_images": {
+        "0": {
+          "image_id": "A0124_page=000001",
+          "image_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-IC/template/A0124_page=000001.png",
+          "image_bytes": ""
+        }
+      }
+    },
+    "LINA1-PIC": {
+      "template_json": {
+        "json_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-PIC/gt_v0.3.0.json"
+      },
+      "template_images": {
+        "0": {
+          "image_id": "A0124_page=000002",
+          "image_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-PIC/template/A0124_page=000002.png",
+          "image_bytes": ""
+        },
+        "1": {
+          "image_id": "A0124_page=000003",
+          "image_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-PIC/template/A0124_page=000003.png",
+          "image_bytes": ""
+        },
+        "2": {
+          "image_id": "A0124_page=000004",
+          "image_path": "/workspace/assets/bsn-2207-lina/templates/LINA1-PIC/template/A0124_page=000004.png",
+          "image_bytes": ""
+        }
+      }
+    }
+  }
+}

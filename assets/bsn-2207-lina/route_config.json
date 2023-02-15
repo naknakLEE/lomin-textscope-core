@@ -1,0 +1,11 @@
+{
+  "USE_TOKEN": false,
+  "INCLUDE_SCHEMA_ALL": false,
+  "INCLUDE_SCHEMA": [
+    "[get]/api/v1/token/validation",
+    "[post]/api/v1/docx",
+    "[post]/api/v1/inference/kv",
+    "[post]/api/v1/inference/cls",
+    "[post]/api/v1/inference/cls-kv"
+  ]
+}

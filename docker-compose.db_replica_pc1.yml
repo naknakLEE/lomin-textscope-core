@@ -16,8 +16,8 @@ services:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
   
-  pg_0:
-    container_name: textscope-pg-0
+  pg-0:
+    container_name: textscope-pg0
     image: docker.io/bitnami/postgresql-repmgr:14
     ports:
       - 5432:5432
@@ -31,14 +31,14 @@ services:
       - POSTGRESQL_DATABASE=${POSTGRES_DATABASE}
       - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
       - REPMGR_PASSWORD=repmgrpassword # textscope-pg-1의 REPMGR_PASSWORD 과 동일한 값으로 설정
-      - REPMGR_PRIMARY_HOST=textscope-pg-0
-      - REPMGR_PARTNER_NODES=textscope-pg-1,textscope-pg-0
-      - REPMGR_NODE_NAME=textscope-pg-0
-      - REPMGR_NODE_NETWORK_NAME=textscope-pg-0
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PARTNER_NODES=pg-1,pg-0
+      - REPMGR_NODE_NAME=pg-0
+      - REPMGR_NODE_NETWORK_NAME=pg-0
     networks:
       - our_net
     extra_hosts:
-      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
+      - "pg-1:10.1.1.111" # "타겟컨테이너명:운영서버2-IP"
 
   pgpool:
     container_name: textscope-postgresql
@@ -47,14 +47,13 @@ services:
       - 55432:5432
     restart: unless-stopped
     environment:
-      - PGPOOL_BACKEND_NODES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
       - PGPOOL_SR_CHECK_USER=${POSTGRES_USER} # 디비 살아있는지 체크 할 대상 디비 계정 정보 아이디
       - PGPOOL_SR_CHECK_PASSWORD=${POSTGRES_PASSWORD} # 디비 살아있는지 체크 할 대상 디비 계정 정보 패스워드
       - PGPOOL_SR_CHECK_DATABASE=${POSTGRES_DATABASE}  # 디비 살아있는지 체크 할 대상 디비 디비 정보
-      - PGPOOL_HEALTH_CHECK_PERIOD=1 # 불분명
-      - PGPOOL_HEALTH_CHECK_TIMEOUT=5 # healthcheck 실패 시, 디비 교체 시도 전 체크 타임아웃
-      - PGPOOL_HEALTH_CHECK_MAX_RETRIES=10 # healthcheck 실패 시, 디비 교체 시도 전 최대 체크 횟수, 넘어가면 디비 교체
-      - PGPOOL_HEALTH_CHECK_RETRY_DELAY=0 # healthcheck 실패 시, 디비 교체 시도 전 체크 간격
+      # - PGPOOL_HEALTH_CHECK_PERIOD=1 # 불분명
+      # - PGPOOL_HEALTH_CHECK_TIMEOUT=5 # healthcheck 실패 시, 디비 교체 시도 전 체크 타임아웃
+      # - PGPOOL_HEALTH_CHECK_MAX_RETRIES=10 # healthcheck 실패 시, 디비 교체 시도 전 최대 체크 횟수, 넘어가면 디비 교체
+      # - PGPOOL_HEALTH_CHECK_RETRY_DELAY=0 # healthcheck 실패 시, 디비 교체 시도 전 체크 간격
       - PGPOOL_ENABLE_LDAP=no
       - PGPOOL_POSTGRES_USERNAME=${POSTGRES_USER} # pgpool로 접속할 계정 정보 아이디 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
       - PGPOOL_POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # pgpool로 접속할 계정 정보 패스워드 (이유는 모르지만 PGPOOL_SR_CHECK_USER 와 같아야함)
@@ -62,11 +61,17 @@ services:
       - PGPOOL_ADMIN_PASSWORD=${POSTGRES_PASSWORD}
       - PGPOOL_ENABLE_LOAD_BALANCING=no
       - PGPOOL_AUTO_FAILBACK=yes
-      - PGPOOL_BACKEND_APPLICATION_NAMES=0:textscope-pg-0:5432,1:textscope-pg-1:5432
+      - PGPOOL_BACKEND_NODES=0:pg-0:5432,1:pg-1:5432
+      - PGPOOL_BACKEND_APPLICATION_NAMES=0:pg-0:5432,1:pg-1:5432
     networks:
       - our_net
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     extra_hosts:
-      - "textscope-pg-1:10.1.1.103" # "타겟컨테이너명:운영서버2-IP"
+      - "pg-1:10.1.1.111" # "타겟컨테이너명:운영서버2-IP"
   
   elasticsearch:
     container_name: textscope-elasticsearch
@@ -187,6 +192,7 @@ services:
         CONF_NAME: nginx
         MAINTAINER: ${MAINTAINER}
     volumes:
+      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped

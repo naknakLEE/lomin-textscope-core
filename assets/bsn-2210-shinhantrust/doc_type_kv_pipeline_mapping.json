@@ -3,7 +3,7 @@
     "__comment__": [
       "kv pipeline with doc_type code mapping table",
       "doc_type code must be list",
-      "pp, kv, el, kvel, tocr, idcard, cell_detect"
+      "pp, kv, el, kvel, tocr, idcard, bankbook, ..."
     ],
     "kvel": ["CP-REF"]
   }

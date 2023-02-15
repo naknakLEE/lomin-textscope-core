@@ -1,4 +1,5 @@
 import json
+import base64
 
 import os
 import glob
@@ -7,18 +8,43 @@ from pydantic import BaseSettings
 from pydantic.env_settings import SettingsSourceCallable
 from functools import lru_cache
 from pathlib import Path
+from PIL import Image
+from io import BytesIO
 
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 bsn_code = os.getenv("BSN_CODE")
 
 
 def json_config_settings_source(settings: BaseSettings) -> Dict[str, Any]:
+    # LOAD BSN CONFIG
     encoding = settings.__config__.env_file_encoding
-    config_path_list = glob.glob(f"/workspace/assets/{bsn_code}/**/*.json", recursive=True)
+    config_path_list = glob.glob(f"/workspace/assets/{bsn_code}/*.json", recursive=False)
     
     customer_config = dict()
     for config_path in config_path_list:
         customer_config.update(json.loads(Path(config_path).read_text(encoding)))
+    
+    # LOAD TOCR CONFIG
+    tocr_templates: dict = customer_config.get("TOCR_TEMPLATES", None)
+    if tocr_templates is not None:
+        tocr_templates.pop("__comment__")
+        
+        for doc_type, template_info in tocr_templates.items():
+            gt_json_path = template_info["template_json"]["json_path"]
+            gt_json = json.loads(Path(gt_json_path).read_text(encoding))
+            
+            template_info["template_json"] = gt_json
+            
+            buffered = BytesIO()
+            for idx, image_info in template_info["template_images"].items():
+                template_image = Image.open(image_info["image_path"])
+                template_image.save(buffered, image_info["image_path"].split(".")[-1])
+                template_image_base64 = str(base64.b64encode(buffered.getvalue()))[2:-1]
+                buffered.seek(0)
+                
+                image_info["image_bytes"]=template_image_base64
+            buffered.close()
+    
     
     return dict(BSN_CONFIG=customer_config)
 
@@ -56,7 +82,7 @@ class Settings(BaseSettings):
             "passwd": "plugin0001!"
         }
     ]
-
+    POSTGRES_SCHEMA: str = "public"
 
     # DATABASE SETTING
     USE_TEXTSCOPE_DATABASE: bool = True
@@ -107,6 +133,9 @@ class Settings(BaseSettings):
     MINIO_USE_SSL: bool = False
     MINIO_IMAGE_BUCKET: str = "document"
     USE_MINIO: bool = True
+    MINIO_LIFE_CYCLE_ENABLED: str = "Enabled"
+    MINIO_LIFE_CYCLE_DAYS: int = 30
+    MINIO_LIFE_CYCLE_RULE_ID: str = "textscope_minio_life_cycle"
 
     # HINT CONFIG
     KV_HINT_CER_THRESHOLD: float = 0.2
@@ -161,13 +190,8 @@ class Settings(BaseSettings):
     ]
     
     # TEMPLATE CONFIG
-    KBL1_IC_TEMPLATE_IMAGE_BASE64: str = ""
-    KBL1_IC_TEMPLATE_JSON: Dict = {}
-    KBL1_PIC_TEMPLATE_IMAGE_P1_BASE64: str = ""
-    KBL1_PIC_TEMPLATE_IMAGE_P2_BASE64: str = ""
-    KBL1_PIC_TEMPLATE_IMAGE_P3_BASE64: str = ""
-    KBL1_PIC_TEMPLATE_JSON: Dict = {}
-    
+    TOCR_TEMPLATES: dict = {}
+    TOCR_TEMPLATES_JSON: dict = {}
 
     # KBCARD CONFIG
     ALLOWED_CHARACTERS_SET: Dict = {}
@@ -259,7 +283,7 @@ class Settings(BaseSettings):
     KEY_LENGTH_TABLE: Dict = {}
     DATABASE_INITIAL_DATA: Dict = {}
     KV_CATEGORY_MAPPING: Dict = {}
-
+    KDT_CUSTOM_MAPPING: Dict = {}
     class Config:
         env_file = "/workspace/.env"
         env_file_encoding = "utf-8"

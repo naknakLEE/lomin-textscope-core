@@ -8,19 +8,33 @@ from app.utils.logging import logger
 from app.database.schema import DocumentInfo
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
+from app.service.dao import (
+    select_document as select_document_service,
+    insert_inference_result as insert_inference_result_service
+)
 
 settings = get_settings()
 router = APIRouter()
 
 
 @router.get("/select/docx")
-def select_document(document_id: str, db: Session = Depends(db.session)) -> Union[Optional[DocumentInfo], JSONResponse]:
-    return query.select_document(db, document_id=document_id)
+def select_document(
+    document_id: str, 
+    db: Session = Depends(db.session)
+) -> Union[Optional[DocumentInfo], JSONResponse]:
+    
+    return select_document_service(
+        document_id = document_id,
+        db = db
+    )
 
 
 @router.post("/insert/inference")
 def insert_inference_result(
-    data: Dict = Body(...), db: Session = Depends(db.session)
+    data: Dict = Body(...), \
+    db: Session = Depends(db.session)
 ) -> bool:
-    logger.info(data)
-    return query.insert_inference_result(db, **data)
+    return insert_inference_result_service(
+        data = data,
+        db = db
+    )

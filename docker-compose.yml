@@ -15,6 +15,7 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address "${MINIO_IP_ADDR}:9001"
+  
   postgresql:
     container_name: textscope-postgresql
     image: postgres:14
@@ -28,6 +29,7 @@ services:
       - 55432:${POSTGRES_IP_PORT}
     networks:
       - our_net
+  
   elasticsearch:
     container_name: textscope-elasticsearch
     image: docker.lomin.ai/ts-elasticsearch:${ELASTICSEARCH_IMAGE_VERSION:-0.0.0}
@@ -69,6 +71,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
       TZ: Asia/Seoul
+      SCRIPT_NAME: /pgadmin
     depends_on:
       - postgresql
     ports:
@@ -146,16 +149,12 @@ services:
     image: docker.lomin.ai/ts-nginx:${TEXTSCOPE_NGINX_VERSION}
     build:
       context: ./
-      dockerfile: docker/production/Dockerfile.nginx
-      args:
-        CONF_NAME: nginx
-        MAINTAINER: ${MAINTAINER}
+      dockerfile: docker/base/Dockerfile.nginx
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./proxy/default.conf:/etc/nginx/conf.d/default.conf
       - ${MOUNT_LOG_PATH}/nginx:/var/log/nginx
     restart: unless-stopped
-    depends_on:
-      - wrapper
     networks:
       - our_net
 

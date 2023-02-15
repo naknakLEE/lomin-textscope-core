@@ -161,9 +161,9 @@ Nuitka
 *.tif
 *.tiff
 pyinstrument-results
-*dataset*
 images
 !tests/resources/**/*
+!app/*/dataset.py
 
 # DB data
 pgdata/
@@ -184,3 +184,6 @@ app/lovit/
 # bentoml_package/
 # bentoml_textscope/
 # assets/heungkuklife.json
+
+# tocr templates
+assets/*/templates

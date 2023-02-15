@@ -2,7 +2,10 @@ import os
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse, Response
-
+from app.service.status import (
+    livez as livez_service,
+    readyz as readyz_service
+)
 
 router = APIRouter()
 
@@ -12,11 +15,9 @@ async def livez() -> "Response":
     """
     Make sure it works with Kubernetes liveness probe
     """
-    return PlainTextResponse("\n", status_code=200)
+    return await livez_service()
 
 
 @router.get("/readyz")
 async def readyz() -> "Response":
-    if os.getenv("IS_READY") == "true":
-        return PlainTextResponse("\n", status_code=200)
-    raise HTTPException(500)
+    return await readyz_service()

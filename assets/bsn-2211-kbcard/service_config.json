@@ -1,0 +1,11 @@
+{
+  "DATABASE": {
+    "INSERT_INITIAL_FILENAME": [
+      "textscope"
+    ],
+    "DELETE_PRIVACY_DATA": false
+  },
+  "DOCUMENT": {
+    "BACKGROUND_OCR": false
+  }
+}

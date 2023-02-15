@@ -41,8 +41,8 @@ services:
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     tty: true
     working_dir: /workspace
-    # entrypoint: python3 main.py    
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT}
+    # entrypoint: python3 main.py
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WEB_IP_PORT} --timeout 1200
 
   pp:
     build:
@@ -61,7 +61,7 @@ services:
     tty: true
     working_dir: /workspace/pp_server
     # entrypoint: python3 main.py
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT}
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${PP_IP_PORT} --timeout 1200
 
   wrapper:
     build:
@@ -76,11 +76,16 @@ services:
         POETRY_VERSION: ${POETRY_VERSION}
         TEXTSCOPE_BASE_IMAGE_VERSION: ${TEXTSCOPE_BASE_IMAGE_VERSION}
     ports:
-      - 8050:${WRAPPER_IP_PORT}
+      - 8055:${WRAPPER_IP_PORT}
     tty: true
     working_dir: /workspace/${CUSTOMER}_wrapper/wrapper
-    entrypoint: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
+    entrypoint: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:${WRAPPER_IP_PORT} --timeout 1200
 
   grafana:
     ports:
       - 8053:3000
+
+  nginx:
+    ports:
+      - 8050:80
+      - 8080:8080

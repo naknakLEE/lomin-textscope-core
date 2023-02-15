@@ -19,10 +19,8 @@ from passlib.context import CryptContext
 
 from app.database.connection import Base, db
 from app.utils.logging import logger
-from app.common.const import get_settings
-from app import hydra_cfg
+from app.common.const import settings
 
-settings = get_settings()
 metadata = Base.metadata
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -830,7 +828,7 @@ def insert_initial_data() -> None:
         insert_start = dt.datetime.now()
         
         for file_info in settings.INIT_DATA_XLSX_FILE_LIST:
-            if file_info.get("name") not in hydra_cfg.database.insert_initial_filename: continue
+            if file_info.get("name") not in settings.BSN_CONFIG.get("DATABASE", {}).get("INSERT_INITIAL_FILENAME", []): continue
             
             init_xlsx_d = io.BytesIO()
             with open(db_dir + file_info.get("name") + ".xlsx", 'rb') as xlfile:

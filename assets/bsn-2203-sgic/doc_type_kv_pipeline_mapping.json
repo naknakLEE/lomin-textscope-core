@@ -1,0 +1,36 @@
+{
+  "KV_PIPELINE_MAPPING_TABLE": {
+    "__comment__": [
+      "kv pipeline with doc_type code mapping table",
+      "doc_type code must be list",
+      "pp, kv, el, kvel, tocr, idcard, cell_detect"
+    ],
+    "idcard": [
+      "ID-ARB",
+      "ID-ARC",
+      "ID-DLC",
+      "ID-OKC",
+      "ID-ONC",
+      "ID-PRC",
+      "ID-RRC",
+      "Z3",
+      "J1",
+      "L3",
+      "R6",
+      "W2",
+      "Z3",
+      "J5",
+      "신분증",
+      "idcard"
+    ],
+    "bankbook": [
+      "A2",
+      "AC",
+      "RF",
+      "Z1",
+      "통장사본",
+      "bankbook",
+      "FN-BB"
+    ]
+  }
+}

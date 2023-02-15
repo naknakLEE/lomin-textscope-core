@@ -11,6 +11,8 @@ linuxenv="${THALES_BASE_PATH}/${THALES_LINUXENV}"
 hvc="${THALES_BASE_PATH}/${HVC}" # "./DEMOMA.hvc"
 feature="${FEATURE}" # 100
 
+url=$1
+url=${url:=http://10.1.1.110:1948}
 
 core_encrypt_folder="${SCRIPT_BASE_PATH}/${BUILD_FOLDER_PATH}/${CUSTOMER}"
 for file in `find $core_encrypt_folder -type f -name "*.so"`
@@ -18,7 +20,7 @@ do
     # $linuxenv -v:$hvc -f:$feature --dfp $file $file
     echo
     curl -X 'POST' \
-    'http://10.1.1.110:1948/upload-so' \
+    ${url}'/upload-so' \
     -H 'accept: application/json' \
     -H 'Content-Type: multipart/form-data' \
     -F 'file=@'${file}';type=application/x-sharedlib' \
@@ -30,7 +32,7 @@ do
     # $linuxenv -v:$hvc -f:$feature --dfp $file $file
     echo
     curl -X 'POST' \
-    'http://10.1.1.110:1948/upload-so' \
+    ${url}'/upload-so' \
     -H 'accept: application/json' \
     -H 'Content-Type: multipart/form-data' \
     -F 'file=@'${file}';type=application/x-sharedlib' \

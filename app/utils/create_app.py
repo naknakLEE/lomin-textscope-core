@@ -9,6 +9,8 @@ pretty.install()
 
 from app.routes import auth, index, inference, dataset, prediction, dao, status, ldap, websocket, users, base
 from app.routes import document, model, inspect
+from app.routes.api import index as api_index
+from app.routes.api import inference as api_inference
 from app.database.connection import db
 from app.common.config import config
 from app.common.const import get_settings
@@ -26,7 +28,6 @@ from app.middlewares.exception_handler import (
     validation_exception_handler,
     resource_exception_handler,
 )
-
 
 settings = get_settings()
 

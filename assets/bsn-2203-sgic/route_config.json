@@ -1,0 +1,12 @@
+{
+  "USE_TOKEN": false,
+  "INCLUDE_SCHEMA_ALL": false,
+  "INCLUDE_SCHEMA": [
+    "[get]/image",
+    "[post]/image",
+    "[get]/livez",
+    "[get]/readyz",
+    "[post]/task/inference/gocr",
+    "[post]/task/inference/kv"
+  ]
+}
