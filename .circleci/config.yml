@@ -8,23 +8,7 @@ executors:
     machine: true
     resource_class: lomin/1
 jobs:
-  # set-env-var:
-  #   executor: lomin-dev    
-  #   steps:
-  #     - checkout
-  #     - run: 
-  #         name: Generate .env file
-  #         command: echo "$ENV_NEW" | base64 --decode > .env      
-  #     - run:
-  #         name: Add BSN_CODE in .env file
-  #         command: |
-  #           PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
-  #           PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
-  #           echo "Pull request title is: $PR_TITLE"
-  #           BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
-  #           echo "BSN_CODE=$BSN_CODE" | tee -a .env
-  #           echo "BSN_CODE=$BSN_CODE" >> bsn_code.txt
-  docker-build:
+  run-application:
     executor: lomin-dev    
     steps:
       - checkout
@@ -32,15 +16,24 @@ jobs:
           name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env
       - run:    
-          name: Import BSN_CODE and Docker build
+          name: Import BSN_CODE and Setting BASH_ENV
           command: |
             PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
             PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
+            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV            
             echo "BSN_CODE=$BSN_CODE" | tee -a .env          
             bash circleci/build.sh $BSN_CODE
+      - run:                
+          name: Execute prepare.sh
+          command: |
+            bash circleci/prepare.sh $BSN_CODE
+      - run:
+          name: Execute run.sh
+          command: |
+            bash circleci/run.sh $BSN_CODE                            
   docker-run:
     executor: lomin-dev    
     steps:

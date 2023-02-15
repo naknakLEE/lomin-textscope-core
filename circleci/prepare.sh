@@ -65,8 +65,4 @@ do
         
 done
 ########## 2. Download Model File End    ##########
-
-########## 3. Docker Build Start    ##########
-# docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
-########## 3. Docker Build End      ##########
 set -x
