@@ -23,9 +23,7 @@ jobs:
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
-            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV            
-            echo "BSN_CODE=$BSN_CODE" | tee -a .env          
-            bash circleci/build.sh $BSN_CODE
+            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV                      
       - run:                
           name: Execute prepare.sh
           command: |
@@ -33,6 +31,7 @@ jobs:
       - run:
           name: Execute run.sh
           command: |
+            echo "BSN_CODE=$BSN_CODE" | tee -a .env          
             bash circleci/run.sh $BSN_CODE                            
   docker-run:
     executor: lomin-dev    
