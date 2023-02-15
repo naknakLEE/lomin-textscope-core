@@ -61,28 +61,22 @@ jobs:
 workflows:
   feature-develop-PR: 
     jobs:          
-      # - set-env-var:
-      #     filters:
-      #       branches:
-      #         only: /feature\/.*/      
-      - docker-build:   
-          # requires:
-          #   - set-env-var   
+      - run-application:      
           filters:
             branches:
               only: /feature\/.*/    
-      - docker-run:
-          requires:
-            - docker-build   
-          filters:
-            branches:
-              only: /feature\/.*/
-      - export-evaluator:
-          requires:
-            - docker-run   
-          filters:
-            branches:
-              only: /feature\/.*/              
+      # - docker-run:
+      #     requires:
+      #       - docker-build   
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/
+      # - export-evaluator:
+      #     requires:
+      #       - docker-run   
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/              
       # - code-test:
       #     requires:
       #       - docker-run
