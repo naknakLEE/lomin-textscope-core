@@ -260,22 +260,22 @@ def __pp__(
             timeout=settings.TIMEOUT_SECOND,
         )
         
+        status_code = pp_response.status_code
+        if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
+            status_code, error = ErrorResponse.ErrorCode.get(3502)
+            return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+        
         pp_inputs.update(pp_response.json())
         
         # pp_response_json.result에 결과를 넣어주는 pp api가 있어서 로직 추가
         pp_response_json_result = pp_inputs.get("result", {})
-        if pp_response_json_result.get("doc_type"):
+        if pp_response_json_result and pp_response_json_result.get("doc_type"):
             pp_inputs.update(doc_type=pp_response_json_result.pop("doc_type", "ETC"))
         
-        if pp_response_json_result.get("cls_score"):
+        if pp_response_json_result and pp_response_json_result.get("cls_score"):
             pp_inputs.update(cls_score=pp_response_json_result.pop("cls_score", 0.0))
     
     pp_response_json: dict = pp_inputs
-    
-    status_code = pp_response.status_code
-    if isinstance(status_code, int) and (status_code < 200 or status_code >= 400):
-        status_code, error = ErrorResponse.ErrorCode.get(3502)
-        return JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
     
     doc_type_code = pp_inputs.get("doc_type", "ETC")
     
@@ -576,7 +576,7 @@ def kv_(
             inference_result=inference_result
         )
         if isinstance(kv_pipeline_result, JSONResponse):
-            return inference_result
+            return kv_pipeline_result
         
         status_code, inference_result, response_log = kv_pipeline_result
         
