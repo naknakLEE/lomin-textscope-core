@@ -23,16 +23,18 @@ jobs:
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
-            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV                      
-      - run:                
-          name: Execute prepare.sh
-          command: |
-            bash circleci/prepare.sh $BSN_CODE
-      - run:
-          name: Execute run.sh
-          command: |
-            echo "BSN_CODE=$BSN_CODE" | tee -a .env          
-            bash circleci/run.sh $BSN_CODE                            
+            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV     
+            sed -i "s/our_net/$BSN_CODE/gi" docker-compose.yml
+            cat docker-compose.yml                 
+      # - run:                
+      #     name: Execute prepare.sh
+      #     command: |
+      #       bash circleci/prepare.sh $BSN_CODE
+      # - run:
+      #     name: Execute run.sh
+      #     command: |
+      #       echo "BSN_CODE=$BSN_CODE" | tee -a .env          
+      #       bash circleci/run.sh $BSN_CODE                            
   docker-run:
     executor: lomin-dev    
     steps:
