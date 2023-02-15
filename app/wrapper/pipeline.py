@@ -619,34 +619,15 @@ def idcard_(
     /,
     inference_result: dict = None # None: idcard use own det, rec models
 ) -> Tuple[int, dict, dict]:
-    
-    # if before pipeline was cls, can get cls_result from inference_result
-    cls_result = dict(
-        doc_type= inference_result.get("doc_type", {}).get("doc_type_code", "None"),
-        score=    inference_result.get("cls_score", 1.0)
-    )
-    
-    # Apply doc type hint
-    hint = inputs.get("kv", {}).get("hint", {})
-    if hint is not None and hint.get("doc_type") is not None:
-        doc_type_hint = hint.get("doc_type", {})
-        doc_type_hint = DocTypeHint(**doc_type_hint)
-        cls_hint_result = apply_cls_hint(
-            doc_type_hint=doc_type_hint,
-            cls_result=cls_result
-        )
-        response_log.update(apply_cls_hint_result=cls_hint_result)
-        inputs.update(
-            doc_type=cls_hint_result.get("doc_type")
-        )
-    
-    doc_type_code = inputs.get("doc_type")
+
+    # ID-RRC는 idcard의 대표 서식코드
+    doc_type_code = "ID-RRC"
+    inputs["doc_type"] = doc_type_code
     
     idcard_pipelines = _get_kv_pipelines(doc_type_code)
     logger.info("idcard pipeline: {}", [ p for p, _ in idcard_pipelines ] )
     
     status_code, response_log = (200, dict())
-    inputs["doc_type"] = inputs["kv"]["hint"]["doc_type"]["doc_type"]
     
     for name, idcard_pipeline in idcard_pipelines:
         pipeline_start_time = datetime.now()
@@ -692,7 +673,8 @@ def idcard_(
             doc_type_name_en=select_doc_type_result.doc_type_name_en,
             doc_type_structed=select_doc_type_result.doc_type_structed
         ))
-        
+    
+    
     return (status_code, inference_result, response_log)
 
 
@@ -702,36 +684,16 @@ def bankbook_(
     inputs: dict,
     response_log: dict,
     /,
-    inference_result: dict = None # None: idcard use own det, rec models
+    inference_result: dict = None # None: bankbook use own det, rec models
 ) -> Tuple[int, dict, dict]:
     
-    # if before pipeline was cls, can get cls_result from inference_result
-    cls_result = dict(
-        doc_type= inference_result.get("doc_type", {}).get("doc_type_code", "None"),
-        score=    inference_result.get("cls_score", 1.0)
-    )
-    
-    # Apply doc type hint
-    hint = inputs.get("kv", {}).get("hint", {})
-    if hint is not None and hint.get("doc_type") is not None:
-        doc_type_hint = hint.get("doc_type", {})
-        doc_type_hint = DocTypeHint(**doc_type_hint)
-        cls_hint_result = apply_cls_hint(
-            doc_type_hint=doc_type_hint,
-            cls_result=cls_result
-        )
-        response_log.update(apply_cls_hint_result=cls_hint_result)
-        inputs.update(
-            doc_type=cls_hint_result.get("doc_type")
-        )
-    
-    doc_type_code = inputs.get("doc_type")
+    doc_type_code = "bankbook"
+    inputs["doc_type"] = doc_type_code
     
     bankbook_pipelines = _get_kv_pipelines(doc_type_code)
     logger.info("bankbook pipeline: {}", [ p for p, _ in bankbook_pipelines ] )
     
     status_code, response_log = (200, dict())
-    inputs["doc_type"] = inputs["kv"]["hint"]["doc_type"]["doc_type"]
     
     for name, bankbook_pipeline in bankbook_pipelines:
         pipeline_start_time = datetime.now()
@@ -758,8 +720,6 @@ def bankbook_(
     
     inference_result.update(kv=inference_result.pop("result"))
     
-    # FIXME: 현재 뱅크북의 경우 doc_type을 bankbook으로 Infercence 및 pp를 호출해야 합니다.(ML팀 요청) -> 그에 따라 doc_type_code를 FN-BB로 하드코딩 하겠습니다.
-    # doc_type_code = inference_result.get("doc_type", "ETC")
     doc_type_code = "FN-BB"
 
     if doc_type_code == '':
@@ -779,5 +739,6 @@ def bankbook_(
             doc_type_name_en=select_doc_type_result.doc_type_name_en,
             doc_type_structed=select_doc_type_result.doc_type_structed
         ))
-        
+    
+
     return (status_code, inference_result, response_log)
