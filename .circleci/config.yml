@@ -57,11 +57,11 @@ jobs:
       - store_artifacts:
           path: test_results
           destination: v0.1.0
-    on_fail:
       - run:
           name: Docker compose down
           command: |
-            docker-compose down             
+            docker-compose down
+          when: on_fail             
   export-evaluator:
     executor: lomin-dev 
     steps:
@@ -75,7 +75,13 @@ workflows:
       - run-application:      
           filters:
             branches:
-              only: /feature\/.*/    
+              only: /feature\/.*/
+      - code-test:
+          requires:
+            - run-application        
+          filters:
+            branches:
+              only: /feature\/.*/                         
       # - docker-run:
       #     requires:
       #       - docker-build   
