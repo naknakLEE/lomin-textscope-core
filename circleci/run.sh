@@ -23,7 +23,7 @@ shyaml keys networks | {
     cut -d '"' -f4 | { 
         while read service; 
         do 
-        docker stop  $service; 
+        docker stop $service; 
         docker rm $service; 
         done; 
     }; 
@@ -40,5 +40,5 @@ shyaml keys networks | {
 
 
 ########## 2. Docker Build Start    ##########
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build wrapper web serving pp
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --abort-on-container-exit
 ########## 2. Docker Build End      ##########

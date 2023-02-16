@@ -7,6 +7,7 @@ executors:
   lomin-dev:
     machine: true
     resource_class: lomin/1
+
 jobs:
   run-application:
     executor: lomin-dev    
@@ -24,34 +25,43 @@ jobs:
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
             echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV     
+      - run:
+          name: Fix docker-compose.yml network to BSN_CODE
             sed -i "s/our_net/$BSN_CODE/gi" docker-compose.yml
             cat docker-compose.yml                 
-      # - run:                
-      #     name: Execute prepare.sh
-      #     command: |
-      #       bash circleci/prepare.sh $BSN_CODE
-      # - run:
-      #     name: Execute run.sh
-      #     command: |
-      #       echo "BSN_CODE=$BSN_CODE" | tee -a .env          
-      #       bash circleci/run.sh $BSN_CODE                            
-  docker-run:
+      - run:                
+          name: Execute prepare.sh
+          command: |
+            bash circleci/prepare.sh $BSN_CODE
+      - run:
+          name: Execute run.sh
+          command: |
+            echo "BSN_CODE=$BSN_CODE" | tee -a .env          
+            bash circleci/run.sh $BSN_CODE
+      - persist_to_workspace:
+          root: .
+          paths:
+            - docker-compose.yml
+            - docker-compose.dev.yml                            
+  code-test:
     executor: lomin-dev    
     steps:
-      - run:    
-          name: Excute run.sh
+      - attach_workspace:
+          at: .
+      - run:
+          name: Run Test
           command: |
-            bash circleci/run.sh
-  # code-test:
-  #   machine: true
-  #   resource_class: lomin/1    
-  #   steps:
-  #     - run:
-  #         name: code test
-  #         command: |
-  #           echo "==========> Start Code Test";
-  #           sh circleci/test.sh
-  #           echo "==========> Finish Code Test"               
+            docker exec web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
+      - store_test_results:
+          path: test_results
+      - store_artifacts:
+          path: test_results
+          destination: v0.1.0
+    on_fail:
+      - run:
+          name: Docker compose down
+          command: |
+            docker-compose down             
   export-evaluator:
     executor: lomin-dev 
     steps:
