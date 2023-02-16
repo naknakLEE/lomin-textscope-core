@@ -9,6 +9,10 @@ executors:
     resource_class: lomin/1
 
 jobs:
+  test-debug:
+    executor: lomin-dev    
+    steps:
+      - checkout    
   run-application:
     executor: lomin-dev    
     steps:
@@ -73,16 +77,20 @@ jobs:
 workflows:
   feature-develop-PR: 
     jobs:          
-      - run-application:      
+      - test-debug:
           filters:
             branches:
-              only: /feature\/.*/
-      - code-test:
-          requires:
-            - run-application        
-          filters:
-            branches:
-              only: /feature\/.*/                         
+              only: /feature\/.*/      
+      # - run-application:      
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/
+      # - code-test:
+      #     requires:
+      #       - run-application        
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/                         
       # - docker-run:
       #     requires:
       #       - docker-build   

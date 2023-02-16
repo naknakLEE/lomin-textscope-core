@@ -16,18 +16,20 @@ shyaml keys services | {
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
 shyaml keys networks | { 
     while read network; 
-    do 
-    docker network inspect $network | 
-    grep Name | 
-    grep -v $network | 
-    cut -d '"' -f4 | { 
-        while read service; 
-        do 
-        docker stop $service; 
-        docker rm $service; 
-        done; 
-    }; 
-    if docker network rm $network ; then
+    do
+    docker network inspect $network
+    if [ $? -eq 0 ]; then
+        docker network inspect $network | 
+        grep Name | 
+        grep -v $network | 
+        cut -d '"' -f4 | { 
+            while read service; 
+            do 
+            docker stop $service; 
+            docker rm $service; 
+            done; 
+        }; 
+        docker network rm $network;
         echo "$network network rm successful"
     else
         echo "$network There is no container connected to the docker network"
@@ -40,5 +42,5 @@ shyaml keys networks | {
 
 
 ########## 2. Docker Build Start    ##########
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --abort-on-container-exit
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ########## 2. Docker Build End      ##########
