@@ -27,6 +27,7 @@ jobs:
             echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV     
       - run:
           name: Fix docker-compose.yml network to BSN_CODE
+          command: |
             sed -i "s/our_net/$BSN_CODE/gi" docker-compose.yml
             cat docker-compose.yml                 
       - run:                
