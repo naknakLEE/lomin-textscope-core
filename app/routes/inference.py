@@ -1,38 +1,15 @@
-from copy import copy, deepcopy
-import uuid
-from app.utils.image import get_image_bytes
-
-from httpx import Client
-
-from typing import Any, Dict, Tuple, TypeVar
-from fastapi import APIRouter, Body, Depends
-from pathlib import Path
-from datetime import datetime
-from sqlalchemy.orm import Session
-
-from app.wrapper import pp, pipeline, settings
-from app.schemas.json_schema import inference_responses
-from app.utils.utils import get_pp_api_name, set_json_response, get_ts_uuid
-from app.utils.logging import logger
-from app.database.connection import db
-from app.utils.pdf2txt import get_pdf_text_info
 from typing import Dict
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
+
+from app.database.connection import db
+from typing import Dict
+from fastapi import APIRouter, Body, Depends, Request
 
 from sqlalchemy.orm import Session
 
 from app.schemas.json_schema import inference_responses
 from app.models import UserInfo as UserInfoInModel
-from app.utils.utils import set_json_response, get_pp_api_name, pretty_dict
-from app.utils.logging import logger
-from app.utils.inference import get_removed_text_inference_result
-from app.wrapper import pp, pipeline, settings
-from app.database import query, schema
+from app.wrapper import settings
 from app.database.connection import db
-from app.schemas import error_models as ErrorResponse
-from app.errors import exceptions as ex
 from app.service.inference import (
     ocr as ocr_service,
     ocr_old as ocr_old_service
@@ -44,24 +21,6 @@ else:
 
 
 router = APIRouter()
-
-Pipeline = TypeVar("Pipeline")
-PIPELINE_GOCR = pipeline.gocr_
-PIPELINE_CLS = pipeline.cls_
-PIPELINE_KV = pipeline.kv_
-PIPELINE_IDCARD = pipeline.idcard_
-PIPELINE_BANKBOOK = pipeline.bankbook_
-
-INFERENCE_PIPELINE: Dict[str, Tuple[str, Pipeline]] = {
-    "gocr":     [ ("gocr", PIPELINE_GOCR), ],
-    "cls":      [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS) ],
-    "kv":       [ ("gocr", PIPELINE_GOCR),                        ("kv", PIPELINE_KV) ],
-    "cls-kv":   [ ("gocr", PIPELINE_GOCR), ("cls", PIPELINE_CLS), ("kv", PIPELINE_KV) ],
-    
-    "idcard":   [ ("idcard", PIPELINE_IDCARD) ],
-    "bankbook": [ ("bankbook", PIPELINE_BANKBOOK) ],
-}
-
 
 @router.post("/ocr", status_code=200, responses=inference_responses)
 def ocr(
