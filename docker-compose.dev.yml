@@ -106,6 +106,7 @@ services:
       - 11120:11120
     volumes:
       - ./:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
     tty: true
     environment: 
       - API_ENV=production
@@ -113,8 +114,26 @@ services:
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
     working_dir: /workspace/${CUSTOMER}_wrapper/${CUSTOMER}_wrapper/app
-    # command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0:8090
-    command: python3 main.py
+    command: gunicorn main:app -w 3 -k uvicorn.workers.UvicornWorker -b 0:8090 --max-requests 7000
+    # command: python3 main.py
+
+  restarter:
+    image: docker.lomin.ai/ts-restarter:0.0.1
+    build:
+      context: ./
+      dockerfile: docker/base/Dockerfile.restart
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+    volumes:
+      - ./:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+    environment: 
+      - API_ENV=production
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    working_dir: /workspace/restarter
+    command: sh restart.sh
 
   nginx:
     ports:

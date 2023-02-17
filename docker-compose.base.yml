@@ -16,7 +16,6 @@ services:
         CUSTOMER: ${CUSTOMER}
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         PYTHON_VERSION: ${PYTHON_VERSION}
-        CUSTOMER: ${CUSTOMER}
     deploy:
       resources:
         reservations:

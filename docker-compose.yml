@@ -188,19 +188,19 @@ services:
       our_net:
           ipv4_address: ${GRAFANA_IP_ADDR}
 
-  openldap:
-    image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
-    container_name: ldap
-    build: ./openldap
-    environment:
-      SLAPD_PASSWORD: lomin
-      SLAPD_DOMAIN: lomin.ai
-      SLAPD_ADDITIONAL_MODULES: memberof
-    ports:
-      - "389:389"
-    networks:
-      our_net:
-          ipv4_address: ${OPENLDAP_IP_ADDR}
+  # openldap:
+  #   image: docker.lomin.ai/ts-openldap:${TEXTSCOPE_VERSION}
+  #   container_name: ldap
+  #   build: ./openldap
+  #   environment:
+  #     SLAPD_PASSWORD: lomin
+  #     SLAPD_DOMAIN: lomin.ai
+  #     SLAPD_ADDITIONAL_MODULES: memberof
+  #   ports:
+  #     - "389:389"
+  #   networks:
+  #     our_net:
+  #         ipv4_address: ${OPENLDAP_IP_ADDR}
 
 networks:
   our_net:
