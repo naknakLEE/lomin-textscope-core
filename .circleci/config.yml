@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  jq: circleci/jq@2.2.0
   python: circleci/python@1.0.0
 
 executors:
@@ -12,6 +13,7 @@ jobs:
   run-application:
     executor: lomin-dev    
     steps:
+      - jq/install    
       - checkout
       - run: 
           name: Generate .env file
@@ -29,15 +31,15 @@ jobs:
       - run:
           name: Setting project env
           command: |
-            bash circleci/set_env.bash $BSN_CODE
+            bash circleci/set_env.sh $BSN_CODE
       - run:                
-          name: Execute docker-build.bash
+          name: Execute docker-build.sh
           command: |
-            bash circleci/docker-build.bash $BSN_CODE
+            bash circleci/docker-build.sh $BSN_CODE
       - run:
           name: Execute docker-run.sh
           command: |
-            bash circleci/docker-run.bash
+            bash circleci/docker-run.sh
       - persist_to_workspace:
           root: .
           paths:
