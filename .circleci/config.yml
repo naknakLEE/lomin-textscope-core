@@ -15,6 +15,9 @@ jobs:
     steps:
       - jq/install    
       - checkout
+      - run:
+          name: Install shyaml
+          command: pip install shyaml
       - run: 
           name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env
