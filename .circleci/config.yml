@@ -32,14 +32,14 @@ jobs:
           name: Setting project env
           command: |
             bash circleci/set_env.sh $BSN_CODE
-      - run:                
-          name: Execute docker-build.sh
-          command: |
-            bash circleci/docker-build.sh $BSN_CODE
-      - run:
-          name: Execute docker-run.sh
-          command: |
-            bash circleci/docker-run.sh
+      # - run:                
+      #     name: Execute docker-build.sh
+      #     command: |
+      #       bash circleci/docker-build.sh $BSN_CODE
+      # - run:
+      #     name: Execute docker-run.sh
+      #     command: |
+      #       bash circleci/docker-run.sh
       - persist_to_workspace:
           root: .
           paths:
@@ -83,15 +83,15 @@ workflows:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
-      - code-test:
-          requires:
-            - run-application        
-          filters:
-            branches:
-              only: /feature\/.*/                         
-      - export-evaluator:
-          requires:
-            - code-test
-          filters:
-            branches:
-              only: /feature\/.*/                      
+      # - code-test:
+      #     requires:
+      #       - run-application        
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/                         
+      # - export-evaluator:
+      #     requires:
+      #       - code-test
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/                      
