@@ -10,14 +10,12 @@ echo "BSN_CODE is: $BSN_CODE"
 
 PATH="$HOME/.local/bin:$PATH"
 
-########## 1. Prepare Start ##########
-# pip3 install hydra-core python-dotenv alive_progress awscli
-
-ssh-keyscan github.com >> ~/.ssh/known_hosts
-mkdir -p /home/circleci/.config/ssh && cp ~/.ssh/id_rsa ~/.config/ssh/id_rsa
+########## 1. Submodule Update Start ##########
+# ssh-keyscan github.com >> ~/.ssh/known_hosts
+# mkdir -p /home/circleci/.config/ssh && cp ~/.ssh/id_rsa ~/.config/ssh/id_rsa
 
 git submodule update --init --recursive
-########## 1. Prepare End   ##########
+########## 1. Submodule Update End   ##########
 
 
 ########## 2. Download Model File Start ##########

@@ -9,10 +9,6 @@ executors:
     resource_class: lomin/1
 
 jobs:
-  test-debug:
-    executor: lomin-dev    
-    steps:
-      - checkout    
   run-application:
     executor: lomin-dev    
     steps:
@@ -24,11 +20,12 @@ jobs:
           name: Import BSN_CODE and Setting BASH_ENV
           command: |
             PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
-            PR_TITLE=$(curl -s -H 'Authorization: Bearer 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' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+            PR_TITLE=$(curl -s -H 'Authorization: Bearer $GITHUB_TOKEN' https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
             echo "Pull request title is: $PR_TITLE"
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
-            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV     
+            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
+            cp $BASH_ENV bash.env     
       - run:
           name: Fix docker-compose.yml network to BSN_CODE
           command: |
@@ -47,7 +44,8 @@ jobs:
           root: .
           paths:
             - docker-compose.yml
-            - docker-compose.dev.yml                            
+            - docker-compose.dev.yml     
+            - bash.env                       
   code-test:
     executor: lomin-dev    
     steps:
@@ -70,42 +68,30 @@ jobs:
   export-evaluator:
     executor: lomin-dev 
     steps:
+      - attach_workspace:
+          at: .    
       - run:
           name: Execute Evaluator
           command: |
             bash circleci/run_eval_scrp.sh
 workflows:
   feature-develop-PR: 
-    jobs:          
-      - test-debug:
+    jobs:             
+      - run-application:      
           filters:
             branches:
-              only: /feature\/.*/      
-      # - run-application:      
-      #     filters:
-      #       branches:
-      #         only: /feature\/.*/
-      # - code-test:
-      #     requires:
-      #       - run-application        
-      #     filters:
-      #       branches:
-      #         only: /feature\/.*/                         
-      # - docker-run:
-      #     requires:
-      #       - docker-build   
-      #     filters:
-      #       branches:
-      #         only: /feature\/.*/
-      # - export-evaluator:
-      #     requires:
-      #       - docker-run   
-      #     filters:
-      #       branches:
-      #         only: /feature\/.*/              
-      # - code-test:
-      #     requires:
-      #       - docker-run
-      #     filters:
-      #       branches:
-      #         only: /feature\/.*/            
+              only: /feature\/.*/
+          context:
+            - GITHUB_CREDS
+      - code-test:
+          requires:
+            - run-application        
+          filters:
+            branches:
+              only: /feature\/.*/                         
+      - export-evaluator:
+          requires:
+            - code-test
+          filters:
+            branches:
+              only: /feature\/.*/                      
