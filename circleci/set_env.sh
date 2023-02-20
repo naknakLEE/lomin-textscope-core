@@ -4,11 +4,15 @@
 
 BSN_CODE=$1
 
+PATH="$HOME/.local/bin:$PATH"
+
 # 1. env 파일 변경
 sed -i "s/TEXTSCOPE_BASE_IMAGE_VERSION=0.1.3/TEXTSCOPE_BASE_IMAGE_VERSION=$BSN_CODE/" .env
 echo "BSN_CODE=$BSN_CODE" | tee -a .env
 
 # 2. docker-compose.yml container명 변경
+
+
 s_list=`cat docker-compose.yml | shyaml keys services`
 for service in $s_list; do
     c_name=`cat docker-compose.yml | shyaml get-value services.$service.container_name`
