@@ -27,19 +27,17 @@ jobs:
             echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
             cp $BASH_ENV bash.env     
       - run:
-          name: Fix docker-compose.yml network to BSN_CODE
+          name: Setting project env
           command: |
-            sed -i "s/our_net/$BSN_CODE/gi" docker-compose.yml
-            cat docker-compose.yml                 
+            bash circleci/set_env.sh $BSN_CODE
       - run:                
-          name: Execute prepare.sh
+          name: Execute docker-build.sh
           command: |
-            bash circleci/prepare.sh $BSN_CODE
+            bash circleci/docker-build.sh $BSN_CODE
       - run:
-          name: Execute run.sh
+          name: Execute docker-run.sh
           command: |
-            echo "BSN_CODE=$BSN_CODE" | tee -a .env          
-            bash circleci/run.sh $BSN_CODE
+            bash circleci/docker-run.sh
       - persist_to_workspace:
           root: .
           paths:
