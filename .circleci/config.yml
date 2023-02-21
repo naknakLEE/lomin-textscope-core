@@ -35,14 +35,14 @@ jobs:
           name: Setting project env
           command: |
             bash circleci/set_env.sh $BSN_CODE
-      # - run:                
-      #     name: Execute docker-build.sh
-      #     command: |
-      #       bash circleci/docker-build.sh $BSN_CODE
-      # - run:
-      #     name: Execute docker-run.sh
-      #     command: |
-      #       bash circleci/docker-run.sh
+      - run:                
+          name: Execute docker-build.sh
+          command: |
+            bash circleci/docker-build.sh $BSN_CODE
+      - run:
+          name: Execute docker-run.sh
+          command: |
+            bash circleci/docker-run.sh
       - persist_to_workspace:
           root: .
           paths:
