@@ -3,7 +3,6 @@ version: 2.1
 orbs:
   jq: circleci/jq@2.2.0
   python: circleci/python@1.0.0
-  yq: panorays/yq@0.0.1  
   
 executors:
   lomin-dev:
@@ -15,7 +14,6 @@ jobs:
     executor: lomin-dev    
     steps:
       - jq/install    
-      - yq/install
       - checkout
       - run:
           name: Install shyaml
