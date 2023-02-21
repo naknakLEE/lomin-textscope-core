@@ -35,8 +35,8 @@ def register_cron(function, args=[],**kwargs):
             
             #TODO: cron 실행시점 .env로 관리 필요
             scheduler.add_job(func, 'cron', kwargs=kwargs,\
-                # hour='0', minute='0', second='0')
-                second='*/2')
+                hour='0', minute='0', second='0')
+                # second='*/2')
 
             logger.info(f"Job added: {func.__name__}")
             flag = True
