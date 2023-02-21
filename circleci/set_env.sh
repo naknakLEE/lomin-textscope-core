@@ -11,17 +11,17 @@ sed -i "s/TEXTSCOPE_BASE_IMAGE_VERSION=0.1.3/TEXTSCOPE_BASE_IMAGE_VERSION=$BSN_C
 echo "BSN_CODE=$BSN_CODE" | tee -a .env
 
 # 2. docker-compose.yml container명 변경
+fix_container_name_li="wrapper web serving pp"
 
-
-s_list=`cat docker-compose.yml | shyaml keys services`
-for service in $s_list; do
-    c_name=`cat docker-compose.yml | shyaml get-value services.$service.container_name`
-    m_c_name="${c_name}_${BSN_CODE}"
-    sed -i "s/container_name: ${c_name}/container_name: ${m_c_name}/" docker-compose.yml
-
-    echo "Success fix container name $c_name to $m_c_name"
-done
-
+cat docker-compose.dev.yml config | shyaml keys services | { 
+    while read service; do 
+        if echo "$fix_container_name_li" | grep -q $read; then
+            c_name=`cat docker-compose.yml | shyaml get-value services.$service.container_name`
+            m_c_name="${c_name}_${BSN_CODE}"
+            sed -i "s/container_name: ${c_name}/container_name: ${m_c_name}/" docker-compose.yml
+            echo "Success fix container name $c_name to $m_c_name"            
+    done; 
+}|| true
 # 3. network 변경
 sed -i "s/our_net/${BSN_CODE}_net/g" docker-compose.yml
 sed -i "s/subnet: 10.254.0.0/subnet: 172.10.0.0/" docker-compose.yml
