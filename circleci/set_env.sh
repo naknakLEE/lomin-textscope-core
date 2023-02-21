@@ -13,9 +13,9 @@ echo "BSN_CODE=$BSN_CODE" | tee -a .env
 # 2. docker-compose.yml container명 변경
 fix_container_name_li="wrapper web serving pp"
 
-cat docker-compose.dev.yml config | shyaml keys services | { 
+cat docker-compose.dev.yml | shyaml keys services | { 
     while read service; do 
-        if echo "$fix_container_name_li" | grep -q $read; then
+        if [[ "${fix_container_name_li}" =~ "${service}" ]]; then
             c_name=`cat docker-compose.yml | shyaml get-value services.$service.container_name`
             m_c_name="${c_name}_${BSN_CODE}"
             sed -i "s/container_name: ${c_name}/container_name: ${m_c_name}/" docker-compose.yml
