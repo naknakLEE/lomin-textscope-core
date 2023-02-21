@@ -19,7 +19,8 @@ cat docker-compose.dev.yml config | shyaml keys services | {
             c_name=`cat docker-compose.yml | shyaml get-value services.$service.container_name`
             m_c_name="${c_name}_${BSN_CODE}"
             sed -i "s/container_name: ${c_name}/container_name: ${m_c_name}/" docker-compose.yml
-            echo "Success fix container name $c_name to $m_c_name"            
+            echo "Success fix container name $c_name to $m_c_name"
+        fi            
     done; 
 }|| true
 # 3. network 변경
