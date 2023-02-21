@@ -17,7 +17,7 @@ from app import models
 from app.database import schema
 from app.common.const import get_settings
 from app.utils.logging import logger
-from app.database.connection import Base
+from app.database.connection import Base, db
 from app.schemas import error_models as ErrorResponse
 
 
@@ -819,7 +819,7 @@ def get_user_document_type(session: Session, user_policy: Dict[str, Union[bool, 
     
     return doc_type_list
 
-def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSONResponse]:
+def delete_data_after_days(session: Session = None,  **kwargs: Dict) -> Union[None, JSONResponse]:
     """일정 시간이 지난, DB 내 특정 테이블의 데이터를 삭제하는 쿼리를, 호출하는 함수
 
     Args:
@@ -830,6 +830,10 @@ def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSO
     """    
 
     result = None
+    
+    if session is None:
+        session = next(db.session())
+    
     try:
         now = datetime.now()
         life_days = kwargs.get("life_days", 5)
@@ -837,6 +841,7 @@ def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSO
 
         # 형식: schema.{Table 변수}.remove_older_than(session, {삭제 기준으로 참조할 Column 명(type: date)}={삭제 기준 일시})
         result_loginfo = schema.LogInfo.remove_older_than(session=session, reference_column="created_time", delete_before=criteria)
+        result_logapi = schema.LogAPI.remove_older_than(session=session, reference_column="api_response_datetime", delete_before=criteria)
         result_inspectinfo = schema.InspectInfo.remove_older_than(session=session, reference_column="inspect_start_time", delete_before=criteria)
         result_inferenceinfo= schema.InferenceInfo.remove_older_than(session=session, reference_column="inference_start_time", delete_before=criteria)
         result_documentinfo = schema.DocumentInfo.remove_older_than(session=session, reference_column="document_upload_time", delete_before=criteria)
@@ -848,4 +853,9 @@ def delete_data_after_days(session: Session,  **kwargs: Dict) -> Union[None, JSO
         status_code, error = ErrorResponse.ErrorCode.get(4101)
         error.error_message = error.error_message.format("문서 삭제 실패")
         result = JSONResponse(status_code=status_code, content=jsonable_encoder({"error":error}))
+    
+    finally:
+        session.close()
+        logger.info("Session Closed: delete_data_after_days")
+        
     return result

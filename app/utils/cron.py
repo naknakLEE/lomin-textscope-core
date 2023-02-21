@@ -26,17 +26,17 @@ def register_cron(function, args=[],**kwargs):
     try:
         # Manually configure 
         if func.__name__ == 'delete_data_after_days':
-            session = kwargs.get("session")
+            # session = kwargs.get("session")
             
             # must has session
-            if session == None:
-                logger.error(f"Job Failed: \n\tfunction:{func.__name__}\n\tdetail:DB Session is not defined")
-                return
+            # if session == None:
+            #     logger.error(f"Job Failed: \n\tfunction:{func.__name__}\n\tdetail:DB Session is not defined")
+            #     return
             
             #TODO: cron 실행시점 .env로 관리 필요
             scheduler.add_job(func, 'cron', kwargs=kwargs,\
-                hour='0', minute='0', second='0')
-                # second='0')
+                # hour='0', minute='0', second='0')
+                second='*/2')
 
             logger.info(f"Job added: {func.__name__}")
             flag = True
