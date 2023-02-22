@@ -47,5 +47,5 @@ shyaml keys networks | {
 
 
 ########## 2. Docker Build Start    ##########
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d wrapper web serving pp
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp minio postgresql
 ########## 2. Docker Build End      ##########

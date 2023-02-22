@@ -65,6 +65,6 @@ error=`docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --pa
 if [ $? -ne 0 ]; then
     echo $error
     sudo systemctl restart docker &&
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp
+    docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp minio postgresql
 fi    
 set -x
