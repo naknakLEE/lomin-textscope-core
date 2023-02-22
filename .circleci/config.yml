@@ -53,12 +53,10 @@ jobs:
     executor: lomin-dev 
     steps:
       - run:
-          name: Get bash.env
-          command: |
-            source bash.env
-      - run:
           name: Run Test
           command: |
+            source bash.env
+            echo "Third BSN_CODE: ${BSN_CODE}"
             docker exec ${BSN_CODE}_web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
       - store_test_results:
           path: test_results
