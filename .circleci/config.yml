@@ -70,7 +70,7 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            rm -rf .            
+            rm -rf /home/circleci/textscope/application            
 
 workflows:
   feature-develop-PR: 
@@ -81,10 +81,9 @@ workflows:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
-      - shut-down:
-          filters:
-            branches:
-              only: /feature\/.*/      
+    finally:
+      - shut-down
+
       # - code-test:
       #     requires:
       #       - run-application        
