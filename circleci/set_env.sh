@@ -11,12 +11,12 @@ sed -i "s/TEXTSCOPE_BASE_IMAGE_VERSION=0.1.3/TEXTSCOPE_BASE_IMAGE_VERSION=$BSN_C
 echo "BSN_CODE=$BSN_CODE" | tee -a .env
 
 # 2. assets config & inference_server config 파일 변경
-old_serving_container_name = yq e '.services.serving.container_name' docker-compose.yml
-new_serving_container_name = "${BSN_CODE}-serving"
+old_serving_container_name=`yq e '.services.serving.container_name' docker-compose.yml`
+new_serving_container_name=${BSN_CODE}-serving
 sed -i "s/${old_serving_container_name}/${new_serving_container_name}/g" assets/${BSN_CODE}/pipeline_serving_mapping.json
 
 inference_network=`cat inference_server/assets/conf/config.yaml | shyaml get-value defaults.3.network`
-new_minio_container_name = "${BSN_CODE}-minio"
+new_minio_container_name=${BSN_CODE}-minio
 yq e -i ".minio.host = \"$new_minio_container_name\"" inference_server/assets/conf/network/${inference_network}.yaml
 
 # 3. docker-compose.yml container명 변경
