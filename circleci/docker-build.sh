@@ -60,7 +60,7 @@ do
         
 done
 ########## 2. Download Model File End    ##########
-error=`docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp minio postgresql > /dev/null 2>&1`
+error=`docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel > /dev/null 2>&1`
 # error=`docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp 2>&1`
 if [ $? -ne 0 ]; then
     echo $error
