@@ -30,7 +30,6 @@ jobs:
             BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             echo "BSN_CODE is: $BSN_CODE"
             echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
-            cp $BASH_ENV bash.env     
       - run:
           name: Setting project env
           command: |
@@ -55,7 +54,6 @@ jobs:
       - run:
           name: Run Test
           command: |
-            source bash.env
             docker exec ${BSN_CODE}-web /bin/sh -c "pytest /workspace/tests --junitxml=/workspace/test_results/junit.xml"
       - store_test_results:
           path: test_results
@@ -75,12 +73,12 @@ jobs:
           name: Execute Evaluator
           command: |
             bash circleci/run_eval_scrp.sh
-      - run:
-          when: on_fail
-          name: Docker compose down & Clean directory
-          command: |
-            docker-compose down
-            sudo rm -rf /home/circleci/textscope/application            
+      # - run:
+      #     when: on_fail
+      #     name: Docker compose down & Clean directory
+      #     command: |
+      #       docker-compose down
+      #       sudo rm -rf /home/circleci/textscope/application            
   shut-down:
     executor: lomin-dev
     steps:    
