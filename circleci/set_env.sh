@@ -26,6 +26,7 @@ yq e -i 'del(.services.*.ports)' docker-compose.yml
 yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
 yq e -i '.services.web.ports[0] = "10081:${WEB_IP_PORT}"' docker-compose.dev.yml
 yq e -i '.services.serving.ports[0] = "10082:${SERVING_IP_PORT}"' docker-compose.dev.yml
+yq e -i '.services.serving.ports[1] = "5003:5003"' docker-compose.dev.yml
 yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
 
 # 5. network 변경

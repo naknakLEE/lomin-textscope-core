@@ -48,7 +48,7 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            rm -rf /home/circleci/textscope/application                              
+            sudo rm -rf /home/circleci/textscope/application                              
   code-test:
     executor: lomin-dev 
     steps:
@@ -66,7 +66,7 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            rm -rf /home/circleci/textscope/application                      
+            sudo rm -rf /home/circleci/textscope/application                      
   export-evaluator:
     executor: lomin-dev 
     steps:  
@@ -79,7 +79,7 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            rm -rf /home/circleci/textscope/application            
+            sudo rm -rf /home/circleci/textscope/application            
   shut-down:
     executor: lomin-dev
     steps:    
@@ -88,7 +88,7 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            rm -rf /home/circleci/textscope/application            
+            sudo rm -rf /home/circleci/textscope/application            
 
 workflows:
   feature-develop-PR: 
