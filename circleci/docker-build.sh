@@ -61,6 +61,10 @@ do
 done
 ########## 2. Download Model File End    ##########
 
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp
-
+error=$(docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp 2>&1 >/dev/null) 
+if [ $? -ne 0 ]; then
+    echo "$error"
+    sudo systemctl restart docker &&
+    docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp
+fi    
 set -x
