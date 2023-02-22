@@ -47,5 +47,5 @@ shyaml keys networks | {
 
 
 ########## 2. Docker Build Start    ##########
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d wrapper web serving pp
 ########## 2. Docker Build End      ##########
