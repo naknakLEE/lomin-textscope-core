@@ -11,7 +11,8 @@ executors:
 
 jobs:
   run-application:
-    executor: lomin-dev    
+    executor: lomin-dev
+    priority: 1   
     steps:
       - jq/install    
       - checkout
@@ -44,7 +45,8 @@ jobs:
           command: |
             bash circleci/docker-run.sh                 
   code-test:
-    executor: lomin-dev    
+    executor: lomin-dev 
+    priority: 2   
     steps:
       - run:
           name: Run Test
@@ -57,6 +59,7 @@ jobs:
           destination: v0.1.0            
   export-evaluator:
     executor: lomin-dev 
+    priority: 3
     steps:  
       - run:
           name: Execute Evaluator
@@ -64,6 +67,7 @@ jobs:
             bash circleci/run_eval_scrp.sh
   shut-down:
     executor: lomin-dev
+    priority: 4
     steps:    
       - run:
           when: always
@@ -84,9 +88,7 @@ workflows:
       - shut-down:
           filters:
             branches:
-              only: /feature\/.*/      
-          requires:
-            - run-application              
+              only: /feature\/.*/
 
 
       # - code-test:
