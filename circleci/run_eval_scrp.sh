@@ -1,6 +1,8 @@
 #!/bin/bash
 # TODO 각프로젝트마다 다르게 설정
 
+BSN_CODE=$1
+
 cd /home/lomin/Circleci/textscope-client/textscope-evaluator
 
 for dir in $(ls /home/lomin/Circleci/sample/$BSN_CODE); do

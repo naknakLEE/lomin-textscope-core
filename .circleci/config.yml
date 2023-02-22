@@ -74,7 +74,8 @@ jobs:
       - run:
           name: Execute Evaluator
           command: |
-            bash circleci/run_eval_scrp.sh
+            source bash.env
+            bash circleci/run_eval_scrp.sh $BSN_CODE
       # - run:
       #     when: on_fail
       #     name: Docker compose down & Clean directory
