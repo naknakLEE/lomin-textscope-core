@@ -9,7 +9,7 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml config |
 shyaml keys services | { 
     while read service; 
     do 
-    m_c_name="${BSN_CODE}_${service}"
+    m_c_name="${BSN_CODE}-${service}"
     docker ps | grep $m_c_name
     if [ $? -eq 0 ]; then
         docker stop $m_c_name && docker rm $m_c_name;
@@ -47,5 +47,5 @@ shyaml keys networks | {
 
 
 ########## 2. Docker Build Start    ##########
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp minio postgresql
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d wrapper web serving pp minio postgresql
 ########## 2. Docker Build End      ##########

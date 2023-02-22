@@ -13,7 +13,7 @@ echo "BSN_CODE=$BSN_CODE" | tee -a .env
 # 2. docker-compose.yml container명 변경
 cat docker-compose.yml | shyaml keys services | { 
     while read service; do                     
-        m_c_name="${BSN_CODE}_${service}"
+        m_c_name="${BSN_CODE}-${service}"
         yq e -i ".services.\"$service\".container_name = \"$m_c_name\"" docker-compose.yml
         echo "Success fix ${service} container name to $m_c_name"                
     done; 
@@ -35,4 +35,4 @@ sed -i "s/our_net/$new_network/g" docker-compose.yml
 yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" docker-compose.yml
 
 # 6. DOCKER SERVER IP ADDRESS 변경
-sed -i "s/textscope-/${BSN_CODE}_/g" .env
+sed -i "s/textscope-/${BSN_CODE}-/g" .env
