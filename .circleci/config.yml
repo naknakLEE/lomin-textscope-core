@@ -63,12 +63,12 @@ jobs:
       - store_artifacts:
           path: test_results
           destination: v0.1.0
-      - run:
-          when: on_fail
-          name: Docker compose down & Clean directory
-          command: |
-            docker-compose down
-            sudo rm -rf /home/circleci/textscope/application                      
+      # - run:
+      #     when: on_fail
+      #     name: Docker compose down & Clean directory
+      #     command: |
+      #       docker-compose down
+      #       sudo rm -rf /home/circleci/textscope/application                      
   export-evaluator:
     executor: lomin-dev 
     steps:  
