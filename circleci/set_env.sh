@@ -22,8 +22,11 @@ cat docker-compose.yml | shyaml keys services | {
 # 3. docker-compose.yml port바인딩 삭제
 yq e -i 'del(.services.*.ports)' docker-compose.yml
 
-# 4. docker-compose.dev.yml wrapper port 바인딩 변경
-yq e -i '.services.wrapper.ports[0] = "8091:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
+# 4. docker-compose.dev.yml wrapper,web,serving,pp port 바인딩 변경
+yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
+yq e -i '.services.web.ports[0] = "10081:${WEB_IP_PORT}"' docker-compose.dev.yml
+yq e -i '.services.serving.ports[0] = "10082:${serving}"' docker-compose.dev.yml
+yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
 
 # 5. network 변경
 new_network="${BSN_CODE}_net"

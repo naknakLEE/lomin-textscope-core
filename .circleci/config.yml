@@ -12,7 +12,6 @@ executors:
 jobs:
   run-application:
     executor: lomin-dev
-    priority: 1   
     steps:
       - jq/install    
       - checkout
@@ -43,10 +42,15 @@ jobs:
       - run:
           name: Execute docker-run.sh
           command: |
-            bash circleci/docker-run.sh                 
+            bash circleci/docker-run.sh
+      - run:
+          when: on_fail
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf /home/circleci/textscope/application                              
   code-test:
     executor: lomin-dev 
-    priority: 2   
     steps:
       - run:
           name: Run Test
@@ -56,18 +60,28 @@ jobs:
           path: test_results
       - store_artifacts:
           path: test_results
-          destination: v0.1.0            
+          destination: v0.1.0
+      - run:
+          when: on_fail
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf /home/circleci/textscope/application                      
   export-evaluator:
     executor: lomin-dev 
-    priority: 3
     steps:  
       - run:
           name: Execute Evaluator
           command: |
             bash circleci/run_eval_scrp.sh
+      - run:
+          when: on_fail
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf /home/circleci/textscope/application            
   shut-down:
     executor: lomin-dev
-    priority: 4
     steps:    
       - run:
           when: always
@@ -85,10 +99,23 @@ workflows:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
-      - shut-down:
+      - code-test:
+          requires:
+            - run-application        
+          filters:
+            branches:
+              only: /feature\/.*/                         
+      - export-evaluator:
+          requires:
+            - code-test
           filters:
             branches:
               only: /feature\/.*/
+    # finally:                         
+    #   - shut-down:
+    #       filters:
+    #         branches:
+    #           only: /feature\/.*/
 
 
       # - code-test:
