@@ -21,13 +21,19 @@ cat docker-compose.yml | shyaml keys services | {
 
 # 3. docker-compose.yml port바인딩 삭제
 yq e -i 'del(.services.*.ports)' docker-compose.yml
+yq e -i 'del(.services.*.ports)' docker-compose.dev.yml
 
-# 4. docker-compose.dev.yml wrapper,web,serving,pp port 바인딩 변경
 yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
-yq e -i '.services.web.ports[0] = "10081:${WEB_IP_PORT}"' docker-compose.dev.yml
-yq e -i '.services.serving.ports[0] = "10082:${SERVING_IP_PORT}"' docker-compose.dev.yml
-yq e -i '.services.serving.ports[1] = "5003:5003"' docker-compose.dev.yml
-yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
+# 4. docker-compose.dev.yml wrapper,web,serving,pp port 바인딩 변경
+# yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
+# sed -i "s/WRAPPER_IP_PORT=8090/WRAPPER_IP_PORT=10080" .env
+# yq e -i '.services.web.ports[0] = "10081:${WEB_IP_PORT}"' docker-compose.dev.yml
+# sed -i "s/WEB_IP_PORT=8000/WEB_IP_PORT=10081" .env
+# yq e -i '.services.serving.ports[0] = "10082:${SERVING_IP_PORT}"' docker-compose.dev.yml
+# sed -i "s/SERVING_IP_PORT=10082/SERVING_IP_PORT=10082" .env
+# yq e -i '.services.serving.ports[1] = "5003:5003"' docker-compose.dev.yml
+# yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
+# sed -i "s/PP_IP_PORT=10083/PP_IP_PORT=10083" .env
 
 # 5. network 변경
 new_network="${BSN_CODE}_net"
