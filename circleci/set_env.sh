@@ -33,3 +33,6 @@ yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
 new_network="${BSN_CODE}_net"
 sed -i "s/our_net/$new_network/g" docker-compose.yml
 yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" docker-compose.yml
+
+# 6. DOCKER SERVER IP ADDRESS 변경
+sed -i "s/textscope-/${BSN_CODE}_/g" .env
