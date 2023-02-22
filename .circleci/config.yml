@@ -81,8 +81,13 @@ workflows:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
-      finally:
-        - shut-down
+      - shut-down:
+          filters:
+            branches:
+              only: /feature\/.*/      
+          requires:
+            - run-application              
+
 
       # - code-test:
       #     requires:
