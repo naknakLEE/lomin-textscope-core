@@ -43,12 +43,12 @@ jobs:
           name: Execute docker-run.sh
           command: |
             bash circleci/docker-run.sh $BSN_CODE
-      - run:
-          when: on_fail
-          name: Docker compose down & Clean directory
-          command: |
-            docker-compose down
-            sudo rm -rf /home/circleci/textscope/application                              
+      # - run:
+      #     when: on_fail
+      #     name: Docker compose down & Clean directory
+      #     command: |
+      #       docker-compose down
+      #       sudo rm -rf /home/circleci/textscope/application                              
   code-test:
     executor: lomin-dev 
     steps:
