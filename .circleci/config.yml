@@ -57,7 +57,7 @@ jobs:
           command: |
             source bash.env
             echo "Third BSN_CODE: ${BSN_CODE}"
-            docker exec ${BSN_CODE}_web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
+            docker exec ${BSN_CODE}-web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
       - store_test_results:
           path: test_results
       - store_artifacts:
