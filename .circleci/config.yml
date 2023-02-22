@@ -42,18 +42,10 @@ jobs:
       - run:
           name: Execute docker-run.sh
           command: |
-            bash circleci/docker-run.sh
-      - persist_to_workspace:
-          root: .
-          paths:
-            - docker-compose.yml
-            - docker-compose.dev.yml     
-            - bash.env                       
+            bash circleci/docker-run.sh                 
   code-test:
     executor: lomin-dev    
     steps:
-      - attach_workspace:
-          at: .
       - run:
           name: Run Test
           command: |
@@ -62,12 +54,7 @@ jobs:
           path: test_results
       - store_artifacts:
           path: test_results
-          destination: v0.1.0
-      - run:
-          name: Docker compose down
-          command: |
-            docker-compose down
-          when: on_fail             
+          destination: v0.1.0            
   export-evaluator:
     executor: lomin-dev 
     steps:
@@ -77,6 +64,16 @@ jobs:
           name: Execute Evaluator
           command: |
             bash circleci/run_eval_scrp.sh
+  shut-down:
+    executor: lomin-dev
+    when: always
+    steps:    
+      - run:
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf .  
+
 workflows:
   feature-develop-PR: 
     jobs:             
@@ -86,6 +83,10 @@ workflows:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
+      - shut-down:
+          filters:
+            branches:
+              only: /feature\/.*/      
       # - code-test:
       #     requires:
       #       - run-application        
