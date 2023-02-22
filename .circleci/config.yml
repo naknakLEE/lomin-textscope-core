@@ -57,22 +57,20 @@ jobs:
           destination: v0.1.0            
   export-evaluator:
     executor: lomin-dev 
-    steps:
-      - attach_workspace:
-          at: .    
+    steps:  
       - run:
           name: Execute Evaluator
           command: |
             bash circleci/run_eval_scrp.sh
   shut-down:
     executor: lomin-dev
-    when: always
     steps:    
       - run:
+          when: always
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            rm -rf .  
+            rm -rf .            
 
 workflows:
   feature-develop-PR: 
