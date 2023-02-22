@@ -2,13 +2,18 @@
 
 PATH="$HOME/.local/bin:$PATH"
 
+BSN_CODE=$1
+
 ########## 1. Delete Docker Container & Volume and Network Start ##########
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
 shyaml keys services | { 
-    while read services; 
+    while read service; 
     do 
-    docker stop `textscope-$services`; 
-    docker rm `textscope-$services`; 
+    m_c_name="${BSN_CODE}_${service}"
+    docker ps | grep $m_c_name
+    if [ $? -eq 0 ]; then
+        docker stop $m_c_name && docker rm $m_c_name;
+    fi 
     done; 
 }|| true
 
@@ -42,5 +47,5 @@ shyaml keys networks | {
 
 
 ########## 2. Docker Build Start    ##########
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d wrapper web serving pp
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ########## 2. Docker Build End      ##########

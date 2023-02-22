@@ -42,7 +42,7 @@ jobs:
       - run:
           name: Execute docker-run.sh
           command: |
-            bash circleci/docker-run.sh
+            bash circleci/docker-run.sh $BSN_CODE
       - run:
           when: on_fail
           name: Docker compose down & Clean directory
@@ -53,9 +53,13 @@ jobs:
     executor: lomin-dev 
     steps:
       - run:
+          name: Get bash.env
+          command: |
+            source bash.env
+      - run:
           name: Run Test
           command: |
-            docker exec web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
+            docker exec ${BSN_CODE}_web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
       - store_test_results:
           path: test_results
       - store_artifacts:
