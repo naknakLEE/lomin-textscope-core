@@ -10,7 +10,16 @@ PATH="$HOME/.local/bin:$PATH"
 sed -i "s/TEXTSCOPE_BASE_IMAGE_VERSION=0.1.3/TEXTSCOPE_BASE_IMAGE_VERSION=$BSN_CODE/" .env
 echo "BSN_CODE=$BSN_CODE" | tee -a .env
 
-# 2. docker-compose.yml container명 변경
+# 2. assets config & inference_server config 파일 변경
+old_serving_container_name = yq e '.services.serving.container_name' docker-compose.yml
+new_serving_container_name = "${BSN_CODE}-serving"
+sed -i "s/${old_serving_container_name}/${new_serving_container_name}/g" assets/${BSN_CODE}/pipeline_serving_mapping.json
+
+inference_network=`cat inference_server/assets/conf/config.yaml | shyaml get-value defaults.3.network`
+new_minio_container_name = "${BSN_CODE}-minio"
+yq e -i ".minio.host = \"$new_minio_container_name\"" inference_server/assets/conf/network/${inference_network}.yaml
+
+# 3. docker-compose.yml container명 변경
 cat docker-compose.yml | shyaml keys services | { 
     while read service; do                     
         m_c_name="${BSN_CODE}-${service}"
@@ -19,24 +28,14 @@ cat docker-compose.yml | shyaml keys services | {
     done; 
 }|| true
 
-# 3. docker-compose.yml port바인딩 삭제
+# 4. docker-compose.yml port바인딩 삭제
 yq e -i 'del(.services.*.ports)' docker-compose.yml
 yq e -i 'del(.services.*.ports)' docker-compose.dev.yml
 
-yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
-# 4. docker-compose.dev.yml wrapper,web,serving,pp port 바인딩 변경
-# yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
-# sed -i "s/WRAPPER_IP_PORT=8090/WRAPPER_IP_PORT=10080" .env
-# yq e -i '.services.web.ports[0] = "10081:${WEB_IP_PORT}"' docker-compose.dev.yml
-# sed -i "s/WEB_IP_PORT=8000/WEB_IP_PORT=10081" .env
-# yq e -i '.services.serving.ports[0] = "10082:${SERVING_IP_PORT}"' docker-compose.dev.yml
-# sed -i "s/SERVING_IP_PORT=10082/SERVING_IP_PORT=10082" .env
-# yq e -i '.services.serving.ports[1] = "5003:5003"' docker-compose.dev.yml
-# yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
-# sed -i "s/PP_IP_PORT=10083/PP_IP_PORT=10083" .env
+yq e -i '.services.wrapper.ports[0] = "9100:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
 
 # 5. network 변경
-new_network="${BSN_CODE}_net"
+new_network="${BSN_CODE}-net"
 sed -i "s/our_net/$new_network/g" docker-compose.yml
 yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" docker-compose.yml
 

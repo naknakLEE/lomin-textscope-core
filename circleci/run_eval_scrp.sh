@@ -6,7 +6,7 @@ cd /home/lomin/Circleci/textscope-client/textscope-evaluator
 for dir in $(ls /home/lomin/Circleci/sample/${BSN_CODE}); do
     echo $dir
     python3 tools/textscope_eval/textscope_requester.py \
-        --textscope-url http://localhost:10080 \
+        --textscope-url http://localhost:9100 \
         --input-dir /home/lomin/Circleci/sample/bsn-2211-kbcard/ID-RRC\
         --output-dir /home/lomin/Circleci/result/bsn-2211-kbcard/ID-RRC\
         --endpoint-type kv \
