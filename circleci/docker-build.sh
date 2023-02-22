@@ -10,12 +10,7 @@ echo "BSN_CODE is: $BSN_CODE"
 
 PATH="$HOME/.local/bin:$PATH"
 
-########## 1. Submodule Update Start ##########
-git submodule update --init --recursive
-########## 1. Submodule Update End   ##########
-
-
-########## 2. Download Model File Start ##########
+########## 1. Download Model File Start ##########
 model_config=`cat inference_server/assets/conf/config.yaml | shyaml get-value defaults.2.model`
 if test [$model_config='default'];
 then
@@ -59,7 +54,7 @@ do
     fi
         
 done
-########## 2. Download Model File End    ##########
+########## 1. Download Model File End    ##########
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp
 
 # error=`docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel wrapper web serving pp 2>&1`
