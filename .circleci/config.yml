@@ -62,7 +62,15 @@ jobs:
           name: Execute Evaluator
           command: |
             bash circleci/run_eval_scrp.sh
-  
+  shut-down:
+    executor: lomin-dev
+    steps:    
+      - run:
+          when: always
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf /home/circleci/textscope/application            
 
 workflows:
   feature-develop-PR: 
@@ -73,15 +81,8 @@ workflows:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
-    finally:
-      name: shut-down
-      executor: lomin-dev
-      steps:    
-        - run:
-            name: Docker compose down & Clean directory
-            command: |
-              docker-compose down
-              rm -rf /home/circleci/textscope/application          
+      finally:
+        - shut-down
 
       # - code-test:
       #     requires:
