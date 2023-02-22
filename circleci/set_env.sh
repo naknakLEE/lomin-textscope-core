@@ -19,6 +19,8 @@ inference_network=`cat inference_server/assets/conf/config.yaml | shyaml get-val
 new_minio_container_name=${BSN_CODE}-minio
 yq e -i ".minio.host = \"$new_minio_container_name\"" inference_server/assets/conf/network/${inference_network}.yaml
 
+sed -i "s/ --reload//" inference_server/assets/run-dev.sh
+
 # 3. docker-compose.yml container명 변경
 cat docker-compose.yml | shyaml keys services | { 
     while read service; do                     
