@@ -25,7 +25,7 @@ yq e -i 'del(.services.*.ports)' docker-compose.yml
 # 4. docker-compose.dev.yml wrapper,web,serving,pp port 바인딩 변경
 yq e -i '.services.wrapper.ports[0] = "10080:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
 yq e -i '.services.web.ports[0] = "10081:${WEB_IP_PORT}"' docker-compose.dev.yml
-yq e -i '.services.serving.ports[0] = "10082:${serving}"' docker-compose.dev.yml
+yq e -i '.services.serving.ports[0] = "10082:${SERVING_IP_PORT}"' docker-compose.dev.yml
 yq e -i '.services.pp.ports[0] = "10083:${PP_IP_PORT}"' docker-compose.dev.yml
 
 # 5. network 변경
