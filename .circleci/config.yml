@@ -20,9 +20,7 @@ jobs:
           command: pip install shyaml
       - run:
           name: Git submoudle update
-          command: |
-            git submodule update --init --recursive
-            sudo chown -R 1000:1000 .
+          command: git submodule update --init --recursive
       - run: 
           name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env
