@@ -42,12 +42,12 @@ yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" d
 # 6. DOCKER SERVER IP ADDRESS 변경
 sed -i "s/textscope-/${BSN_CODE}-/g" .env
 
-# 7. Docker file user 1000:1000 -> 1001:1001로 변경
+# 7. Docker file user, group 1001:1001 추가
 for Dockerfile in $(ls docker/base); do
     `cat docker/base/$Dockerfile | grep -A2 -B2 groupadd | grep useradd > /dev/null`
     if [ $? -ne 1 ]; then
-        sed -i "s/1000/1001/g" docker/base/$Dockerfile
-        echo "$Dockerfile modify 1000 to 1001"
+        groupadd -r circleci -g 1001 && useradd -m -u 1001 -r -g circleci -s /sbin/nologin -c "Circleci user" circleci
+        echo "$Dockerfile add user & group 1001"
     else 
         echo "$Dockerfile is not contain add user & group"
     fi
