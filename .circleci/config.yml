@@ -91,9 +91,8 @@ jobs:
       - run:
           name: Generate .so file
           command: |
-            sed -i 's/\r$//' .env
-            chmod 654 assets/build_script/*
-            sh build.sh
+            source bash.env
+            bash circleci/deploy.sh $BSN_CODE
       - run:
           name: Apply thales
           command: |
