@@ -91,6 +91,7 @@ jobs:
       - run:
           name: Generate .so file
           command: |
+            sed -i 's/\r$//' build.sh
             sh build.sh
       - run:
           name: Apply thales
