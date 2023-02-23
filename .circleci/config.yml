@@ -22,7 +22,7 @@ jobs:
           name: Git submoudle update
           command: |
             git submodule update --init --recursive
-            chown -R 1000:1000 .
+            sudo chown -R 1000:1000 .
       - run: 
           name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env
