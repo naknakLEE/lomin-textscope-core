@@ -8,7 +8,7 @@ PATH="$HOME/.local/bin:$PATH"
 
 # 1. env 파일 변경
 sed -i "s/TEXTSCOPE_BASE_IMAGE_VERSION=0.1.3/TEXTSCOPE_BASE_IMAGE_VERSION=$BSN_CODE/" .env
-echo "BSN_CODE=$BSN_CODE" | tee -a .env
+echo -e "BSN_CODE=$BSN_CODE" | tee -a .env
 
 # 2. assets config & inference_server config 파일 변경
 old_serving_container_name=`yq e '.services.serving.container_name' docker-compose.yml`

@@ -84,7 +84,22 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            sudo rm -rf /home/circleci/textscope/application            
+            sudo rm -rf /home/circleci/textscope/application     
+  deploy-image:
+    executor: lomin-dev 
+    steps:  
+      - run:
+          name: Generate .so file
+          command: |
+            sh build.sh
+      - run:
+          name: Apply thales
+          command: |
+            sh assets/apply-thales-remote.sh
+      - run:
+          name: Export docker images
+          command: |
+            sh assets/save-image-to-local.sh    
   shut-down:
     executor: lomin-dev
     steps:    
@@ -116,6 +131,12 @@ workflows:
           filters:
             branches:
               only: /feature\/.*/
+      - deploy-image:
+          requires:
+            - export-evaluator
+          filters:
+            branches:
+              only: /feature\/.*/              
     # finally:                         
     #   - shut-down:
     #       filters:
