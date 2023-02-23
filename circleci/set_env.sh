@@ -46,7 +46,7 @@ sed -i "s/textscope-/${BSN_CODE}-/g" .env
 for Dockerfile in $(ls docker/base); do
     `cat docker/base/$Dockerfile | grep -A2 -B2 groupadd | grep useradd > /dev/null`
     if [ $? -ne 1 ]; then
-        echo -e "RUN groupadd -r circleci -g 1001 && useradd -m -u 1001 -r -g circleci -s /sbin/nologin -c 'Circleci user' circleci" | tee docker/base/$Dockerfile
+        echo -e "RUN groupadd -r circleci -g 1001 && useradd -m -u 1001 -r -g circleci -s /sbin/nologin -c 'Circleci user' circleci" | tee -a docker/base/$Dockerfile > /dev/null
         echo "$Dockerfile add user & group 1001"
     else 
         echo "$Dockerfile is not contain add user & group"
