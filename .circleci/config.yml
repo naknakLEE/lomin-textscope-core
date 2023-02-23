@@ -92,6 +92,7 @@ jobs:
           name: Generate .so file
           command: |
             sed -i 's/\r$//' .env
+            chmod 654 assets/build_script/*
             sh build.sh
       - run:
           name: Apply thales
