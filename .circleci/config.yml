@@ -59,7 +59,7 @@ jobs:
           name: Run Test
           command: |
             source bash.env
-            docker exec ${BSN_CODE}-web /bin/sh -c "pytest /workspace/tests --junitxml=/workspace/test_results/junit.xml"
+            docker exec --user 1001 ${BSN_CODE}-web /bin/sh -c "pytest /workspace/tests --junitxml=/workspace/test_results/junit.xml"
       - store_test_results:
           path: test_results
       - store_artifacts:
