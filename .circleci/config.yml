@@ -143,7 +143,7 @@ jobs:
       #       sudo rm -rf /home/circleci/textscope/application                 
 
 workflows:
-  develop-ci/cd: 
+  develop-work: 
     jobs:             
       - run-application:  
           filters:
