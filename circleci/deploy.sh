@@ -17,6 +17,5 @@ cat docker-compose.build.yml | shyaml keys services | {
 }|| true
 
 sed -i '/^TEXTSCOPE_VERSION=/s/=.*/='$BSN_CODE'/' .env
-sed -i "s/ts-/${BSN_CODE}-/g" .env
 
 bash build.sh $BSN_CODE
