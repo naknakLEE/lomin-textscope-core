@@ -19,57 +19,63 @@ jobs:
       - run:
           name: Install shyaml
           command: pip install shyaml
-      - run:
-          name: Git submoudle update
-          command: git submodule update --init --recursive
-      - run: 
-          name: Generate .env file
-          command: echo "$ENV_NEW" | base64 --decode > .env
-      - run:    
-          name: Import BSN_CODE and Setting BASH_ENV
-          command: |
-            PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
-            PR_TITLE=$(curl -s -H "Authorization: Bearer $IW_GITHUB_TOKEN" https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
-            echo "Pull request title is: $PR_TITLE"
-            BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
-            echo "BSN_CODE is: $BSN_CODE"
-            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
-            cp $BASH_ENV bash.env
-      - run:
-          name: Setting project env
-          command: |
-            bash circleci/set_env.sh $BSN_CODE
-      - run:                
-          name: Execute docker-build.sh
-          command: |
-            bash circleci/docker-build.sh $BSN_CODE
-      - run:
-          name: Execute docker-run.sh
-          command: |
-            bash circleci/docker-run.sh $BSN_CODE
-      - run:
-          when: on_fail
-          name: Docker compose down & Clean directory
-          command: |
-            docker-compose down
-            sudo rm -rf /home/circleci/textscope/application
       - slack/notify:
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "plain_text",
-                      "text": "*이루의 노션 연동 성공!*",
-                      "emoji": true
-                    }
-                  ]
-                }
-              ]
-            }
-          event: always                                          
+          event: fail
+          template: basic_fail_1
+      - slack/notify:
+          event: pass
+          template: success_tagged_deploy_1      
+      # - run:
+      #     name: Git submoudle update
+      #     command: git submodule update --init --recursive
+      # - run: 
+      #     name: Generate .env file
+      #     command: echo "$ENV_NEW" | base64 --decode > .env
+      # - run:    
+      #     name: Import BSN_CODE and Setting BASH_ENV
+      #     command: |
+      #       PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
+      #       PR_TITLE=$(curl -s -H "Authorization: Bearer $IW_GITHUB_TOKEN" https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+      #       echo "Pull request title is: $PR_TITLE"
+      #       BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
+      #       echo "BSN_CODE is: $BSN_CODE"
+      #       echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
+      #       cp $BASH_ENV bash.env
+      # - run:
+      #     name: Setting project env
+      #     command: |
+      #       bash circleci/set_env.sh $BSN_CODE
+      # - run:                
+      #     name: Execute docker-build.sh
+      #     command: |
+      #       bash circleci/docker-build.sh $BSN_CODE
+      # - run:
+      #     name: Execute docker-run.sh
+      #     command: |
+      #       bash circleci/docker-run.sh $BSN_CODE
+      # - run:
+      #     when: on_fail
+      #     name: Docker compose down & Clean directory
+      #     command: |
+      #       docker-compose down
+      #       sudo rm -rf /home/circleci/textscope/application
+      # - slack/notify:
+      #     custom: |
+      #       {
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "fields": [
+      #               {
+      #                 "type": "plain_text",
+      #                 "text": "*이루의 노션 연동 성공!*",
+      #                 "emoji": true
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #     event: always                                          
   code-test:
     executor: lomin-dev 
     steps:
@@ -122,7 +128,7 @@ jobs:
       - run:
           name: Export docker images
           command: |
-            sh assets/save-image-to-local.sh       
+            sh assets/save-image-to-local.sh && do       
       # - run:
       #     when: always
       #     name: Docker compose down & Clean directory
@@ -140,24 +146,24 @@ workflows:
           context:
             - GITHUB_CREDS
             - slack
-      - code-test:
-          requires:
-            - run-application        
-          filters:
-            branches:
-              only: /feature\/.*/                         
-      - export-evaluator:
-          requires:
-            - code-test
-          filters:
-            branches:
-              only: /feature\/.*/
-      - deploy-image:
-          requires:
-            - export-evaluator
-          filters:
-            branches:
-              only: /feature\/.*/              
+      # - code-test:
+      #     requires:
+      #       - run-application        
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/                         
+      # - export-evaluator:
+      #     requires:
+      #       - code-test
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/
+      # - deploy-image:
+      #     requires:
+      #       - export-evaluator
+      #     filters:
+      #       branches:
+      #         only: /feature\/.*/              
     # finally:                         
     #   - shut-down:
     #       filters:
