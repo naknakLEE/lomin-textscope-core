@@ -133,13 +133,13 @@ jobs:
 workflows:
   feature-develop-PR: 
     jobs:             
-      - run-application:    
-          context: slack  
+      - run-application:  
           filters:
             branches:
               only: /feature\/.*/
           context:
             - GITHUB_CREDS
+            - slack
       - code-test:
           requires:
             - run-application        
