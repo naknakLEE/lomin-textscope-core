@@ -105,12 +105,12 @@ jobs:
           name: Export docker images
           command: |
             sh assets/save-image-to-local.sh       
-      - run:
-          when: always
-          name: Docker compose down & Clean directory
-          command: |
-            docker-compose down
-            sudo rm -rf /home/circleci/textscope/application                 
+      # - run:
+      #     when: always
+      #     name: Docker compose down & Clean directory
+      #     command: |
+      #       docker-compose down
+      #       sudo rm -rf /home/circleci/textscope/application                 
 
 workflows:
   feature-develop-PR: 
