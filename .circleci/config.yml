@@ -13,6 +13,11 @@ executors:
 jobs:
   run-application:
     executor: lomin-dev
+    parameters:
+      BSN_CODE:
+        type: string
+        description: Project bsn_code
+        default: ""    
     steps:
       - jq/install    
       - checkout
@@ -31,22 +36,38 @@ jobs:
       - run: 
           name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env
-      - run:    
-          name: Import BSN_CODE and Setting BASH_ENV
-          environment:
-            BSN_CODE: <<parameters.BSN_CODE>>          
-          command: |
-            if [ $BSN_CODE = 1 ]; then
-              echo "BSN_CODE is: $BSN_CODE"
-            else
-              PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
-              PR_TITLE=$(curl -s -H "Authorization: Bearer $IW_GITHUB_TOKEN" https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
-              echo "Pull request title is: $PR_TITLE"
-              BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
-              echo "BSN_CODE is: $BSN_CODE"
-            fi
-            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
-            cp $BASH_ENV bash.env
+      - when:
+          condition: <<parameters.BSN_CODE>>
+          steps:
+            - run:
+                name: Import BSN_CODE and Setting BASH_ENV
+                command: |
+                  echo "BSN_CODE is: $BSN_CODE"
+                  echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
+                  cp $BASH_ENV bash.en         
+      - unless:
+          condition: <<parameters.BSN_CODE>>
+          steps:
+            - run:
+                name: Import BSN_CODE and Setting BASH_ENV use github api     
+                command: |
+                  PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
+                  PR_TITLE=$(curl -s -H "Authorization: Bearer $IW_GITHUB_TOKEN" https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+                  echo "Pull request title is: $PR_TITLE"
+                  BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
+                  echo "BSN_CODE is: $BSN_CODE"
+                  echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
+                  cp $BASH_ENV bash.env        
+      # - run:    
+      #     name: Import BSN_CODE and Setting BASH_ENV     
+      #     command: |
+      #       PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
+      #       PR_TITLE=$(curl -s -H "Authorization: Bearer $IW_GITHUB_TOKEN" https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+      #       echo "Pull request title is: $PR_TITLE"
+      #       BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
+      #       echo "BSN_CODE is: $BSN_CODE"
+      #       echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
+      #       cp $BASH_ENV bash.env
       - run:
           name: Setting project env
           command: |
