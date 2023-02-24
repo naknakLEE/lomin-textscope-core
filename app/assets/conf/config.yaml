@@ -1,4 +1,4 @@
 defaults:
-  - route: default
+  - route: keco2301
   - document: default
   - database: default
