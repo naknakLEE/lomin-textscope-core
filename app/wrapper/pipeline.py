@@ -243,7 +243,8 @@ def single(
             )
     inferecne_response_json = inferecne_response.json()
     inferecne_response_json.update({
-        "doc_type": doc_type
+        "doc_type": doc_type,
+        "dpi": gocr_result['dpi']
     })
     inference_end_time = datetime.now()
     response_log.update(

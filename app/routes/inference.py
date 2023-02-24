@@ -200,6 +200,8 @@ def ocr(
                 image_width=inference_results.get("image_width"),
                 image_width_origin=inference_results.get("image_width_origin"),
                 image_height_origin=inference_results.get("image_height_origin"),
+                angle=inference_results.get("angle"),
+                dpi=inference_results.get("dpi"),
                 relations=inference_results.get("relations"),
                 task_id=task_id,
             )
