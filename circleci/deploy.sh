@@ -10,11 +10,13 @@ chmod 770 ./ && chmod 654 assets/build_script/*
 # docker-compose.build.yml의 container name 변경
 cat docker-compose.build.yml | shyaml keys services | { 
     while read service; do                     
-        m_c_name="${BSN_CODE}-${service}-base"
+        m_c_name="${BSN_CODE}-${service}"
         yq e -i ".services.\"$service\".container_name = \"$m_c_name\"" docker-compose.build.yml
         echo "Success fix ${service} container name to $m_c_name"                
     done; 
 }|| true
 
+sed -i '/^TEXTSCOPE_VERSION=/s/=.*/='$BSN_CODE'/' .env
+sed -i "s/ts-/${BSN_CODE}-/g" .env
 
 bash build.sh $BSN_CODE
