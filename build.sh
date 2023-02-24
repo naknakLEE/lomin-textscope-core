@@ -2,7 +2,7 @@
 
 set -eux
 
-RUNNER=$1
+BSN_CODE=$1
 
 # set enviroments
 sed 's/DEVELOP=True/DEVELOP=False/' ./.env | tee .env.prod
@@ -33,11 +33,12 @@ rm -rf ./${inference_server_build_folder_name}/${created_folder_name}
 # create compiled file
 docker-compose -f docker-compose.build.yml build --parallel
 docker-compose -f docker-compose.build.yml up -d
-docker exec -it textscope-serving bash -c "sh /workspace/inference_server/assets/build_script/serving.sh"
-if [[ -v RUNNER ]]; then
-    echo "This build.sh run to $RUNNER"
-    docker exec --user $RUNNER -it textscope-web bash -c "sh /workspace/assets/build_script/web.sh"
-    docker exec --user $RUNNER -it textscope-pp bash -c "sh /workspace/assets/build_script/pp.sh"    
+
+if [[ -v BSN_CODE ]]; then
+    echo "This build.sh run with $BSN_CODE"
+    docker exec -it ${BSN_CODE}-serving-base bash -c "sh /workspace/inference_server/assets/build_script/serving.sh"
+    docker exec --user circleci -it ${BSN_CODE}-web-base  bash -c "sh /workspace/assets/build_script/web.sh"
+    docker exec --user circleci -it ${BSN_CODE}-pp-base  bash -c "sh /workspace/assets/build_script/pp.sh"    
 else
     docker exec -it textscope-web bash -c "sh /workspace/assets/build_script/web.sh"
     docker exec -it textscope-pp bash -c "sh /workspace/assets/build_script/pp.sh"

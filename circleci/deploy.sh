@@ -17,4 +17,4 @@ cat docker-compose.build.yml | shyaml keys services | {
 }|| true
 
 
-bash build.sh circleci
+bash build.sh $BSN_CODE
