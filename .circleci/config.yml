@@ -12,12 +12,7 @@ executors:
 
 jobs:
   run-application:
-    executor: lomin-dev
-    parameters:
-      BSN_CODE:
-        type: string
-        description: Project bsn_code
-        default: ""    
+    executor: lomin-dev    
     steps:
       - jq/install    
       - checkout
@@ -37,7 +32,7 @@ jobs:
           name: Generate .env file
           command: echo "$ENV_NEW" | base64 --decode > .env
       - when:
-          condition: <<parameters.BSN_CODE>>
+          condition: << pipeline.parameters.BSN_CODE >>
           steps:
             - run:
                 name: Import BSN_CODE and Setting BASH_ENV
@@ -46,7 +41,7 @@ jobs:
                   echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
                   cp $BASH_ENV bash.en         
       - unless:
-          condition: <<parameters.BSN_CODE>>
+          condition: << pipeline.parameters.BSN_CODE >>
           steps:
             - run:
                 name: Import BSN_CODE and Setting BASH_ENV use github api     
