@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -ex
 
 BSN_CODE=$1
 
@@ -40,6 +40,7 @@ if [[ -v BSN_CODE ]]; then
     docker exec --user circleci -it ${BSN_CODE}-web bash -c "sh /workspace/assets/build_script/web.sh"
     docker exec --user circleci -it ${BSN_CODE}-pp bash -c "sh /workspace/assets/build_script/pp.sh"    
 else
+    docker exec -it textscope-serving bash -c "sh /workspace/inference_server/assets/build_script/serving.sh"
     docker exec -it textscope-web bash -c "sh /workspace/assets/build_script/web.sh"
     docker exec -it textscope-pp bash -c "sh /workspace/assets/build_script/pp.sh"
 fi

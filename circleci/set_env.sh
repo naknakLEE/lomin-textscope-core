@@ -5,7 +5,7 @@ BSN_CODE=$1
 PATH="$HOME/.local/bin:$PATH"
 
 # 1. env 파일 변경
-sed -i '/^TEXTSCOPE_BASE_IMAGE_VERSION=/s/=.*/='$BSN_CODE'/' .env
+sed -i '/^TEXTSCOPE_.*VERSION=/s/=.*/='$BSN_CODE'/g' .env
 sed -i '/^BSN_CODE=/s/=.*/='$BSN_CODE'/' .env
 
 # 2. assets config & inference_server config 파일 변경
