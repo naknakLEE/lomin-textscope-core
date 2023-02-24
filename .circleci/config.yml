@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   jq: circleci/jq@2.2.0
   python: circleci/python@1.0.0
+  slack: circleci/slack@4.9.3
   
 executors:
   lomin-dev:
@@ -51,7 +52,24 @@ jobs:
           name: Docker compose down & Clean directory
           command: |
             docker-compose down
-            sudo rm -rf /home/circleci/textscope/application                              
+            sudo rm -rf /home/circleci/textscope/application
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "*이루의 노션 연동 성공!*",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always                                          
   code-test:
     executor: lomin-dev 
     steps:
@@ -115,7 +133,8 @@ jobs:
 workflows:
   feature-develop-PR: 
     jobs:             
-      - run-application:      
+      - run-application:    
+          context: slack  
           filters:
             branches:
               only: /feature\/.*/
