@@ -10,6 +10,11 @@ executors:
     machine: true
     resource_class: lomin/1
 
+parameters:
+  BSN_CODE:
+    type: string
+    default: ""
+
 jobs:
   run-application:
     executor: lomin-dev    
