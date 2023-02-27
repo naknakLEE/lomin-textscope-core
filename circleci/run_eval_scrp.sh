@@ -8,7 +8,7 @@ cd /home/lomin/Circleci/textscope-client/textscope-evaluator
 for dir in $(ls /home/lomin/Circleci/sample/$BSN_CODE); do
     echo "Sample dir: $dir"
     python3 tools/textscope_eval/textscope_requester.py \
-        --textscope-url http://localhost:9100 \
+        --textscope-url http://localhost:9900 \
         --input-dir /home/lomin/Circleci/sample/$BSN_CODE/$dir \
         --output-dir /home/lomin/Circleci/result/$BSN_CODE/$dir \
         --endpoint-type kv \

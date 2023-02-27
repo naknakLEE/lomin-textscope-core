@@ -32,7 +32,7 @@ cat docker-compose.yml | shyaml keys services | {
 yq e -i 'del(.services.*.ports)' docker-compose.yml
 yq e -i 'del(.services.*.ports)' docker-compose.dev.yml
 
-yq e -i '.services.wrapper.ports[0] = "9100:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
+yq e -i '.services.wrapper.ports[0] = "9900:${WRAPPER_IP_PORT}"' docker-compose.dev.yml
 
 # 5. network 변경
 new_network="${BSN_CODE}-net"
