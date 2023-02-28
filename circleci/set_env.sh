@@ -6,7 +6,7 @@ PATH="$HOME/.local/bin:$PATH"
 
 # 1. env 파일 변경
 # sed -i '/^TEXTSCOPE_.*VERSION=/s/=.*/='$BSN_CODE'/g' .env
-sed -i '/^BSN_CODE=/s/=.*/='$BSN_CODE'/' .env
+sed -i '/^BSN_CODE=/ s/=.*/='$BSN_CODE'/' .env
 
 # 2. assets config & inference_server config 파일 변경
 old_serving_container_name=`yq e '.services.serving.container_name' docker-compose.yml`
@@ -40,7 +40,7 @@ sed -i "s/our_net/$new_network/g" docker-compose.yml
 yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" docker-compose.yml
 
 # 6. DOCKER SERVER IP ADDRESS 변경
-sed -i "s/textscope-/${BSN_CODE}-/g" .env
+sed -i '/^\(WRAPPER\|WEB\|SERVING\|PP\)_IP_ADDR=/ s/=.*/='$BSN_CODE'/g' .env
 
 # 7. Docker file user, group 1001:1001 추가
 for Dockerfile in $(ls docker/base); do
