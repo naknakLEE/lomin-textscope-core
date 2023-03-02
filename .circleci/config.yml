@@ -111,7 +111,7 @@ jobs:
       - run:
           name: Execute Evaluator
           command: |
-            skip!
+            echo "skip!"
       # - run:
       #     name: Execute Evaluator
       #     command: |
