@@ -142,6 +142,7 @@ jobs:
       - run:
           name: Export docker images
           command: |
+            source bash.env
             sh assets/save-image-to-local.sh
             if [ ! -d "/home/lomin/Circleci/deploy/$BSN_CODE" ]; then
               echo "Create deploy $BSN_CODE directory"
