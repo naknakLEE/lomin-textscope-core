@@ -42,7 +42,7 @@ sed -i "s/our_net/$new_network/g" docker-compose.yml
 yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" docker-compose.yml
 
 # 6. DOCKER SERVER IP ADDRESS 변경
-sed -i '/^\(WRAPPER\|WEB\|SERVING\|PP\)_IP_ADDR=/ s/=.*/='$BSN_CODE'/g' .env
+sed -i '/^\(WRAPPER\|WEB\|SERVING\|PP\)_IP_ADDR=/ s/=textscope/='$BSN_CODE'/g' .env
 
 # 7. Docker file user, group 1001:1001 추가 => [2023-02-28] 시작유저 lomin으로 변경하여서 해당 부분 주석 처리
 # for Dockerfile in $(ls docker/base); do
