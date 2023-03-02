@@ -1,157 +1,202 @@
 version: 2.1
 
 orbs:
-  aws-cli: circleci/aws-cli@2.0.6
-  gh: circleci/github-cli@1.0
+  jq: circleci/jq@2.2.0
+  python: circleci/python@1.0.0
+  slack: circleci/slack@4.9.3
+  
+executors:
+  lomin-dev:
+    machine: true
+    resource_class: lomin/1
 
-workflows:
-  develop-PR:
-    jobs:
-      - docker-build:
-          context:
-            - .env
-            - aws
-          filters:
-            branches:
-              only:
-                - /feature\/.*/
-      - docker-up:
-          context: .env
-          requires:
-            - docker-build
-          filters:
-            branches:
-              only:
-                - /feature\/.*/
-      - unit_test:
-          requires:
-            - docker-up
-      - docker-down:
-          requires:
-            - unit_test
+parameters:
+  BSN_CODE:
+    type: string
+    default: ""
 
 jobs:
-  docker-build:
-    machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
+  run-application:
+    executor: lomin-dev    
     steps:
+      - jq/install    
       - checkout
-      - run: ls
       - run:
-          name: CI Preparations
-          command: |
-            pip3 install boto3 botocore hydra-core python-dotenv alive_progress awscli
-      - aws-cli/install
-      - run: ssh-keyscan github.com >> ~/.ssh/known_hosts
-      - run: mkdir -p /home/circleci/.config/ssh && cp /home/circleci/.ssh/id_rsa /home/circleci/.config/ssh/id_rsa
+          name: Install shyaml
+          command: pip install shyaml
+      # - slack/notify:
+      #     event: fail
+      #     template: basic_fail_1
+      # - slack/notify:
+      #     event: pass
+      #     template: success_tagged_deploy_1      
       - run:
-          name: check running container and rm container
+          name: Git submoudle update
+          command: git submodule update --init --recursive
+      - run: 
+          name: Generate .env file
+          command: echo "$ENV_NEW" | base64 --decode > .env
+      - run:
+          name: Import BSN_CODE and Setting BASH_ENV
           command: |
-            app="serving"
-            if docker ps | awk -v app="$app" 'NR > 1 && $NF == app{ret=1; exit} END{exit !ret}'; then
-              docker stop "$app" && docker rm -f "$app"
+            BSN_CODE=<< pipeline.parameters.BSN_CODE >>
+            if [ -z "$BSN_CODE" ]; then
+              PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | awk -F/ '{print $7}')
+              PR_TITLE=$(curl -s -H "Authorization: Bearer $IW_GITHUB_TOKEN" https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls/$PR_NUMBER | jq '.title' -r)
+              echo "Pull request title is: $PR_TITLE"
+              BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
+            else
+              sed -i '/BSN_CODE/d' .env         
             fi
+            echo "BSN_CODE is: $BSN_CODE"
+            echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
+            cp $BASH_ENV bash.env
       - run:
-          name: Install Submodules
+          name: Setting project env
           command: |
-            git submodule init
-            git submodule update
-      - run: echo "$env2" | base64 --decode > .env
-      - run: sudo rm -rf inference_server/ModelService
+            bash circleci/set_env.sh $BSN_CODE
+      - run:                
+          name: Execute docker-build.sh
+          command: |
+            bash circleci/docker-build.sh $BSN_CODE
       - run:
-          name: model download & textscope build
+          name: Execute docker-run.sh
           command: |
-            sh init.sh
-
-  docker-up:
-    machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
-    steps:
+            bash circleci/docker-run.sh $BSN_CODE
       - run:
-          name: Set EnvironmentVariables $DISPLAY
-          command: export DISPLAY=:0 
-      - run: 
-          name: Delete the container in the docker compose file.
-          command: |
-            docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
-            shyaml keys services | { 
-              while read services; 
-              do 
-                docker stop $services; 
-                docker rm $services; 
-              done; 
-            }|| true
-      - run: 
-          name: Delete the docker network after deleting the container connected to the docker network.
-          command: |
-            docker-compose -f docker-compose.yml -f docker-compose.dev.yml config | 
-            shyaml keys networks | { 
-              while read network; 
-              do 
-                docker network inspect $network | 
-                grep Name | 
-                grep -v $network | 
-                cut -d '"' -f4 | { 
-                  while read service; 
-                  do 
-                    docker stop  $service; 
-                    docker rm $service; 
-                  done; 
-                }; 
-                if docker network rm $network ; then
-                  echo "$network network rm successful"
-                else
-                  echo "$network There is no container connected to the docker network"
-                fi
-              done; 
-            }|| true
-      - run: 
-          name: Delete the docker volume
-          command: |
-            docker volume rm $(docker volume ls --filter name=${PWD##*/}_ --format "{{.Name}}") || true
-      - run: 
-          name: up
-          command: |
-            docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-      - run:
-          name: Run on fail status
+          when: on_fail
+          name: Docker compose down & Clean directory
           command: |
             docker-compose down
-          when: on_fail
-
-  unit_test:
-    machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
+            rm -rf /home/lomin/Circleci/application
+      # - slack/notify:
+      #     custom: |
+      #       {
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "fields": [
+      #               {
+      #                 "type": "plain_text",
+      #                 "text": "*이루의 노션 연동 성공!*",
+      #                 "emoji": true
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #     event: always                                          
+  code-test:
+    executor: lomin-dev 
     steps:
       - run:
-          name: run test
+          name: Run Test
           command: |
-            docker exec web /bin/sh -c "pytest /workspace/tests -m unit --junitxml=/workspace/test_results/junit.xml"
+            source bash.env
+            docker exec ${BSN_CODE}-web /bin/sh -c "pytest /workspace/tests --junitxml=/workspace/test_results/junit.xml"
       - store_test_results:
           path: test_results
       - store_artifacts:
           path: test_results
           destination: v0.1.0
       - run:
-          name: Run on fail status
+          when: on_fail
+          name: Docker compose down & Clean directory
           command: |
             docker-compose down
+            rm -rf /home/lomin/Circleci/application                      
+  export-evaluator:
+    executor: lomin-dev 
+    steps:  
+      - run:
+          name: Execute Evaluator
+          command: |
+            source bash.env
+            bash circleci/run_eval_scrp.sh $BSN_CODE
+      - run:
           when: on_fail
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf /home/lomin/Circleci/application     
+  deploy-image:
+    executor: lomin-dev 
+    steps:  
+      - run:
+          name: Generate .so file
+          command: |
+            source bash.env
+            bash circleci/deploy.sh $BSN_CODE
+      - run:
+          name: Apply thales
+          command: |
+            sh ~/Circleci/assets/thales/apply-thales-remote.sh
+      - run:
+          name: Docker prod build
+          command: |
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --parallel
+      - run:
+          name: Export docker images
+          command: |
+            sh assets/save-image-to-local.sh
+            if [ !-d "/home/lomin/Circleci/deploy/$BSN_CODE" ]; then
+              echo "Create deploy $BSN_CODE directory"
+              mkdir ~/Circleci/deploy/$BSN_CODE
+            fi
+            mv build/ ~/Circleci/deploy/$BSN_CODE
+      - run:
+          when: always
+          name: Docker compose down & Clean directory
+          command: |
+            docker-compose down
+            rm -rf /home/lomin/Circleci/application                 
 
-  docker-down:
-    machine: true
-    resource_class: lomin/inhak-pc
-    working_directory: ~/textscope
-    steps:
-      - run:
-          name: down
-          command: |
-            docker-compose down
-      - run:
-          name: Run on fail status
-          command: |
-            docker-compose down
-          when: on_fail
+workflows:
+  develop-work: 
+    jobs:             
+      - run-application:  
+          filters:
+            branches:
+              only: /^(feature|release)\/.*/
+          context:
+            - GITHUB_CREDS
+            - slack
+      - code-test:
+          requires:
+            - run-application        
+          filters:
+            branches:
+              only: /^(feature|release)\/.*/                         
+      - export-evaluator:
+          requires:
+            - code-test
+          filters:
+            branches:
+              only: /^(feature|release)\/.*/
+      - deploy-image:
+          requires:
+            - export-evaluator
+          filters:
+            branches:
+              only: /^(feature|release)\/.*/        
+
+
+    # finally:                         
+    #   - shut-down:
+    #       filters:
+    #         branches:
+    #           only: /^(feature|release)\/.*/
+
+
+      # - code-test:
+      #     requires:
+      #       - run-application        
+      #     filters:
+      #       branches:
+      #         only: /^(feature|release)\/.*/                         
+      # - export-evaluator:
+      #     requires:
+      #       - code-test
+      #     filters:
+      #       branches:
+      #         only: /^(feature|release)\/.*/                      
