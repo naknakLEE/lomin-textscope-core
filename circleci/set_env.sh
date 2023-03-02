@@ -63,4 +63,4 @@ fi
 
 # 8. inference_server dockerfile에 1000:1000 user,groupd 추가 및 docker-compose.dev serving 실행 유저 변경
 echo -e "\nRUN groupadd -r lomin -g 1000 && useradd -m -u 1000 -r -g lomin -s /sbin/nologin -c \"Docker image user\" textscope" | tee -a inference_server/Dockerfile > /dev/null
-yq -e -i '.services.serving.user = "1000:1000"' docker-compose.dev.yml 
+# yq -e -i '.services.serving.user = "1000:1000"' docker-compose.dev.yml 
