@@ -147,6 +147,7 @@ jobs:
               echo "Create deploy $BSN_CODE directory"
               mkdir ~/Circleci/deploy/$BSN_CODE
             fi
+            rm -rf ~/Circleci/deploy/$BSN_CODE/*
             mv build/ ~/Circleci/deploy/$BSN_CODE
       - run:
           when: always
