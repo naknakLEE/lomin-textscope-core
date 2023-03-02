@@ -150,12 +150,12 @@ jobs:
             fi
             rm -rf ~/Circleci/deploy/$BSN_CODE/*
             mv build/ ~/Circleci/deploy/$BSN_CODE
-      - run:
-          when: always
-          name: Docker compose down & Clean directory
-          command: |
-            docker-compose down
-            rm -rf /home/lomin/Circleci/application                 
+      # - run:
+      #     when: always
+      #     name: Docker compose down & Clean directory
+      #     command: |
+      #       docker-compose down
+      #       rm -rf /home/lomin/Circleci/application                 
 
 workflows:
   develop-work: 
