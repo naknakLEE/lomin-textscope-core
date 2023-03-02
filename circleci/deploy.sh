@@ -19,6 +19,6 @@ cat docker-compose.build.yml | shyaml keys services | {
 # sed -i '/^TEXTSCOPE_VERSION=/s/=.*/='$BSN_CODE'/' .env
 
 sed -i "s/docker exec -it textscope/docker exec -it $BSN_CODE/g" build.sh
-yq -e -i '.services.serving.user = "1000:1000"' docker-compose.build.yml
+# yq -e -i '.services.serving.user = "1000:1000"' docker-compose.build.yml
 
 bash build.sh
