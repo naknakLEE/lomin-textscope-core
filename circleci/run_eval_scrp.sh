@@ -12,7 +12,7 @@ for dir in $(ls ~/Circleci/sample/$BSN_CODE); do
         --textscope-url http://localhost:9900 \
         --input-dir /home/lomin/Circleci/sample/$BSN_CODE/$dir \
         --output-dir /home/lomin/Circleci/result/$BSN_CODE/$dir \
-        --endpoint-type kv \
+        --endpoint-type cls-kv \
         --doc-type $doc_type \
         --business-code $BSN_CODE \
         --textscope-eval-config ./tools/textscope_eval/textscope_eval_config_${BSN_CODE}.json &&
