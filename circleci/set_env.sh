@@ -13,9 +13,9 @@ old_serving_container_name=`yq e '.services.serving.container_name' docker-compo
 new_serving_container_name=${BSN_CODE}-serving
 sed -i "s/${old_serving_container_name}/${new_serving_container_name}/g" assets/${BSN_CODE}/pipeline_serving_mapping.json
 
-inference_network=`cat inference_server/assets/conf/config.yaml | shyaml get-value defaults.3.network`
-new_minio_container_name=${BSN_CODE}-minio
-yq e -i ".minio.host = \"$new_minio_container_name\"" inference_server/assets/conf/network/${inference_network}.yaml
+# inference_network=`cat inference_server/assets/conf/config.yaml | shyaml get-value defaults.3.network`
+# new_minio_container_name=${BSN_CODE}-minio
+# yq e -i ".minio.host = \"$new_minio_container_name\"" inference_server/assets/conf/network/${inference_network}.yaml
 
 sed -i "s/ --reload//" inference_server/assets/run-dev.sh
 
@@ -43,6 +43,11 @@ yq e -i ".networks.\"$new_network\".ipam.config[0].subnet = \"172.10.0.0/16\"" d
 
 # 6. DOCKER SERVER IP ADDRESS 변경
 sed -i '/^\(WRAPPER\|WEB\|SERVING\|PP\)_IP_ADDR=/ s/=textscope/='$BSN_CODE'/g' .env
+grep -r '.env' -e 'NGINX_SERVING_IP_ADDR'
+if [ $? -ne 1 ]; then
+    bsn_serving_ip_addr=`grep '^SERVING_IP_ADDR=' .env | cut -d '=' -f 2`
+    sed -i '/NGINX_SERVING_IP_ADDR=/ s/=.*/='$bsn_serving_ip_addr'/g' .env
+fi
 
 # 7. Docker file user, group 1001:1001 추가 => [2023-02-28] 시작유저 lomin으로 변경하여서 해당 부분 주석 처리
 # for Dockerfile in $(ls docker/base); do
