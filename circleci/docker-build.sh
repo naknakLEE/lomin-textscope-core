@@ -57,7 +57,7 @@ do
     then
         tokenizer_depth=`echo ${tokenizer_path} | tr -cd '/' | wc -m`
         tokenizer_dir=`echo ${tokenizer_path} | cut -d '/' -f 1-${tokenizer_depth}`
-        cp -r ~/Circleci/$tokenizer_path $tokenizer_dir 
+        cp -r ~/Circleci/$tokenizer_path inference_server/$tokenizer_dir 
     fi    
         
 done
