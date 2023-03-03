@@ -48,7 +48,8 @@ jobs:
               echo "Pull request title is: $PR_TITLE"
               BSN_CODE=$(echo $PR_TITLE | cut -d '/' -f1)
             else
-              sed -i '/BSN_CODE/d' .env         
+              sed -i '/BSN_CODE/d' .env
+              sed -i '/BSN_CODE/d' .env_bak
             fi
             echo "BSN_CODE is: $BSN_CODE"
             echo "export BSN_CODE='$BSN_CODE'">> $BASH_ENV
