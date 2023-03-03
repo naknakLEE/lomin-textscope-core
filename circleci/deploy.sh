@@ -5,7 +5,10 @@ BSN_CODE=$1
 PATH="$HOME/.local/bin:$PATH"
 
 # .env 파일에 개행 문자 삭제(context에 base64 encoding된 값을 decoding하는 방식이라 그런지 개행 문자가 linux와 달라서 이슈 생김)
-sed -i 's/\r$//' .env
+sed -i 's/\r$//' .env_bak
+rm -rf .env
+mv .env_bak .env
+
 # chmod 770 ./ && chmod 654 assets/build_script/*
 # docker-compose.build.yml의 container name 변경
 cat docker-compose.build.yml | shyaml keys services | { 

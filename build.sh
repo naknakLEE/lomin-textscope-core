@@ -56,7 +56,7 @@ done
 # copy build_so file
 cp -r ./assets/build_so/* ${build_folder_name}/${created_folder_name}
 
-####################################################################vv
+####################################################################
 # ./inference_server/assets/models 폴더의 enc 모델 파일을 ./build/textscope/serving/models 폴더로 저장하는 로직
 rm -rf build/textscope/serving/models
 mkdir -p build/textscope/serving/models
@@ -91,12 +91,25 @@ do
     echo "Copied: ${model_parent_path} -> ${build_model_path}"
 
 
-    # ./build/textscope/serving/models/에 있는 비암호화 모델 삭제
+    # ./build/textscope/serving/models/에 있는 비암호화 모델 삭제    
     model_path_length=`echo ${model_path} | tr -cd '/' | wc -m`
     model_filename=`echo ${model_path} | cut -d '/' -f $((${model_path_length} + 1))`
 
+    # .ckpt 모델은 암호화 안하므로 삭제x 
+    model_extention="${model_filename##*.}"
+    echo "$model_filename format: $model_extention"
+    if [ $model_extention = 'ckpt' ]; then
+        echo "$model_filename don't remove file"
+        continue
+    fi
+    
     rm ${build_model_path}/${model_filename}
 done
+
+# TODO. bros_tokenizer 있을경우 복사(향후 동적으로 수정요청)
+if [ -d ./inference_server/assets/models/bros_tokenizer ]; then
+    cp -r ./inference_server/assets/models/bros_tokenizer ./build/textscope/serving/models/
+fi
 
 # ./inference_server/assets/models/에 있는 암호화된 모델 삭제
 find ./inference_server/assets/models/ -name "enc_*" -delete
